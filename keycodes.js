@@ -1,0 +1,12 @@
+var KEYCODE_LEFT = 37,
+   KEYCODE_RIGHT = 39,
+   KEYCODE_UP = 38,
+   KEYCODE_DOWN = 40,
+   KEYCODE_B = 66,
+   KEYCODE_N = 78,
+   KEYCODE_S = 83,
+   KEYCODE_A = 65,
+   KEYCODE_R = 82,
+   KEYCODE_P = 80,
+   KEYCODE_M = 77
+   ;

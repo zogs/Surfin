@@ -1,0 +1,156 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    <title>Performance de la POO avec Javascript</title>
+    <link rel="stylesheet" type="text/css" href="../common/css/demo.css">
+
+    <script type="text/javascript">
+
+            /**
+ * Version avec constructeur
+ */
+var ClasseA = function(a,b) {
+    this.a = a;
+    this.b = b;
+
+    this.somme = function() {
+        return this.a + this.b;
+    }
+
+    this.diff = function() {
+        return this.a + this.b;
+    }
+
+    this.multiplie = function() {
+        return this.a * this.b;
+    }
+
+    this.divide = function() {
+        return this.a / this.b;
+    }
+
+    this.test = function() {
+        if (this.a < this.b) {
+            return this.b;
+        }
+        else {
+            return this.a
+        }
+    }
+}
+
+/**
+ * Version avec Prototype
+ */
+var ClasseB = function(a,b) {
+    this.a = a;
+    this.b = b;
+}
+ClasseB.prototype.somme = function(){
+    return this.a + this.b;
+}
+
+ClasseB.prototype.diff = function(){
+    return this.a + this.b;
+}
+
+ClasseB.prototype.multiplie = function(){
+    return this.a * this.b;
+}
+
+ClasseB.prototype.divide = function(){
+    return this.a / this.b;
+}
+
+ClasseB.prototype.test = function() {
+    if (this.a < this.b) {
+        return this.b;
+    }
+    else {
+        return this.a;
+    }
+}
+
+
+/**
+ * Méthode pour déterminer le temps passé entre deux appels
+ */
+var exec_time = 0; /* Temps d'execution */
+var timeref = (new Date()).getTime();
+var debug_gap = function(){
+    var new_time = (new Date()).getTime();
+    var diff = new_time - timeref;
+    timeref = new_time;
+    return diff;
+}
+
+/**
+ * Création de 'nombreIter' objets de type ClasseA
+ */
+var testObjetsTypeA = function() {
+    var nombreIter = document.getElementById('iteration').value;
+    debug_gap(); /* démarrage du compteur */
+    listObject = [];
+    for (var i=0; i<nombreIter; i++) {
+        var myclass = new ClasseA(3,2);
+        myclass.somme();
+        myclass.diff();
+        myclass.multiplie();
+        myclass.divide();
+        myclass.test();
+        listObject.push(myclass);
+    }
+    exec_time = debug_gap(); /* arrêt du compteur */
+
+    document.getElementById('iteration').value = nombreIter;
+    document.getElementById('debug_gap').value = exec_time;
+}
+
+/**
+ * Création de 'nombreIter' objets de type ClasseB
+ */
+var testObjetsTypeB = function() {
+    var nombreIter = document.getElementById('iteration').value;
+    debug_gap(); /* démarrage du compteur */
+    listObject = [];
+    for (var i=0; i<nombreIter; i++) {
+        var myclass = new ClasseB(3,2);
+        myclass.somme();
+        myclass.diff();
+        myclass.multiplie();
+        myclass.divide();
+        myclass.test();
+        listObject.push(myclass);
+    }
+    exec_time = debug_gap(); /* arrêt du compteur */
+
+    document.getElementById('iteration').value = nombreIter;
+    document.getElementById('debug_gap').value = exec_time;
+}
+
+/**
+ * On efface les objets en mémoire
+ */
+ var resetTest = function() {
+    listObject = [];
+    document.getElementById('debug_gap').value = 0;
+ }
+
+    </script>
+</head>
+<body><h1>Performance de la POO avec Javascript</h1>
+<p><strong>NOTE</strong> : ce test ne fonctionnera que sur Firefox et Chrome (toute version)</p>
+<p><!-- Bouton d'action -->
+    Créer
+    <input type="text" id="iteration" value="2000000" /> instances de
+    <input type="button" onclick="testObjetsTypeA();" value="ClassA (constructeur)" />
+    <input type="button" onclick="testObjetsTypeB();" value="ClassB (prototype)" /> ou
+    <input type="button" onclick="resetTest();" value="Effacer les références aux objets" />
+</p>
+<p><!-- Champs de debug -->
+    Total Time :
+    <input type="text" id="debug_gap" value="0" /> ms<br/>
+    Pour vérifier la consommation mémoire, tapez <strong>about:memory</strong> dans la barre d'adresse de votre navigateur.
+</p>
+</body></html>
