@@ -40,7 +40,7 @@ prototype.init = function(height) {
 	this.bottom_fall_scale = 2;
 	this.top_fall_scale = 0.4;
 	this.tube_points = [];
-	this.debug_points_alpha = 0;
+	this.debug_points_alpha = 0.1;
 
 	//this.direction = 0;
 	this.breaked = false;
@@ -123,7 +123,7 @@ prototype.testFall = function() {
 	//test bottom points
 	if(this.bottom_fall_points.length != 0) {
 		//for each
-		for(var i = this.bottom_fall_points.length - 1; i >=0; i--) {
+		for(var i = 0; i <=  this.bottom_fall_points.length - 1; i++) {
 			var point = this.bottom_fall_points[i];
 			//add point
 			this.fall_cont.addChild(point);
@@ -141,7 +141,7 @@ prototype.testFall = function() {
 	//test top points
 	if(this.top_fall_points.length != 0) {
 		//for each
-		for(var i = this.top_fall_points.length - 1; i >=0; i--) {
+		for(var i = 0; i <= this.top_fall_points.length - 1; i++) {
 			var point = this.top_fall_points[i];			
 			//add point
 			this.fall_cont.addChild(point);
@@ -178,7 +178,7 @@ prototype.testFall = function() {
 
 prototype.isSurferTubing = function(surfer) {
 
-	for(var i = this.tube_points.length - 1; i >=0; i--) {
+	for(var i = 0; i <= this.tube_points.length - 1; i++) {
 		var point = this.tube_points[i];			
 		//add point
 		this.fall_cont.addChild(point);
@@ -417,7 +417,7 @@ prototype.drawSplashPoint = function(point) {
 	var splash = new createjs.Shape();
 		splash.graphics.beginFill('#EEEEEE').drawCircle(0,0,2);
 		if(this.direction==0) splash.alpha = 0.8;
-		else splash.alpha = 0.1;
+		else splash.alpha = 0.5;
 		point.addChild(splash);
 
 	var mask = new createjs.Shape();
@@ -486,6 +486,7 @@ prototype.moveWave = function() {
 
 	if(this.surfer == undefined) return;
 	if(this.breaked == false) return;
+	if(this.surfer.riding == false) return;
 
 	//var coef = 1 - ((100*this.y/SPOT.peak_point) / 100);	
 	var surfer_pos = this.cont.localToGlobal(this.surfer.x,0);
@@ -773,6 +774,9 @@ prototype.drawTrails = function() {
 	//apply mask
 	trail.mask = masker;
 	subtrail.mask = masker;
+
+	//
+	this.trail_cont.y =+10;
 
 	//add trail
 	this.trail_cont.addChild(trail);

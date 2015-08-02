@@ -36,7 +36,8 @@ window.loaded = function() {
 		{id:'surfer_WN',src:'assets/img/surfer/WN.png'},
 		{id:'surfer_WNN',src:'assets/img/surfer/WNN.png'},
 		{id:'surfer_WS',src:'assets/img/surfer/WS.png'},
-		{id:'surfer_WSS',src:'assets/img/surfer/WSS.png'}
+		{id:'surfer_WSS',src:'assets/img/surfer/WSS.png'},
+		{id:'surfer_takeoff',src:'assets/img/surfer/takeoff.png'}
 		]);
 
 

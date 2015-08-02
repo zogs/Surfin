@@ -28,13 +28,21 @@
 		this.velocity = vec2.create();
 		this.velocities = [];
 		this.speed = 0;
-		this.status;
+		this.status = 'wait';
 		this.hitbox_radius = null;
 		this.tube = false;
+		this.riding = false;
 
 		this.hitbox = new createjs.Shape();
 		this.hitbox.graphics.beginFill('red').drawCircle(0,0,1);
+		this.hitbox.alpha = 0;
 		this.addChild(this.hitbox);
+
+		var z = new createjs.Shape();
+		z.graphics.beginFill('red').drawCircle(0,0,3);		
+		this.addChild(z);
+
+
 
 		this.silhouette_cont = new createjs.Container();
 		this.addChild(this.silhouette_cont);
@@ -63,12 +71,14 @@
 		this.on('fall_bottom',function(event) {	
 			this.status = 'fall';		
 			stage.dispatchEvent('surfer_fall_bottom');
-		});
+			window.setTimeout(proxy(this.initEventsListener,this),2000);
+		},this,true);
 
 		this.on('fall_top',function(event) {
 			this.status = 'fall';			
 			stage.dispatchEvent('surfer_fall_top');
-		});
+			window.setTimeout(proxy(this.initEventsListener,this),2000);
+		},this,true);
 
 		this.on('tube_in',function(event) {
 			this.tube = true;
@@ -89,10 +99,39 @@
 
 	prototype.takeOff = function(x,y) {
 
-		this.location = vec2.fromValues(x,y);
-		this.locations.push(vec2.fromValues(x,y));
-		stage.dispatchEvent("surfer_take_off");
+		this.x = x;
+		this.y = y;		
+
+		var takeoff = new createjs.SpriteSheet({
+		    images: [queue.getResult('surfer_takeoff')],
+		    frames: {width:80, height:80},
+		    framerate: 1,
+		    animations: {	        
+		        takeoff: [0,4,false,0.3],	        
+		    }
+		});
+
+		var animation = new createjs.Sprite(takeoff,'takeoff');	
+
+		this.silhouette.removeChildAt(0);
+		this.silhouette.addChild(animation);
+
+		createjs.Tween.get(this)
+			.to({ y: this.wave.height*1/3 },1000,createjs.Tween.quartOut)
+			.call(proxy(this.endTakeOff,this))
+			;		
+		
 		return this;
+	}
+
+	prototype.endTakeOff = function() {
+
+		this.riding = true;
+
+		this.location = vec2.fromValues(this.x,this.y);
+		this.locations.push(vec2.fromValues(this.x,this.y));
+
+		stage.dispatchEvent("surfer_take_off");
 	}
 
 	prototype.setWave = function(wave) {
@@ -157,16 +196,7 @@
 		return false;
 	}
 
-	prototype.moveOnWave = function() {
-
-		//if bot auto move
-		if(this.isBot) return moveBot();
-		
-		//if it is an end of an arial
-		if(this.status == 'arial') stage.dispatchEvent('surfer_arial_end');
-
-		//set status
-		this.status = 'ride';
+	prototype.moveOnWave = function() {		
 
 		//interpolation to mouse
 		var mouse = _getMousePoint(0);
@@ -198,27 +228,41 @@
 		this.wave.drawSpatter();		
 	}
 
-	prototype.startArial = function() {
+	prototype.initArial = function() {
 
 		//if already on air
 		if(this.status=='arial') return;
 		//set current status
 		this.status = 'arial';
-
 		//set score
 		stage.dispatchEvent("surfer_arial_start");
 	}
 
 	prototype.move = function() {
 
+
+	}
+
+	prototype.initRide = function() {
+
+		//if it is an end of an arial
+		if(this.status == 'arial') stage.dispatchEvent('surfer_arial_end');
+		//set status
+		this.status = 'ride';
+	}
+
+	prototype.move = function() {		
+
+		if(this.riding == false) return;		
+
 		if( this.isOnAir() ) {	
 
-			this.startArial();
+			this.initArial();
 			this.moveOnAir();
 		}
 		else {
 
-
+			this.initRide();
 			this.moveOnWave();		
 		}
 

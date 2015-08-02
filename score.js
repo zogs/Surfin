@@ -47,11 +47,12 @@
 		},this);
 
 		stage.on('surfer_fall_bottom',function(event) {
-			this.say('Gaffe à la mousse !',1000);
+			console.log('bottom');
+			this.say('Too low !',1000);
 		},this);
 
 		stage.on('surfer_fall_top',function(event) {
-			this.say('Attention la tete !',1000);
+			this.say('Too high !',1000);
 		},this);
 
 		stage.on('surfer_tube_in',function(event) {
@@ -118,9 +119,6 @@
 
 	prototype.say = function(tx,time) {
 
-		if(this.talking == true) return;
-		this.talking = true;
-
 		this.message.text = tx;		
 		this.message.alpha = 0;
 		this.message.scaleX = this.message.scaleY = 0.1;
@@ -146,11 +144,8 @@
 			.to({alpha:0, scaleX:0, scaleY:0},400,createjs.Ease.elasticIn)
 			;
 
-		this.talking = false;
 		return this;
 	}
-
-
 
 
 	window.Score = createjs.promote(Score,'Container');
