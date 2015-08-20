@@ -40,7 +40,7 @@ prototype.init = function(height) {
 	this.bottom_fall_scale = 2;
 	this.top_fall_scale = 0.4;
 	this.tube_points = [];
-	this.debug_points_alpha = 0.1;
+	this.debug_points_alpha = 0;
 
 	//this.direction = 0;
 	this.breaked = false;
@@ -122,8 +122,9 @@ prototype.testFall = function() {
 
 	//test bottom points
 	if(this.bottom_fall_points.length != 0) {
-		//for each
-		for(var i = 0; i <=  this.bottom_fall_points.length - 1; i++) {
+		//for each points
+		var i = this.bottom_fall_points.length;
+		while(i--){
 			var point = this.bottom_fall_points[i];
 			//add point
 			this.fall_cont.addChild(point);
@@ -140,8 +141,9 @@ prototype.testFall = function() {
 
 	//test top points
 	if(this.top_fall_points.length != 0) {
-		//for each
-		for(var i = 0; i <= this.top_fall_points.length - 1; i++) {
+		//for each points
+		var i = this.top_fall_points.length;
+		while(i--) {		
 			var point = this.top_fall_points[i];			
 			//add point
 			this.fall_cont.addChild(point);
@@ -178,7 +180,8 @@ prototype.testFall = function() {
 
 prototype.isSurferTubing = function(surfer) {
 
-	for(var i = 0; i <= this.tube_points.length - 1; i++) {
+	var i = this.tube_points.length;
+	while(i--) {	
 		var point = this.tube_points[i];			
 		//add point
 		this.fall_cont.addChild(point);
@@ -195,7 +198,7 @@ prototype.addTubePoint = function(point) {
 	var tube = new createjs.Shape();
 		tube.graphics.beginFill('green').drawCircle(0,0,this.height/2);
 		tube.x = point.x;
-		tube.y = this.height / 2;
+		tube.y = this.height >> 1; // divide by 2
 		tube.alpha = this.debug_points_alpha;
 		this.tube_points.unshift(tube);
 	
@@ -490,7 +493,7 @@ prototype.moveWave = function() {
 
 	//var coef = 1 - ((100*this.y/SPOT.peak_point) / 100);	
 	var surfer_pos = this.cont.localToGlobal(this.surfer.x,0);
-	var delta = _stageWidth/2 - surfer_pos.x;
+	var delta = (_stageWidth>>1) - surfer_pos.x;
 	if(this.direction == 1) delta += 100;
 	if(this.direction == -1) delta += -100;
 	
@@ -534,17 +537,18 @@ prototype.initCleanOffScreenPoints = function() {
 
 prototype.cleanOffScreenPoints = function() {
 
-	var n = this.breaking_points.length;
-	for(var i = 0; i < n; i++) {
+	var offset = this.width >> 1; //divice by 2
+
+	for(var i = 0, len = this.breaking_points.length; i < len; i++) {
 		var point = this.breaking_points[i];
 		var x = this.lip_points.localToGlobal(point.x,point.y).x;
 		//remove point if offscreen on the left
-		if( x < (-this.width/2) ) {
+		if( x < (- offset) ) {
 			this.breaking_points.slice(0,1);
 			this.lip_points.removeChild(point);
 		} 
 		//remove point if offscreen on the right
-		if( x > (this.width*1.5) ) {
+		if( x > (this.width + offset) ) {
 			this.breaking_points.slice(this.breaking_points.length - 1, 1);
 			this.lip_points.removeChild(point);
 		}
@@ -561,29 +565,28 @@ prototype.drawLip = function() {
 	//shape.alpha = 0.5;
 
 	//draw main lip
-	var length = this.breaking_points.length;
 	var points = this.breaking_points;
 	var k = shape.graphics.clear().beginFill('rgba(255,255,255,0.5)').beginStroke('#FFF').setStrokeStyle(3);
 	k.moveTo(points[0].x,0);
-	for( i=1; i<points.length -2; i++){
-			var xc = ( points[i].x + points[i+1].x) / 2;
-			var yc = ( points[i].y + points[i+1].y) / 2;
+	for(var i=1,len=points.length; i<len -2; i++){
+			var xc = ( points[i].x + points[i+1].x) >> 1; // divide by 2
+			var yc = ( points[i].y + points[i+1].y) >> 1; // divide by 2
 			k.quadraticCurveTo(points[i].x,points[i].y,xc,yc);
 	}
 	//faire passer par l'avant dernier point
 	k.quadraticCurveTo(points[i].x,points[i].y,points[i+1].x,points[i+1].y);		
 	//le dernier point
-	k.lineTo(points[points.length-1].x,0);
+	k.lineTo(points[len-1].x,0);
+
 
 
 	//draw extra peaks if exist
 	if(this.breaking_peaks.length>0) {
-		var length = this.breaking_peaks.length;
 		var points = this.breaking_peaks;
 		k.moveTo(points[0].x,points[0].y);
-		for( var i=1; i<points.length - 2; i++) {
-			var xc = ( points[i].x + points[i+1].x) / 2;
-			var yc = ( points[i].y + points[i+1].y) / 2;
+		for( var i=1, len=points.length; i<len - 2; i++) {
+			var xc = ( points[i].x + points[i+1].x) >> 1; // divide by 2
+			var yc = ( points[i].y + points[i+1].y) >> 1; // divide by 2
 			k.quadraticCurveTo(points[i].x,points[i].y,xc,yc);
 		}
 		//k.quadraticCurveTo(points[i].x,points[i].y,points[i+1].x,points[i+1].y);
@@ -774,9 +777,6 @@ prototype.drawTrails = function() {
 	//apply mask
 	trail.mask = masker;
 	subtrail.mask = masker;
-
-	//
-	this.trail_cont.y =+10;
 
 	//add trail
 	this.trail_cont.addChild(trail);

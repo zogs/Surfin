@@ -48,11 +48,11 @@
 
 		stage.on('surfer_fall_bottom',function(event) {
 			console.log('bottom');
-			this.say('Too low !',1000);
+			this.say('Too low !',1000,'red');
 		},this);
 
 		stage.on('surfer_fall_top',function(event) {
-			this.say('Too high !',1000);
+			this.say('Too high !',1000,'red');
 		},this);
 
 		stage.on('surfer_tube_in',function(event) {
@@ -117,10 +117,12 @@
 		return this;
 	}
 
-	prototype.say = function(tx,time) {
+	prototype.say = function(tx,time,color) {
 
 		this.message.text = tx;		
+		
 		this.message.alpha = 0;
+		this.message.color = 'white';
 		this.message.scaleX = this.message.scaleY = 0.1;
 		this.message.rotation = 180;
 		var b = this.message.getBounds();
@@ -134,6 +136,7 @@
 			;
 
 		if(time != undefined) window.setTimeout(proxy(this.silence,this),time);
+		if(color != undefined) this.message.color = color;
 
 		return this;
 	}
