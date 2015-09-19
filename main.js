@@ -60,6 +60,7 @@ window.initialize = function() {
 	stage.addChild(background);
 
 
+
 	//SPOT
 	SPOT = new Spot();
 	stage.addChild(SPOT);
@@ -69,10 +70,17 @@ window.initialize = function() {
 
 	//SCORE
 	SCORE = new Score();
+	SCORE.setSpot(SPOT);
 	stage.addChild(SCORE);
+
 
 	//init onEnterFrame
 	createjs.Ticker.addEventListener('tick',tick);
+
+	//mouse point
+	MOUSE = new createjs.Shape();
+	MOUSE.graphics.beginFill('white').drawCircle(0,0,2);
+	stage.addChild(MOUSE);
 
 	//init Mouse move 
 	stage.addEventListener('stagemousemove',onMouseMove);
@@ -82,6 +90,7 @@ window.initialize = function() {
 	window.onkeyup = keyUpHandler;
 	window.onkeydown = keyDownHandler;
 	
+
 }
 
 
@@ -101,6 +110,7 @@ window.keyDownHandler = function(e)
     case KEYCODE_R:  SPOT.removeAllWaves(); break;
     case KEYCODE_P:  SPOT.pauseAllWaves(); break;
     case KEYCODE_M:  SCORE.say('Test !',3000); break;
+    case KEYCODE_T:  SPOT.getWave().getSurfer().testTrail(); break;
    } 
 }
 
@@ -117,6 +127,8 @@ window.onMouseMove= function(e) {
 	_mouseX = e.stageX;
 	_mouseY = e.stageY;
 
+	createjs.Tween.get(MOUSE).to({x: e.stageX,y:e.stageY},100);
+
 	var pt = new createjs.Point(_mouseX,_mouseY);
 	_mousePoints.unshift(pt);
 	_mousePoints = _mousePoints.slice(0,300);
@@ -128,3 +140,9 @@ window._getMousePoint = function(n) {
 	if(_mousePoints.length < n) return _mousePoints[_mousePoints.length];
 	return _mousePoints[n];
 }
+
+window._getMouseVector = function(n) {
+
+	return vec2.fromValues(_getMousePoint(n).x,_getMousePoint(n).y);
+}
+
