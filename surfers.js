@@ -26,7 +26,7 @@
 		this.locations = [];
 		this.trailpoints = [];
 		this.trailsize = 1.3;
-		this.trailcoef = 1.5;
+		this.trailcoef = 4.2;
 		this.velocity = vec2.create();
 		this.velocities = [];
 		this.speed = 0;
@@ -35,15 +35,18 @@
 		this.tubing = false;
 		this.riding = false;
 		this.automove = false;
+		this.autoSilhouette = true;
+		this.ollie_cooldown = 1000;
+		this.trailsize_origin = this.trailsize;
 
 		this.hitbox = new createjs.Shape();
 		this.hitbox.graphics.beginFill('red').drawCircle(0,0,1);
 		this.hitbox.alpha = 0;
 		this.addChild(this.hitbox);
 
-		var z = new createjs.Shape();
-		z.graphics.beginFill('red').drawCircle(0,0,3);		
-		this.addChild(z);
+		this.hitboard = new createjs.Shape();
+		this.hitboard.graphics.beginFill('red').drawCircle(0,0,3);		
+		this.addChild(this.hitboard);
 
 
 
@@ -78,27 +81,6 @@
 		this.drawDebug();
 	}
 
-	prototype.stock = function() {
-		
-		//stock locations		
-		this.locations.unshift(vec2.clone(this.location));
-		this.locations = this.locations.slice(0,60);
-
-		//stock trails locations
-		var point = vec2.clone(this.location);
-		point.size = this.trailsize;
-		this.trailpoints.unshift(point);
-		this.trailpoints = this.trailpoints.slice(0,60);
-		
-		//stock velocities
-		vec2.sub(this.velocity,this.locations[0],this.locations[1]);	
-		this.velocities.unshift(vec2.clone(this.velocity));
-		this.velocities = this.velocities.slice(0,50);
-
-		//stock speed
-		this.speed = vec2.dist(this.locations[0],this.locations[1]);	
-
-	}
 
 	prototype.initEventsListener = function() {
 
@@ -186,7 +168,7 @@
 
 	prototype.resize = function() {
 
-		var coef = (this.wave.y / _stageWidth * 100) * this.silhouette_proportion;
+		var coef = (this.wave.y / STAGEWIDTH * 100) * this.silhouette_proportion;
 
 		this.silhouette.scaleX = coef;
 		this.silhouette.scaleY = coef;
@@ -196,7 +178,7 @@
 		this.silhouette.x = (- this.silhouette_width/2) * coef;		
 		this.silhouette.y = (- this.silhouette_height/2) * coef;	
 
-		this.hitbox.scaleX = this.hitbox.scaleY = this.hitbox_radius = (this.wave.y / _stageWidth * 100) * this.hitbox_proportion;	
+		this.hitbox.scaleX = this.hitbox.scaleY = this.hitbox_radius = (this.wave.y / STAGEWIDTH * 100) * this.hitbox_proportion;	
 		this.hitbox.x = 0;
 		this.hitbox.y = (- this.silhouette_height/6) * coef;
 
@@ -225,6 +207,12 @@
 		return false;
 	}
 
+	prototype.isOllieing = function() {
+
+		if(this.ollieing == true) return true;
+		return false;
+	}
+
 
 	prototype.move = function() {		
 
@@ -234,6 +222,10 @@
 
 			this.initArial();
 			this.moveOnAir();
+		}
+		else if( this.isOllieing() ) {
+
+			this.moveOnOllie();
 		}
 		else {
 
@@ -250,6 +242,68 @@
 		//set surfer silhouette
 		this.setSilhouette();
 
+		
+	}
+
+
+	prototype.moveOnOllie = function() {
+
+		//add gravity to ollie initial vector
+		vec2.add(this.ollie_vector,this.ollie_vector,this.gravity);		
+		//add initial 
+		vec2.add(this.location,this.location,this.ollie_vector);
+
+		
+	}
+
+	prototype.ollie = function() {
+
+		//check cooldown
+		if(this.ollieing == true) return;
+		this.ollieing = true;		
+		
+		this.ollie_height = vec2.fromValues(0,-13);
+		this.ollie_vector = vec2.create();
+		vec2.add(this.ollie_vector,this.velocity,this.ollie_height);	
+
+		this.saveTrailSize();
+		this.trailsize = 0;
+		this.autoSilhouette = false;
+	
+		//console.log('ollie');
+		window.setTimeout(proxy(this.endOllie,this),500);
+
+	}
+
+	prototype.saveTrailSize = function() {
+		if(isNumeric(this.trailsize)) this.trailsize_origin = this.trailsize;
+		//console.log(this.trailsize);
+		return this;
+	}
+	prototype.resetTrailSize = function() {
+		//console.log(this.trailsize_origin);
+		this.trailsize_variated = false;
+		return this.trailsize = this.trailsize_origin;
+	}
+
+	prototype.endOllie = function() {
+		this.ollieing = false;
+		this.autoSilhouette = true;
+		this.resetTrailSize();
+
+		this.saveTrailSize();
+		
+		if(this.trailsize_variated == true) return;
+
+		this.trailsize_variated = true;
+		this.trailsize = new Variation({
+					min: this.trailsize*5,
+					max: this.trailsize,
+					time: 500,
+					loops: 1,
+					slope: 'up',
+					call: proxy(function(){ this.resetTrailSize(); },this)
+				});
 	}
 
 	prototype.moveOnWaveOLD = function() {
@@ -305,6 +359,32 @@
 		vec2.add(this.location,this.location,this.gravity);		
 	}
 
+
+	prototype.stock = function() {
+		
+		//stock locations		
+		this.locations.unshift(vec2.clone(this.location));
+		this.locations = this.locations.slice(0,60);
+
+		//stock trails locations
+		var point = vec2.clone(this.location);
+		//set trail size to point
+		point.size = this.trailsize;
+		//add point to trail points array
+		this.trailpoints.unshift(point);
+		this.trailpoints = this.trailpoints.slice(0,60);
+		
+		//stock velocities
+		vec2.sub(this.velocity,this.locations[0],this.locations[1]);	
+		this.velocities.unshift(vec2.clone(this.velocity));
+		this.velocities = this.velocities.slice(0,50);
+
+		//stock speed
+		this.speed = vec2.dist(this.locations[0],this.locations[1]);	
+
+
+	}
+
 	prototype.initArial = function() {
 
 		//if already on air
@@ -316,14 +396,14 @@
 	}
 
 	prototype.testTrail = function() {
-	
-		this.trailsize_origin = this.trailsize;
+		console.log('testTrail');
+		this.saveTrailSize();
 		this.trailsize = new Variation({
 						min: this.trailsize,
-						max: this.trailsize*10,
+						max: 0,
 						time: 500,
 						loops: 1,
-						call: proxy(this.endArial,this)
+						call: proxy(this.resetTrailSize(),this)
 					});
 	}
 
@@ -332,19 +412,9 @@
 		//end of an arial
 		if(this.status == 'arial') {
 
+			this.endArial();		
 			stage.dispatchEvent('surfer_arial_end');
 
-			this.trailsize_origin = this.trailsize;
-			this.trailsize = new Variation({
-						min: this.trailsize*15,
-						max: this.trailsize,
-						time: 500,
-						loops: 1,
-						slope: 'up',
-						call: proxy(this.endArial,this)
-					});
-				
-			
 		}
 
 		//set status
@@ -352,16 +422,18 @@
 
 	}
 
-	prototype.updateArialLanding = function() {
-
-		this.updateLocation();
-
-	}
-
 	prototype.endArial = function() {
+		
 
-		this.trailsize = this.trailsize_origin;
-
+		this.saveTrailSize();
+		this.trailsize = new Variation({
+					min: this.trailsize*7,
+					max: this.trailsize,
+					time: 500,
+					loops: 1,
+					slope: 'up',
+					call: proxy(this.resetTrailSize,this)
+				});
 	}
 
 	prototype.hit = function(circle,radius) {
@@ -375,6 +447,20 @@
 		var distance = Math.sqrt(xDist*xDist + yDist*yDist);
 
 		if (distance < minDistance) {
+			return true;
+		}
+		return false;
+	}
+
+	prototype.hitSurf = function(circle,radius) {
+
+		var pt = circle.localToLocal(0,0,this);
+		var minDistance = radius + this.hitboard.graphics.command.radius;
+		var xDist = pt.x - this.hitboard.x;
+		var yDist = pt.y - this.hitboard.y;
+		var distance = Math.sqrt(xDist*xDist + yDist*yDist);
+
+		if(distance < minDistance) {
 			return true;
 		}
 		return false;
@@ -445,8 +531,14 @@
 
 	prototype.drawTrails = function() {
 
+		//draw spatter when surfer is on air
 		if(this.isOnAir()) {
 			this.drawSpatter();
+		}
+
+		//dont show trail when surfer is ollieing
+		if(this.isOllieing()) {
+
 		}
 		
 		this.drawTrail();
@@ -475,10 +567,10 @@
 			var pos = this.trailpoints[i];
 			vec2.add(pos,pos,this.wave.suction);
 			//create xy Point
-			var point = new createjs.Point(pos[0]+40,pos[1]);
+			var point = new createjs.Point(pos[0],pos[1]+5);
 			point.size = pos.size;
 			points.push(point);
-			//save all x for futur use
+			//save all x values
 			xs.push(point.x);
 		}
 
@@ -493,14 +585,22 @@
 
 
 		for(var i = 0; i <= nb - 1; i++) {
+
+				var xc = ( points[i].x + points[i+1].x) >> 1; // divide by 2
+				var yc = ( points[i].y + points[i+1].y) >> 1; // divide by 2
+
+				var trail_size = i*points[i].size+this.trailcoef*points[i].size;
+
+				if(trail_size==0) continue;
+
 				trail.graphics
-				.setStrokeStyle(1 + i*this.trailcoef*points[i].size,'round','round').beginStroke('#FFF')
+				.setStrokeStyle(trail_size,'round','round').beginStroke('#FFF')
 				.moveTo(points[i].x,points[i].y)
-				.lineTo(points[i+1].x,points[i+1].y)
+				.quadraticCurveTo(xc,yc,points[i+1].x,points[i+1].y)
 				;
 
 				subtrail.graphics
-				.setStrokeStyle(1 + i*this.trailcoef/5*points[i].size,'butt').beginStroke('rgba(0,0,0,0.1')
+				.setStrokeStyle(trail_size/5,'butt').beginStroke('rgba(0,0,0,0.1')
 				.moveTo(points[i].x,points[i].y)
 				.lineTo(points[i+1].x,points[i+1].y)
 		}
@@ -508,10 +608,10 @@
 		//create linear gradient mask
 		// var box = new createjs.Shape();
 		 // 		box.x = xmin;
-		 // 		box.graphics.beginLinearGradientFill(["#000000", "rgba(0, 0, 0, 0)"], [0, 1], 0, 0, _stageWidth, 0);
+		 // 		box.graphics.beginLinearGradientFill(["#000000", "rgba(0, 0, 0, 0)"], [0, 1], 0, 0, STAGEWIDTH, 0);
 		 // 		box.graphics.moveTo(0,0);
-		 // 		box.graphics.drawRect(0, 0, _stageWidth, wave.height);
-		 // 		box.cache(0, 0, _stageWidth, wave.height);
+		 // 		box.graphics.drawRect(0, 0, STAGEWIDTH, wave.height);
+		 // 		box.cache(0, 0, STAGEWIDTH, wave.height);
 		 // 	trail.filters = [
 		 // 		new createjs.AlphaMaskFilter(box.cacheCanvas) 		
 		 // 	];
@@ -523,7 +623,7 @@
 	 	
 		//trail mask		
 		var masker = new createjs.Shape();
-		masker.graphics.beginFill('red').drawRect(points[0].x - _stageWidth, 0, _stageWidth*2, 200);
+		masker.graphics.beginFill('red').drawRect(points[0].x - STAGEWIDTH, 0, STAGEWIDTH*2, 200);
 		//apply mask
 		trail.mask = masker;
 		subtrail.mask = masker;
@@ -559,9 +659,10 @@
 	}
 
 	prototype.drawDebug = function() {
+		
 		return;
-		this.debug_cont.removeAllChildren();
 
+		this.debug_cont.removeAllChildren();
 
 		var pt = findPointFromAngle(0,0,this.direction,this.speed*3);
 		var angle = new createjs.Shape();	
@@ -602,6 +703,7 @@
 
 	prototype.setSilhouette = function() {	
 		
+		if(this.autoSilhouette==false) return;
 		this.silhouette.removeChildAt(0);
 		this.silhouette.addChild(this.getAngledSilhouette());
 	}

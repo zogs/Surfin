@@ -69,6 +69,22 @@
 		stage.on('surfer_tube_out',function(event) {
 			this.end().silence();
 		},this);
+
+		stage.on('bonus_paddler_hitted',function(event) {
+			this.add(100).say('That was close !',1000);
+		},this);
+
+		stage.on('malus_paddler_hitted',function(event) {
+			this.sub(100).say('BIM!! You hurt someone !',2000, 'red');
+		},this);
+
+		stage.on('bonus_photograf_hitted',function(event) {
+			this.add(500).say("Une petite photo !!",1000);
+		},this);
+
+		stage.on('malus_photograf_hitted',function(event) {
+			this.sub(100).say("Bim you've hurt a paparazzi !",2000, 'red');
+		},this);
 	}
 
 	prototype.setSpot = function(spot) {
@@ -132,6 +148,12 @@
 	prototype.add = function(n) {
 
 		this.score.text = parseInt(this.score.text) + parseInt(n);	
+		return this;
+	}
+
+	prototype.sub = function(n) {
+
+		this.score.text = parseInt(this.score.text) - parseInt(n);	
 		return this;
 	}
 

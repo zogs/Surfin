@@ -8,6 +8,10 @@ function get1dDistance(x1,x2){
 		return Math.sqrt(Math.pow(x2-x1,2));
 }
 
+function isNumeric(n) {
+  return !isNaN(parseFloat(n)) && isFinite(n);
+}
+
 function proxy(method, scope, args) { 
 	if(args == undefined ) return function() { return method.apply(scope, arguments); } 
 	else return function() { return method.apply(scope, args); } 

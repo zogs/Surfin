@@ -31,7 +31,7 @@ prototype.init = function(height) {
 	//set properties
 	this.height = height;
 	this.origin_height = height;
-	this.width = _stageWidth;
+	this.width = STAGEWIDTH;
 	this.surfers = [];
 	this.breaking_points = [];
 	this.breaking_peaks = [];
@@ -41,6 +41,7 @@ prototype.init = function(height) {
 	this.top_fall_scale = 0.2;
 	this.tube_points = [];
 	this.debug_points_alpha = 0;
+	this.shaking_force = 1.2;
 
 	//this.direction = 0;
 	this.breaked = false;
@@ -51,7 +52,7 @@ prototype.init = function(height) {
 	this.background_cont = new createjs.Container();
 	this.addChild(this.background_cont);
 	this.background = new createjs.Shape();	
-	this.background.graphics.beginLinearGradientFill(['#0b2648','#0d528c'],[0,1],0,0,0,this.height).drawRect(0,0,_stageWidth,this.height);	
+	this.background.graphics.beginLinearGradientFill(['#0b2648','#0d528c'],[0,1],0,0,0,this.height).drawRect(0,0,STAGEWIDTH,this.height);	
 	this.background_cont.addChild(this.background);	
 	this.background_cont.y = - this.height;
 	
@@ -69,6 +70,9 @@ prototype.init = function(height) {
 		//surfer cont
 		this.surfer_cont = new createjs.Container();
 		this.cont.addChild(this.surfer_cont);
+		//obstacle cont
+		this.obstacle_cont = new createjs.Container();
+		this.cont.addChild(this.obstacle_cont);
 		//lip of the wave
 		this.lip_points = new createjs.Container();
 		this.cont.addChild(this.lip_points);
@@ -85,17 +89,7 @@ prototype.init = function(height) {
 		this.cont.addChild(this.vanishs_cont);
 
 		//clicking the wave
-		this.on('click',function(e){
-
-			var wave = e.currentTarget;
-			var x = e.stageX;			
-			wave.initBreak(x);
-			wave.addSurfer(x);
-			SPOT.setRidingWave(wave);
-			SPOT.stopNextWaves();
-			
-			
-		});	
+		this.on('click',this.onTakeoffClick);	
 
 		//Ticker
 		this.addEventListener('tick',proxy(this.tick,this));
@@ -103,12 +97,62 @@ prototype.init = function(height) {
 
 }
 
+prototype.onTakeoffClick = function(evt) {
+	var wave = evt.currentTarget;
+	var x = evt.stageX;			
+	wave.initBreak(x);
+	wave.addSurfer(x);
+	SPOT.setRidingWave(wave);
+	//SPOT.stopNextWaves();
+
+	//remove click event
+	evt.remove();
+	//add new click event to jump ollie
+	this.on('click',proxy(this.surfer.ollie,this.surfer));
+}
+
 prototype.tick = function() {
 
 	this.drawLip();
 	this.moveWave();
+	
 
 }
+
+prototype.startShaking = function() {
+
+	this.shaking = true;
+	this.shake();
+
+}
+
+prototype.stopShaking = function() {
+
+	this.shaking = false;
+}
+
+prototype.shake = function() {
+
+	if(this.shaking==false) return;
+
+	var dist = get2dDistance(this.surfer.x,this.surfer.y,this.getVanishPoint().x,this.getVanishPoint().y);
+	var amplitude = this.width/2/dist*this.shaking_force;
+	if(amplitude<1) amplitude = 0;
+	
+	this.shake_x = Math.random()*amplitude*2 - amplitude;
+	this.shake_y = Math.random()*amplitude*2 - amplitude;
+	createjs.Tween.get(this)
+		.to({x:this.x+this.shake_x,y:this.y+this.shake_y},50)
+		.call(proxy(this.unshake,this));
+}
+
+prototype.unshake = function() {
+
+	createjs.Tween.get(this)
+		.to({x:this.x-this.shake_x,y:this.y-this.shake_y},50)
+		.call(proxy(this.shake,this));
+}
+
 
 prototype.addTubePoint = function(point) {
 
@@ -354,7 +398,10 @@ prototype.splashPointReached = function(obj) {
 	this.addTubePoint(point);
 
 	//set direction
-	if(this.direction==0) this.setDirection();
+	if(this.direction==0) {
+		this.setDirection();
+		this.startShaking();
+	}
 
 }
 
@@ -437,7 +484,7 @@ prototype.moveWave = function() {
 
 	//var coef = 1 - ((100*this.y/SPOT.peak_point) / 100);	
 	var surfer_pos = this.cont.localToGlobal(this.surfer.x,0);
-	var delta = (_stageWidth>>1) - surfer_pos.x;
+	var delta = (STAGEWIDTH>>1) - surfer_pos.x;
 	if(this.direction == 1) delta += 200;
 	if(this.direction == -1) delta += -200;
 	
@@ -456,7 +503,7 @@ prototype.oldmoveWave = function() {
 		var coef = ( 100*this.y/ SPOT.peak_point) / 100;
 		var xwidth = this.breaking_width * 1/coef;
 		//move wave normally when well positioned
-		if(pt.x >= (_stageWidth-100)) this.cont.x += xwidth;
+		if(pt.x >= (STAGEWIDTH-100)) this.cont.x += xwidth;
 		//else move quicker
 		else this.cont.x += xwidth *2;
 	}
@@ -604,8 +651,29 @@ prototype.breakingPeaks = function() {
 }
 
 
+prototype.addObstacle = function() {
+
+	var x = 0, y = this.height;	
+	if(this.direction == -1) {
+		var x = this.cont.x*-1 + this.width;
+	}
+	if(this.direction == 1) {
+		var x = - this.cont.x;
+	}
 
 
+	var obs = new Photograf({		
+		wave: this
+	});
+	console.log(obs);
+	this.obstacle_cont.addChild(obs);
+}
+
+prototype.removeObstacle = function(obs) {
+
+	this.obstacle_cont.removeChild(obs);
+
+}
 
 prototype.initVanishPoints = function(x) {
 

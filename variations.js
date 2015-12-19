@@ -2,35 +2,36 @@ Variation = function(config) {
 
 
 	config = config || {};
-	this.min = config.min || 1;
-	this.max = config.max || 100;
-	this.time = config.time || 1000;
-	this.wait = config.wait || 0;
-	this.delay = config.delay || 0;
-	this.loops = config.loops || null;
-	this.call = config.call || null;
-	this.slope = config.slope || 'both';	
-	this.stop = config.stop || false;
+	this.min = config.min != undefined ? config.min : 1;
+	this.max = config.max != undefined ? config.max : 100;
+	this.time = config.time != undefined ? config.time : 1000;
+	this.wait = config.wait != undefined ? config.wait : 0;
+	this.delay = config.delay != undefined ? config.delay : 0;
+	this.loops = config.loops != undefined ? config.loops : null;
+	this.call = config.call != undefined ? config.call : null;
+	this.slope = config.slope != undefined ? config.slope : 'both';	
+	this.stop = config.stop != undefined ? config.stop : false;
 	this.loop = 0;
 
-
-	this.x = this.min;
-
-	this.beginVariation();
-
+	//check if 
+	this.min = (this.min instanceof Variation)? this.min.valueOf() : this.min;
+	this.max = (this.max instanceof Variation)? this.max.valueOf() : this.max;
 
 	
+
+	this.beginVariation();	
 }
 
 Variation.prototype.beginVariation = function() {
 
 	if(this.stop === true) return;
-
-	var tween = createjs.Tween.get(this);
-	if(this.slope == 'both' || this.slope == 'up') tween.to({x:this.max},this.time);
+	this.w = this.min;
+	var tween = createjs.Tween.get(this, {override:true});
+	if(this.slope == 'both' || this.slope == 'up') tween.to({w:this.max},this.time);
 	if(this.wait != 0) tween.wait(Math.random()*this.wait);
-	if(this.slope == 'both' || this.slope == 'down') tween.to({x:this.min},this.time);
+	if(this.slope == 'both' || this.slope == 'down') tween.to({w:this.min},this.time);
 	if(this.call != null) tween.call(proxy(this.restartVariation,this));
+	tween.on('change',proxy(this.onchange,this));
 
 }
 
@@ -46,10 +47,13 @@ Variation.prototype.restartVariation = function() {
 
 /* getters */
 Variation.prototype.toString = function() {
-	return this.x;
+	return this.w;
 }
 Variation.prototype.valueOf = function() {
-	return this.x;
+	return this.w;
+}
+Variation.prototype.onchange = function() {
+	console.log(this.w);
 }
 
 /* setters */

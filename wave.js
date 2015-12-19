@@ -10,7 +10,7 @@ Wave = function(height)
 	this.direction = 0;
 	this.status = '';
 	this.yheight = height;
-	this.width = _stageWidth;
+	this.width = STAGEWIDTH;
 	//raw ref
 	wave = this;
 	//wave background
@@ -104,7 +104,7 @@ Wave.prototype.drawBackground = function(size) {
 
 	this.background_cont.removeAllChildren();	
 	var background = new createjs.Shape();	
-	background.graphics.beginLinearGradientFill(['#0b2648','#0d528c'],[0,1],0,0,0,size).drawRect(0,0,_stageWidth,size);
+	background.graphics.beginLinearGradientFill(['#0b2648','#0d528c'],[0,1],0,0,0,size).drawRect(0,0,STAGEWIDTH,size);
 	this.background_cont.addChild(background);	
 
 }
@@ -308,7 +308,7 @@ Wave.prototype.moveWave = function() {
 		//get vanish point x
 		var pt = wave.cont.localToGlobal(wave.getLeftVanishPoint().x,0);
 		//if wave not positionned
-		if(pt.x >= (_stageWidth-100)) wave.cont.x += wave.breaking_width;
+		if(pt.x >= (STAGEWIDTH-100)) wave.cont.x += wave.breaking_width;
 		//else move normaly
 		else wave.cont.x += wave.breaking_width*1.5;
 	}
@@ -546,10 +546,10 @@ Wave.prototype.drawTrails = function() {
 	//create linear gradient mask
 	// var box = new createjs.Shape();
 	 // 		box.x = xmin;
-	 // 		box.graphics.beginLinearGradientFill(["#000000", "rgba(0, 0, 0, 0)"], [0, 1], 0, 0, _stageWidth, 0);
+	 // 		box.graphics.beginLinearGradientFill(["#000000", "rgba(0, 0, 0, 0)"], [0, 1], 0, 0, STAGEWIDTH, 0);
 	 // 		box.graphics.moveTo(0,0);
-	 // 		box.graphics.drawRect(0, 0, _stageWidth, wave.yheight);
-	 // 		box.cache(0, 0, _stageWidth, wave.yheight);
+	 // 		box.graphics.drawRect(0, 0, STAGEWIDTH, wave.yheight);
+	 // 		box.cache(0, 0, STAGEWIDTH, wave.yheight);
 	 // 	trail.filters = [
 	 // 		new createjs.AlphaMaskFilter(box.cacheCanvas) 		
 	 // 	];
@@ -561,7 +561,7 @@ Wave.prototype.drawTrails = function() {
  	
 	//trail mask		
 	var masker = new createjs.Shape();
-	masker.graphics.beginFill('red').drawRect(points[0].x - _stageWidth, 0, _stageWidth*2, 200);
+	masker.graphics.beginFill('red').drawRect(points[0].x - STAGEWIDTH, 0, STAGEWIDTH*2, 200);
 	//apply mask
 	trail.mask = masker;
 	subtrail.mask = masker;

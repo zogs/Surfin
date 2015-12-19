@@ -39,7 +39,7 @@
 			//Globals
 			_stageWidth = stage.canvas.width;
 			_stageHeight = stage.canvas.height;
-			_mouseX = _stageWidth / 2;
+			MOUSE_X = _stageWidth / 2;
 			_mouseY = _stageHeight / 2;
 			_mousePoints = [];
 
@@ -84,7 +84,7 @@
 
 			//vec2.add(surfer.location,surfer.location,waveSuction);
 
-			var m = vec2.fromValues(_mouseX,_mouseY);
+			var m = vec2.fromValues(MOUSE_X,_mouseY);
 			vec2.lerp(surfer.location,surfer.location,m,0.05);	
 			
 			vec2.lerp(surfer.location,surfer.location,vanish.location,0.05);
@@ -96,7 +96,7 @@
 			
 
 			// var v = vec2.fromValues(vanish.x,vanish.y);
-			// var m = vec2.fromValues(_mouseX,_mouseY);
+			// var m = vec2.fromValues(MOUSE_X,_mouseY);
 			// vec2.lerp(surfer.location,surfer.location,v,0.1);
 			// vec2.lerp(surfer.location,surfer.location,m,0.1);	
 
@@ -144,10 +144,10 @@
 
 		window.onMouseMove= function(e) {
 
-			_mouseX = e.stageX;
+			MOUSE_X = e.stageX;
 			_mouseY = e.stageY;
 
-			var pt = new createjs.Point(_mouseX,_mouseY);
+			var pt = new createjs.Point(MOUSE_X,_mouseY);
 			_mousePoints.unshift(pt);
 			_mousePoints = _mousePoints.slice(0,300);
 

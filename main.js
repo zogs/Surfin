@@ -37,7 +37,9 @@ window.loaded = function() {
 		{id:'surfer_WNN',src:'assets/img/surfer/WNN.png'},
 		{id:'surfer_WS',src:'assets/img/surfer/WS.png'},
 		{id:'surfer_WSS',src:'assets/img/surfer/WSS.png'},
-		{id:'surfer_takeoff',src:'assets/img/surfer/takeoff.png'}
+		{id:'surfer_takeoff',src:'assets/img/surfer/takeoff.png'},
+		{id:'surfer_paddle',src:'assets/img/surfer/P.png'},
+		{id:'photographer',src:'assets/img/object/photographer.png'}
 		]);
 
 
@@ -45,22 +47,19 @@ window.loaded = function() {
 
 }
 
-window.initialize = function() {
-	console.log('initialize');
+window.initialize = function() {	
 
 	//Globals
-	_stageWidth = stage.canvas.width;
-	_stageHeight = stage.canvas.height;
-	_mouseX = _stageWidth/2;
-	_mouseY = _stageHeight/2;
-	_mousePoints = [new createjs.Point(_mouseX,_mouseY)];
-	_waves = [];
+	STAGEWIDTH = stage.canvas.width;
+	STAGEHEIGHT = stage.canvas.height;
+	MOUSE_X = STAGEWIDTH/2;
+	MOUSE_Y = STAGEHEIGHT/2;
+	MOUSE_POINTS = [new createjs.Point(MOUSE_X,MOUSE_Y)];
 
 	var background = new createjs.Bitmap(queue.getResult('bg_paradize'));
 	stage.addChild(background);
 
-
-
+	
 	//SPOT
 	SPOT = new Spot();
 	stage.addChild(SPOT);
@@ -73,7 +72,13 @@ window.initialize = function() {
 	SCORE.setSpot(SPOT);
 	stage.addChild(SCORE);
 
+	//DEBUG
+	DEBUG = {
+		active: true,
+		opacity: 0.2
+	}
 
+	
 	//init onEnterFrame
 	createjs.Ticker.addEventListener('tick',tick);
 
@@ -91,6 +96,7 @@ window.initialize = function() {
 	window.onkeydown = keyDownHandler;
 	
 
+	
 }
 
 
@@ -111,6 +117,7 @@ window.keyDownHandler = function(e)
     case KEYCODE_P:  SPOT.pauseAllWaves(); break;
     case KEYCODE_M:  SCORE.say('Test !',3000); break;
     case KEYCODE_T:  SPOT.getWave().getSurfer().testTrail(); break;
+    case KEYCODE_O:  SPOT.getWave().addObstacle(); break;
    } 
 }
 
@@ -124,21 +131,21 @@ window.keyUpHandler = function(e)
 
 window.onMouseMove= function(e) {
 
-	_mouseX = e.stageX;
-	_mouseY = e.stageY;
+	MOUSE_X = e.stageX;
+	MOUSE_Y = e.stageY;
 
 	createjs.Tween.get(MOUSE).to({x: e.stageX,y:e.stageY},100);
 
-	var pt = new createjs.Point(_mouseX,_mouseY);
-	_mousePoints.unshift(pt);
-	_mousePoints = _mousePoints.slice(0,300);
+	var pt = new createjs.Point(MOUSE_X,MOUSE_Y);
+	MOUSE_POINTS.unshift(pt);
+	MOUSE_POINTS = MOUSE_POINTS.slice(0,300);
 
 }
 
 window._getMousePoint = function(n) {
 
-	if(_mousePoints.length < n) return _mousePoints[_mousePoints.length];
-	return _mousePoints[n];
+	if(MOUSE_POINTS.length < n) return MOUSE_POINTS[MOUSE_POINTS.length];
+	return MOUSE_POINTS[n];
 }
 
 window._getMouseVector = function(n) {

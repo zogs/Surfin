@@ -51,7 +51,7 @@
 
 			//start tween
 			var tween = createjs.Tween.get(wave);		
-			tween.to({y: _stageHeight + this.waves_height,}, this.waves_speed, createjs.Ease.quadIn)
+			tween.to({y: STAGEHEIGHT + this.waves_height,}, this.waves_speed, createjs.Ease.quadIn)
 			tween.call(proxy(this.removeWave,this,[wave]))
 			tween.addEventListener('change',proxy(wave.swellProgress,wave,[this.horizon_point,this.peak_point]));
 			tween.setPosition((1500*this.serie_nb_waves)-(1500*i));
@@ -72,7 +72,7 @@
 
 		//start tween
 		var tween = createjs.Tween.get(wave);		
-		tween.to({y: _stageHeight + this.waves_height,}, this.waves_speed, createjs.Ease.quadIn)
+		tween.to({y: STAGEHEIGHT + this.waves_height,}, this.waves_speed, createjs.Ease.quadIn)
 		tween.call(proxy(this.removeWave,this,[wave]))
 		tween.addEventListener('change',proxy(wave.swellProgress,wave,[this.horizon_point,this.peak_point]));
 
