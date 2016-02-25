@@ -61,34 +61,38 @@
 
 		this.move();
 		this.check();
-		this.hittest();
 	}
 
-	prototype.hittest = function() {
-		
-		if(this.hitted == true) return;
-		
-		var i = this.maluses.length;
-		while(i--) {	
-			var point = this.maluses[i];
-			var radius = point.graphics.command.radius;
-			if(this.wave.surfer.hitSurf(point,radius)) {
-				this.hitted = true;
-				this.malusHitted();
-			}			
-		}
-		
-		if(this.hitted == true) return;
+	prototype.hitBonus = function(surfer) {
 
+		if(this.hitted == true) return;
 		var j = this.bonuses.length;
-		while(j--) {	
+		while(j--) {
 			var point = this.bonuses[j];
 			var radius = point.graphics.command.radius;
-			if(this.wave.surfer.hitSurf(point,radius)) {
+			if(surfer.hitSurf(point,radius)) {
 				this.hitted = true;
 				this.bonusHitted();
-			}			
+				return true;
+			}
 		}
+		return false;
+	}
+
+	prototype.hitMalus = function(surfer) {
+
+		if(this.hitted == true) return;
+		var i = this.maluses.length;
+		while(i--) {
+			var point = this.maluses[i];
+			var radius = point.graphics.command.radius;
+			if(surfer.hitSurf(point,radius)) {
+				this.hitted = true;
+				this.malusHitted();
+				return true;
+			}
+		}
+		return false;
 	}
 
 	prototype.drawImage = function() {

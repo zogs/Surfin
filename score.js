@@ -70,6 +70,14 @@
 			this.end().silence();
 		},this);
 
+		stage.on('surfer_fall_edge',function(event) {
+			this.say('Be smooth man !',1000,'red');
+		},this);
+
+		stage.on('surfer_fallen',function(event) {
+			this.sub(500).end().silence();
+		},this);
+
 		stage.on('bonus_paddler_hitted',function(event) {
 			this.add(100).say('That was close !',1000);
 		},this);
@@ -153,7 +161,9 @@
 
 	prototype.sub = function(n) {
 
-		this.score.text = parseInt(this.score.text) - parseInt(n);	
+		var i = parseInt(this.score.text) - parseInt(n);
+		if(i<0) i=0;	
+		this.score.text = i;
 		return this;
 	}
 

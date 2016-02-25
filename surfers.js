@@ -30,14 +30,23 @@
 		this.velocity = vec2.create();
 		this.velocities = [];
 		this.speed = 0;
+		this.angle;
+		this.angles = [];
 		this.status = 'wait';
 		this.hitbox_radius = null;
 		this.tubing = false;
 		this.riding = false;
+		this.falling = false;
 		this.automove = false;
 		this.autoSilhouette = true;
 		this.ollie_cooldown = 1000;
 		this.trailsize_origin = this.trailsize;
+
+		this.skill = {
+			speed: 1,
+			aerial: 1,
+			agility: 0.8,
+		}
 
 		this.hitbox = new createjs.Shape();
 		this.hitbox.graphics.beginFill('red').drawCircle(0,0,1);
@@ -85,14 +94,23 @@
 	prototype.initEventsListener = function() {
 
 		this.on('fall_bottom',function(event) {	
-			this.status = 'fall';		
+			this.fall();		
+			this.status = 'fall';
 			stage.dispatchEvent('surfer_fall_bottom');
 			window.setTimeout(proxy(this.initEventsListener,this),2000);
 		},this,true);
 
 		this.on('fall_top',function(event) {
-			this.status = 'fall';			
+			this.fall();			
+			this.status = 'fall';
 			stage.dispatchEvent('surfer_fall_top');
+			window.setTimeout(proxy(this.initEventsListener,this),2000);
+		},this,true);
+
+		this.on('fall_edge',function(event) {
+			this.fall();			
+			this.status = 'fall';
+			stage.dispatchEvent('surfer_fall_edge');
 			window.setTimeout(proxy(this.initEventsListener,this),2000);
 		},this,true);
 
@@ -109,6 +127,14 @@
 		this.on('surfing',function(event) {
 
 			stage.dispatchEvent('surfer_surfing');
+		}),
+		this.on('fall',function(event) {
+			
+			stage.dispatchEvent('surfer_fall');
+		})
+		this.on('fallen',function(event) {
+			
+			stage.dispatchEvent('surfer_fallen');
 		});
 
 	}
@@ -168,19 +194,19 @@
 
 	prototype.resize = function() {
 
-		var coef = (this.wave.y / STAGEWIDTH * 100) * this.silhouette_proportion;
+		this.scale = (this.wave.y / STAGEWIDTH * 100) * this.silhouette_proportion;
 
-		this.silhouette.scaleX = coef;
-		this.silhouette.scaleY = coef;
+		this.silhouette.scaleX = this.scale;
+		this.silhouette.scaleY = this.scale;
 
-		this.height = this.origin_height*coef;
+		this.height = this.origin_height*this.scale;
 
-		this.silhouette.x = (- this.silhouette_width/2) * coef;		
-		this.silhouette.y = (- this.silhouette_height/2) * coef;	
+		this.silhouette.x = (- this.silhouette_width/2) * this.scale;		
+		this.silhouette.y = (- this.silhouette_height/2) * this.scale;	
 
 		this.hitbox.scaleX = this.hitbox.scaleY = this.hitbox_radius = (this.wave.y / STAGEWIDTH * 100) * this.hitbox_proportion;	
 		this.hitbox.x = 0;
-		this.hitbox.y = (- this.silhouette_height/6) * coef;
+		this.hitbox.y = (- this.silhouette_height/6) * this.scale;
 
 	}
 
@@ -226,6 +252,10 @@
 		else if( this.isOllieing() ) {
 
 			this.moveOnOllie();
+		}
+		else if( this.isFalling() ) {
+
+			this.fallWithInertia();
 		}
 		else {
 
@@ -344,7 +374,14 @@
 		var vanish = this.getVanishPoint();
 		vec2.lerp(this.location,this.location,vec2.fromValues(vanish.x,vanish.y),0.05);
 
-		//sufer can go bellow the wave
+		//apply skill limit
+		var speed = new vec2.create();
+		vec2.sub(speed,this.location,this.locations[0]);
+		var limit = 0.5 + this.skill.speed/2;
+		vec2.scale(speed,speed,limit);
+		vec2.add(this.location,this.locations[0],speed);		
+
+		//sufer cant go bellow the wave
 		if(this.location[1] > this.wave.height) {
 			this.location[1] = this.wave.height;
 		}
@@ -355,8 +392,12 @@
 
 		//add initial velocity
 		vec2.add(this.location,this.location,this.velocity);
+		//apply skill limit
+		var gravity = vec2.create();
+		vec2.scale(gravity,this.gravity,2-this.skill.aerial);
 		//add gravity
-		vec2.add(this.location,this.location,this.gravity);		
+		vec2.add(this.location,this.location,gravity);	
+
 	}
 
 
@@ -381,6 +422,10 @@
 
 		//stock speed
 		this.speed = vec2.dist(this.locations[0],this.locations[1]);	
+
+		//stock angle
+		this.angles.unshift(this.angle);
+		this.angles = this.angles.slice(0,50);
 
 
 	}
@@ -479,9 +524,77 @@
 	}
 
 
+	prototype.isFalling = function() {
+		if(this.falling === true) return true;
+	}
+
+	prototype.fall = function() {
+
+		if(this.falling == true) return;
+
+		this.falling = true;
+
+		this.dispatchEvent('fall');
+
+		this.showFallPlouf();
+		this.ploufinterval = window.setInterval(proxy(this.showFallPlouf,this),200);
+
+		createjs.Tween.get(this.silhouette_cont)
+		.to({rotation:360*this.wave.direction*-1,alpha:0,scaleX:0.4,scaleY:0.4},1000)
+		.to({rotation:0,alpha:1,scaleX:1,scaleY:1},0)
+		;
+	
+	}
+
+	prototype.fallFinished = function() {
+
+		this.falling = false;
+
+		window.clearInterval(this.ploufinterval);
+
+		this.dispatchEvent("fallen");
+		
+	}
+
+	prototype.fallWithInertia = function() 
+	{
+		vec2.scale(this.velocity,this.velocity,0.8);
+		
+		if(vec2.sqrLen(this.velocity) < 1) {
+			this.fallFinished();
+		}
+		vec2.add(this.location,this.location,this.velocity);
+	}
+
+	prototype.showFallPlouf = function() {
+
+		var plouf = new createjs.Container();
+		var img = new createjs.Bitmap(queue.getResult('wash'));
+		img.x = -40;
+		img.y = -20;
+
+		plouf.addChild(img);
+
+		plouf.x = this.x + 50*this.wave.direction*-1;
+		plouf.y = this.y;
+		plouf.scaleX = plouf.scaleY = this.scale;
+		plouf.rotation = Math.random(10)*(Math.random(2)-1);
+		this.wave.surfer_cont.addChild(plouf);
+
+		var c = this.scale*3;
+		createjs.Tween.get(plouf)
+		.to({scaleX:c, scaleY:c, alpha:0, y:plouf.y-50},600)
+		;
+
+	}
+
 	prototype.testFall = function() {
 
 		if(this.wave == undefined) return;
+
+
+		//check trajectory
+		this.checkTrajectory();
 
 		//does surfer hits top points	
 		var j = this.wave.top_fall_points.length;
@@ -521,12 +634,47 @@
 		else {
 			//trhow event tube out
 			if(this.tubing == true) this.dispatchEvent('tube_out');
-		}		
+		}
+
+		//does surfer hits obstacles
+		this.hitObstacles();
+
 
 
 		//dispatch normal event
 		this.dispatchEvent('surfing');
 
+	}
+
+	prototype.checkTrajectory = function() {
+
+		if(this.angles[5] == undefined) return;
+
+		var delta = Math.abs(this.angle - this.angles[5])%360;
+		var diff = (delta > 180)? 360 - delta : delta;
+		var allowed = 120 + 60*this.skill.agility;
+			
+		if(diff > allowed) {			
+			this.dispatchEvent('fall_edge')
+		}
+	}
+
+	prototype.hitObstacles = function() {
+
+		//no hit when surfer is ollying
+		if(this.isOllieing() == true) return;
+
+		//test all waves obstacles
+		for(var i=0,l=this.wave.obstacles.length;i<l;i++) {
+			var obstacle = this.wave.obstacles[i];
+
+			if(obstacle.hitBonus(this)) {
+
+			}
+			if(obstacle.hitMalus(this)) {
+				this.fall();
+			}
+		}
 	}
 
 	prototype.drawTrails = function() {
@@ -697,7 +845,8 @@
 		if(this.locations[1] == undefined) return this.angle = 160;
 		var a = Math.atan2(this.locations[1][0]-this.locations[0][0],this.locations[1][1]-this.locations[0][1]);
 		this.angle = a*(180/Math.PI);
-		this.direction = -(this.angle+90);
+		this.direction = -(this.angle+90);		
+		
 		return this.angle;
 	}
 

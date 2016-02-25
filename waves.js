@@ -33,6 +33,7 @@ prototype.init = function(height) {
 	this.origin_height = height;
 	this.width = STAGEWIDTH;
 	this.surfers = [];
+	this.obstacles = [];
 	this.breaking_points = [];
 	this.breaking_peaks = [];
 	this.bottom_fall_points = [];
@@ -662,17 +663,18 @@ prototype.addObstacle = function() {
 	}
 
 
-	var obs = new Photograf({		
+	var obs = new Obstacle({		
 		wave: this
 	});
-	console.log(obs);
+	
+	this.obstacles.push(obs);
 	this.obstacle_cont.addChild(obs);
 }
 
 prototype.removeObstacle = function(obs) {
 
+	this.obstacles.splice(this.obstacles.indexOf(obs),1);
 	this.obstacle_cont.removeChild(obs);
-
 }
 
 prototype.initVanishPoints = function(x) {

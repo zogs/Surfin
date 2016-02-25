@@ -10,5 +10,6 @@ var KEYCODE_LEFT = 37,
    KEYCODE_P = 80,
    KEYCODE_M = 77,
    KEYCODE_O = 79,
-   KEYCODE_T = 84
+   KEYCODE_T = 84,
+   KEYCODE_F = 70
    ;

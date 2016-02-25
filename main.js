@@ -39,7 +39,10 @@ window.loaded = function() {
 		{id:'surfer_WSS',src:'assets/img/surfer/WSS.png'},
 		{id:'surfer_takeoff',src:'assets/img/surfer/takeoff.png'},
 		{id:'surfer_paddle',src:'assets/img/surfer/P.png'},
-		{id:'photographer',src:'assets/img/object/photographer.png'}
+		{id:'photographer',src:'assets/img/object/photographer.png'},
+		{id:'wash_plouf',src:'assets/img/object/wash.svg'},
+		{id:'wash',src:'assets/img/object/wash.png'}
+
 		]);
 
 
@@ -59,7 +62,7 @@ window.initialize = function() {
 	var background = new createjs.Bitmap(queue.getResult('bg_paradize'));
 	stage.addChild(background);
 
-	
+
 	//SPOT
 	SPOT = new Spot();
 	stage.addChild(SPOT);
@@ -117,6 +120,7 @@ window.keyDownHandler = function(e)
     case KEYCODE_P:  SPOT.pauseAllWaves(); break;
     case KEYCODE_M:  SCORE.say('Test !',3000); break;
     case KEYCODE_T:  SPOT.getWave().getSurfer().testTrail(); break;
+    case KEYCODE_F:  SPOT.getWave().getSurfer().fall(); break;
     case KEYCODE_O:  SPOT.getWave().addObstacle(); break;
    } 
 }
