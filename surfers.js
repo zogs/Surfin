@@ -43,9 +43,9 @@
 		this.trailsize_origin = this.trailsize;
 
 		this.skill = {
-			speed: 1,
-			aerial: 1,
-			agility: 0.8,
+			speed: 1, //0 to 1
+			aerial: 1, //0 to 1
+			agility: 0.8, //0 to 1
 		}
 
 		this.hitbox = new createjs.Shape();
@@ -163,10 +163,16 @@
 		this.silhouette.addChild(animation);
 
 		var tween = createjs.Tween.get(this);
-			tween.to({ y: this.wave.height*1/3 },1000,createjs.Tween.quartOut);
+			tween.to({ y: this.wave.params.height*1/3 },1000,createjs.Tween.quartOut);
 			tween.call(proxy(this.endTakeOff,this));
 			tween.addEventListener('change',proxy(this.updateLocation,this));
 			;		
+
+
+		var event = new createjs.Event("surfer_take_off");
+		event.wave = this.wave;
+		event.surfer = this;
+		stage.dispatchEvent(event);
 		
 		return this;
 	}
@@ -182,7 +188,7 @@
 		this.automove = false;
 		this.riding = true;
 
-		stage.dispatchEvent("surfer_take_off");
+		stage.dispatchEvent("surfer_take_off_done");
 	}
 
 	prototype.setWave = function(wave) {
@@ -230,6 +236,27 @@
 	prototype.isOnAir = function() {
 
 		if(this.y < 0) return true;
+
+		//check near left shoulder 
+		if(this.x < this.wave.shoulder_left.x) {
+			var x1 = this.wave.shoulder_left.x;
+			var y1 = this.wave.shoulder_left.y;
+			var x2 = this.wave.shoulder_left.x - this.wave.params.shoulder.left.marge - this.wave.params.shoulder.left.width;
+			var y2 = this.wave.params.height;
+			var r = intersection(x1,y1,x2,y2,this.x,this.y,this.x,-500); //get the intersection between the shoulder line and a vertical top line above the surfer
+			if(r === null) return true;
+		}
+
+		//check near right shoulder 
+		if(this.x > this.wave.shoulder_right.x) {
+			var x1 = this.wave.shoulder_right.x;
+			var y1 = this.wave.shoulder_right.y;
+			var x2 = this.wave.shoulder_right.x + this.wave.params.shoulder.right.marge + this.wave.params.shoulder.right.width;
+			var y2 = this.wave.params.height;
+			var r = intersection(x1,y1,x2,y2,this.x,this.y,this.x,-500); //get the intersection between the shoulder line and a vertical top line above the surfer
+			if(r === null) return true;
+		}
+
 		return false;
 	}
 
@@ -270,8 +297,7 @@
 		//set surfer direction angle
 		this.setAngle();
 		//set surfer silhouette
-		this.setSilhouette();
-
+		this.setSilhouette();		
 		
 	}
 
@@ -305,26 +331,15 @@
 
 	}
 
-	prototype.saveTrailSize = function() {
-		if(isNumeric(this.trailsize)) this.trailsize_origin = this.trailsize;
-		//console.log(this.trailsize);
-		return this;
-	}
-	prototype.resetTrailSize = function() {
-		//console.log(this.trailsize_origin);
-		this.trailsize_variated = false;
-		return this.trailsize = this.trailsize_origin;
-	}
-
 	prototype.endOllie = function() {
 		this.ollieing = false;
 		this.autoSilhouette = true;
+
+		this.ollieParticles();
+
 		this.resetTrailSize();
-
-		this.saveTrailSize();
-		
+		this.saveTrailSize();		
 		if(this.trailsize_variated == true) return;
-
 		this.trailsize_variated = true;
 		this.trailsize = new Variation({
 					min: this.trailsize*5,
@@ -332,8 +347,33 @@
 					time: 500,
 					loops: 1,
 					slope: 'up',
-					call: proxy(function(){ this.resetTrailSize(); },this)
+					callback: proxy(function(){ this.resetTrailSize(); },this)
 				});
+	}
+
+	prototype.ollieParticles = function() {
+
+		//emit particle
+		var emitter = new ParticleEmitter({
+			position: vec2.fromValues(this.x,this.y),
+			angle: Math.PI /2,
+			spread: Math.PI,
+			magnitude: this.speed/2,
+			magnitudemax: this.speed,
+			color: '#FFF',
+			size: 2,
+			sizemax: 8,
+			fade: 0.1,
+			fademax: 0.3,
+			rotate: 5,
+			rotatemax: -5,
+
+		});
+		for(var i=0; i < 10; i++) {
+			var particule = emitter.emitParticle();
+			this.wave.particles_cont.addChild(particule);
+			this.wave.particles.push(particule);
+		}
 	}
 
 	prototype.moveOnWaveOLD = function() {
@@ -367,7 +407,7 @@
 
 		//interpolation to mouse
 		var mouse = _getMousePoint(0);
-		var mouse = this.wave.cont.globalToLocal(mouse.x,mouse.y);
+		var mouse = this.wave.foreground_cont.globalToLocal(mouse.x,mouse.y);
 		vec2.lerp(this.location,this.location,vec2.fromValues(mouse.x,mouse.y),0.24);
 
 		//interpolation to vanish
@@ -378,12 +418,16 @@
 		var speed = new vec2.create();
 		vec2.sub(speed,this.location,this.locations[0]);
 		var limit = 0.5 + this.skill.speed/2;
-		vec2.scale(speed,speed,limit);
-		vec2.add(this.location,this.locations[0],speed);		
+		vec2.scale(speed,speed,limit);		
+		vec2.add(this.location,this.locations[0],speed);	
+
+		//sightly up and down random movement
+		if(this.move_dy == undefined) this.move_dy = new Variation({min: 5,max: 10,time: 200});
+		this.location[1] = this.location[1] + ( 5 - this.move_dy);
 
 		//sufer cant go bellow the wave
-		if(this.location[1] > this.wave.height) {
-			this.location[1] = this.wave.height;
+		if(this.location[1] > this.wave.params.height) {
+			this.location[1] = this.wave.params.height;
 		}
 
 	}
@@ -402,6 +446,7 @@
 
 
 	prototype.stock = function() {
+		
 		
 		//stock locations		
 		this.locations.unshift(vec2.clone(this.location));
@@ -427,7 +472,6 @@
 		this.angles.unshift(this.angle);
 		this.angles = this.angles.slice(0,50);
 
-
 	}
 
 	prototype.initArial = function() {
@@ -438,18 +482,78 @@
 		this.status = 'arial';
 		//set score
 		stage.dispatchEvent("surfer_arial_start");
+		//hide trail
+		this.saveTrailSize();
+		this.trailsize = 0;
+		//particles
+		this.arialParticles();	
+		//tricks		
+		this.initTricks();
+
 	}
 
-	prototype.testTrail = function() {
-		console.log('testTrail');
-		this.saveTrailSize();
-		this.trailsize = new Variation({
-						min: this.trailsize,
-						max: 0,
-						time: 500,
-						loops: 1,
-						call: proxy(this.resetTrailSize(),this)
-					});
+	prototype.initTricks = function() {
+
+		var impulse = vec2.length(this.velocity);
+
+		console.log(impulse);
+		if(impulse > 35) {
+			return this.initDoubleBackflip();
+		}
+
+		if(impulse > 30) {
+			return this.initBackflip();
+		}
+
+	}
+
+	prototype.initBackflip = function() {
+
+		this.tricked = true;
+		createjs.Tween.get(this)
+			.to({rotation:360 * this.wave.direction},1000)
+			.call(proxy(this.endBackflip,this))
+			;
+	}
+
+	prototype.initDoubleBackflip = function() {
+
+		this.tricked = true;
+		createjs.Tween.get(this)
+			.to({rotation:720 * this.wave.direction},1500)
+			.call(proxy(this.endBackflip,this))
+			;
+	}
+
+	prototype.endBackflip = function() {
+
+		this.rotation = 0;
+		this.tricked = false;
+	}
+
+	prototype.arialParticles = function() {
+
+		//emit particle
+		var emitter = new ParticleEmitter({
+			position: vec2.fromValues(this.x,this.y),
+			angle: this.angle_rad,
+			spread: Math.PI / 20,
+			magnitude: this.speed,
+			magnitudemax: this.speed*2,
+			color: '#FFF',
+			size: 1,
+			sizemax: 7,
+			fade: 0.05,
+			fademax: 0.2,
+			rotate: 5,
+			rotatemax: -5,
+			scaler: - 0.1
+		});
+		for(var i=0; i < 40; i++) {
+			var particule = emitter.emitParticle();
+			this.wave.particles_cont.addChild(particule);
+			this.wave.particles.push(particule);
+		}
 	}
 
 	prototype.initRide = function() {
@@ -459,7 +563,6 @@
 
 			this.endArial();		
 			stage.dispatchEvent('surfer_arial_end');
-
 		}
 
 		//set status
@@ -467,17 +570,33 @@
 
 	}
 
-	prototype.endArial = function() {
-		
+	prototype.saveTrailSize = function() {
+		if(this.trailsize instanceof Variation) return;
+		this.trailsize_origin = this.trailsize;
+		return this;
+	}
+	prototype.resetTrailSize = function() {
+		this.trailsize_variated = false;
+		return this.trailsize = this.trailsize_origin;
+	}
 
-		this.saveTrailSize();
-		this.trailsize = new Variation({
+
+	prototype.endArial = function() {
+
+		//if a tricks is not ended, surfer fall
+		if(this.tricked == true) {
+			this.fall();
+		}
+
+		this.resetTrailSize();	
+
+		Variation.prototype.applyOnce(this,'trailsize',{
 					min: this.trailsize*7,
 					max: this.trailsize,
 					time: 500,
 					loops: 1,
 					slope: 'up',
-					call: proxy(this.resetTrailSize,this)
+					callback: proxy(this.resetTrailSize,this),
 				});
 	}
 
@@ -586,6 +705,33 @@
 		.to({scaleX:c, scaleY:c, alpha:0, y:plouf.y-50},600)
 		;
 
+		this.fallParticles();
+
+	}
+
+	prototype.fallParticles = function() {
+
+		//emit particle
+		var emitter = new ParticleEmitter({
+			position: vec2.fromValues(this.x,this.y),
+			angle: Math.PI /2,
+			spread: Math.PI,
+			magnitude: 20,
+			color: '#FFF',
+			size: 1,
+			sizemax: 5,
+			fade: 0.1,
+			fademax: 0.3,
+			rotate: 5,
+			rotatemax: -5,
+			scaler: 0.1
+
+		});
+		for(var i=0; i < 30; i++) {
+			var particule = emitter.emitParticle();
+			this.wave.particles_cont.addChild(particule);
+			this.wave.particles.push(particule);
+		}
 	}
 
 	prototype.testFall = function() {
@@ -620,11 +766,6 @@
 				break;
 			} 			
 		}
-		//maintain a raisonable count of fall points
-		this.wave.bottom_fall_points = this.wave.bottom_fall_points.slice(0,50);
-		//don't remove this line !! or surfer will iremidiabely fall and you will not know why...
-		
-
 
 		//does surfer hits tube point
 		if(this.isTubing()) {
@@ -713,7 +854,7 @@
 		for (var i = 0; i <= nb; i++) {
 			//apply vector suction
 			var pos = this.trailpoints[i];
-			vec2.add(pos,pos,this.wave.suction);
+			vec2.add(pos,pos,this.wave.params.suction);
 			//create xy Point
 			var point = new createjs.Point(pos[0],pos[1]+5);
 			point.size = pos.size;
@@ -764,17 +905,14 @@
 		 // 		new createjs.AlphaMaskFilter(box.cacheCanvas) 		
 		 // 	];
 	 	//cache the shape 	
-		trail.cache(xmin,0,xmax-xmin,this.wave.height);
+		trail.cache(xmin,0,xmax-xmin,this.wave.params.height);
 		//subtrail.cache(xmin,0,xmax-xmin,this.height);
 		trail.alpha = 0.3;
 		//subtrail.alpha = 0.1;
 	 	
-		//trail mask		
-		var masker = new createjs.Shape();
-		masker.graphics.beginFill('red').drawRect(points[0].x - STAGEWIDTH, 0, STAGEWIDTH*2, 200);
 		//apply mask
-		trail.mask = masker;
-		subtrail.mask = masker;
+		trail.mask = this.wave.shape_mask;;
+		subtrail.mask = this.wave.shape_mask;;
 
 		//add trail
 		this.wave.trail_cont.addChild(trail);
@@ -783,7 +921,7 @@
 	}
 
 	prototype.drawSpatter = function() {
-
+		/*
 		var graphics = new createjs.Graphics()
 					.beginFill(createjs.Graphics.getRGB(255, 255, 255))
 					.drawCircle(0, 0, 6)
@@ -803,13 +941,11 @@
 			},500);
 
 		this.wave.spatter_cont.addChild(spatter);
-		
+		*/
 	}
 
 	prototype.drawDebug = function() {
-		
 		return;
-
 		this.debug_cont.removeAllChildren();
 
 		var pt = findPointFromAngle(0,0,this.direction,this.speed*3);
@@ -830,7 +966,7 @@
 
 		//calcul mouse vector
 		var vec = new vec2.create();
-		var mouse = this.globalToLocal(MOUSE.x,MOUSE.y);
+		var mouse = this.globalToLocal(MOUSE_X,MOUSE_Y);
 		var loc = this.localToLocal(0,0,this);
 		vec2.sub(vec,vec2.fromValues(mouse.x,mouse.y),vec2.fromValues(loc.x,loc.y));	
 		vec2.scale(vec,vec,0.4);
@@ -843,9 +979,9 @@
 	prototype.setAngle = function() {
 
 		if(this.locations[1] == undefined) return this.angle = 160;
-		var a = Math.atan2(this.locations[1][0]-this.locations[0][0],this.locations[1][1]-this.locations[0][1]);
-		this.angle = a*(180/Math.PI);
-		this.direction = -(this.angle+90);		
+		this.angle_rad = Math.atan2(this.locations[0][1]-this.locations[1][1],this.locations[0][0]-this.locations[1][0]);
+		this.angle = Math.degrees(this.angle_rad);
+		this.direction = this.angle;		
 		
 		return this.angle;
 	}
@@ -858,8 +994,10 @@
 	}
 
 	prototype.getAngledSilhouette = function() {
-		var deg = this.angle;
-		deg = deg*-1;
+		//dont touch
+		//unless you want to rewrite all bitmap condition......
+		var rad = Math.atan2(this.locations[1][0]-this.locations[0][0],this.locations[1][1]-this.locations[0][1]);
+		var deg = -1*Math.degrees(rad);
 		if(deg>170) return new createjs.Bitmap(queue.getResult('surfer_S'));
 		if(deg>160) return new createjs.Bitmap(queue.getResult('surfer_SE'));
 		if(deg>140) return new createjs.Bitmap(queue.getResult('surfer_ES'));

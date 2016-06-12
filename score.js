@@ -42,12 +42,12 @@
 
 	prototype.initEventsListeners = function() {
 
-		stage.on('surfer_take_off',function(event) {
+		stage.on('surfer_take_off_done',function(event) {
 			this.add(50).say('Take Off !',2000);
 		},this);
 
 		stage.on('surfer_arial_start',function(event) {			
-			this.start(20).say('Arial !!!');
+			this.start(20).say('Aerial !!!');
 		},this);
 
 		stage.on('surfer_arial_end',function(event) {			
@@ -140,7 +140,7 @@
 
 
 		//on-wave subscore
-		var pt = this.spot.wave.surfer.localToGlobal(0,0);
+		var pt = SPOT.surfer.localToGlobal(0,0);
 		this.onwavescore.x = pt.x;
 		this.onwavescore.y = pt.y;
 		this.onwavescore.alpha = 1;

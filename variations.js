@@ -9,8 +9,10 @@ Variation = function(config) {
 	this.delay = config.delay != undefined ? config.delay : 0;
 	this.loops = config.loops != undefined ? config.loops : null;
 	this.call = config.call != undefined ? config.call : null;
+	this.callback = config.callback != undefined ? config.callback : null;
 	this.slope = config.slope != undefined ? config.slope : 'both';	
 	this.stop = config.stop != undefined ? config.stop : false;
+	this.override = config.override != undefined ? config.override : true;
 	this.loop = 0;
 
 	//check if 
@@ -18,19 +20,18 @@ Variation = function(config) {
 	this.max = (this.max instanceof Variation)? this.max.valueOf() : this.max;
 
 	
-
 	this.beginVariation();	
 }
 
 Variation.prototype.beginVariation = function() {
-
+	
 	if(this.stop === true) return;
 	this.w = this.min;
-	var tween = createjs.Tween.get(this, {override:true});
+	var tween = createjs.Tween.get(this, {override: this.override});
 	if(this.slope == 'both' || this.slope == 'up') tween.to({w:this.max},this.time);
 	if(this.wait != 0) tween.wait(Math.random()*this.wait);
 	if(this.slope == 'both' || this.slope == 'down') tween.to({w:this.min},this.time);
-	if(this.call != null) tween.call(proxy(this.restartVariation,this));
+	tween.call(proxy(this.restartVariation,this));
 	tween.on('change',proxy(this.onchange,this));
 
 }
@@ -38,13 +39,21 @@ Variation.prototype.beginVariation = function() {
 Variation.prototype.restartVariation = function() {
 
 	this.loop++;
-	if(this.loops == null) return this.beginVariation();
+	if(this.loops === false) return;
+	if(this.loops === true || this.loops === null) return this.beginVariation();
 	if(this.loop < this.loops) return this.beginVariation();
-	if(this.loop == this.loops && this.call != null) this.call();			
+	if(this.loop == this.loops && this.callback != null) this.callback();			
 	return this.stop = true;
 	
 }
 
+
+Variation.prototype.applyOnce = function (obj,prop,config) {
+
+	if(obj[prop] instanceof Variation) return;
+
+	return obj[prop] = new Variation(config);
+}
 /* getters */
 Variation.prototype.toString = function() {
 	return this.w;
@@ -53,7 +62,12 @@ Variation.prototype.valueOf = function() {
 	return this.w;
 }
 Variation.prototype.onchange = function() {
-	console.log(this.w);
+
+	//call register function on every frame
+	if(this.call != null) this.call();
+
+	//debuging
+	//console.log(this.w);
 }
 
 /* setters */
@@ -92,6 +106,10 @@ Variation.prototype.setLoops = function(loops) {
 }
 Variation.prototype.setCall = function(call) {
 	this.call = call;
+	return this;
+}
+Variation.prototype.setCallback = function(call) {
+	this.callback = call;
 	return this;
 }
 Variation.prototype.setSlope = function(slope) {

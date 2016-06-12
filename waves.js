@@ -1,10 +1,41 @@
 (function() {
 
 //create new class
-function Wave(height) {
+function Wave(params) {
 
 	this.Container_constructor();
-	this.init(height);
+
+	var defaults = {
+		x: 0,
+		y: 0,
+		height: 100,
+		width: 1500,
+		peak_width: 200,
+		breaking_xspeed: 50,
+		breaking_yspeed: 1200,
+		breaking_width: 20,
+		breaking_center: 1000,
+		suction: vec2.fromValues(-5,-5),
+		shoulder : {
+			left : {
+				width: 1000,
+				inner: 300,
+				outer: 300,
+				marge: 50,
+				slope: 0
+			},
+			right : {
+				width: 1000,
+				inner: 300,
+				outer: 300,
+				marge: 50,
+				slope: 0
+			}
+		}
+	};
+	var params = extend(defaults,params);	
+	
+	this.init(params);
 }
 
 //extend it
@@ -14,80 +45,98 @@ var prototype = createjs.extend(Wave, createjs.Container);
 createjs.EventDispatcher.initialize(prototype);
 
 //public property
-prototype.peak_width = 200;
-prototype.breaking_xspeed = 50; //new Variation(50,50,3000,1000);
-prototype.breaking_yspeed = 1200; //new Variation(2000,2150,1500,500);
-prototype.breaking_width = 20; //new Variation(13,20,3000,1000);	
-prototype.breaking_center = 1000;
-prototype.direction = 0;
-prototype.height = 100;
-prototype.width = 1500;
-prototype.suction = vec2.fromValues(-5,-5);
 prototype.surfer = undefined;
 
-//public methods
-prototype.init = function(height) {
 
+//public methods
+prototype.init = function(params) {
+
+	//set config
+	this.config = params;
+	this.params = (JSON.parse(JSON.stringify(this.config))); //clone object
 	//set properties
-	this.height = height;
-	this.origin_height = height;
-	this.width = STAGEWIDTH;
+	this.y = params.y;	
+	this.origin_height = params.height;
+	this.width = params.width;
+	this.origin_width = params.width;
 	this.surfers = [];
 	this.obstacles = [];
 	this.breaking_points = [];
 	this.breaking_peaks = [];
+	this.tube_points = [];
 	this.bottom_fall_points = [];
 	this.top_fall_points = [];
+	this.splash_points = [];
+	this.particles = [];
 	this.bottom_fall_scale = 1;
 	this.top_fall_scale = 0.2;
-	this.tube_points = [];
-	this.debug_points_alpha = 0;
+	this.debug_alpha = 0;
 	this.shaking_force = 1.2;
+	this.direction = 0;
 
 	//this.direction = 0;
 	this.breaked = false;
 	this.status = '';
 	this.paused = false;
-
-	//wave background
-	this.background_cont = new createjs.Container();
-	this.addChild(this.background_cont);
-	this.background = new createjs.Shape();	
-	this.background.graphics.beginLinearGradientFill(['#0b2648','#0d528c'],[0,1],0,0,0,this.height).drawRect(0,0,STAGEWIDTH,this.height);	
-	this.background_cont.addChild(this.background);	
-	this.background_cont.y = - this.height;
-	
 	
 	//wave cont
 	this.cont = new createjs.Container();
-	this.cont.y = - this.height;
+	this.cont.x = params.x;
 	this.addChild(this.cont);	
+
+	//wave background
+	this.background_cont = new createjs.Container();
+	this.cont.addChild(this.background_cont);
+	this.background = new createjs.Shape();
+	this.background.graphics.beginLinearGradientFill(['#0b2648','#0d528c'],[0,1],0,0,0,this.params.height).drawRect(0,0,STAGEWIDTH,this.params.height);	
+	this.background_cont.addChild(this.background);	
+
+	this.foreground_cont = new createjs.Container();
+	this.cont.addChild(this.foreground_cont);
+	
+		//particule cont
+		this.particles_cont = new createjs.Container();
+		this.foreground_cont.addChild(this.particles_cont);
 		//surfer trails cont
 		this.trail_cont = new createjs.Container();
-		this.cont.addChild(this.trail_cont);	
+		this.foreground_cont.addChild(this.trail_cont);	
 		//spatter cont
 		this.spatter_cont = new createjs.Container();
-		this.cont.addChild(this.spatter_cont);		
+		this.foreground_cont.addChild(this.spatter_cont);		
 		//surfer cont
 		this.surfer_cont = new createjs.Container();
-		this.cont.addChild(this.surfer_cont);
+		this.foreground_cont.addChild(this.surfer_cont);
 		//obstacle cont
 		this.obstacle_cont = new createjs.Container();
-		this.cont.addChild(this.obstacle_cont);
-		//lip of the wave
-		this.lip_points = new createjs.Container();
-		this.cont.addChild(this.lip_points);
+		this.foreground_cont.addChild(this.obstacle_cont);
+		//lib cont
 		this.lip = new createjs.Container();
-		this.cont.addChild(this.lip);
-		//splash
+		this.foreground_cont.addChild(this.lip);
+		//splash cont
 		this.splash_cont = new createjs.Container();
-		this.cont.addChild(this.splash_cont);
-		//fall 
+		this.foreground_cont.addChild(this.splash_cont);
+		//debug
 		this.debug_cont = new createjs.Container();
-		this.cont.addChild(this.debug_cont);
-		//vanish points container
-		this.vanishs_cont = new createjs.Container();
-		this.cont.addChild(this.vanishs_cont);
+		this.debug_cont.alpha = this.debug_alpha;
+		this.foreground_cont.addChild(this.debug_cont);
+			//lip of the wave
+			this.lip_cont = new createjs.Container();
+			this.debug_cont.addChild(this.lip_cont);
+			//tube points
+			this.tube_points_cont = new createjs.Container();
+			this.debug_cont.addChild(this.tube_points_cont);
+			//top wave points
+			this.top_points_cont = new createjs.Container();
+			this.debug_cont.addChild(this.top_points_cont);
+			//bottom wave points
+			this.bottom_points_cont = new createjs.Container();
+			this.debug_cont.addChild(this.bottom_points_cont);
+			//vanish points container
+			this.vanishs_cont = new createjs.Container();
+			this.debug_cont.addChild(this.vanishs_cont);
+			//shoulder points containr
+			this.shoulder_cont = new createjs.Container();
+			this.debug_cont.addChild(this.shoulder_cont);
 
 		//clicking the wave
 		this.on('click',this.onTakeoffClick);	
@@ -95,16 +144,130 @@ prototype.init = function(height) {
 		//Ticker
 		this.addEventListener('tick',proxy(this.tick,this));
 
+		this.initWave(STAGEWIDTH/2);
+		
+		this.resize();
 
 }
 
+
+prototype.resize = function() {
+
+	var horizon = SPOT.getHorizon();
+	var peak = SPOT.getPeak();
+
+	if(this.y > peak ) {
+
+		if(this.breaked == false) {
+			this.initBreak(Math.random()*500+250);			
+		}		
+
+		//if wave is played, send event to freeze the spot
+		if(this.played == true) {
+			var e = new createjs.Event("played_wave_on_spot");
+			e.wave = this;
+			stage.dispatchEvent(e);			
+		}
+		else {
+			var e = new createjs.Event("non_played_wave_on_spot");
+			e.wave = this;
+			//stage.dispatchEvent(e);		
+		}
+
+		//early return
+		//return;
+	}
+
+	//calcul the proportion	
+	var coef = (this.y  - horizon) / (peak - horizon);
+	//calcul wave height	
+	var h = this.config.height * coef;
+	//set new height
+	this.params.height = h;
+	this.cont.y = - h;
+	//calcul wave width
+	var w = this.origin_width * coef;
+	//set new shoulders position
+	this.shoulder_left.x = STAGEWIDTH/2 - w/2;
+	this.shoulder_right.x = STAGEWIDTH/2 + w/2;
+	//set new shoulders proportion
+	this.params.shoulder.left.width = this.config.shoulder.left.width * coef;
+	this.params.shoulder.left.inner = this.config.shoulder.left.inner * coef;
+	this.params.shoulder.left.outer = this.config.shoulder.left.outer * coef;
+	this.params.shoulder.left.marge = this.config.shoulder.left.marge * coef;
+	this.params.shoulder.right.width = this.config.shoulder.right.width * coef;
+	this.params.shoulder.right.inner = this.config.shoulder.right.inner * coef;
+	this.params.shoulder.right.outer = this.config.shoulder.right.outer * coef;
+	this.params.shoulder.right.marge = this.config.shoulder.right.marge * coef;
+	//resize background
+
+	this.drawBackground(h);
+	//resize surfer if	
+	if(this.surfer != undefined) {
+
+		this.surfer.resize();
+	}
+	
+
+	
+
+}
+
+prototype.initWave = function(center) {
+
+	if(this.breaked == true) return;
+
+	//set wave breaking center
+	this.params.breaking_center = center;
+
+	//init the vanish points
+	this.initVanishPoints(center);
+
+	//add first breaking points
+	this.updateLeftShoulder(STAGEWIDTH/2 - this.width/2);
+	this.updateRightShoulder(STAGEWIDTH/2 + this.width/2);
+
+}
+
+prototype.initBreak = function(center) {		
+
+	if(this.breaked == true) return;
+
+	//set status of the wave
+	this.status = 'run';
+	this.breaked = true;
+
+	this.addInitBreakingPoint(this.params.breaking_center);	
+	this.addLeftBreakingPoint(this.params.breaking_center - this.params.peak_width/2);
+	this.addRightBreakingPoint(this.params.breaking_center + this.params.peak_width/2);
+
+	//init timer continuous breaking
+	this.breaking();
+
+	//continuous breaking
+	var _this = this;
+	this.breakingInterval = setInterval(function() { _this.breaking(); }, _this.params.breaking_xspeed, this);
+
+	//init points cleaner
+	this.initCleanOffScreenPoints();
+}
+
+
 prototype.onTakeoffClick = function(evt) {
+
 	var wave = evt.currentTarget;
-	var x = evt.stageX;			
+	var x = evt.stageX;	
+
 	wave.initBreak(x);
 	wave.addSurfer(x);
-	SPOT.setRidingWave(wave);
-	//SPOT.stopNextWaves();
+
+	wave.surfed = true;
+	wave.played = true;
+
+	var e = new createjs.Event("player_take_off");
+		e.wave = this;
+		e.surfer = this.surfer;
+		stage.dispatchEvent(e);
 
 	//remove click event
 	evt.remove();
@@ -116,8 +279,35 @@ prototype.tick = function() {
 
 	this.drawLip();
 	this.moveWave();
-	
+	this.drawBkg();
+	this.moveParticles();
+		
+}
 
+prototype.moveParticles = function() {
+
+	if(this.particles.length == 0) return;
+
+	var particles = [];
+	for(var i=0, len=this.particles.length; i < len; i++) {
+		var particle = this.particles[i];
+
+		//gravity
+		particle.applyForce(vec2.fromValues(0,1));
+		//wind
+		particle.applyForce(vec2.fromValues(1*this.direction,0));
+		//move
+		particle.move();
+
+		if(particle.alpha<=0 || particle.y + 20 >= this.params.height) {
+			this.particles_cont.removeChild(particle);
+			continue;			
+		}
+
+		particles[particles.length] = particle;				
+	}
+
+	this.particles = particles;
 }
 
 prototype.startShaking = function() {
@@ -135,22 +325,23 @@ prototype.stopShaking = function() {
 prototype.shake = function() {
 
 	if(this.shaking==false) return;
+	if(this.surfer==null) return;
 
 	var dist = get2dDistance(this.surfer.x,this.surfer.y,this.getVanishPoint().x,this.getVanishPoint().y);
 	var amplitude = this.width/2/dist*this.shaking_force;
 	if(amplitude<1) amplitude = 0;
 	
-	this.shake_x = Math.random()*amplitude*2 - amplitude;
-	this.shake_y = Math.random()*amplitude*2 - amplitude;
-	createjs.Tween.get(this)
-		.to({x:this.x+this.shake_x,y:this.y+this.shake_y},50)
+	this.shake_x = Math.floor(Math.random()*amplitude*2 - amplitude);
+	this.shake_y = Math.floor(Math.random()*amplitude*2 - amplitude);
+	createjs.Tween.get(this.lip)
+		.to({x:this.lip.x+this.shake_x,y:this.lip.y+this.shake_y},50)
 		.call(proxy(this.unshake,this));
 }
 
 prototype.unshake = function() {
 
-	createjs.Tween.get(this)
-		.to({x:this.x-this.shake_x,y:this.y-this.shake_y},50)
+	createjs.Tween.get(this.lip)
+		.to({x:this.lip.x-this.shake_x,y:this.lip.y-this.shake_y},50)
 		.call(proxy(this.shake,this));
 }
 
@@ -158,12 +349,11 @@ prototype.unshake = function() {
 prototype.addTubePoint = function(point) {
 
 	var tube = new createjs.Shape();
-		tube.graphics.beginFill('green').drawCircle(0,0,this.height/2);
+		tube.graphics.beginFill('green').drawCircle(0,0,this.params.height/2);
 		tube.x = point.x;
-		tube.y = this.height >> 1; // divide by 2
-		tube.alpha = this.debug_points_alpha;
+		tube.y = this.params.height >> 1; // divide by 2
 		this.tube_points.unshift(tube);
-		this.debug_cont.addChild(tube);
+		this.tube_points_cont.addChild(tube);
 	
 	createjs.Tween.get(tube)
 		.to({},1000,createjs.quartIn)
@@ -176,17 +366,16 @@ prototype.addTopFallPoint = function(x) {
 
 	var point = new createjs.Shape();
 		point.graphics.beginFill('red').drawCircle(0,0,1);
-		point.alpha = this.debug_points_alpha;
 		//slightly move the points to free lip's shoulder
-		var d = this.breaking_width*10;
+		var d = this.params.breaking_width*10;
 		if(this.direction == 0) point.x = x;
 		if(this.direction == 1) point.x = x + d;
 		if(this.direction == -1) point.x = x - d;
 
 		this.top_fall_points.unshift(point);
-		this.debug_cont.addChild(point);
+		this.top_points_cont.addChild(point);
 
-	var scale = this.height * this.top_fall_scale;
+	var scale = this.params.height * this.top_fall_scale;
 
 	createjs.Tween.get(point)
 		.to({scaleX:scale,scaleY:scale},2000,createjs.quartIn)
@@ -198,14 +387,13 @@ prototype.addBottomFallPoint = function(pt) {
 
 	var point = new createjs.Shape();
 		point.graphics.beginFill('red').drawCircle(0,0,1);
-		point.y = this.height;
+		point.y = this.params.height;
 		point.x = pt.x;
-		point.alpha = this.debug_points_alpha;
 
 		this.bottom_fall_points.unshift(point);
-		this.debug_cont.addChild(point);
+		this.bottom_points_cont.addChild(point);
 
-	var scale = this.height * this.bottom_fall_scale;
+	var scale = this.params.height * this.bottom_fall_scale;
 
 	createjs.Tween.get(point)
 		.to({scaleX:scale,scaleY:scale},2000,createjs.quartIn)
@@ -214,71 +402,23 @@ prototype.addBottomFallPoint = function(pt) {
 }
 
 prototype.removeTubeDebugPoint = function() {
-	this.debug_cont.removeChildAt(0);	
+	this.tube_points_cont.removeChildAt(0);	
 	this.tube_points.splice(-1,1);
 }
 prototype.removeTopDebugPoint = function() {
-	this.debug_cont.removeChildAt(0);	
+	this.top_points_cont.removeChildAt(0);	
 	this.top_fall_points.splice(-1,1);
 }
 prototype.removeBottomDebugPoint = function() {
-	this.debug_cont.removeChildAt(0);	
+	this.bottom_points_cont.removeChildAt(0);	
 	this.bottom_fall_points.splice(-1,1);
-}
-
-prototype.resize = function(size) {
-
-	this.height = size;
-	this.drawBackground(size);
 }
 
 prototype.drawBackground = function() {
 					
-	this.background.scaleY = this.height / this.origin_height;		
+	this.background.scaleY = this.params.height / this.origin_height;		
 }
 
-prototype.initBreak = function(center) {		
-
-	if(this.breaked == true) return;
-	//set wave breaking center
-	this.breaking_center = center;
-	//add first breaking points
-	this.addInitBreakingPoint(center);	
-	this.addLeftBreakingPoint(center - this.peak_width/2);
-	this.addRightBreakingPoint(center + this.peak_width/2);
-
-	//set status of the wave
-	this.status = 'run';
-	this.breaked = true;
-
-	//set the vanish points
-	this.initVanishPoints(center);
-
-	//init timer continuous breaking
-	this.breaking();
-}
-
-prototype.swellProgress = function(horizon,peak) {
-		
-	//calcul wave height (cross-product!!)	
-	var h = (this.origin_height * (this.y - this.origin_height - horizon)) / ( peak - horizon );
-	//resize wave if full height is not reached yet
-	if(h < this.origin_height) this.resize(h);	
-
-	//break wave when full height is reached
-	if(h >= this.origin_height) {
-		if(this.breaked == false) {
-			this.initBreak(Math.random()*500+250);			
-		}		
-	}
-
-	//resize surfer if	
-	if(this.surfer != undefined) {
-
-		this.surfer.resize();
-	}
-
-}
 
 prototype.addSurfer = function(x) {
 
@@ -313,7 +453,7 @@ prototype.breaking = function() {
 	if(this.paused == true) return;
 	//calcul and add left breaking point
 	if(this.direction == 1 || this.direction == 0) {
-		var x = this.breaking_points[0].x - this.breaking_width;
+		var x = this.breaking_points[0].x - this.params.breaking_width;
 		this.addLeftBreakingPoint(x);
 		//draw fall point
 		this.addTopFallPoint(x);
@@ -322,57 +462,54 @@ prototype.breaking = function() {
 
 	//calcul and add right breaking point
 	if(this.direction == -1 || this.direction == 0 ) {
-		var x = this.breaking_points[this.breaking_points.length-1].x + this.breaking_width;	
+		var x = this.breaking_points[this.breaking_points.length-1].x + this.params.breaking_width;	
 		this.addRightBreakingPoint(x);
 		//draw fall point
 		this.addTopFallPoint(x);	
 	}
 
-	
-	//continuous breaking
-	var _this = this;
-	this.breakingTimer = setTimeout(function() { _this.breaking(); }, _this.breaking_xspeed, this);
 }
 
 prototype.addInitBreakingPoint = function(x) {
 
-	var point = this.createBreakingPoint('red',0);
-	point.x = x;
-	this.lip_points.addChild(point);
+	var point = this.createBreakingPoint({x:x, color:'red',delay:0});
 	this.breaking_points.push(point);
 }
 
 prototype.addRightBreakingPoint = function(x) {
 
-	var point = this.createBreakingPoint();
-	point.x = x;
-	this.lip_points.addChild(point);
+	var point = this.createBreakingPoint({x:x});
 	this.breaking_points.push(point);
+	this.updateRightShoulder(x);
 }
 
 prototype.addLeftBreakingPoint = function(x) {
 
-	var point = this.createBreakingPoint();
-	point.x = x;
-	this.lip_points.addChild(point);
+	var point = this.createBreakingPoint({x:x});
 	this.breaking_points.unshift(point);
+	this.updateLeftShoulder(x);
 }
 
-prototype.createBreakingPoint = function(color,delay) {
+prototype.createBreakingPoint = function(params) {
 
-	delay = typeof(delay) === 'undefined' ? delay = this.breaking_xspeed : delay;
-	color = typeof(color) === 'undefined' ? color = 'red' : color;
+	var params = params === undefined ? {} : params;
+	var delay = params.delay === undefined ? this.params.breaking_xspeed : params.delay;
+	var color = params.color === undefined ? 'red' : params.color;
+	var x = params.x === undefined ? 0 : params.x;
 
 	var point = new createjs.Container();	
+	point.x = x;
 	var shape = new createjs.Shape();
 	shape.graphics.beginFill(color).drawCircle(0,0,5);
-	//point.addChild(shape);
+	point.addChild(shape);
+
+	this.lip_cont.addChild(point);
 
 	createjs.Tween.get(point)
 			.wait(delay)
 			.to(
-				{y:this.height},
-				this.breaking_yspeed+Math.random()*50,
+				{y:this.params.height},
+				this.params.breaking_yspeed+Math.random()*50,
 				//createjs.Ease.getPowIn(5)
 				createjs.Ease.quartIn
 				)
@@ -387,7 +524,7 @@ prototype.splashPointReached = function(obj) {
 	
 	//get point
 	var point = obj.target;
-	point.y = this.height;
+	point.y = this.params.height;
 
 	//draw splash
 	this.drawSplashPoint(point);
@@ -411,22 +548,27 @@ prototype.drawSplashPoint = function(point) {
 
 	var splash = new createjs.Shape();
 		splash.graphics.beginFill('#EEEEEE').drawCircle(0,0,2);
+		splash.x = point.x;
+		splash.y = point.y;
 		if(this.direction==0) splash.alpha = 0.8;
 		else splash.alpha = 0.5;
-		point.addChild(splash);
+		this.splash_cont.addChild(splash);
+		this.splash_points[this.splash_points.length] = splash;
 
+	//! OPTIM: faire un seul mask pour tous les Splash
 	var mask = new createjs.Shape();
-		mask.graphics.beginFill('#FFF').drawRect(-this.width/4,-this.height,this.width/2,this.height);
-		splash.mask = mask;
+		mask.x = point.x;
+		mask.y = point.y;
+		mask.graphics.beginFill('#FFF').drawRect(-this.width/4,-this.params.height,this.width/2,this.params.height);
+		//splash.mask = mask;
 
-	var scale = this.height*0.40 +Math.random()*10;
+	var scale = this.params.height*0.60 +Math.random()*10;
 
 	createjs.Tween.get(splash)
 		.to({scaleX:scale,scaleY:scale},1000)
 		.call(proxy(this.updateVanishPoints,this,[point.x]))
 		.to({scaleX:scale-scale*0.2,scaleY:scale-scale*0.2},2500,createjs.Ease.easeOutSine)
 		;
-
 }
 
 prototype.addBlockBreaking = function(width) {
@@ -435,22 +577,18 @@ prototype.addBlockBreaking = function(width) {
 	if(this.direction==0) return;
 	if(this.direction==1){
 		while( width > 0 ) {
-			var x = this.breaking_points[0].x - this.breaking_width;
-			var point = this.createBreakingPoint('green');
-			point.x = x;
-			this.lip_points.addChild(point);
+			var x = this.breaking_points[0].x - this.params.breaking_width;
+			var point = this.createBreakingPoint({x:x, color:'green'});
 			this.breaking_points.unshift(point);
-			width = width - this.breaking_width;
+			width = width - this.params.breaking_width;
 		}		
 	}
 	if(this.direction==-1){
 		while( width > 0) {
-			var x = this.breaking_points[this.breaking_points.length-1].x + this.breaking_width;	
-			var point = this.createBreakingPoint('green');
-			point.x = x;
-			this.lip_points.addChild(point);
+			var x = this.breaking_points[this.breaking_points.length-1].x + this.params.breaking_width;	
+			var point = this.createBreakingPoint({x:x, color:'green'});
 			this.breaking_points.push(point);
-			width = width - this.breaking_width;
+			width = width - this.params.breaking_width;
 		}
 	}
 }
@@ -458,23 +596,21 @@ prototype.addBlockBreaking = function(width) {
 prototype.setDirection = function() {
 
 	//if no surfers, wave is staying straight
-	if(this.surfers.length == 0) return prototype.direction = 0;
+	if(this.surfers.length == 0) return this.direction = 0;
 
 	//else set direction
-	if(this.surfer.x > this.breaking_center) {
-		prototype.direction = -1;	
-		console.log('Wave is a right !');
+	if(this.surfer.x > this.params.breaking_center) {
+		this.direction = -1;	
+		//console.log('Wave is a right !');
 	} 
 	else {
-		prototype.direction = 1;
-		console.log('Wave is a left !');
+		this.direction = 1;
+		//console.log('Wave is a left !');
 	}
 
 	//invert suction direction for left waves
-	if(prototype.direction == 1) this.suction = vec2.fromValues(this.suction[0]*-1,this.suction[1]);	
-
-	//init points cleaner
-	this.initCleanOffScreenPoints();	
+	if(this.direction == 1) this.params.suction = vec2.fromValues(this.params.suction[0]*-1,this.params.suction[1]);	
+	
 }
 
 prototype.moveWave = function() {
@@ -489,7 +625,7 @@ prototype.moveWave = function() {
 	if(this.direction == 1) delta += 200;
 	if(this.direction == -1) delta += -200;
 	
-	this.cont.x += delta/this.breaking_width;
+	this.cont.x += delta/this.params.breaking_width;
 
 	
 }
@@ -502,7 +638,7 @@ prototype.oldmoveWave = function() {
 		var pt = this.cont.localToGlobal(this.vanish_left.x,0);
 		//calcul lateral movement from y position
 		var coef = ( 100*this.y/ SPOT.peak_point) / 100;
-		var xwidth = this.breaking_width * 1/coef;
+		var xwidth = this.params.breaking_width * 1/coef;
 		//move wave normally when well positioned
 		if(pt.x >= (STAGEWIDTH-100)) this.cont.x += xwidth;
 		//else move quicker
@@ -513,7 +649,7 @@ prototype.oldmoveWave = function() {
 		var pt = this.cont.localToGlobal(this.vanish_right.x,0);
 		//calcul lateral movement from y position
 		var coef = ( 100*this.y/ SPOT.peak_point) / 100;
-		var xwidth = this.breaking_width * 1/coef;
+		var xwidth = this.params.breaking_width * 1/coef;
 		//move wave normally when well positioned
 		if(pt.x <= 100) this.cont.x -= xwidth;
 		//else move quicker
@@ -522,30 +658,50 @@ prototype.oldmoveWave = function() {
 
 }
 
+prototype.clearAllIntervals = function() {
+
+	window.clearInterval(this.clearnerInterval);
+	window.clearInterval(this.breakingInterval);
+	window.clearInterval(this.breakingPeaksInterval);
+	this.removeAllEventListeners('tick');
+	return;
+
+}
+
 prototype.initCleanOffScreenPoints = function() {
 
-	this.offscrenCleaner = window.setInterval(proxy(this.cleanOffScreenPoints,this),1000);
+	this.clearnerInterval = window.setInterval(proxy(this.cleanOffScreenPoints,this),1000);
 }
 
 prototype.cleanOffScreenPoints = function() {
 
 	var offset = this.width >> 1; //divice by 2
 
+	var points = [];
 	for(var i = 0, len = this.breaking_points.length; i < len; i++) {
 		var point = this.breaking_points[i];
-		var x = this.lip_points.localToGlobal(point.x,point.y).x;
+		var x = this.lip_cont.localToGlobal(point.x,point.y).x;
 		//remove point if offscreen on the left
-		if( x < (- offset) ) {
-			this.breaking_points.slice(0,1);
-			this.lip_points.removeChild(point);
+		if( x < (- offset) || x > (this.width + offset) ) {
+			this.lip_cont.removeChild(point);
+			continue;
 		} 
-		//remove point if offscreen on the right
-		if( x > (this.width + offset) ) {
-			this.breaking_points.slice(this.breaking_points.length - 1, 1);
-			this.lip_points.removeChild(point);
-		}
-
+		points[points.length] = point; 
 	}
+	this.breaking_points = points;
+
+	var splashs = [];
+	for(var i = 0, len = this.splash_points.length; i < len; i++) {
+		var splash = this.splash_points[i];
+		var x = this.splash_cont.localToGlobal(splash.x,splash.y).x;
+		if( x < (-offset) || x > (this.width + offset)) {
+			this.splash_cont.removeChild(splash);
+			continue;
+		}
+		splashs[splashs.length] = splash;
+	}
+	this.splash_points = splashs;
+
 }
 
 prototype.drawLip = function() {
@@ -558,7 +714,7 @@ prototype.drawLip = function() {
 
 	//draw main lip
 	var points = this.breaking_points;
-	var k = shape.graphics.clear().beginFill('rgba(255,255,255,0.5)').beginStroke('#FFF').setStrokeStyle(3);
+	var k = shape.graphics.clear().beginFill('rgba(255,255,255,0.5)').beginStroke('rgba(0,0,0,0.3').setStrokeStyle(1);
 	k.moveTo(points[0].x,0);
 	for(var i=1,len=points.length; i<len -2; i++){
 			var xc = ( points[i].x + points[i+1].x) >> 1; // divide by 2
@@ -586,67 +742,68 @@ prototype.drawLip = function() {
 
 	}
 
-	this.lip.removeChildAt(0);
+	var thickness = shape.clone(true);
+	thickness.y = -10;
+
+	this.lip.removeAllChildren();
 	this.lip.addChild(shape);
+	this.lip.addChild(thickness);
+
+	this.lip.mask = this.shape_mask;
 }
 
 prototype.addBreakingPeak = function(width,distance) {
 
-	var point = this.createBreakingPoint('pink',0);
-	if(this.direction==1) point.x = this.breaking_points[0].x - distance;
-	if(this.direction==-1) point.x = this.breaking_points[this.breaking_points.length - 1].x + distance;	
-	this.breaking_peaks.push(point);
-	this.lip_points.addChild(point);
+	var x;
+	if(this.direction==1) x = this.breaking_points[0].x - distance;
+	if(this.direction==-1) x = this.breaking_points[this.breaking_points.length - 1].x + distance;	
 
-	var point = this.createBreakingPoint('pink');
-	point.x = this.breaking_peaks[0].x + width / 2;
+	var point = this.createBreakingPoint({x:x, color:'pink',delay:0});
 	this.breaking_peaks.push(point);
-	this.lip_points.addChild(point);
 
-	var point = this.createBreakingPoint('pink');
-	point.x = this.breaking_peaks[0].x - width / 2;
+	var point = this.createBreakingPoint({x:x + width/2, color:'pink'});
+	//point.x = this.breaking_peaks[0].x + width / 2;
+	this.breaking_peaks.push(point);
+
+	var point = this.createBreakingPoint({x:x - width/2, color:'pink'});
+	//point.x = this.breaking_peaks[0].x - width / 2;
 	this.breaking_peaks.unshift(point);
-	this.lip_points.addChild(point);
 
-	this.breakingPeaksTimer = setInterval(proxy(this.breakingPeaks,this), this.breaking_xspeed * 2);
+	this.breakingPeaksInterval = setInterval(proxy(this.breakingPeaks,this), this.params.breaking_xspeed * 2);
 }
 
 prototype.breakingPeaks = function() {
 	
 	//calcul and add left breaking point
-	var x = this.breaking_peaks[0].x - this.breaking_width;
-	var point = this.createBreakingPoint('pink');
-	point.x = x;
+	var x = this.breaking_peaks[0].x - this.params.breaking_width;
+	var point = this.createBreakingPoint({x:x, color:'pink'});
 	this.breaking_peaks.unshift(point);
-	this.lip_points.addChild(point);	
 
 	//calcul and add right breaking point
-	var x = this.breaking_peaks[this.breaking_peaks.length-1].x + this.breaking_width;	
-	var point = this.createBreakingPoint('pink');
-	point.x = x;
+	var x = this.breaking_peaks[this.breaking_peaks.length-1].x + this.params.breaking_width;	
+	var point = this.createBreakingPoint({x:x, color:'pink'});
 	this.breaking_peaks.push(point);
-	this.lip_points.addChild(point);	
 
 	//when the two lips joins
 	//for right waves
-	if(this.direction==-1 && this.breaking_peaks[0].x <= this.breaking_points[this.breaking_points.length - 1].x + this.breaking_width*2)
+	if(this.direction==-1 && this.breaking_peaks[0].x <= this.breaking_points[this.breaking_points.length - 1].x + this.params.breaking_width*2)
 	{		
 		//merge points
 		this.breaking_points = this.breaking_points.concat(this.breaking_peaks);
 		//clear peak points
 		this.breaking_peaks = [];
 		//stop breaking the peak
-		return clearInterval(this.breakingPeaksTimer);
+		return clearInterval(this.breakingPeaksInterval);
 	}
 	//for left waves
-	if(this.direction==1 && this.breaking_peaks[this.breaking_peaks.length - 1].x > this.breaking_points[0].x - this.breaking_width*2)
+	if(this.direction==1 && this.breaking_peaks[this.breaking_peaks.length - 1].x > this.breaking_points[0].x - this.params.breaking_width*2)
 	{		
 		//merge points
 		this.breaking_points = this.breaking_peaks.concat(this.breaking_points);
 		//clear peak points
 		this.breaking_peaks = [];
 		//stop breaking the peak
-		return clearInterval(this.breakingPeaksTimer);
+		return clearInterval(this.breakingPeaksInterval);
 	}
 	
 }
@@ -654,7 +811,7 @@ prototype.breakingPeaks = function() {
 
 prototype.addObstacle = function() {
 
-	var x = 0, y = this.height;	
+	var x = 0, y = this.params.height;	
 	if(this.direction == -1) {
 		var x = this.cont.x*-1 + this.width;
 	}
@@ -663,7 +820,7 @@ prototype.addObstacle = function() {
 	}
 
 
-	var obs = new Obstacle({		
+	var obs = new Photograf({		
 		wave: this
 	});
 	
@@ -677,21 +834,75 @@ prototype.removeObstacle = function(obs) {
 	this.obstacle_cont.removeChild(obs);
 }
 
+prototype.drawBkg = function() {
+
+	//get shoulders positions
+	var left = this.shoulder_left;
+	var right = this.shoulder_right;
+	
+	//minor shoulder variations
+	if(this.breaked == true && this.params.shoulder.left.slope == null) this.params.shoulder.left.slope = new Variation({min:-50,max:50});
+	if(this.breaked == true && this.params.shoulder.right.slope == null) this.params.shoulder.right.slope = new Variation({min:-50,max:50});
+
+	//draw shape mask beetween the two shoulder
+	this.shape_mask = new createjs.Shape();
+		this.shape_mask.graphics
+		.beginFill('#FFFFFF')
+		.moveTo(left.x - this.params.shoulder.left.width - this.params.shoulder.left.marge, this.params.height)
+		.bezierCurveTo(left.x - this.params.shoulder.left.width + this.params.shoulder.left.outer - this.params.shoulder.left.marge, this.params.height + this.params.shoulder.left.slope,left.x - this.params.shoulder.left.inner - this.params.shoulder.left.marge,0,left.x - this.params.shoulder.left.marge,0)
+		.lineTo(right.x + this.params.shoulder.right.marge,0)
+		.bezierCurveTo(right.x + this.params.shoulder.right.inner + this.params.shoulder.right.marge,0,right.x + this.params.shoulder.right.width + this.params.shoulder.right.marge - this.params.shoulder.right.outer,this.params.height + this.params.shoulder.right.slope,right.x + this.params.shoulder.right.width + this.params.shoulder.right.marge ,this.params.height)		
+		;
+
+	//ajust position of the background image
+	this.background.x = - this.cont.x,
+	//use the shape to mask the background image
+	this.background.mask = this.shape_mask;
+		
+}
+
+prototype.updateLeftShoulder = function(x) {
+
+	if(this.shoulder_left == undefined) {
+		var shoulder = new createjs.Shape();
+		shoulder.graphics.beginFill('yellow').drawCircle(0,0,30);
+		this.shoulder_cont.addChild(shoulder);
+		this.shoulder_left = shoulder;
+	}
+
+	//do not update when breaking have not reached the shoulder
+	if(x > this.shoulder_left.x) return;
+
+	this.shoulder_left.x = x;
+}
+
+prototype.updateRightShoulder = function(x) {
+
+	if(this.shoulder_right == undefined) {
+		var shoulder = new createjs.Shape();
+		shoulder.graphics.beginFill('yellow').drawCircle(0,0,30);
+		this.shoulder_cont.addChild(shoulder);
+		this.shoulder_right = shoulder;
+	}
+
+	//do not update when breaking have not reached the shoulder
+	if(x < this.shoulder_right.x) return;
+
+	this.shoulder_right.x = x;
+}
+
+
 prototype.initVanishPoints = function(x) {
 
 	var vanish = new createjs.Shape();
 	vanish.graphics.beginFill('green').drawCircle(0,0,10);
-	vanish.x = x - 1;
-	vanish.alpha = 1;
-	//vanish.alpha = this.debug_points_alpha;
+	vanish.x = x - 1;	
 	this.vanishs_cont.addChild(vanish);
 	this.vanish_left = vanish;
 
 	var vanish = new createjs.Shape();
 	vanish.graphics.beginFill('green').drawCircle(0,0,10);
-	vanish.x = x + 1;
-	vanish.alpha = 1;
-	//vanish.alpha = this.debug_points_alpha;
+	vanish.x = x + 1;	
 	this.vanishs_cont.addChild(vanish);
 	this.vanish_right = vanish;
 

@@ -66,9 +66,9 @@ window.initialize = function() {
 	//SPOT
 	SPOT = new Spot();
 	stage.addChild(SPOT);
-	SPOT.addWave(50,200);
-	SPOT.addWave(100,300);
-	SPOT.addWave(200,480);
+	SPOT.addWave(50,500,50);
+	SPOT.addWave(100,500,100);
+	SPOT.addWave(200,500,280);
 
 	//SCORE
 	SCORE = new Score();
@@ -85,10 +85,6 @@ window.initialize = function() {
 	//init onEnterFrame
 	createjs.Ticker.addEventListener('tick',tick);
 
-	//mouse point
-	MOUSE = new createjs.Shape();
-	MOUSE.graphics.beginFill('white').drawCircle(0,0,2);
-	stage.addChild(MOUSE);
 
 	//init Mouse move 
 	stage.addEventListener('stagemousemove',onMouseMove);
@@ -114,11 +110,11 @@ window.keyDownHandler = function(e)
    {
     case KEYCODE_B:  SPOT.getWave().addBlockBreaking(); break;
     case KEYCODE_N:  SPOT.getWave().addBreakingPeak(200,800); break;
-    case KEYCODE_S:  SPOT.removeAllWaves().addInitialSerie(); break;
+    case KEYCODE_S:  SPOT.removeAllWaves().addSeries(); break;
     case KEYCODE_A:  SPOT.breakAllWaves(); break;
     case KEYCODE_R:  SPOT.removeAllWaves(); break;
     case KEYCODE_P:  SPOT.pauseAllWaves(); break;
-    case KEYCODE_M:  SCORE.say('Test !',3000); break;
+    case KEYCODE_M:  SCORE.say('Hello !',3000); break;
     case KEYCODE_T:  SPOT.getWave().getSurfer().testTrail(); break;
     case KEYCODE_F:  SPOT.getWave().getSurfer().fall(); break;
     case KEYCODE_O:  SPOT.getWave().addObstacle(); break;
@@ -138,8 +134,6 @@ window.onMouseMove= function(e) {
 	MOUSE_X = e.stageX;
 	MOUSE_Y = e.stageY;
 
-	createjs.Tween.get(MOUSE).to({x: e.stageX,y:e.stageY},100);
-
 	var pt = new createjs.Point(MOUSE_X,MOUSE_Y);
 	MOUSE_POINTS.unshift(pt);
 	MOUSE_POINTS = MOUSE_POINTS.slice(0,300);
@@ -154,6 +148,6 @@ window._getMousePoint = function(n) {
 
 window._getMouseVector = function(n) {
 
-	return vec2.fromValues(_getMousePoint(n).x,_getMousePoint(n).y);
+	return vec2.fromValues(_getMousePoint(n).x - _getMousePoint(n+1).x,_getMousePoint(n).y - _getMousePoint(n+1).y);
 }
 
