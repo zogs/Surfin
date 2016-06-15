@@ -30,7 +30,9 @@
 	prototype.drawParticle = function() {
 
 		var shape = new createjs.Shape();
-		shape.graphics.beginFill(this.color).drawCircle(20,20,this.size);
+		shape.graphics.beginFill(this.color).drawCircle(0,0,this.size);
+		shape.x = - this.size/2;
+		shape.y = - this.size/2;
 		this.addChild(shape);
 	}
 
@@ -48,7 +50,6 @@
 		this.alpha -= this.fade;
 
 		this.rotation += this.rotate;
-
 
 		this.scale = this.scale + this.scaler;
 		this.scaleX = this.scaleY = this.scale;
@@ -78,7 +79,7 @@
 		this.angle = params.angle || 0;
 		this.magnitude = params.magnitude || 10;
 		this.magnitudemax = params.magnitudemax || this.magnitude;
-		this.spread = params.spread || Math.PI / 32;
+		this.spread = params.spread || 0;
 		this.color = params.color || "#FFF";
 		this.size = params.size || 1;
 		this.sizemax = params.sizemax || this.size;

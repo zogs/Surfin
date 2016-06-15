@@ -278,6 +278,7 @@ prototype.onTakeoffClick = function(evt) {
 prototype.tick = function() {
 
 	this.drawLip();
+	this.drawSplash();
 	this.moveWave();
 	this.drawBkg();
 	this.moveParticles();
@@ -496,38 +497,36 @@ prototype.createBreakingPoint = function(params) {
 	var delay = params.delay === undefined ? this.params.breaking_xspeed : params.delay;
 	var color = params.color === undefined ? 'red' : params.color;
 	var x = params.x === undefined ? 0 : params.x;
-
-	var point = new createjs.Container();	
+	
+	var point = new createjs.Container();
 	point.x = x;
 	var shape = new createjs.Shape();
 	shape.graphics.beginFill(color).drawCircle(0,0,5);
 	point.addChild(shape);
 
-	this.lip_cont.addChild(point);
+	//this.cont.addChild(point);
 
 	createjs.Tween.get(point)
 			.wait(delay)
 			.to(
 				{y:this.params.height},
-				this.params.breaking_yspeed+Math.random()*50,
+				this.params.breaking_yspeed + Math.random()*50,
 				//createjs.Ease.getPowIn(5)
 				createjs.Ease.quartIn
 				)
-			.call(proxy(this.splashPointReached,this));
+			.call(proxy(this.splashPointReached,this,[point]));
 
 
 	
 	return point;
 }
 
-prototype.splashPointReached = function(obj) {
+prototype.splashPointReached = function(point) {
 	
-	//get point
-	var point = obj.target;
-	point.y = this.params.height;
+	point.splashed = true;
 
 	//draw splash
-	this.drawSplashPoint(point);
+	this.initSplashPoint(point);
 
 	//draw fall shape
 	this.addBottomFallPoint(point);
@@ -544,34 +543,50 @@ prototype.splashPointReached = function(obj) {
 }
 
 
-prototype.drawSplashPoint = function(point) {
+prototype.initSplashPoint = function(point) {
 
 	var splash = new createjs.Shape();
-		splash.graphics.beginFill('#EEEEEE').drawCircle(0,0,2);
-		splash.x = point.x;
-		splash.y = point.y;
-		if(this.direction==0) splash.alpha = 0.8;
-		else splash.alpha = 0.5;
-		this.splash_cont.addChild(splash);
-		this.splash_points[this.splash_points.length] = splash;
+		splash.graphics.beginFill('black').drawCircle(0,0,5);
+		point.splash = splash;
+		point.addChild(splash);
 
-	//! OPTIM: faire un seul mask pour tous les Splash
-	var mask = new createjs.Shape();
-		mask.x = point.x;
-		mask.y = point.y;
-		mask.graphics.beginFill('#FFF').drawRect(-this.width/4,-this.params.height,this.width/2,this.params.height);
-		//splash.mask = mask;
+	var bounce = this.params.height + (Math.random()*this.params.height /3);
 
-	var scale = this.params.height*0.60 +Math.random()*10;
-
-	createjs.Tween.get(splash)
-		.to({scaleX:scale,scaleY:scale},1000)
+	var tween = createjs.Tween.get(splash)
+		.to({y: -bounce},1000)
 		.call(proxy(this.updateVanishPoints,this,[point.x]))
-		.to({scaleX:scale-scale*0.2,scaleY:scale-scale*0.2},2500,createjs.Ease.easeOutSine)
+		.to({y:-bounce/2},2500,createjs.Ease.easeOutSine)
 		;
+	tween.addEventListener('change',proxy(this.splashParticles,this,[point]));
+}
+
+prototype.splashParticles = function(point) {
+
+	var emitter = new ParticleEmitter({
+			position: vec2.fromValues(point.x + point.splash.x,point.y + point.splash.y),
+			angle: - Math.PI /2,
+			spread: Math.PI / 2,
+			magnitude: this.params.height/10,
+			color: '#FFF',
+			size: 1,
+			sizemax: 4,
+			fade: 0.1,
+			fademax: 0.3,
+			scaler: 0.1
+		});
+
+		var particule = emitter.emitParticle();
+		this.particles_cont.addChild(particule);
+		this.particles.push(particule);	
+
 }
 
 prototype.addBlockBreaking = function(width) {
+
+	window.setTimeout(proxy(this.initBlockBreaking, this),this.params.breaking_xspeed);
+}
+
+prototype.initBlockBreaking = function(width) {
 
 	if(typeof(width)==='undefined') width = 300;
 	if(this.direction==0) return;
@@ -690,17 +705,34 @@ prototype.cleanOffScreenPoints = function() {
 	}
 	this.breaking_points = points;
 
-	var splashs = [];
-	for(var i = 0, len = this.splash_points.length; i < len; i++) {
-		var splash = this.splash_points[i];
-		var x = this.splash_cont.localToGlobal(splash.x,splash.y).x;
-		if( x < (-offset) || x > (this.width + offset)) {
-			this.splash_cont.removeChild(splash);
-			continue;
+}
+
+prototype.drawSplash = function () {
+
+	//get only splashed point
+	var points = [];
+	for(var i=0, len = this.breaking_points.length; i<len; i++) {
+		if(this.breaking_points[i].splashed === true) {
+			points[points.length] = this.breaking_points[i];
 		}
-		splashs[splashs.length] = splash;
 	}
-	this.splash_points = splashs;
+	
+	if(points.length < 2) return;
+
+	var shape = new createjs.Shape();
+	var k = shape.graphics.clear().beginFill('#FFF').beginStroke('rgba(0,0,0,0.2').setStrokeStyle(0);
+	k.moveTo(points[0].x,points[0].y + points[0].splash.y);
+	for(var i=1,len=points.length; i<len - 2; i++) {
+		var xc = ( points[i].x + points[i+1].x) >> 1; // divide by 2
+		var yc = ( points[i].y + points[i].splash.y + points[i+1].y + points[i+1].splash.y) >> 1; // divide by 2
+		k.quadraticCurveTo(points[i].x,points[i].y + points[i].splash.y,xc,yc);
+	}
+	k.lineTo(points[points.length-1].x,this.params.height);
+	k.lineTo(points[0].x,this.params.height);
+	k.closePath();
+
+	this.splash_cont.removeAllChildren();
+	this.splash_cont.addChild(shape);
 
 }
 
