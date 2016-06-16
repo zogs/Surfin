@@ -63,10 +63,10 @@ prototype.init = function(params) {
 	this.obstacles = [];
 	this.breaking_points = [];
 	this.breaking_peaks = [];
+	this.breakpoints = [];
 	this.tube_points = [];
 	this.bottom_fall_points = [];
 	this.top_fall_points = [];
-	this.splash_points = [];
 	this.particles = [];
 	this.bottom_fall_scale = 1;
 	this.top_fall_scale = 0.2;
@@ -237,9 +237,8 @@ prototype.initBreak = function(center) {
 	this.status = 'run';
 	this.breaked = true;
 
-	this.addInitBreakingPoint(this.params.breaking_center);	
-	this.addLeftBreakingPoint(this.params.breaking_center - this.params.peak_width/2);
-	this.addRightBreakingPoint(this.params.breaking_center + this.params.peak_width/2);
+	this.addPeak(center,200);
+	//this.addPeak(1100,100);
 
 	//init timer continuous breaking
 	this.breaking();
@@ -452,43 +451,75 @@ prototype.breaking = function() {
 
 	//return if wave is paused
 	if(this.paused == true) return;
-	//calcul and add left breaking point
-	if(this.direction == 1 || this.direction == 0) {
-		var x = this.breaking_points[0].x - this.params.breaking_width;
-		this.addLeftBreakingPoint(x);
-		//draw fall point
-		this.addTopFallPoint(x);
-		
+	
+	//merging colliding peaks
+	for(var i=0,len=this.breakpoints.length; i<len; i++) {
+		if(len==1) break;
+		var first = this.breakpoints[i];		
+		var second = this.breakpoints[i+1];
+		if(second === undefined) break;
+
+		if(first[first.length-1].x >= ( second[0].x - this.params.breaking_width)) {
+			first.splice(first.length-1,1);
+			var merged = first.concat(second);
+			this.breakpoints[i] = merged;
+			this.breakpoints.splice(i+1,1);
+		}
 	}
 
-	//calcul and add right breaking point
-	if(this.direction == -1 || this.direction == 0 ) {
-		var x = this.breaking_points[this.breaking_points.length-1].x + this.params.breaking_width;	
-		this.addRightBreakingPoint(x);
-		//draw fall point
-		this.addTopFallPoint(x);	
+	//add breakings points to existing peak
+	for(var i=0,len=this.breakpoints.length; i<len; i++) {
+
+		var peak = this.breakpoints[i];
+
+		//add left point
+		var x = peak[0].x - this.params.breaking_width;
+		var point = this.createBreakingPoint({x:x, color:'red'});
+		peak.unshift(point);
+		this.updateLeftShoulder(x);
+
+		//add right point		
+		var x = peak[peak.length-1].x + this.params.breaking_width;
+		var point = this.createBreakingPoint({x:x, color:'red'});
+		peak.push(point);
+		this.updateLeftShoulder(x);
+
+
+		this.breakpoints[i] = peak;
+
 	}
 
 }
 
-prototype.addInitBreakingPoint = function(x) {
+prototype.addPeak = function(center,width) {
 
-	var point = this.createBreakingPoint({x:x, color:'red',delay:0});
-	this.breaking_points.push(point);
+	var points = [];
+	var point = this.createBreakingPoint({x:center, color:'red',delay:0});
+	points.push(point);
+	var point = this.createBreakingPoint({x:center + width/2});
+	points.push(point);
+	var point = this.createBreakingPoint({x:center - width/2});
+	points.unshift(point);
+
+	this.breakpoints.push(points);
 }
 
-prototype.addRightBreakingPoint = function(x) {
+prototype.addRightPeak = function(center,width) {
 
-	var point = this.createBreakingPoint({x:x});
-	this.breaking_points.push(point);
-	this.updateRightShoulder(x);
+	this.addPeak(center,width);
 }
 
-prototype.addLeftBreakingPoint = function(x) {
+prototype.addLeftPeak = function(center,width) {
 
-	var point = this.createBreakingPoint({x:x});
-	this.breaking_points.unshift(point);
-	this.updateLeftShoulder(x);
+	var points = [];
+	var point = this.createBreakingPoint({x:center, color:'red',delay:0});
+	points.push(point);
+	var point = this.createBreakingPoint({x:center + width/2});
+	points.push(point);
+	var point = this.createBreakingPoint({x:center - width/2});
+	points.unshift(point);
+
+	this.breakpoints.unshift(points);
 }
 
 prototype.createBreakingPoint = function(params) {
@@ -504,7 +535,7 @@ prototype.createBreakingPoint = function(params) {
 	shape.graphics.beginFill(color).drawCircle(0,0,5);
 	point.addChild(shape);
 
-	//this.cont.addChild(point);
+	this.debug_cont.addChild(point);
 
 	createjs.Tween.get(point)
 			.wait(delay)
@@ -522,7 +553,7 @@ prototype.createBreakingPoint = function(params) {
 }
 
 prototype.splashPointReached = function(point) {
-	
+
 	point.splashed = true;
 
 	//draw splash
@@ -537,7 +568,7 @@ prototype.splashPointReached = function(point) {
 	//set direction
 	if(this.direction==0) {
 		this.setDirection();
-		this.startShaking();
+		//this.startShaking();
 	}
 
 }
@@ -561,6 +592,8 @@ prototype.initSplashPoint = function(point) {
 }
 
 prototype.splashParticles = function(point) {
+
+	if(Math.random()*10 >= 4) return;
 
 	var emitter = new ParticleEmitter({
 			position: vec2.fromValues(point.x + point.splash.x,point.y + point.splash.y),
@@ -693,8 +726,8 @@ prototype.cleanOffScreenPoints = function() {
 	var offset = this.width >> 1; //divice by 2
 
 	var points = [];
-	for(var i = 0, len = this.breaking_points.length; i < len; i++) {
-		var point = this.breaking_points[i];
+	for(var i = 0, len = this.breakpoints.length; i < len; i++) {
+		var point = this.breakpoints[i];
 		var x = this.lip_cont.localToGlobal(point.x,point.y).x;
 		//remove point if offscreen on the left
 		if( x < (- offset) || x > (this.width + offset) ) {
@@ -703,33 +736,58 @@ prototype.cleanOffScreenPoints = function() {
 		} 
 		points[points.length] = point; 
 	}
-	this.breaking_points = points;
+	this.breakpoints = points;
 
 }
 
 prototype.drawSplash = function () {
 
-	//get only splashed point
-	var points = [];
-	for(var i=0, len = this.breaking_points.length; i<len; i++) {
-		if(this.breaking_points[i].splashed === true) {
-			points[points.length] = this.breaking_points[i];
-		}
-	}
-	
-	if(points.length < 2) return;
+	if(this.breaked == false) return;
 
 	var shape = new createjs.Shape();
-	var k = shape.graphics.clear().beginFill('#FFF').beginStroke('rgba(0,0,0,0.2').setStrokeStyle(0);
-	k.moveTo(points[0].x,points[0].y + points[0].splash.y);
-	for(var i=1,len=points.length; i<len - 2; i++) {
-		var xc = ( points[i].x + points[i+1].x) >> 1; // divide by 2
-		var yc = ( points[i].y + points[i].splash.y + points[i+1].y + points[i+1].splash.y) >> 1; // divide by 2
-		k.quadraticCurveTo(points[i].x,points[i].y + points[i].splash.y,xc,yc);
+	var k = shape.graphics;
+	
+
+	//get peaks
+	var peaks = [];
+	for(var i=0, len=this.breakpoints.length; i<len; i++) {
+		peaks[peaks.length] = this.breakpoints[i];
 	}
-	k.lineTo(points[points.length-1].x,this.params.height);
-	k.lineTo(points[0].x,this.params.height);
-	k.closePath();
+	//get only splashed point
+	for(var j=0, ln=peaks.length; j<ln; j++) {
+
+		var peak = peaks[j];
+		var splashed = [];
+		for(var i=0, len = peak.length; i<len; i++) {
+			if(peak[i].splashed === true) {
+				splashed[splashed.length] = peak[i];
+			}
+		}
+
+		peaks[j] = splashed;
+	}
+
+
+	for(var j=0, ln=peaks.length; j<ln; j++) {
+
+		points = peaks[j];
+
+		if(points.length==0) continue;
+
+		k.moveTo(points[0].x - this.params.breaking_points, this.params.height);
+		k.beginFill('#FFF').beginStroke('rgba(0,0,0,0.2').setStrokeStyle(1);
+		k.lineTo(points[0].x,points[0].y);
+
+		for(var i=1,len=points.length; i<len - 2; i++) {
+			var xc = ( points[i].x + points[i+1].x) >> 1; // divide by 2
+			var yc = ( points[i].y + points[i].splash.y + points[i+1].y + points[i+1].splash.y) >> 1; // divide by 2
+			k.quadraticCurveTo(points[i].x,points[i].y + points[i].splash.y,xc,yc);
+		}
+		
+		k.lineTo(points[points.length-1].x + this.params.breaking_width, this.params.height);
+		k.beginFill(null).beginStroke(null).setStrokeStyle(1);
+	}
+
 
 	this.splash_cont.removeAllChildren();
 	this.splash_cont.addChild(shape);
@@ -742,37 +800,38 @@ prototype.drawLip = function() {
 	if(this.breaked == false) return;
 
 	var shape = new createjs.Shape();
+	var k = shape.graphics;
 	//shape.alpha = 0.5;
 
-	//draw main lip
-	var points = this.breaking_points;
-	var k = shape.graphics.clear().beginFill('rgba(255,255,255,0.5)').beginStroke('rgba(0,0,0,0.3').setStrokeStyle(1);
-	k.moveTo(points[0].x,0);
-	for(var i=1,len=points.length; i<len -2; i++){
-			var xc = ( points[i].x + points[i+1].x) >> 1; // divide by 2
-			var yc = ( points[i].y + points[i+1].y) >> 1; // divide by 2
-			k.quadraticCurveTo(points[i].x,points[i].y,xc,yc);
+	//get peaks
+	var peaks = [];
+	for(var i=0, len=this.breakpoints.length; i<len; i++) {
+		peaks[peaks.length] = this.breakpoints[i];
 	}
-	//faire passer par l'avant dernier point
-	k.quadraticCurveTo(points[i].x,points[i].y,points[i+1].x,points[i+1].y);		
-	//le dernier point
-	k.lineTo(points[len-1].x,0);
 
+	//draw a lip for each peak
+	for(var j=0, ln=peaks.length; j<ln; j++) {
+		
+		var points = peaks[j];
 
+		for(var i=0, len=points.length; i<len - 2; i++) {
 
-	//draw extra peaks if exist
-	if(this.breaking_peaks.length>0) {
-		var points = this.breaking_peaks;
-		k.moveTo(points[0].x,points[0].y);
-		for( var i=1, len=points.length; i<len - 2; i++) {
-			var xc = ( points[i].x + points[i+1].x) >> 1; // divide by 2
-			var yc = ( points[i].y + points[i+1].y) >> 1; // divide by 2
-			k.quadraticCurveTo(points[i].x,points[i].y,xc,yc);
+			k.beginFill('rgba(255,255,255,0.5)').beginStroke('rgba(0,0,0,0.3').setStrokeStyle(1);
+			k.moveTo(points[0].x,0);
+			for(var i=1,len=points.length; i<len -2; i++){
+					var xc = ( points[i].x + points[i+1].x) >> 1; // divide by 2
+					var yc = ( points[i].y + points[i+1].y) >> 1; // divide by 2
+					k.quadraticCurveTo(points[i].x,points[i].y,xc,yc);
+			}
+			//faire passer par l'avant dernier point
+			k.quadraticCurveTo(points[i].x,points[i].y,points[i+1].x,points[i+1].y);		
+			//le dernier point
+			k.lineTo(points[len-1].x,0);
 		}
-		//k.quadraticCurveTo(points[i].x,points[i].y,points[i+1].x,points[i+1].y);
-		k.lineTo(points[0].x,points[0].y);
-
+		
 	}
+
+	k.closePath();
 
 	var thickness = shape.clone(true);
 	thickness.y = -10;
@@ -785,61 +844,19 @@ prototype.drawLip = function() {
 }
 
 prototype.addBreakingPeak = function(width,distance) {
-
-	var x;
-	if(this.direction==1) x = this.breaking_points[0].x - distance;
-	if(this.direction==-1) x = this.breaking_points[this.breaking_points.length - 1].x + distance;	
-
-	var point = this.createBreakingPoint({x:x, color:'pink',delay:0});
-	this.breaking_peaks.push(point);
-
-	var point = this.createBreakingPoint({x:x + width/2, color:'pink'});
-	//point.x = this.breaking_peaks[0].x + width / 2;
-	this.breaking_peaks.push(point);
-
-	var point = this.createBreakingPoint({x:x - width/2, color:'pink'});
-	//point.x = this.breaking_peaks[0].x - width / 2;
-	this.breaking_peaks.unshift(point);
-
-	this.breakingPeaksInterval = setInterval(proxy(this.breakingPeaks,this), this.params.breaking_xspeed * 2);
-}
-
-prototype.breakingPeaks = function() {
 	
-	//calcul and add left breaking point
-	var x = this.breaking_peaks[0].x - this.params.breaking_width;
-	var point = this.createBreakingPoint({x:x, color:'pink'});
-	this.breaking_peaks.unshift(point);
-
-	//calcul and add right breaking point
-	var x = this.breaking_peaks[this.breaking_peaks.length-1].x + this.params.breaking_width;	
-	var point = this.createBreakingPoint({x:x, color:'pink'});
-	this.breaking_peaks.push(point);
-
-	//when the two lips joins
-	//for right waves
-	if(this.direction==-1 && this.breaking_peaks[0].x <= this.breaking_points[this.breaking_points.length - 1].x + this.params.breaking_width*2)
-	{		
-		//merge points
-		this.breaking_points = this.breaking_points.concat(this.breaking_peaks);
-		//clear peak points
-		this.breaking_peaks = [];
-		//stop breaking the peak
-		return clearInterval(this.breakingPeaksInterval);
+	if(this.direction==1) {
+		var peak = this.breakpoints[0];
+		var x = peak[0].x - distance;
+		this.addLeftPeak(x, width);
 	}
-	//for left waves
-	if(this.direction==1 && this.breaking_peaks[this.breaking_peaks.length - 1].x > this.breaking_points[0].x - this.params.breaking_width*2)
-	{		
-		//merge points
-		this.breaking_points = this.breaking_peaks.concat(this.breaking_points);
-		//clear peak points
-		this.breaking_peaks = [];
-		//stop breaking the peak
-		return clearInterval(this.breakingPeaksInterval);
+	if(this.direction==-1) {
+		var peak = this.breakpoints[this.breakpoints.length - 1];
+		var x = peak[peak.length-1].x + distance;	
+		this.addRightPeak(x, width);
 	}
-	
+
 }
-
 
 prototype.addObstacle = function() {
 

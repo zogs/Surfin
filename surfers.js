@@ -549,7 +549,7 @@
 			rotatemax: -5,
 			scaler: - 0.1
 		});
-		for(var i=0; i < 40; i++) {
+		for(var i=0; i < 150; i++) {
 			var particule = emitter.emitParticle();
 			this.wave.particles_cont.addChild(particule);
 			this.wave.particles.push(particule);
