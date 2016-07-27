@@ -31,7 +31,7 @@ function calculAngle(cx, cy, ex, ey) {
   var dx = ex - cx;
   var theta = Math.atan2(dy, dx); // range (-PI, PI]
   theta *= 180 / Math.PI; // rads to degs, range (-180, 180]
-  //if (theta < 0) theta = 360 + theta; // range [0, 360)
+  if (theta < 0) theta = 360 + theta; // range [0, 360)
   return theta;
 }
 
@@ -85,4 +85,17 @@ function intersection(p0x, p0y, p1x, p1y, p2x, p2y, p3x, p3y) {
       }
     }
     return null
+}
+//Clone object
+function cloneObject(obj) {
+    if (obj === null || typeof obj !== 'object') {
+        return obj;
+    }
+ 
+    var temp = new obj.constructor(); // give temp the original obj's constructor
+    for (var key in obj) {
+        temp[key] = cloneObject(obj[key]);
+    }
+ 
+    return temp;
 }

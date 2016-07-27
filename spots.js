@@ -1,32 +1,87 @@
 (function() {
 	
-	function Spot(cont) {
+	function Spot(config) {
 
 		this.Container_constructor();
 
 		this.waves = [];
+		this.paddlers = [];
 
-
-		this.config = {
+		this.config = config || {
+			lines: {
+				horizon: 180,
+				peak: 400,
+				beach: 500
+			},
 			peak_point : 500,
 			horizon_point : 180,
 			waves: {
-				height : 200,
+				height : 150,
 				width : 1500,
+				breaking_yspeed: 1200,
+				breaking_width_left: 20,
+				breaking_width_right: 10,
+				paddling_effort: 1,
+				bottom_fall_scale: 1,
+				top_fall_scale: 0.2,
+				breaking_block_left_interval: 1000,
+				breaking_block_left_interval_max: 2000,
+				breaking_block_left_width: 100,
+				breaking_block_left_width_max: 200,
+				breaking_block_right_interval: 500,
+				breaking_block_right_interval_max: 600,
+				breaking_block_right_width: 100,
+				breaking_block_right_width_max: 200,
+				suction_x: 5,
+				suction_y: 3,
+				color_top: '#0b2648',
+				color_bot: '#0d528c',
+				obstacles_interval: 500,
+				obstacles_interval_max: 1500, 
+				obstacles: {
+					'paddler' : {percentage: 50},
+					'photograph' : {percentage: 50},
+				},
+				shoulder : {
+					left : {
+						width: 1000,
+						inner: 300,
+						outer: 300,
+						marge: 50,
+						slope: 0
+					},
+					right : {
+						width: 1000,
+						inner: 300,
+						outer: 300,
+						marge: 50,
+						slope: 0
+					}
+				}
 			},
 			series: {
-				length :  5,
-				interval : 5000,				
-				spread : 0,				
-				speed : 6000,
+				length :  4,
+				interval : 8000,				
+				spread : 200,				
+				speed : 12000,
 				frequency : 1500,
-			},			
+			},	
+			surfers: {
+				proportion: 1.5
+			}		
 		}
 
+		this.bkg_cont = new createjs.Container();
+		this.addChild(this.bkg_cont);
+		var background = new createjs.Bitmap(queue.getResult('bg_paradize'));
+		this.bkg_cont.addChild(background);
 
 		this.cont = new createjs.Container();
 		this.addChild(this.cont);
 
+		this.overlay_cont = new createjs.Container();
+		this.addChild(this.overlay_cont);
+		
 		this.debug_cont = new createjs.Container();
 		this.addChild(this.debug_cont);
 
@@ -34,19 +89,20 @@
 		peak.graphics.beginFill('pink')
 			.drawCircle(0, 0, 6)
 			;	
-		peak.y = this.config.peak_point; 
+		peak.y = this.config.lines.peak; 
 		this.debug_cont.addChild(peak);
 
 		var horizon = new createjs.Shape();
 		horizon.graphics.beginFill('red')
 			.drawCircle(0, 0, 6)
 			;	
-		horizon.y = this.config.horizon_point; 
+		horizon.y = this.config.lines.horizon; 
 		this.debug_cont.addChild(horizon);
 
 
-
 		this.initEventsListeners();
+
+
 
 		//Ticker
 		this.addEventListener('tick',proxy(this.tick,this));
@@ -54,6 +110,23 @@
 	}
 
 	var prototype = createjs.extend(Spot, createjs.Container);
+
+	prototype.init = function() {
+
+		this.removeAllWaves();
+		this.initEventsListeners();
+		//this.addWave(0.3);
+		this.addWave(1);
+		this.addPaddler(STAGEWIDTH/2,300);
+	}
+
+	prototype.launch = function() {
+
+		this.removeAllWaves();
+		this.initEventsListeners();
+		this.addInitialSerie();
+		this.addPaddler(STAGEWIDTH/2,300);
+	}
 
 	prototype.initEventsListeners = function() {
 
@@ -71,11 +144,57 @@
 			this.fadeNonPlayedWave(event.wave);
 			event.remove();
 		},this);
+
+		stage.on('player_paddling',function(event) {
+			this.playerPaddling(event);
+		},this);
+
+		stage.on('surfer_fallen',function(event) {			
+			this.playerFalling(event);
+		},this);
 	}
 
 	prototype.tick = function() {
 
-		//console.log(this.waves.length);
+		
+		this.managePaddlers();
+		this.paralaxWaves();
+	}
+
+	prototype.managePaddlers = function() {
+
+		//for each paddlers
+		for(var i=0,len=this.paddlers.length;i<len;i++) {
+
+			var paddler = this.paddlers[i];
+
+			//find lower indexed waves
+			var index = this.cont.getChildIndex(paddler) - 1;
+			while(index >= 0) {
+
+				if(this.cont.getChildAt(index) instanceof Wave) {
+				
+					var wave = this.cont.getChildAt(index);
+
+					//find if paddler superposed to wave
+					if(paddler.getY() < wave.y && paddler.getY() > wave.y - wave.params.height) {
+
+						paddler.liftup(1);
+					}
+
+					//if user is above wave
+					if(paddler.getY() < wave.y - wave.params.height) {
+						
+						//swap index pos
+						this.cont.swapChildren(paddler,wave);
+
+						//lower paddler pos
+						paddler.liftdown();
+					}
+				}
+				index--;
+			}
+		}
 	}
 
 	prototype.fadeNonPlayedWave = function(wave) {
@@ -104,6 +223,18 @@
 		this.surfer = surfer;
 	}
 
+	prototype.addPaddler = function(x,y) {
+
+		var paddler = new Paddler({
+			spot: this,
+			x: x,
+			y: y
+		});
+
+		this.cont.addChild(paddler);
+		this.paddlers.push(paddler);
+	}
+
 	prototype.addSeries = function() {
 
 		if(this.isPlayed == true) return;
@@ -125,19 +256,18 @@
 
 		for(var i = 1; i <=this.config.series.length; i++) {
 
-			var wave = new Wave({
-				height: this.config.waves.height,
-				width: this.config.waves.width,
-				y: this.config.horizon_point,
-				x: this.config.series.spread/2 - Math.random()*this.config.series.spread
-			});		
+			var config = this.config.waves;
+			config.spot = this;
+			config.x = this.config.series.spread/2 - Math.random()*this.config.series.spread;
+			config.y = this.config.lines.horizon;
 
+			var wave = new Wave(config);		
 
 			//start tween
 			var tween  = createjs.Tween.get(wave);		
-			tween.to({y: STAGEHEIGHT + this.config.waves.height*3}, this.config.series.speed, createjs.Ease.quadIn)
+			tween.to({y: STAGEHEIGHT + this.config.waves.height}, this.config.series.speed, createjs.Ease.cubicIn)
 			tween.call(proxy(this.removeWave,this,[wave]))
-			tween.addEventListener('change',proxy(wave.resize,wave));
+			tween.addEventListener('change',proxy(wave.coming,wave));
 			tween.setPosition((1500*this.config.series.length)-(1500*i));
 			
 			//add to scene
@@ -150,13 +280,16 @@
 
 	prototype.addSwell = function() {
 
+		if(this.isPlayed) return;
+
+		//configuration of the wave
+		var config = this.config.waves;
+			config.spot = this;
+			config.x = this.config.series.spread/2 - Math.random()*this.config.series.spread;
+			config.y = this.config.lines.horizon;
+
 		//create Wave at horizon point
-		var wave = new Wave({
-				height: this.config.waves.height,
-				width: this.config.waves.width,
-				y: this.config.horizon_point,
-				x: this.config.series.spread/2 - Math.random()*this.config.series.spread
-			});
+		var wave = new Wave(config);
 
 		//add to scene
 		this.cont.addChildAt(wave,0);
@@ -164,9 +297,220 @@
 
 		//start tween
 		var tween = createjs.Tween.get(wave);		
-		tween.to({y: STAGEHEIGHT + this.config.waves.height*3}, this.config.series.speed, createjs.Ease.quadIn)
+		tween.to({y: STAGEHEIGHT + this.config.waves.height}, this.config.series.speed, createjs.Ease.cubicIn)
 		tween.call(proxy(this.removeWave,this,[wave]))
-		tween.addEventListener('change',proxy(wave.resize,wave));
+		tween.addEventListener('change',proxy(wave.coming,wave));
+
+		wave.alpha = 0;
+		createjs.Tween.get(wave).to({alpha: 1}, 5000);
+
+	}
+
+	prototype.playerPaddling = function(event) {
+
+		var paddler = event.paddler;
+
+		var index = this.cont.getChildIndex(paddler) - 1;
+		while(index>=0) {
+
+			var wave = this.cont.getChildAt(index);
+
+			if(wave instanceof Wave) {
+			
+				if(paddler.y <= wave.y - wave.params.height/3 && paddler.y > wave.y - wave.params.height) {
+					
+					//if paddling force is not enougth, quit and return
+					if(paddler.paddling_force <= wave.params.paddling_effort) return;
+					
+					//calcul paddler position relative to wave
+					var y = ( wave.params.height - ( wave.getY() - paddler.getY() ));
+					var x = ( paddler.getX() - wave.getX() );
+
+					//add surfer to wave
+					var surfer = new Surfer({
+						x: x,
+						y: y,	
+						wave: wave,
+						spot: this,				
+					});
+					wave.playerTakeOff(surfer);
+
+					//set rided wave
+					this.wave = wave;
+					
+					//remove paddler
+					paddler.removeListeners();
+					this.cont.removeChild(paddler);
+					this.paddlers.splice(this.paddlers.indexOf(paddler),1);
+					//remove event
+					event.remove();
+					//break loop
+					break;
+				}
+			}
+
+			index--;
+		}
+	}
+
+	prototype.paralaxWaves = function() {
+
+		if(!this.wave || this.wave.direction == 0) return;
+		
+		var index = this.cont.getChildIndex(this.wave) - 1;
+		while(index >= 0) {
+
+			var wave = this.cont.getChildAt(index);
+
+			if(wave instanceof Wave) {
+
+				var dx = 15 * (this.wave.direction);
+				wave.cont.x += dx;
+
+				if(wave.cont.x > STAGEWIDTH || wave.cont.x < -STAGEWIDTH) {
+					this.removeWave(wave);
+				}
+				
+			}
+
+			index--;
+		}
+	}
+
+	prototype.playerFalling = function(event) {
+		
+
+		//var surfer = event.surfer;
+		//var pos = surfer.localToGlobal(0,0);
+		//
+		if(TEST) return;
+
+		this.initFallScreen();
+
+		//emit particle
+		/*var emitter = new ParticleEmitter({
+			position: vec2.fromValues(pos.x,pos.y),
+			magnitude: 50,
+			color: '#FFF',
+			size: 40,
+			sizemax: 50,
+			fade: 0.1,
+			fademax: 0.3,
+			rotate: 5,
+			rotatemax: -5,
+			scaler: 0.1
+
+		});
+		for(var i=0; i < 5; i++) {
+			var particule = emitter.emitParticle();
+			console.log(particule.position);
+			this.overlay_cont.addChild(particule);
+		}
+		*/
+	}
+
+
+	prototype.initFallScreen = function() {
+
+		this.overlay_cont.removeAllChildren();
+
+		var backred = new createjs.Shape();
+		backred.graphics.beginFill('red').rect(0,0,STAGEWIDTH,STAGEHEIGHT);
+		backred.alpha = 0;	
+
+		var backwhite = new createjs.Shape();
+		backwhite.graphics.beginFill('white').rect(0,0,STAGEWIDTH,STAGEHEIGHT);
+		backwhite.alpha = 0;
+
+		var wash = new createjs.Shape();
+		wash.graphics.beginFill('rgba(255,255,255,0.3)').moveTo(0,0);
+		wash.y = STAGEHEIGHT;
+		var total=0;
+		var width = 1000;
+		var amp = 200;
+		while(total<STAGEWIDTH*3) {
+			wash.graphics.bezierCurveTo(total+width/2,amp,total+width*2/3,-amp,total+width,0);
+			total+= width;
+		}
+		wash.graphics.lineTo(STAGEWIDTH*3,STAGEHEIGHT*3)
+		.lineTo(0,STAGEHEIGHT*3)
+		.closePath();
+
+		var wash2 = wash.clone();
+		wash2.y = STAGEHEIGHT;
+		wash2.x = -STAGEWIDTH;
+
+		var dx = Math.random()*500 + 200;
+
+		createjs.Tween.get(wash).to({y: 200,x:-dx},700);
+		createjs.Tween.get(wash2).to({y: 150,x:-dx - STAGEWIDTH/2},800);
+		createjs.Tween.get(backred).to({alpha:0.7},200).to({alpha:0.2},500);
+		createjs.Tween.get(backwhite).wait(200).to({alpha:0.7},500);
+
+		this.overlay_cont.addChild(wash);
+		this.overlay_cont.addChild(wash2);
+		this.overlay_cont.addChild(backred);
+		this.overlay_cont.addChild(backwhite);
+
+		for(var i=0; i<=5; i++) {
+
+			var drop = new createjs.Shape();
+			drop.graphics.beginFill('white').drawCircle(0,0,Math.random()*150+50);
+			drop.x = Math.random()*STAGEWIDTH;
+			drop.y = Math.random()*STAGEHEIGHT;
+			drop.alpha = 0;
+			drop.scaleX = drop.scaleY = 0;
+			this.overlay_cont.addChild(drop);
+
+			createjs.Tween.get(drop).wait(200).to({alpha:0.3,scaleX:1,scaleY:1},300);
+		}
+
+		for(var i=0; i<=3; i++) {
+
+			var drop = new createjs.Shape();
+			drop.graphics.setStrokeStyle(Math.random()*15+5).beginStroke('#FFF').drawCircle(0,0,Math.random()*50+25);
+			drop.x = Math.random()*STAGEWIDTH;
+			drop.y = Math.random()*STAGEHEIGHT;
+			drop.alpha = 0;
+			drop.scaleX = drop.scaleY = 0;
+			this.overlay_cont.addChild(drop);
+
+			createjs.Tween.get(drop).wait(200).to({alpha:0.3,scaleX:1,scaleY:1},300);
+		}
+
+		var text = new createjs.Bitmap(queue.getResult('washed_text'));
+		text.alpha = 0;
+		text.x = STAGEWIDTH/2;
+		text.y = STAGEHEIGHT;
+		text.regX = text.image.width/2;
+		text.regY = text.image.height/2;
+		text.scaleX = text.scaleY = 0.2;
+		var y = STAGEHEIGHT*2/3 - text.image.height/2;
+
+		this.overlay_cont.addChild(text);
+		createjs.Tween.get(text).wait(500).to({y:y,alpha:1,scaleX:1,scaleY:1},300,createjs.Ease.backOut);
+
+		var subtext = new createjs.Text("PRESS TO RETRY", "16px Arial", "#AAA");
+		subtext.alpha = 0;
+		subtext.x = text.x ;
+		subtext.y = 500;
+		subtext.regX = subtext.getMeasuredWidth()/2;
+		subtext.regY = subtext.getMeasuredHeight()/2;
+
+		this.overlay_cont.addChild(subtext);
+		createjs.Tween.get(subtext).wait(1000).to({alpha:1,y:450},500);
+
+		this.click_retry = stage.on('click',proxy(this.fallRetry,this));
+
+	}
+
+	prototype.fallRetry = function(e) {
+
+		e.stopPropagation();
+		e.remove();
+
+		this.overlay_cont.removeAllChildren();
+		this.init();
 
 	}
 
@@ -197,27 +541,40 @@
 
 	prototype.getPeak = function() {
 
-		return this.config.peak_point;
+		return this.config.lines.peak;
 	}
 
 	prototype.getHorizon = function() {
 
-		return this.config.horizon_point;
+		return this.config.lines.horizon;
+	}
+	prototype.getBeach = function() {
+
+		return this.config.lines.beach;
 	}
 
 
-	prototype.addWave = function(height,width,y) {
+	prototype.addWave = function(coef) {
 
-		var wave = new Wave({height:height,width:1000,y:this.config.horizon_point+y});		
+		var coef = coef || 1;
+
+		var config = this.config.waves;
+		config.spot = this;
+		config.height = this.config.waves.height * coef
+		config.width = this.config.waves.width * coef
+		config.y = this.config.lines.horizon + (this.config.lines.peak - this.config.lines.horizon) * coef;
+
+		var wave = new Wave(config);		
 		this.cont.addChild(wave);
 		this.waves.push(wave);
 	}
 
 	prototype.removeWave = function(wave) {
-		console.log('removeWave');
-		wave.clearAllIntervals();
+		
+		wave.clearWave();
 		this.cont.removeChild(wave);
 		this.waves.splice(this.waves.indexOf(wave),1);
+		wave = null;
 		return this;
 	}
 
@@ -225,6 +582,7 @@
 		
 		this.cont.removeAllChildren();
 		this.waves = [];
+		this.paddlers = [];
 
 		return this;
 	}

@@ -38,10 +38,12 @@ window.loaded = function() {
 		{id:'surfer_WS',src:'assets/img/surfer/WS.png'},
 		{id:'surfer_WSS',src:'assets/img/surfer/WSS.png'},
 		{id:'surfer_takeoff',src:'assets/img/surfer/takeoff.png'},
+		{id:'paddler',src:'assets/img/surfer/paddler.png'},
 		{id:'surfer_paddle',src:'assets/img/surfer/P.png'},
 		{id:'photographer',src:'assets/img/object/photographer.png'},
 		{id:'wash_plouf',src:'assets/img/object/wash.svg'},
-		{id:'wash',src:'assets/img/object/wash.png'}
+		{id:'wash',src:'assets/img/object/wash.png'},
+		{id:'washed_text',src:'assets/img/washed.png'}
 
 		]);
 
@@ -59,29 +61,24 @@ window.initialize = function() {
 	MOUSE_Y = STAGEHEIGHT/2;
 	MOUSE_POINTS = [new createjs.Point(MOUSE_X,MOUSE_Y)];
 
-	var background = new createjs.Bitmap(queue.getResult('bg_paradize'));
-	stage.addChild(background);
+	DEBUG = 0;
+	TEST = 0;
 
 
 	//SPOT
 	SPOT = new Spot();
 	stage.addChild(SPOT);
-	SPOT.addWave(50,500,50);
-	SPOT.addWave(100,500,100);
-	SPOT.addWave(200,500,280);
+	SPOT.init();
 
 	//SCORE
 	SCORE = new Score();
 	SCORE.setSpot(SPOT);
 	stage.addChild(SCORE);
 
-	//DEBUG
-	DEBUG = {
-		active: true,
-		opacity: 0.2
-	}
-
 	
+	//customizer
+	initCustomizer();
+
 	//init onEnterFrame
 	createjs.Ticker.addEventListener('tick',tick);
 
@@ -94,8 +91,19 @@ window.initialize = function() {
 	window.onkeyup = keyUpHandler;
 	window.onkeydown = keyDownHandler;
 	
+}
 
-	
+window.addSpot = function(config) {
+
+	//clear stage
+	stage.removeAllChildren();
+	//create spot with new config
+	SPOT = new Spot(config);
+	//add it
+	stage.addChild(SPOT);
+	//launch initial set
+	SPOT.launch();
+
 }
 
 
@@ -110,14 +118,16 @@ window.keyDownHandler = function(e)
    {
     case KEYCODE_B:  SPOT.getWave().addBlockBreaking(); break;
     case KEYCODE_N:  SPOT.getWave().addBreakingPeak(200,800); break;
-    case KEYCODE_S:  SPOT.removeAllWaves().addSeries(); break;
+    case KEYCODE_S:  window.addSpot(); break;
     case KEYCODE_A:  SPOT.breakAllWaves(); break;
     case KEYCODE_R:  SPOT.removeAllWaves(); break;
     case KEYCODE_P:  SPOT.pauseAllWaves(); break;
     case KEYCODE_M:  SCORE.say('Hello !',3000); break;
     case KEYCODE_T:  SPOT.getWave().getSurfer().testTrail(); break;
     case KEYCODE_F:  SPOT.getWave().getSurfer().fall(); break;
+    //case KEYCODE_F:  SPOT.initFallScreen(); break;
     case KEYCODE_O:  SPOT.getWave().addObstacle(); break;
+    case KEYCODE_D:  switchDebugMode(); break;
    } 
 }
 
@@ -151,3 +161,26 @@ window._getMouseVector = function(n) {
 	return vec2.fromValues(_getMousePoint(n).x - _getMousePoint(n+1).x,_getMousePoint(n).y - _getMousePoint(n+1).y);
 }
 
+window.switchDebugMode = function() {
+	
+	if(DEBUG === 1) {
+		DEBUG = 0;
+		console.log('DEBUG DESACTIVED');
+	}
+	else {
+		DEBUG = 1;
+		console.log('DEBUG ACTIVATED !');
+	}
+}
+
+window.switchTestMode = function() {
+	
+	if(TEST === 1) {
+		TEST = 0;
+		console.log('TEST DESACTIVATED');
+	}
+	else {
+		TEST = 1;
+		console.log('TEST ACTIVATED !');
+	}
+}

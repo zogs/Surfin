@@ -1,9 +1,9 @@
 (function() {
 	
-	function Surfer(wave) {
+	function Surfer(params) {
 
 		this.Container_constructor();
-		this.init(wave);
+		this.init(params);
 	}
 
 	var prototype = createjs.extend(Surfer, createjs.Container);
@@ -11,19 +11,21 @@
 	createjs.EventDispatcher.initialize(prototype);
 	//public static properties
 	prototype.gravity = vec2.fromValues(0,2);
-	prototype.silhouette_proportion = 0.04;
-	prototype.hitbox_proportion = 0.9;
+	prototype.hitbox_proportion = 25;
 	prototype.isBot = false;
 	prototype.origin_height = 80;
 	prototype.height = 80;
 
 	//init 
-	prototype.init = function(wave) {
+	prototype.init = function(params) {
 
-		this.wave = wave;
+		this.wave = params.wave;
+		this.spot = params.spot;
+		this.x = params.x;
+		this.y = params.y;
 
-		this.location = null;
-		this.locations = [];
+		this.location = [this.x,this.y];
+		this.locations = [this.location];
 		this.trailpoints = [];
 		this.trailsize = 1.3;
 		this.trailcoef = 4.2;
@@ -37,7 +39,8 @@
 		this.tubing = false;
 		this.riding = false;
 		this.falling = false;
-		this.automove = false;
+		this.surfing = false;
+		this.automove = true;
 		this.autoSilhouette = true;
 		this.ollie_cooldown = 1000;
 		this.trailsize_origin = this.trailsize;
@@ -46,6 +49,7 @@
 			speed: 1, //0 to 1
 			aerial: 1, //0 to 1
 			agility: 0.8, //0 to 1
+			paddling: 1,
 		}
 
 		this.hitbox = new createjs.Shape();
@@ -57,8 +61,6 @@
 		this.hitboard.graphics.beginFill('red').drawCircle(0,0,3);		
 		this.addChild(this.hitboard);
 
-
-
 		this.silhouette_cont = new createjs.Container();
 		this.addChild(this.silhouette_cont);
 
@@ -67,14 +69,16 @@
 		this.silhouette_cont.addChild(this.silhouette);
 		this.silhouette_width = this.silhouette.getChildAt(0).image.width;
 		this.silhouette_height = this.silhouette.getChildAt(0).image.height;
+		this.silhouette.alpha = 0;
 
 		this.debug_cont = new createjs.Container();
 		this.addChild(this.debug_cont);
 
-
 		this.addEventListener('tick',proxy(this.tick,this));
 		
 		this.initEventsListener();
+
+		this.resize();
 
 
 	}
@@ -83,16 +87,24 @@
 
 	prototype.tick = function() {
 
+		this.updateLocation();
 		this.move();
 		this.stock();
 		this.testFall();
 		this.drawTrails();
 		this.drawDebug();
+
 	}
 
 
 	prototype.initEventsListener = function() {
 
+		//add new click event to jump ollie
+		stage.on('click',function(event) {
+			this.ollie();
+		},this);
+
+		//custom events
 		this.on('fall_bottom',function(event) {	
 			this.fall();		
 			this.status = 'fall';
@@ -127,25 +139,16 @@
 		this.on('surfing',function(event) {
 
 			stage.dispatchEvent('surfer_surfing');
-		}),
-		this.on('fall',function(event) {
-			
-			stage.dispatchEvent('surfer_fall');
-		})
-		this.on('fallen',function(event) {
-			
-			stage.dispatchEvent('surfer_fallen');
 		});
-
 	}
 
 	prototype.takeOff = function(x,y) {
 
 		this.x = x;
 		this.y = y;	
-		this.updateLocation();
 
 		this.automove = true;
+		this.surfing = true;
 
 
 		var takeoff = new createjs.SpriteSheet({
@@ -161,11 +164,12 @@
 
 		this.silhouette.removeChildAt(0);
 		this.silhouette.addChild(animation);
+		this.silhouette.alpha = 1;
 
 		var tween = createjs.Tween.get(this);
-			tween.to({ y: this.wave.params.height*1/3 },1000,createjs.Tween.quartOut);
-			tween.call(proxy(this.endTakeOff,this));
+			tween.to({ y: this.y + this.wave.params.height*1/3 },1000,createjs.Tween.quartOut);
 			tween.addEventListener('change',proxy(this.updateLocation,this));
+			tween.call(proxy(this.endTakeOff,this));
 			;		
 
 
@@ -180,7 +184,7 @@
 	prototype.updateLocation = function(e) {
 
 		this.location = vec2.fromValues(this.x,this.y);
-		this.locations.push(vec2.fromValues(this.x,this.y));
+		this.locations.push(this.location);
 	}
 
 	prototype.endTakeOff = function() {
@@ -194,28 +198,27 @@
 	prototype.setWave = function(wave) {
 
 		this.wave = wave;
-		this.resize();
 		return this;
 	}
 
 	prototype.resize = function() {
 
-		this.scale = (this.wave.y / STAGEWIDTH * 100) * this.silhouette_proportion;
+		var scale = (this.wave.y - this.wave.params.height/2 - this.spot.getHorizon()) / (this.spot.getPeak() - this.spot.getHorizon());
 
-		this.silhouette.scaleX = this.scale;
-		this.silhouette.scaleY = this.scale;
+		this.scale = scale * this.spot.config.surfers.proportion;
 
 		this.height = this.origin_height*this.scale;
 
+		this.silhouette.scaleX = this.scale;
+		this.silhouette.scaleY = this.scale;
 		this.silhouette.x = (- this.silhouette_width/2) * this.scale;		
 		this.silhouette.y = (- this.silhouette_height/2) * this.scale;	
-
-		this.hitbox.scaleX = this.hitbox.scaleY = this.hitbox_radius = (this.wave.y / STAGEWIDTH * 100) * this.hitbox_proportion;	
+		
+		this.hitbox.scaleX = this.hitbox.scaleY = this.hitbox_radius = this.scale * this.hitbox_proportion;	
 		this.hitbox.x = 0;
 		this.hitbox.y = (- this.silhouette_height/6) * this.scale;
 
 	}
-
 
 	prototype.getVanishPoint = function() {
 
@@ -266,9 +269,7 @@
 		return false;
 	}
 
-
 	prototype.move = function() {		
-
 		if(this.automove == true) return;		
 
 		if( this.isOnAir() ) {	
@@ -292,13 +293,10 @@
 
 		//set this position
 		this.x = this.location[0];
-		this.y = this.location[1];	
-
-		//set surfer direction angle
-		this.setAngle();
-		//set surfer silhouette
-		this.setSilhouette();		
+		this.y = this.location[1];		
 		
+		//set silhouette
+		this.setSurferSilhouette();	
 	}
 
 
@@ -308,7 +306,6 @@
 		vec2.add(this.ollie_vector,this.ollie_vector,this.gravity);		
 		//add initial 
 		vec2.add(this.location,this.location,this.ollie_vector);
-
 		
 	}
 
@@ -355,7 +352,9 @@
 
 		//emit particle
 		var emitter = new ParticleEmitter({
-			position: vec2.fromValues(this.x,this.y),
+			x: this.x,
+			y: this.y,
+			density: 10,
 			angle: Math.PI /2,
 			spread: Math.PI,
 			magnitude: this.speed/2,
@@ -363,17 +362,15 @@
 			color: '#FFF',
 			size: 2,
 			sizemax: 8,
-			fade: 0.1,
-			fademax: 0.3,
+			fader: 0.1,
+			fadermax: 0.3,
 			rotate: 5,
 			rotatemax: -5,
-
+			callback: proxy(function(emitter){ this.wave.particles_cont.removeChild(emitter); emitter = null;},this)
 		});
-		for(var i=0; i < 10; i++) {
-			var particule = emitter.emitParticle();
-			this.wave.particles_cont.addChild(particule);
-			this.wave.particles.push(particule);
-		}
+
+		this.wave.particles_cont.addChild(emitter);
+
 	}
 
 	prototype.moveOnWaveOLD = function() {
@@ -422,14 +419,19 @@
 		vec2.add(this.location,this.locations[0],speed);	
 
 		//sightly up and down random movement
-		if(this.move_dy == undefined) this.move_dy = new Variation({min: 5,max: 10,time: 200});
-		this.location[1] = this.location[1] + ( 5 - this.move_dy);
+		this.moveZigZag();
 
 		//sufer cant go bellow the wave
 		if(this.location[1] > this.wave.params.height) {
 			this.location[1] = this.wave.params.height;
 		}
 
+	}
+
+	prototype.moveZigZag = function() {
+
+		if(!this.zigzag) this.zigzag = new Variation({min:5, max:10, time: 200});
+		this.location[1] = this.location[1] + ( 5 - this.zigzag);
 	}
 
 	prototype.moveOnAir = function() {
@@ -451,11 +453,11 @@
 		//stock locations		
 		this.locations.unshift(vec2.clone(this.location));
 		this.locations = this.locations.slice(0,60);
-
 		//stock trails locations
-		var point = vec2.clone(this.location);
-		//set trail size to point
-		point.size = this.trailsize;
+		var point = {
+			location: this.location,
+			size: this.trailsize	
+		}
 		//add point to trail points array
 		this.trailpoints.unshift(point);
 		this.trailpoints = this.trailpoints.slice(0,60);
@@ -496,7 +498,6 @@
 
 		var impulse = vec2.length(this.velocity);
 
-		console.log(impulse);
 		if(impulse > 35) {
 			return this.initDoubleBackflip();
 		}
@@ -535,25 +536,31 @@
 
 		//emit particle
 		var emitter = new ParticleEmitter({
-			position: vec2.fromValues(this.x,this.y),
+			x: this.x, // + this.wave.params.breaking_width*3*(-1*this.wave.direction),
+			y: 0,
+			density: 20,
+			frequency: 50,
+			duration: 250,
 			angle: this.angle_rad,
-			spread: Math.PI / 20,
+			spread: Math.PI / 5,
 			magnitude: this.speed,
 			magnitudemax: this.speed*2,
 			color: '#FFF',
-			size: 1,
-			sizemax: 7,
-			fade: 0.05,
-			fademax: 0.2,
-			rotate: 5,
-			rotatemax: -5,
-			scaler: - 0.1
+			size: 0.5,
+			sizemax: 5,
+			fader: 0.1,
+			fadermax: 0.2,
+			scaler: -0.1,
+			forces: [this.gravity],
+			callback: proxy(this.removeArialParticles,this)
 		});
-		for(var i=0; i < 150; i++) {
-			var particule = emitter.emitParticle();
-			this.wave.particles_cont.addChild(particule);
-			this.wave.particles.push(particule);
-		}
+		
+		this.wave.particles_cont.addChild(emitter);
+	}
+
+	prototype.removeArialParticles = function(emitter) {
+
+		this.wave.particles_cont.removeChild(emitter);
 	}
 
 	prototype.initRide = function() {
@@ -600,7 +607,22 @@
 				});
 	}
 
-	prototype.hit = function(circle,radius) {
+	prototype.hit = function(point,radius) {
+		
+		
+		var minDistance = radius + this.hitbox_radius;
+		var xDist = point.x - this.x - this.hitbox.x;
+		var yDist = point.y - this.y - this.hitbox.y;
+		//console.log(xDist+' '+yDist);
+		var distance = Math.sqrt(xDist*xDist + yDist*yDist);
+
+		if (distance < minDistance) {
+			return true;
+		}
+		return false;
+	}
+
+	prototype.hitStage = function(circle,radius) {
 
 		var pt = circle.localToLocal(0,0,this);
 
@@ -635,7 +657,7 @@
 		var i = this.wave.tube_points.length;
 		while(i--) {	
 			var point = this.wave.tube_points[i];			
-			if(this.hit(point,point.scaleX)) {			
+			if(this.hit(point,point.size)) {			
 				return true;			
 			} 		
 		}
@@ -650,10 +672,11 @@
 	prototype.fall = function() {
 
 		if(this.falling == true) return;
-
 		this.falling = true;
 
-		this.dispatchEvent('fall');
+		var e = new createjs.Event('surfer_fall');
+			e.surfer = this;
+		stage.dispatchEvent(e);
 
 		this.showFallPlouf();
 		this.ploufinterval = window.setInterval(proxy(this.showFallPlouf,this),200);
@@ -671,7 +694,19 @@
 
 		window.clearInterval(this.ploufinterval);
 
-		this.dispatchEvent("fallen");
+		var e = new createjs.Event('surfer_fallen');
+			e.surfer = this;
+		stage.dispatchEvent(e);
+
+		if(!TEST) {
+			//remove surfer movement
+			this.removeAllEventListeners('tick');
+			//remove wave cleaning points
+			window.clearInterval(this.wave.clearnerInterval);
+			//remove wave tickering after 2s
+			window.setTimeout(proxy(function(){ this.wave.removeAllEventListeners('tick'); },this), 6000);
+		}
+
 		
 	}
 
@@ -712,7 +747,7 @@
 	prototype.fallParticles = function() {
 
 		//emit particle
-		var emitter = new ParticleEmitter({
+		/*var emitter = new ParticleEmitter({
 			position: vec2.fromValues(this.x,this.y),
 			angle: Math.PI /2,
 			spread: Math.PI,
@@ -732,6 +767,7 @@
 			this.wave.particles_cont.addChild(particule);
 			this.wave.particles.push(particule);
 		}
+		*/
 	}
 
 	prototype.testFall = function() {
@@ -747,21 +783,20 @@
 		while(j--) {		
 			var point = this.wave.top_fall_points[j];			
 			//check hit 
-			if(this.hit(point,point.scaleX)) {			
+			if(this.hit(point,point.size)) {			
 				//throw event
 				this.dispatchEvent('fall_top');
 				break;
 			} 			
 		}
-
+		
 		//does surfer hits bottom points	
 		var i = this.wave.bottom_fall_points.length;	
 		while(i--){
 			var point = this.wave.bottom_fall_points[i];			
 			//check hit 
-			if(this.hit(point,point.scaleY)) {							
+			if(this.hit(point,point.size)) {							
 				//throw event
-				console.log('too low =========='+point.scaleX);
 				this.dispatchEvent('fall_bottom');
 				break;
 			} 			
@@ -835,7 +870,6 @@
 	}
 
 	prototype.drawTrail = function() {
-
 		//if surfer is not on the wave, dont do anything
 		if(this.wave == undefined) return;
 
@@ -843,7 +877,6 @@
 		this.wave.trail_cont.removeAllChildren();
 		
 		var nb = this.trailpoints.length - 1;
-		var trailpoints = this.trailpoints.slice(0);
 		var points = [];
 		var xs = [];
 
@@ -853,11 +886,11 @@
 		//update points with the suction vector
 		for (var i = 0; i <= nb; i++) {
 			//apply vector suction
-			var pos = this.trailpoints[i];
-			vec2.add(pos,pos,this.wave.params.suction);
+			var trail = this.trailpoints[i];
+			vec2.add(trail.location,trail.location,this.wave.params.suction);	
 			//create xy Point
-			var point = new createjs.Point(pos[0],pos[1]+5);
-			point.size = pos.size;
+			var point = new createjs.Point(trail.location[0] + 5,trail.location[1]);
+			point.size = trail.size;
 			points.push(point);
 			//save all x values
 			xs.push(point.x);
@@ -917,6 +950,7 @@
 		//add trail
 		this.wave.trail_cont.addChild(trail);
 		this.wave.trail_cont.addChild(subtrail);
+
 		
 	}
 
@@ -945,7 +979,12 @@
 	}
 
 	prototype.drawDebug = function() {
-		return;
+		
+		if(!DEBUG) return;
+
+		this.hitbox.alpha = 0.5;
+
+
 		this.debug_cont.removeAllChildren();
 
 		var pt = findPointFromAngle(0,0,this.direction,this.speed*3);
@@ -976,7 +1015,7 @@
 		this.debug_cont.addChild(mvector);
 	}
 
-	prototype.setAngle = function() {
+	prototype.getAngle = function() {
 
 		if(this.locations[1] == undefined) return this.angle = 160;
 		this.angle_rad = Math.atan2(this.locations[0][1]-this.locations[1][1],this.locations[0][0]-this.locations[1][0]);
@@ -986,11 +1025,14 @@
 		return this.angle;
 	}
 
-	prototype.setSilhouette = function() {	
+	prototype.setSurferSilhouette = function() {	
 		
 		if(this.autoSilhouette==false) return;
+
+		this.getAngle();
 		this.silhouette.removeChildAt(0);
-		this.silhouette.addChild(this.getAngledSilhouette());
+		this.silhouette.addChild(this.getAngledSilhouette());			
+
 	}
 
 	prototype.getAngledSilhouette = function() {

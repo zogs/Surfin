@@ -39,17 +39,30 @@
 
 		this.initialPosition();
 
+		this.initListeners();
+	}
+
+	prototype.initListeners = function() {
+
 		this.addEventListener('tick',proxy(this.tick,this));
+
+	}
+
+	prototype.removeListeners = function() {
+
+		this.removeAllEventListeners('tick');
 	}
 
 	prototype.initialPosition = function() {
 
-		var x,y = STAGEHEIGHT - this.wave.y + this.wave.height;
+		var x;
+		var y = (STAGEHEIGHT - this.wave.y) + this.wave.params.height;
+
 		if(this.wave.direction == -1) {
-			var x = this.wave.cont.x*-1 + this.wave.width + Math.random()*(this.wave.width/2);
+			var x = this.wave.shoulder_right.x + ( this.wave.width - Math.random()*this.wave.width);
 		}
 		if(this.wave.direction == 1) {
-			var x = - this.wave.cont.x - Math.random()*(this.wave.width/2);
+			var x = this.wave.shoulder_left.x - ( this.wave.width - Math.random()*this.wave.width);
 		}
 
 		this.x = x;
@@ -61,6 +74,7 @@
 
 		this.move();
 		this.check();
+		//this.resize();
 	}
 
 	prototype.hitBonus = function(surfer) {
@@ -109,7 +123,7 @@
 		var bonus = new createjs.Shape();
 			bonus.graphics.beginFill('green').drawCircle(0,0,20);
 			bonus.y = 30;
-			bonus.alpha = DEBUG.opacity;
+			if(!DEBUG) bonus.alpha = 0;
 			this.debug_cont.addChild(bonus);
 			this.bonuses.push(bonus);
 	}
@@ -118,7 +132,7 @@
 
 		var malus = new createjs.Shape();
 			malus.graphics.beginFill('red').drawCircle(0,0,20);
-			malus.alpha = DEBUG.opacity;
+			if(!DEBUG)  malus.alpha = 0;
 			this.debug_cont.addChild(malus);
 			this.maluses.push(malus);
 	}
@@ -130,11 +144,23 @@
 		this.y = this.location[1];
 	}
 
+	/*
+	prototype.resize = function() {
+
+		//only resize when object is coming to the wave ( not "on" the wave)
+		if(this.y < this.wave.params.height) return;
+
+		var scale = 1.5 * (this.wave.y - this.wave.params.height/2 - this.wave.spot.getHorizon()) / (this.wave.spot.getPeak() - this.wave.spot.getHorizon());
+		this.scaleX = this.scaleX * scale;
+		this.scaleY = this.scaleY * scale;
+	}
+	*/
+
 	prototype.check = function() {
 
 		if(this.ducking == true) return;
 
-		if(this.y < this.wave.height/3) {
+		if(this.y < this.wave.params.height/3) {
 			this.ducking = true;
 			createjs.Tween.get(this)
 				.to({ alpha: 0}, 300)
@@ -195,7 +221,7 @@
 			bonus.y = -30;
 			if(this.wave.direction == -1) bonus.x = -60;
 			if(this.wave.direction == 1) bonus.x = 60;
-			bonus.alpha = DEBUG.opacity;
+			if(!DEBUG) bonus.alpha = 0;
 			this.debug_cont.addChild(bonus);
 			this.bonuses.push(bonus);
 		}
@@ -204,7 +230,7 @@
 
 			var malus = new createjs.Shape();
 				malus.graphics.beginFill('red').drawCircle(0,0,10);
-				malus.alpha = DEBUG.opacity;				
+				if(!DEBUG) malus.alpha = 0;				
 				this.debug_cont.addChild(malus);
 				this.maluses.push(malus);
 		}
