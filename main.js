@@ -62,18 +62,16 @@ window.initialize = function() {
 	MOUSE_POINTS = [new createjs.Point(MOUSE_X,MOUSE_Y)];
 
 	DEBUG = 0;
-	TEST = 0;
+	TEST = 1;
 
 
 	//SPOT
 	SPOT = new Spot();
-	stage.addChild(SPOT);
 	SPOT.init();
+	stage.addChild(SPOT);
 
-	//SCORE
-	SCORE = new Score();
-	SCORE.setSpot(SPOT);
-	stage.addChild(SCORE);
+
+
 
 	
 	//customizer

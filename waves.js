@@ -87,11 +87,11 @@ prototype.init = function(params) {
 	this.debug_alpha = 0.1;
 	this.shaking_force = 1.2;
 	this.direction = 0;
+	this.movingX = 0;
 
 	//initiale suction force with no x value, later suction will be defined when direction is setted
-	this.params.suction = vec2.fromValues(0, - this.params.suction_y);	
-
-	//this.direction = 0;
+	this.params.suction = vec2.fromValues(0, - this.params.suction_y);		
+	
 	this.breaked = false;
 	this.played = false;
 	this.surfed = false;
@@ -99,6 +99,16 @@ prototype.init = function(params) {
 	this.paused = false;
 	this.cleaned = false;
 	
+	//on-wave static score container
+	this.score_cont = new createjs.Container();
+	this.addChild(this.score_cont);
+		//text cont
+		this.score_text_cont = new createjs.Container();
+		this.score_cont.addChild(this.score_text_cont);
+		//particles cont
+		this.score_particles_cont = new createjs.Container();
+		this.score_cont.addChild(this.score_particles_cont);	
+
 	//wave cont
 	this.cont = new createjs.Container();
 	this.cont.x = params.x;
@@ -110,6 +120,8 @@ prototype.init = function(params) {
 	this.background = new createjs.Shape();
 	this.background.graphics.beginLinearGradientFill([this.config.color_top,this.config.color_bot],[0,1],0,0,0,this.params.height).drawRect(0,0,STAGEWIDTH,this.params.height);	
 	this.background_cont.addChild(this.background);	
+
+
 
 	this.foreground_cont = new createjs.Container();
 	this.cont.addChild(this.foreground_cont);
@@ -178,6 +190,9 @@ prototype.getX = function() {
 }
 prototype.getY = function() {
 	return this.y;
+}
+prototype.addScore = function(score) {
+	this.score_cont.addChild(score);
 }
 
 prototype.coming = function() {
@@ -846,18 +861,22 @@ prototype.moveWave = function() {
 	if(this.surfer == undefined) return;
 	if(this.breaked == false) return;
 	if(this.surfer.riding == false) return;
+	if(this.direction === 0) return;
 
 	//var coef = 1 - ((100*this.y/SPOT.peak_point) / 100);	
 	var surfer_pos = this.cont.localToGlobal(this.surfer.x,0);
 	var delta = (STAGEWIDTH>>1) - surfer_pos.x;
+
 	if(this.direction == 1) {
 		delta += 200;
-		this.cont.x += delta/this.params.breaking_width_left;
+		this.movingX = delta/this.params.breaking_width_left;
 	}
 	if(this.direction == -1) {
 		delta += -200;
-		this.cont.x += delta/this.params.breaking_width_right;
-	}	
+		this.movingX = delta/this.params.breaking_width_right;
+	}
+
+	this.cont.x += this.movingX;	
 }
 
 prototype.oldmoveWave = function() {

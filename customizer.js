@@ -72,7 +72,7 @@
 
 		gui.remember(custom);
 
-		//gui.close();
+		gui.close();
 
 		var waves = gui.addFolder('Waves');
 		waves.add(custom, 'Width', 100, 10000).step(200).onChange(function(value) { SPOT.config.waves.width = value; });

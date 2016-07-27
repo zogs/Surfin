@@ -21,16 +21,25 @@
 		this.subscore.alpha = 0;
 		this.subscore_pt = new createjs.Point(200,5);
 
-		this.onwavescore = new createjs.Text('','italic 18px Arial','#FFFFFF');	
+		this.onwavescore = new createjs.Text('','italic 26px BubblegumSansRegular','yellow');	//BubblegumSansRegular BoogalooRegular albaregular
 				
 		this.message = new createjs.Text('','bold 40px Arial','#FFF');
 		this.message_pt = new createjs.Point(200,70);		
-
 
 		this.addChild(this.score);
 		this.addChild(this.subscore);
 		this.addChild(this.message);
 		this.addChild(this.onwavescore);
+
+
+		this.aboveWaveTextCont = new createjs.Container();
+		this.addChild(this.aboveWaveTextCont);
+
+		this.aboveWaveParticleCont = new createjs.Container();
+		this.addChild(this.aboveWaveParticleCont);
+
+		//Ticker
+		this.addEventListener('tick',proxy(this.tick,this));
 
 		this.initEventsListeners();		
 	}
@@ -43,11 +52,11 @@
 	prototype.initEventsListeners = function() {
 
 		stage.on('surfer_take_off_done',function(event) {
-			this.add(50).say('Take Off !',2000);
+			this.add(50).say('Take Off !', 1000);
 		},this);
 
 		stage.on('surfer_arial_start',function(event) {			
-			this.start(20).say('Aerial !!!');
+			this.start(20).say('Aerial !');
 		},this);
 
 		stage.on('surfer_arial_end',function(event) {			
@@ -63,7 +72,7 @@
 		},this);
 
 		stage.on('surfer_tube_in',function(event) {
-			this.start(20).say('Tube !!!');
+			this.start(20).say('Tube !');
 		},this);
 
 		stage.on('surfer_tube_out',function(event) {
@@ -93,6 +102,11 @@
 		stage.on('malus_photograf_hitted',function(event) {
 			this.sub(100).say("Bim you've hurt a paparazzi !",2000, 'red');
 		},this);
+	}
+
+	prototype.tick = function() {
+
+		this.slideAboveWaveText();
 	}
 
 	prototype.setSpot = function(spot) {
@@ -140,13 +154,15 @@
 
 
 		//on-wave subscore
-		var pt = SPOT.surfer.localToGlobal(0,0);
+		var pt = this.spot.wave.surfer.localToGlobal(0,0);
 		this.onwavescore.x = pt.x;
-		this.onwavescore.y = pt.y;
+		var y = this.spot.wave.y - this.spot.wave.params.height;
+		this.onwavescore.y = y;
 		this.onwavescore.alpha = 1;
 		this.onwavescore.text = this.subscore.text;
+
 		createjs.Tween.get(this.onwavescore)	
-			.to({alpha:0, y: (pt.y-50) },800)		
+			.to({y: y-50, alpha:0},1000)		
 			;
 
 
@@ -175,35 +191,100 @@
 
 	prototype.say = function(tx,time,color) {
 
-		this.message.text = tx;		
-		
-		this.message.alpha = 0;
-		this.message.color = 'white';
-		this.message.scaleX = this.message.scaleY = 0.1;
-		this.message.rotation = 180;
-		var b = this.message.getBounds();
-		this.message.x = this.message_pt.x + b.width/2;
-		this.message.y = this.message_pt.y + b.height/2;
-		this.message.regX = b.width/2;
-		this.message.regY = b.height/2;
+		var pos = this.spot.wave.surfer.localToGlobal(0,0);
 
-		createjs.Tween.get(this.message)
-			.to({alpha:1, scaleX:1, scaleY:1, rotation:0},800,createjs.Ease.elasticOut)
-			;
+		var text = new createjs.Text('','bold 40px BubblegumSansRegular','#FFF'); //BubblegumSansRegular BoogalooRegular albaregular
+		text.text = tx;
+		text.alpha = 0.8;
+		var b = text.getBounds();
+		if(this.spot.wave.direction === 1) text.x = pos.x + b.width*2;
+		if(this.spot.wave.direction === -1) text.x = pos.x - b.width*2;
+		if(this.spot.wave.direction === 0) text.x = pos.x + b.width/2;
+		text.y = -this.spot.wave.params.height/2;
+		var y = - this.spot.wave.params.height - b.height;
+		text.regX = b.width/2;
+		text.regY = b.height/2;
 
-		if(time != undefined) window.setTimeout(proxy(this.silence,this),time);
-		if(color != undefined) this.message.color = color;
+		this.spot.wave.score_text_cont.addChild(text);
+
+		var tween = createjs.Tween.get(text).to({y: y},800, createjs.Ease.elasticOut);
+
+		if(time != undefined) {
+			tween.wait(time).set({sliding:true});			
+		}
+
+		if(color != undefined) text.color = color;
+
+		//lauch particles
+		window.setTimeout(proxy(this.launchTextParticles,this,[text]),200);
 
 		return this;
 	}
 
+	prototype.launchTextParticles = function(text) {
+
+		//particles
+		var emitter = new ParticleEmitter({
+			x: text.x,
+			y: - this.spot.wave.params.height,
+			density: 5 + Math.random()*5,
+			callback : proxy(this.removeTextParticles,this),
+			magnitude: 20,
+			angle: - Math.PI/2,
+			spread: Math.PI/2,
+			size: 5,
+			scaler: 0.2,
+			fader: 0.1,
+			rotate: 0.1,
+			rotatemax: 10,
+			//tweens: [[{alpha:0},2000]],
+			forces: [vec2.fromValues(0,0.5)],
+			shapes: [{shape:'star',fill:'yellow',stroke:0.1,strokeColor:'yellow',percentage:100}]
+		});
+		this.spot.wave.score_particles_cont.addChild(emitter);
+	}
+
+	prototype.removeTextParticles = function(emitter) {
+
+		this.spot.wave.score_particles_cont.removeChild(emitter);
+	}
+
 	prototype.silence = function() {
 
-		createjs.Tween.get(this.message)
-			.to({alpha:0, scaleX:0, scaleY:0},400,createjs.Ease.elasticIn)
-			;
+		//get last text child
+		var text = this.spot.wave.score_text_cont.getChildAt(this.spot.wave.score_text_cont.numChildren-1);
+
+		//begin to slide it out
+		text.sliding = true;
 
 		return this;
+	}
+
+	prototype.slideAboveWaveText = function() {
+		
+		if(this.spot.wave == undefined) return;
+
+		var offscreen = null;
+		var cont = this.spot.wave.score_text_cont;
+
+		for(var i=0;i<cont.numChildren;i++) {
+
+			var text = cont.getChildAt(i);
+	
+			if(text.sliding == undefined) continue;
+			if(text.sliding == true) {
+				text.x += this.spot.wave.movingX;
+				text.alpha += - 0.05;
+				//when text is off screen, remove it
+				if(text.x > STAGEWIDTH*1.5 || text.x < - STAGEWIDTH*0.5) {
+					offscreen = i;
+				}
+			}
+		}
+
+		if(offscreen != null) {
+			cont.removeChildAt(offscreen);
+		}
 	}
 
 

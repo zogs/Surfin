@@ -24,8 +24,8 @@
 				paddling_effort: 1,
 				bottom_fall_scale: 1,
 				top_fall_scale: 0.2,
-				breaking_block_left_interval: 1000,
-				breaking_block_left_interval_max: 2000,
+				breaking_block_left_interval: 0,
+				breaking_block_left_interval_max: 0,
 				breaking_block_left_width: 100,
 				breaking_block_left_width_max: 200,
 				breaking_block_right_interval: 500,
@@ -36,8 +36,8 @@
 				suction_y: 3,
 				color_top: '#0b2648',
 				color_bot: '#0d528c',
-				obstacles_interval: 500,
-				obstacles_interval_max: 1500, 
+				obstacles_interval: 0,
+				obstacles_interval_max: 0, 
 				obstacles: {
 					'paddler' : {percentage: 50},
 					'photograph' : {percentage: 50},
@@ -76,6 +76,10 @@
 		var background = new createjs.Bitmap(queue.getResult('bg_paradize'));
 		this.bkg_cont.addChild(background);
 
+		//Score
+		this.score_cont = new createjs.Container();
+		this.addChild(this.score_cont);
+
 		this.cont = new createjs.Container();
 		this.addChild(this.cont);
 
@@ -85,24 +89,11 @@
 		this.debug_cont = new createjs.Container();
 		this.addChild(this.debug_cont);
 
-		var peak = new createjs.Shape();
-		peak.graphics.beginFill('pink')
-			.drawCircle(0, 0, 6)
-			;	
-		peak.y = this.config.lines.peak; 
-		this.debug_cont.addChild(peak);
+		//trace debug
+		this.traceDebug();		
 
-		var horizon = new createjs.Shape();
-		horizon.graphics.beginFill('red')
-			.drawCircle(0, 0, 6)
-			;	
-		horizon.y = this.config.lines.horizon; 
-		this.debug_cont.addChild(horizon);
-
-
+		//Listeners
 		this.initEventsListeners();
-
-
 
 		//Ticker
 		this.addEventListener('tick',proxy(this.tick,this));
@@ -342,6 +333,10 @@
 					paddler.removeListeners();
 					this.cont.removeChild(paddler);
 					this.paddlers.splice(this.paddlers.indexOf(paddler),1);
+
+					//init score
+					this.initScore();
+					
 					//remove event
 					event.remove();
 					//break loop
@@ -351,6 +346,16 @@
 
 			index--;
 		}
+	}
+
+	prototype.initScore = function() {
+
+		//Score
+		this.score = new Score();
+		this.score.setSpot(this);
+		this.score_cont.removeAllChildren();
+		this.score_cont.addChild(this.score);
+
 	}
 
 	prototype.paralaxWaves = function() {
@@ -622,6 +627,23 @@
 		createjs.Tween.removeTweens(this.waves[3]);
 
 		window.clearInterval(this.swell_timer);
+	}
+
+	prototype.traceDebug = function() {
+
+		var peak = new createjs.Shape();
+		peak.graphics.beginFill('pink')
+			.drawCircle(0, 0, 6)
+			;	
+		peak.y = this.config.lines.peak; 
+		this.debug_cont.addChild(peak);
+
+		var horizon = new createjs.Shape();
+		horizon.graphics.beginFill('red')
+			.drawCircle(0, 0, 6)
+			;	
+		horizon.y = this.config.lines.horizon; 
+		this.debug_cont.addChild(horizon);
 	}
 
 	window.Spot = createjs.promote(Spot,'Container');
