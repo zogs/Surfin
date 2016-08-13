@@ -11,20 +11,24 @@ function Wave(params) {
 		height: 100,
 		width: 1500,
 		peak_width: 200,
-		breaking_yspeed: 1200,
-		breaking_width_left: 20,
-		breaking_width_right: 10,
+		breaking: {
+			yspeed: 1200,
+			left: {
+				width: 20,
+				width_max: 30,				
+				width_interval: 3000,
+				width_pause: 1000,
+			},
+			right: {
+				width: 10,
+				width_max: 25,
+				width_interval: 3000,
+				width_pause: 1000,
+			}
+		},
 		paddling_effort: 1,
 		bottom_fall_scale: 1,
 		top_fall_scale: 0.2,
-		breaking_block_left_interval: 0,
-		breaking_block_left_interval_max: 0,
-		breaking_block_left_width:0,
-		breaking_block_left_width_max:0,
-		breaking_block_right_interval:0,
-		breaking_block_right_interval_max:0,
-		breaking_block_right_width:0,
-		breaking_block_right_width_max:0,
 		suction_x: 5,
 		suction_y: 3,
 		color_top: '#0b2648',
@@ -73,7 +77,6 @@ prototype.init = function(params) {
 	//set properties
 	this.y = params.y;	
 	this.origin_height = this.config.height;
-	this.width = this.config.width;
 	this.origin_width = this.config.width;
 	this.surfers = [];
 	this.obstacles = [];
@@ -243,7 +246,8 @@ prototype.resize = function() {
 	this.params.height = h;
 	this.cont.y = - h;
 	//calcul wave width
-	var w = this.origin_width * coef;
+	var w = this.origin_width * coef
+	if(this.origin_width===0) w = STAGEWIDTH;
 	//set new shoulders position
 	this.shoulder_left.x = STAGEWIDTH/2 - w/2;
 	this.shoulder_right.x = STAGEWIDTH/2 + w/2;
@@ -283,8 +287,8 @@ prototype.initWave = function(center) {
 	this.initVanishPoints(center);
 
 	//add first breaking points
-	this.updateLeftShoulder(STAGEWIDTH/2 - this.width/2);
-	this.updateRightShoulder(STAGEWIDTH/2 + this.width/2);
+	this.updateLeftShoulder(STAGEWIDTH/2 - this.config.width/2);
+	this.updateRightShoulder(STAGEWIDTH/2 + this.config.width/2);
 
 }
 
@@ -310,12 +314,15 @@ prototype.initBreak = function(center) {
 
 	//init intervals
 	this.initBreakedIntervals();
+
+	//init variables
+	this.initVariablePameters();
 }
 
 prototype.initBreakedIntervals = function() {
 
 	//Breaking block interval
-	if(this.config.breaking_block_left_interval !== 0) {
+	if(this.config.breaking.left.block_interval !== 0) {
 
 		this.initBreakingBlockLeftInterval();
 	}
@@ -331,6 +338,32 @@ prototype.initPlayedIntervals = function() {
 	if(this.config.obstacles_interval !== 0) {
 		
 		this.initObstaclesInterval();
+	}
+}
+
+prototype.initVariablePameters = function() {
+
+	if(this.config.breaking.left.width_max !=0) {
+		this.params.breaking.left.width = new Variation({
+			min: this.config.breaking.left.width,
+			max: this.config.breaking.left.width_max,
+			time: this.config.breaking.left.width_interval,
+			wait: this.config.breaking.left.width_pause,
+			slope: 'both',
+			loops : true,
+			ease: createjs.Tween.cubicInOut,
+		})
+	}
+	if(this.config.breaking.right.width !=0) {
+		this.params.breaking.right.width = new Variation({
+			min: this.config.breaking.right.width,
+			max: this.config.breaking.right.width,
+			time: this.config.breaking.right.width_interval,
+			wait: this.config.breaking.right.width_pause,
+			slope: 'both',
+			loops : true,
+			ease: createjs.Tween.cubicInOut,
+		})
 	}
 }
 
@@ -376,41 +409,16 @@ prototype.onTakeoffClick = function(evt) {
 	evt.remove();
 }
 
-prototype.tick = function() {
-
+prototype.tick = function(ev) {
+	
+	if(PAUSED) return;	
 	this.breaking();
 	this.drawLip();
 	this.drawSplash();
+	this.drawTrails();
 	this.moveWave();
-	this.drawBkg();
-	this.moveParticles();
+	this.drawBkg();	
 		
-}
-
-prototype.moveParticles = function() {
-
-	if(this.particles.length == 0) return;
-
-	var particles = [];
-	for(var i=0, len=this.particles.length; i < len; i++) {
-		var particle = this.particles[i];
-
-		//gravity
-		particle.applyForce(vec2.fromValues(0,1));
-		//wind
-		particle.applyForce(vec2.fromValues(1*this.direction,0));
-		//move
-		particle.move();
-
-		if(particle.alpha<=0 || particle.y + 20 >= this.params.height) {
-			this.particles_cont.removeChild(particle);
-			continue;			
-		}
-
-		particles[particles.length] = particle;				
-	}
-
-	this.particles = particles;
 }
 
 prototype.startShaking = function() {
@@ -431,7 +439,7 @@ prototype.shake = function() {
 	if(this.surfer==null) return;
 
 	var dist = get2dDistance(this.surfer.x,this.surfer.y,this.getVanishPoint().x,this.getVanishPoint().y);
-	var amplitude = this.width/2/dist*this.shaking_force;
+	var amplitude = this.params.width/2/dist*this.shaking_force;
 	if(amplitude<1) amplitude = 0;
 	
 	this.shake_x = Math.floor(Math.random()*amplitude*2 - amplitude);
@@ -474,8 +482,8 @@ prototype.addTopFallPoint = function(pt) {
 		point.size = 0;
 		if(this.direction == 0) point.x = pt.x;
 		//slightly move the points to free lip's shoulder
-		if(this.direction == 1) point.x = pt.x + this.params.breaking_width_left*10;
-		if(this.direction == -1) point.x = pt.x - this.params.breaking_width_right*10;
+		if(this.direction == 1) point.x = pt.x + this.params.breaking.left.width*10;
+		if(this.direction == -1) point.x = pt.x - this.params.breaking.right.width*10;
 
 		this.top_fall_points.unshift(point);
 		
@@ -544,6 +552,45 @@ prototype.addSurfer = function(surfer) {
 	this.surfers.push(surfer);
 }
 
+prototype.addSurferBot = function(bot) {
+
+	bot.takeOff(bot.x,bot.y);
+	this.surfer_cont.addChild(bot);
+	this.surfers.unshift(bot);
+	stage.dispatchEvent('bot_take_off');
+
+}
+
+prototype.addTestSurferBot = function(surfer) {
+
+	if(this.direction == 1) {
+		var direction = 'left';
+		var takeoffX = this.shoulder_left.x - this.params.shoulder.left.marge;
+	} else {
+		var direction = 'right';
+		var takeoffX = this.shoulder_right.x + this.params.shoulder.right.marge;
+	}
+
+	var bot = new SurferBot({
+		wave:this,
+		spot:this.spot,
+		direction: direction
+	});
+
+
+	bot.takeOff( takeoffX, this.params.height*1/3);
+	this.surfer_cont.addChild(bot);
+	this.surfers.unshift(bot);
+	console.log(this.surfers);
+}
+
+prototype.removeBot = function(bot) {
+
+	this.surfer_cont.removeChild(bot);
+	this.surfers.splice(this.surfers.indexOf(bot),1);
+	console.log(this.surfers);
+}
+
 prototype.getSurfer = function() {
 
 	return this.surfer;
@@ -578,7 +625,7 @@ prototype.breaking = function() {
 		var second = this.peakpoints[i+1];
 		if(second === undefined) break;
 
-		if(first[first.length-1].x >= ( second[0].x - this.params.breaking_width_left)) {
+		if(first[first.length-1].x >= ( second[0].x - this.params.breaking.left.width)) {
 			first.splice(first.length-1,1);
 			var merged = first.concat(second);
 			this.peakpoints[i] = merged;
@@ -592,14 +639,14 @@ prototype.breaking = function() {
 		var peak = this.peakpoints[i];
 
 		//add left point
-		var x = peak[0].x - this.params.breaking_width_left;
+		var x = peak[0].x - this.params.breaking.left.width;
 		var point = this.createBreakingPoint({x:x, color:'red'});
 		peak.unshift(point);
 		this.addTopFallPoint(point);
 		this.updateLeftShoulder(x);		
 
 		//add right point		
-		var x = peak[peak.length-1].x + this.params.breaking_width_right;
+		var x = peak[peak.length-1].x + this.params.breaking.right.width;
 		var point = this.createBreakingPoint({x:x, color:'red'});
 		peak.push(point);
 		this.addTopFallPoint(point);
@@ -664,7 +711,7 @@ prototype.createBreakingPoint = function(params) {
 			.wait(delay)
 			.to(
 				{y:this.params.height},
-				this.params.breaking_yspeed + Math.random()*50,
+				this.params.breaking.yspeed + Math.random()*50,
 				//createjs.Ease.getPowIn(5)
 				createjs.Ease.quartIn
 				)
@@ -756,16 +803,16 @@ prototype.initSplashPoint = function(point) {
 
 prototype.initBreakingBlockLeftInterval = function() {
 
-	var t = this.config.breaking_block_left_interval + Math.random()*(this.config.breaking_block_left_interval_max - this.config.breaking_block_left_interval);
-	var w = this.config.breaking_block_left_width + Math.random()*(this.config.breaking_block_left_width_max - this.config.breaking_block_left_width);
+	var t = this.config.breaking.left.block_interval + Math.random()*(this.config.breaking.left.block_interval_max - this.config.breaking.left.block_interval);
+	var w = this.config.breaking.left.block_width + Math.random()*(this.config.breaking.left.block_width_max - this.config.breaking.left.block_width);
 
 	window.setTimeout(proxy(this.continueBreakingBlockLeftInterval,this),t);
 }
 
 prototype.continueBreakingBlockLeftInterval = function() {
 
-	var t = this.config.breaking_block_left_interval + Math.random()*(this.config.breaking_block_left_interval_max - this.config.breaking_block_left_interval);
-	var w = this.config.breaking_block_left_width + Math.random()*(this.config.breaking_block_left_width_max - this.config.breaking_block_left_width);
+	var t = this.config.breaking.left.block_interval + Math.random()*(this.config.breaking.left.block_interval_max - this.config.breaking.left.block_interval);
+	var w = this.config.breaking.left.block_width + Math.random()*(this.config.breaking.left.block_width_max - this.config.breaking.left.block_width);
 
 	this.initBlockBreakingLeft(w);
 
@@ -802,10 +849,10 @@ prototype.initBlockBreaking = function(width) {
 
 	if(this.direction==0) return;
 	if(this.direction==1){
-		this.initBlockBreakingRight(width);
+		this.initBlockBreakingLeft(width);
 	}
 	if(this.direction==-1){
-		this.initBlockBreakingLeft(width);
+		this.initBlockBreakingRight(width);
 	}
 }
 
@@ -814,10 +861,10 @@ prototype.initBlockBreakingLeft = function(width) {
 
 	var peak = this.peakpoints[0];
 	while( width > 0 ) {
-		var x = peak[0].x - this.params.breaking_width_left;
+		var x = peak[0].x - this.params.breaking.left.width;
 		var point = this.createBreakingPoint({x:x, color:'green'});
 		peak.unshift(point);
-		width = width - this.params.breaking_width_left;
+		width = width - this.params.breaking.left.width;
 	}		
 	this.peakpoints[0] = peak;
 }
@@ -827,12 +874,69 @@ prototype.initBlockBreakingRight = function(width) {
 
 	var peak = this.peakpoints[this.peakpoints.length-1];
 	while( width > 0) {
-		var x = peak[peak.length-1].x + this.params.breaking_width_right;	
+		var x = peak[peak.length-1].x + this.params.breaking.right.width;	
 		var point = this.createBreakingPoint({x:x, color:'green'});
 		peak.push(point);
-		width = width - this.params.breaking_width_right;
+		width = width - this.params.breaking.right.width;
 	}
 	this.peakpoints[this.peakpoints.length-1] = peak;
+}
+
+prototype.addBreakingPeak = function(width,distance) {
+	
+	this.addBreakingPeakWarning();
+
+	window.setTimeout(proxy(this.addBreakingPeakToLip,this,[width,distance]),2000);
+
+}
+
+prototype.addBreakingPeakWarning = function() {
+
+	var text = new createjs.Text('Watch out !','bold 40px BubblegumSansRegular','#FFF'); //BubblegumSansRegular BoogalooRegular albaregular
+		text.alpha = 0.8;
+		var b = text.getBounds();
+		if(this.direction === 1) text.x = 0 + b.width/2;
+		if(this.direction === -1) text.x = STAGEWIDTH - b.width;
+		if(this.direction === 0) return;
+		text.y = -this.spot.wave.params.height/2;
+		var y = - this.spot.wave.params.height - b.height;
+		text.regX = b.width/2;
+		text.regY = b.height/2;
+
+		this.score_text_cont.addChild(text);
+
+		this.startBlinking(text);
+
+		createjs.Tween.get(text)
+		.to({y: y}, 800, createjs.Ease.elasticOut)
+		.wait(1000)
+		.set({sliding:true,alpha:1})
+		.call(proxy(this.stopBlinking,this,[text]));
+}
+
+
+prototype.startBlinking = function(object) {
+
+	createjs.Tween.get(object,{loop:true}).to({alpha:1}).wait(50).to({alpha:0}).wait(50);
+}
+
+prototype.stopBlinking = function(object) {
+
+	createjs.Tween.get(object,{override:true}).to({alpha:1});
+}
+
+prototype.addBreakingPeakToLip = function(width,distance) {
+
+	if(this.direction==1) {
+		var peak = this.peakpoints[0];
+		var x = peak[0].x - distance;
+		this.addLeftPeak(x, width);
+	}
+	if(this.direction==-1) {
+		var peak = this.peakpoints[this.peakpoints.length - 1];
+		var x = peak[peak.length-1].x + distance;	
+		this.addRightPeak(x, width);
+	}
 }
 
 prototype.setDirection = function() {
@@ -841,13 +945,26 @@ prototype.setDirection = function() {
 	if(this.surfers.length == 0) return this.direction = 0;
 
 	//else set direction
-	if(this.surfer.x > this.params.breaking_center) {
-		this.direction = -1;	
-		//console.log('Wave is a right !');
-	} 
+	if(this.surfer) {
+		if(this.surfer.x > this.params.breaking_center) {
+			this.direction = -1;	
+			//console.log('Wave is a right !');
+		} 
+		else {
+			this.direction = 1;
+			//console.log('Wave is a left !');
+		}
+	}
 	else {
-		this.direction = 1;
-		//console.log('Wave is a left !');
+		var surfer = this.surfers[0];
+		if(surfer.x > this.params.breaking_center) {
+			this.direction = -1;	
+			//console.log('Wave is a right !');
+		} 
+		else {
+			this.direction = 1;
+			//console.log('Wave is a left !');
+		}
 	}
 
 	//invert suction direction for left waves
@@ -869,11 +986,11 @@ prototype.moveWave = function() {
 
 	if(this.direction == 1) {
 		delta += 200;
-		this.movingX = delta/this.params.breaking_width_left;
+		this.movingX = delta/this.params.breaking.left.width;
 	}
 	if(this.direction == -1) {
 		delta += -200;
-		this.movingX = delta/this.params.breaking_width_right;
+		this.movingX = delta/this.params.breaking.right.width;
 	}
 
 	this.cont.x += this.movingX;	
@@ -887,7 +1004,7 @@ prototype.oldmoveWave = function() {
 		var pt = this.cont.localToGlobal(this.vanish_left.x,0);
 		//calcul lateral movement from y position
 		var coef = ( 100*this.y/ this.spot.getPeak()) / 100;
-		var xwidth = this.params.breaking_width_left * 1/coef;
+		var xwidth = this.params.breaking.left.width * 1/coef;
 		//move wave normally when well positioned
 		if(pt.x >= (STAGEWIDTH-100)) this.cont.x += xwidth;
 		//else move quicker
@@ -898,7 +1015,7 @@ prototype.oldmoveWave = function() {
 		var pt = this.cont.localToGlobal(this.vanish_right.x,0);
 		//calcul lateral movement from y position
 		var coef = ( 100*this.y/ this.spot.getPeak()) / 100;
-		var xwidth = this.params.breaking_width_right * 1/coef;
+		var xwidth = this.params.breaking.right.width * 1/coef;
 		//move wave normally when well positioned
 		if(pt.x <= 100) this.cont.x -= xwidth;
 		//else move quicker
@@ -936,7 +1053,7 @@ prototype.cleanOffScreenPoints = function() {
 		for(var i=0,len=points.length; i<len; i++) {
 			var point = points[i];
 			var x = this.lip_cont.localToGlobal(point.x,point.y).x;
-			if(x > this.width + offset) {
+			if(x > STAGEWIDTH + offset) {
 				this.splash_cont.removeChild(point.splash);
 				this.lip_cont.removeChild(point);
 				points[i] = point = null;
@@ -1002,7 +1119,7 @@ prototype.drawSplash = function () {
 
 		if(points.length==0) continue;
 
-		k.moveTo(points[0].splash.x - this.params.breaking_width_left, points[0].y);
+		k.moveTo(points[0].splash.x - this.params.breaking.left.width, points[0].y);
 		k.beginFill('#FFF').beginStroke('rgba(0,0,0,0.2').setStrokeStyle(1);
 		k.lineTo(points[0].splash.x,points[0].y);
 
@@ -1096,19 +1213,23 @@ prototype.drawLip = function() {
 	this.lip.mask = this.shape_mask;
 }
 
-prototype.addBreakingPeak = function(width,distance) {
-	
-	if(this.direction==1) {
-		var peak = this.peakpoints[0];
-		var x = peak[0].x - distance;
-		this.addLeftPeak(x, width);
-	}
-	if(this.direction==-1) {
-		var peak = this.peakpoints[this.peakpoints.length - 1];
-		var x = peak[peak.length-1].x + distance;	
-		this.addRightPeak(x, width);
-	}
+prototype.drawTrails = function() {
 
+	//do not draw anythings if there is no surfers, or the wave is not played
+	if(this.surfers.length == 0) return;
+
+	//begin by clearing all trails
+	this.trail_cont.removeAllChildren();
+
+	//draw for each surfers
+	for(var j=0,len=this.surfers.length; j<len; j++) {
+
+
+		var surfer = this.surfers[j];
+		surfer.drawTrail();		
+		
+	}
+	
 }
 
 prototype.initObstaclesInterval = function() {
@@ -1160,6 +1281,13 @@ prototype.addObstacle = function(obs) {
 	this.obstacle_cont.addChild(obs);
 }
 
+prototype.addFlyingObstacle = function() {
+	if(this.breaked == false) return;
+	var obs = new FlyingMultiplier({wave: this, multiplier: Math.ceil(Math.random()*5)})
+	this.obstacles.push(obs);
+	this.obstacle_cont.addChild(obs);
+}
+
 prototype.removeObstacle = function(obs) {
 	obs.removeListeners();
 	this.obstacles.splice(this.obstacles.indexOf(obs),1);
@@ -1196,11 +1324,16 @@ prototype.drawBkg = function() {
 prototype.updateLeftShoulder = function(x) {
 
 	if(this.shoulder_left == undefined) {
+		this.shoulder_left = new createjs.Container();
+		this.shoulder_left.alpha = 0;
+		var point = new createjs.Shape();
+		point.graphics.beginFill('yellow').drawCircle(0,0,10);
+		this.shoulder_left.addChild(point);
+		var mouse_cont = new createjs.Container();
+		this.shoulder_left.addChild(mouse_cont);
+		this.shoulder_left.mouse_cont = mouse_cont;
+		this.shoulder_cont.addChild(this.shoulder_left);
 		var shoulder = new createjs.Shape();
-		shoulder.graphics.beginFill('yellow').drawCircle(0,0,10);
-		shoulder.alpha = 0;
-		this.shoulder_cont.addChild(shoulder);
-		this.shoulder_left = shoulder;
 	}
 
 	//do not update when breaking have not reached the shoulder
@@ -1214,11 +1347,15 @@ prototype.updateLeftShoulder = function(x) {
 prototype.updateRightShoulder = function(x) {
 
 	if(this.shoulder_right == undefined) {
-		var shoulder = new createjs.Shape();
-		shoulder.graphics.beginFill('yellow').drawCircle(0,0,10);
-		shoulder.alpha = 0;
-		this.shoulder_cont.addChild(shoulder);
-		this.shoulder_right = shoulder;
+		this.shoulder_right = new createjs.Container();
+		this.shoulder_right.alpha = 0;
+		var point = new createjs.Shape();
+		point.graphics.beginFill('yellow').drawCircle(0,0,10);
+		this.shoulder_right.addChild(point);
+		var mouse_cont = new createjs.Container();
+		this.shoulder_right.addChild(mouse_cont);
+		this.shoulder_right.mouse_cont = mouse_cont;
+		this.shoulder_cont.addChild(this.shoulder_right);
 	}
 
 	//do not update when breaking have not reached the shoulder
@@ -1228,7 +1365,6 @@ prototype.updateRightShoulder = function(x) {
 
 	if(DEBUG) this.shoulder_right.alpha = 1;
 }
-
 
 prototype.initVanishPoints = function(x) {
 

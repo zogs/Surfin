@@ -13,12 +13,12 @@
 	//init 
 	prototype.init = function(config) {
 		
-		config = config || {};
-		this.wave = config.wave;
-		this.img = config.img != undefined ? config.img : 'surfer_paddle';
+		this.config = config || {};
+		this.wave = this.config.wave;
+		this.img = this.config.img != undefined ? this.config.img : 'surfer_paddle';
+		this.config.name = config.name || 'paddler';
 
-		this.location = new vec2.create();
-		this.moving = vec2.fromValues(0,-5);
+		this.location = new vec2.create();		
 		this.ducking = false;
 		this.hitted = false;
 		this.bonuses = [];
@@ -33,9 +33,11 @@
 		this.drawMalus();
 		this.drawBonus();
 
-		this.center = new createjs.Shape();
-		this.center.graphics.beginFill('red').drawCircle(0,0,2);
-		this.addChild(this.center);
+		if(DEBUG) {
+			this.center = new createjs.Shape();
+			this.center.graphics.beginFill('red').drawCircle(0,0,2);
+			this.addChild(this.center);			
+		}
 
 		this.initialPosition();
 
@@ -45,7 +47,6 @@
 	prototype.initListeners = function() {
 
 		this.addEventListener('tick',proxy(this.tick,this));
-
 	}
 
 	prototype.removeListeners = function() {
@@ -59,10 +60,10 @@
 		var y = (STAGEHEIGHT - this.wave.y) + this.wave.params.height;
 
 		if(this.wave.direction == -1) {
-			var x = this.wave.shoulder_right.x + ( this.wave.width - Math.random()*this.wave.width);
+			var x = this.wave.shoulder_right.x + ( STAGEWIDTH - Math.random()*STAGEWIDTH/2);
 		}
 		if(this.wave.direction == 1) {
-			var x = this.wave.shoulder_left.x - ( this.wave.width - Math.random()*this.wave.width);
+			var x = this.wave.shoulder_left.x - ( STAGEWIDTH - Math.random()*STAGEWIDTH/2);
 		}
 
 		this.x = x;
@@ -72,9 +73,9 @@
 
 	prototype.tick = function() {
 
+		if(PAUSED) return;
 		this.move();
 		this.check();
-		//this.resize();
 	}
 
 	prototype.hitBonus = function(surfer) {
@@ -86,7 +87,7 @@
 			var radius = point.graphics.command.radius;
 			if(surfer.hitSurf(point,radius)) {
 				this.hitted = true;
-				this.bonusHitted();
+				surfer.dispatchEvent('bonus_hitted_paddler');
 				return true;
 			}
 		}
@@ -102,7 +103,7 @@
 			var radius = point.graphics.command.radius;
 			if(surfer.hitSurf(point,radius)) {
 				this.hitted = true;
-				this.malusHitted();
+				surfer.dispatchEvent('malus_hitted_paddler');
 				return true;
 			}
 		}
@@ -139,7 +140,8 @@
 
 	prototype.move = function() {
 
-		vec2.add(this.location,this.location,this.moving);
+		var moving = vec2.fromValues(0,-5);
+		vec2.add(this.location,this.location,moving);
 		this.x = this.location[0];
 		this.y = this.location[1];
 	}
@@ -170,12 +172,12 @@
 
 	prototype.bonusHitted = function() {
 
-		stage.dispatchEvent('paddler_bonus_hitted');
+		//nothing
 	}
 
 	prototype.malusHitted = function() {
 
-		stage.dispatchEvent('paddler_malus_hitted');
+		//nothing
 	}
 
 	//assign Obstacle to window's scope & promote
@@ -188,14 +190,14 @@
 		function Photograf(config) {
 
 			config.img = 'photographer';
+			config.name = 'photo';
 
-			Obstacle.prototype.Container_constructor.call(this);		    
-			Obstacle.prototype.init.call(this,config);
+			this.Obstacle_constructor(config);		    
 
 		}
 		Photograf.prototype = Object.create(Obstacle.prototype);
 		Photograf.prototype.constructor = Photograf;
-		window.Photograf = createjs.promote(Photograf, "Container");
+		window.Photograf = createjs.promote(Photograf, "Obstacle");
 
 		Photograf.prototype.drawImage = function() {			
 
@@ -238,12 +240,102 @@
 		Photograf.prototype.bonusHitted = function() {
 
 			this.animation.gotoAndPlay('flash');
-			stage.dispatchEvent('bonus_photograf_hitted');
 		}
 
 		Photograf.prototype.malusHitted = function() {
 
-			stage.dispatchEvent('malus_photograf_hitted');
+			//no malus action
 		}
+
+}());
+
+
+(function() {
+
+		function FlyingMultiplier(config) {
+
+			config.name = 'multiplier';
+			this.multiplier = config.multiplier || 2;	
+
+			this.Obstacle_constructor(config);
+
+		}
+		
+		var prototype = createjs.extend(FlyingMultiplier, Obstacle);
+
+		prototype.move = function() {
+
+			var moving = vec2.fromValues(0,0);
+			vec2.add(this.location,this.location,moving);
+			this.x = this.location[0];
+			this.y = this.location[1];
+		}
+
+		prototype.initialPosition = function() {
+
+			if(this.wave.direction == -1) {
+				var x = this.wave.shoulder_right.x + STAGEWIDTH * 2/3
+				var y = - Math.random()*200
+			}
+			if(this.wave.direction == 1) {
+				var x =  this.wave.shoulder_left.x - STAGEWIDTH * 2/3
+				var y = - Math.random()*200
+			}
+
+			this.x = x;
+			this.y = y;
+			this.location = vec2.fromValues(x,y);
+
+		}
+
+		prototype.check = function() {
+
+			if(this.wave.direction==1 && this.x > this.wave.shoulder_left.x + STAGEWIDTH
+				||
+				this.wave.direction==-1 && this.x < this.wave.shoulder_right.x - STAGEWIDTH
+			) {	
+				this.wave.removeObstacle(this);
+			}			
+		}
+
+		prototype.drawImage = function() {			
+
+			var graphics = new createjs.Graphics()
+					.setStrokeStyle(5)
+					.beginStroke('rgba(255,255,255,0.5)')
+					.beginFill('rgba(255,255,255,1)')
+					.drawCircle(0, 0, 15)
+					;	 
+		
+			var circle = new createjs.Shape(graphics)
+			this.image_cont.addChild(circle);
+			
+			var text = new createjs.Text('','normal 20px BubblegumSansRegular','#000')
+			text.text = 'x'+this.config.multiplier;
+			var b = text.getBounds()
+			text.x = - b.width / 2
+			text.y = - b.height / 2
+
+			this.image_cont.addChild(text)
+		}
+
+		prototype.drawBonus = function() {
+
+			var bonus = new createjs.Shape();
+			bonus.graphics.beginFill('green').drawCircle(0,0,30);
+			bonus.alpha = 0.1
+			this.debug_cont.addChild(bonus);
+			this.bonuses.push(bonus);
+		}
+
+		prototype.drawMalus = function() {
+			//no malus
+		}
+
+		prototype.bonusHitted = function() {
+			createjs.Tween.get(this).to({scaleX:4,scaleY:4,alpha:0},300);
+		}
+
+		window.FlyingMultiplier = createjs.promote(FlyingMultiplier, "Obstacle");
 
 }());

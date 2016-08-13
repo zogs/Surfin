@@ -11,24 +11,31 @@
 
 		this.talking = false;
 
+		this.phrases = {
+			fall_bottom : ['Open your mouth for a free teethbrush','This wave is too big for you'],
+			fall_top : ['Beware the power of the lip !', "Quick advice, avoid touching the lip with your head !","Riding on the top of the wave can be dangerous..."],
+			fall_edge : ['Be smooth, you are not Kelly Slater yet...'],
+			paddler_hitted : ['Outch, this man is hurt...',"Try to avoid your fellow surfers"],
+			photograf_hitted : ['Damn it, you will pay for this camera !'],
+		}
+
 		this.score = new createjs.Text('0','50px Arial','#FFFFFF');
 		this.score_pt = new createjs.Point(200,20);
 		this.score.x = this.score_pt.x;
 		this.score.y = this.score_pt.y;
 
+		this.current_score = 0;
+		this.current_tricks_score = 0;
+		this.current_multiplier = 0;
 		
 		this.subscore = new createjs.Text('+0','italic 14px Arial','#FFFFFF');	
 		this.subscore.alpha = 0;
 		this.subscore_pt = new createjs.Point(200,5);
 
 		this.onwavescore = new createjs.Text('','italic 26px BubblegumSansRegular','yellow');	//BubblegumSansRegular BoogalooRegular albaregular
-				
-		this.message = new createjs.Text('','bold 40px Arial','#FFF');
-		this.message_pt = new createjs.Point(200,70);		
 
 		this.addChild(this.score);
 		this.addChild(this.subscore);
-		this.addChild(this.message);
 		this.addChild(this.onwavescore);
 
 
@@ -41,7 +48,8 @@
 		//Ticker
 		this.addEventListener('tick',proxy(this.tick,this));
 
-		this.initEventsListeners();		
+		this.initEventsListeners();	
+
 	}
 
 	var prototype = createjs.extend(Score, createjs.Container);
@@ -51,12 +59,12 @@
 
 	prototype.initEventsListeners = function() {
 
-		stage.on('surfer_take_off_done',function(event) {
+		stage.on('surfer_take_off_ended',function(event) {
 			this.add(50).say('Take Off !', 1000);
 		},this);
 
-		stage.on('surfer_arial_start',function(event) {			
-			this.start(20).say('Aerial !');
+		stage.on('surfer_arial_start',function(event) {	
+			this.start(20).say(event.tricks +' !');
 		},this);
 
 		stage.on('surfer_arial_end',function(event) {			
@@ -64,11 +72,11 @@
 		},this);
 
 		stage.on('surfer_fall_bottom',function(event) {
-			this.say('Too low !',1000,'red');
+			this.failPhrase = this.getRandomPhrase('fall_bottom');
 		},this);
 
 		stage.on('surfer_fall_top',function(event) {
-			this.say('Too high !',1000,'red');
+			this.failPhrase = this.getRandomPhrase('fall_top');
 		},this);
 
 		stage.on('surfer_tube_in',function(event) {
@@ -80,33 +88,50 @@
 		},this);
 
 		stage.on('surfer_fall_edge',function(event) {
-			this.say('Be smooth man !',1000,'red');
+			this.failPhrase = this.getRandomPhrase('fall_edge');
 		},this);
 
 		stage.on('surfer_fallen',function(event) {
-			this.sub(500).end().silence();
+			this.end().silence();
 		},this);
 
-		stage.on('bonus_paddler_hitted',function(event) {
-			this.add(100).say('That was close !',1000);
+		stage.on('paddler_bonus_hitted',function(event) {
+			this.add(100).say('Yo buddy !',500);
 		},this);
 
-		stage.on('malus_paddler_hitted',function(event) {
-			this.sub(100).say('BIM!! You hurt someone !',2000, 'red');
+		stage.on('paddler_malus_hitted',function(event) {			
+			this.failPhrase = this.getRandomPhrase('paddler_hitted');
 		},this);
 
-		stage.on('bonus_photograf_hitted',function(event) {
-			this.add(500).say("Une petite photo !!",1000);
+		stage.on('photo_bonus_hitted',function(event) {
+			console.log('score')
+			this.add(200).say("Photo",500);
 		},this);
 
-		stage.on('malus_photograf_hitted',function(event) {
-			this.sub(100).say("Bim you've hurt a paparazzi !",2000, 'red');
+		stage.on('photo_malus_hitted',function(event) {
+			this.failPhrase = this.getRandomPhrase('photograf_hitted');
+		},this);
+
+		stage.on('multiplier_bonus_hitted',function(event) {
+			console.log(event);
+			if(this.current_multiplier == 0) this.current_multiplier = event.multiplier;
+			else this.current_multiplier = this.current_multiplier * event.multiplier;
 		},this);
 	}
 
+
+	prototype.getRandomPhrase = function(key) {
+
+		var i = Math.random()*this.phrases[key].length;
+		i = Math.floor(i);
+		return this.phrases[key][i];
+
+	}
 	prototype.tick = function() {
 
+		if(PAUSED) return;
 		this.slideAboveWaveText();
+
 	}
 
 	prototype.setSpot = function(spot) {
@@ -114,10 +139,30 @@
 		this.spot = spot;
 	}
 
+	prototype.reset = function() {
+
+		this.current_score = 0;
+		this.score.text = 0;
+	}
+
+	prototype.getScore = function() {
+		return this.current_score;
+	}
+
+	prototype.setScore = function(sc) {
+		this.current_score = sc;
+		this.score.text = sc;
+		return this;
+	}
+
+	prototype.getFailPhrase = function() {
+		return this.failPhrase;
+	}
+
 	prototype.start = function(n) {
 
 		this.subscore.alpha = 1;
-		this.subscore.text = '+0';
+		this.subscore.text = ' ';
 		this.subscore.scaleX = this.subscore.scaleY = 1;
 		var b = this.subscore.getBounds();
 		this.subscore.x = this.subscore_pt.x + b.width/2;
@@ -130,14 +175,34 @@
 
 	prototype.addsub = function(n) {
 
-		var u = parseInt(this.subscore.text.substr(1)) + n;
-		this.subscore.text = '+'+u;
+		this.current_tricks_score += n;		
+		this.subscore.text = '+'+this.current_tricks_score;
 		return this;	
 	}
 
 	prototype.end = function() {
 	
 		window.clearInterval(this.launch_timer);
+
+		//on-wave subscore
+		var pt = this.spot.wave.surfer.localToGlobal(0,0);
+		this.onwavescore.x = pt.x;
+		var y = this.spot.wave.y - this.spot.wave.params.height;
+		this.onwavescore.y = y;
+		this.onwavescore.alpha = 1;
+		var tx = (this.current_multiplier==0)? this.current_tricks_score : this.current_tricks_score+' x'+this.current_multiplier+''; 
+		this.onwavescore.text = tx;
+
+		createjs.Tween.get(this.onwavescore)	
+			.to({y: y-50, alpha:0},1000)		
+			;
+
+
+		if(this.current_multiplier != 0) {
+			this.current_tricks_score = this.current_tricks_score * this.current_multiplier;
+		}
+
+		this.add(this.current_tricks_score);
 
 		var b = this.subscore.getBounds();
 		this.subscore.x = this.subscore_pt.x + b.width/2;
@@ -150,42 +215,31 @@
 			.to({scaleX:0, scaleY:0, alpha:0 },400, createjs.Tween.elasticOut)		
 			;
 
-		this.add(this.subscore.text.substr(1));
 
-
-		//on-wave subscore
-		var pt = this.spot.wave.surfer.localToGlobal(0,0);
-		this.onwavescore.x = pt.x;
-		var y = this.spot.wave.y - this.spot.wave.params.height;
-		this.onwavescore.y = y;
-		this.onwavescore.alpha = 1;
-		this.onwavescore.text = this.subscore.text;
-
-		createjs.Tween.get(this.onwavescore)	
-			.to({y: y-50, alpha:0},1000)		
-			;
-
+		this.current_multiplier = 0;
 
 		return this;
 	}
 
 	prototype.add = function(n) {
 
-		this.score.text = parseInt(this.score.text) + parseInt(n);	
+		this.current_score += n;
+		this.score.text = this.current_score;	
 		return this;
 	}
 
 	prototype.sub = function(n) {
 
-		var i = parseInt(this.score.text) - parseInt(n);
-		if(i<0) i=0;	
-		this.score.text = i;
+		
+		this.current_score -= n;
+		if(this.current_score < 0) this.current_score = 0;	
+		this.score.text = this.current_score;
 		return this;
 	}
 
 	prototype.advance = function() {
 
-		this.score.text = parseInt(this.score.text) + parseInt(1);
+		this.score.text = this.current_score + parseInt(1);
 		return this;
 	}
 

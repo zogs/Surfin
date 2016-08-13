@@ -22,6 +22,8 @@
 		this.paddling_force = 0;
 		this.paddling_progress = 0;
 		this.lifttotal = 0;
+		this.isPlayer = true;
+		this.isPaddling = false;
 
 		this.skill = {
 			speed: 1, //0 to 1
@@ -138,17 +140,25 @@
 		this.paddling_progress = 0;
 		//move the paddler
 		var tween = createjs.Tween.get(this, {override:true});
-			tween.to({ y:point.y, x:point.x, paddling_progress:100 },1000, createjs.Tween.quartOut);
+			tween.to({ y:point.y, x:point.x, paddling_progress:100 },1000, createjs.Tween.quartOut).call(proxy(this.endMoving,this));
 			tween.addEventListener('change',proxy(this.paddlingProgress,this));
+
 			;		
 
 		//throw event
-		var e = new createjs.Event("player_paddling");
+		var e = new createjs.Event("paddler_paddling");
 			e.paddler = this;
 			stage.dispatchEvent(e);
 	}
 
+	prototype.endMoving = function() {
+
+		this.isPaddling = false;
+	}
+
 	prototype.paddlingProgress = function(evt) {
+
+		this.isPaddling = true;
 
 		//resize paddler
 		this.resize();
@@ -220,3 +230,83 @@
 	//assign Surfer to window's scope & promote
 	window.Paddler = createjs.promote(Paddler, "Container");
 }());
+
+
+//======================
+// PADDLER BOT
+//======================
+(function() {
+
+	function PaddlerBot(config) {
+
+		this.Paddler_constructor(config);
+		this.initBot(config);
+	}
+
+	var prototype = createjs.extend(PaddlerBot, Paddler);
+
+
+	prototype.initBot = function() {
+
+		this.isBot = true;
+		this.isPlayer = false;
+		this.paddling_interval = null;
+		this.paddling_attempt = 0;
+
+		this.addEventListener('tick',proxy(this.tick,this));
+	}
+
+	prototype.tick = function(e) {
+
+		this.paddlingOnWave();
+	}
+
+	prototype.paddlingOnWave = function() {
+
+		var waves = this.spot.waves;
+
+		for(var i=0,len=waves.length; i<len; i++) {
+
+			var wave = waves[i];
+			//if bot is placed on the wave
+			if(this.getY() < wave.y - wave.params.height/2 && this.getY() > wave.y - wave.params.height) {
+
+				this.isOnWave = true;
+
+				this.initTakeoffPaddling();
+
+				return;
+			}
+		}
+
+		this.isOnWave = false;
+	}
+
+	prototype.initTakeoffPaddling = function() {
+
+		if(this.paddling_interval) return;
+
+		this.takeOffPaddling();
+
+		this.paddling_interval = window.setInterval(proxy(this.takeOffPaddling,this),500);
+	}
+
+	prototype.takeOffPaddling = function(e) {
+		
+		this.movePaddler({stageX: this.x, stageY: STAGEHEIGHT});
+
+		this.paddling_attempt++;		
+
+		if(this.isOnWave == false) {
+						
+			window.clearInterval(this.paddling_interval);
+			this.paddling_interval = null;
+			this.paddling_attempt = 0;
+		}
+
+	}
+
+	window.PaddlerBot = createjs.promote(PaddlerBot, 'Paddler');
+
+
+})();

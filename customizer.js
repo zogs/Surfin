@@ -8,7 +8,7 @@
 
 		this.Width = SPOT.config.waves.width;
 		this.Height = SPOT.config.waves.height;
-		this.YSpeed = SPOT.config.waves.breaking_yspeed;
+		this.YSpeed = SPOT.config.waves.breaking.yspeed;
 		this.SuctionX = SPOT.config.waves.suction_x;
 		this.SuctionY = SPOT.config.waves.suction_y;
 		this.LShoulderWidth = SPOT.config.waves.shoulder.left.width;
@@ -20,16 +20,24 @@
 		this.RShoulderOuter = SPOT.config.waves.shoulder.right.outer;
 		this.RShoulderMarge = SPOT.config.waves.shoulder.right.marge;
 
-		this.LBreakingWidth = SPOT.config.waves.breaking_width_left;
-		this.RBreakingWidth = SPOT.config.waves.breaking_width_right;	
-		this.LBreakBlockInt = SPOT.config.waves.breaking_block_left_interval;	
-		this.LBreakBlockIntMax = SPOT.config.waves.breaking_block_left_interval_max;	
-		this.LBreakBlockWidth = SPOT.config.waves.breaking_block_left_width;
-		this.LBreakBlockWidthMax = SPOT.config.waves.breaking_block_left_width_max;
-		this.RBreakBlockInt = SPOT.config.waves.breaking_block_right_interval;	
-		this.RBreakBlockIntMax = SPOT.config.waves.breaking_block_right_interval_max;	
-		this.RBreakBlockWidth = SPOT.config.waves.breaking_block_right_width;
-		this.RBreakBlockWidthMax = SPOT.config.waves.breaking_block_right_width_max;
+		this.LBreakWidth = SPOT.config.waves.breaking.left.width;
+		this.LBreakWidthMax = SPOT.config.waves.breaking.left.width_max;
+		this.LBreakWidthInt = SPOT.config.waves.breaking.left.width_interval;
+		this.LBreakWidthPause = SPOT.config.waves.breaking.left.width_pause;
+		this.LBreakBlockWidth = SPOT.config.waves.breaking.left.block_width;
+		this.LBreakBlockWidthMax = SPOT.config.waves.breaking.left.block_width_max;
+		this.LBreakBlockInt = SPOT.config.waves.breaking.left.block_interval;	
+		this.LBreakBlockIntMax = SPOT.config.waves.breaking.left.block_interval_max;
+
+		this.RBreakWidth = SPOT.config.waves.breaking.right.width;	
+		this.RBreakWidthMax = SPOT.config.waves.breaking.right.width_max;
+		this.RBreakWidthInt = SPOT.config.waves.breaking.right.width_interval;
+		this.RBreakWidthPause = SPOT.config.waves.breaking.right.width_pause;
+		this.RBreakBlockWidth = SPOT.config.waves.breaking.right.block_width;
+		this.RBreakBlockWidth = SPOT.config.waves.breaking.right.block_width;
+		this.RBreakBlockWidthMax = SPOT.config.waves.breaking.right.block_width_max;
+		this.RBreakBlockInt = SPOT.config.waves.breaking.right.block_interval;	
+		this.RBreakBlockIntMax = SPOT.config.waves.breaking.right.block_interval_max;	
 
 		this.NbWaves = SPOT.config.series.length;
 		this.Interval = SPOT.config.series.interval;
@@ -77,10 +85,7 @@
 		var waves = gui.addFolder('Waves');
 		waves.add(custom, 'Width', 100, 10000).step(200).onChange(function(value) { SPOT.config.waves.width = value; });
 		waves.add(custom, 'Height', 10, 300).onChange(function(value) { SPOT.config.waves.height = value; });
-		waves.add(custom, 'YSpeed',0).step(100).onChange(function(value) { SPOT.config.waves.breaking_yspeed = value; });
-		waves.add(custom, 'LShoulderWidth',0).onChange(function(value) { SPOT.config.waves.shoulder.left.width = value; });
-		waves.add(custom, 'LShoulderInner',0).onChange(function(value) { SPOT.config.waves.shoulder.left.inner = value; });
-		waves.add(custom, 'LShoulderOuter',0).onChange(function(value) { SPOT.config.waves.shoulder.left.outer = value; });
+		waves.add(custom, 'YSpeed',0).step(50).onChange(function(value) { SPOT.config.waves.breaking.yspeed = value; });
 		waves.add(custom, 'LShoulderMarge',0).onChange(function(value) { SPOT.config.waves.shoulder.left.marge = value; });
 		waves.add(custom, 'RShoulderWidth',0).onChange(function(value) { SPOT.config.waves.shoulder.right.width = value; });
 		waves.add(custom, 'RShoulderInner',0).onChange(function(value) { SPOT.config.waves.shoulder.right.inner = value; });
@@ -91,18 +96,24 @@
 		waves.close();
 
 		var breaking = gui.addFolder('Breaking Left');
-		breaking.add(custom, 'LBreakingWidth',1,50).onChange(function(value) { SPOT.config.waves.breaking_width_left = value; });
-		breaking.add(custom, 'LBreakBlockInt',0).onChange(function(value) { SPOT.config.waves.breaking_block_left_interval = value; });	
-		breaking.add(custom, 'LBreakBlockIntMax',0).onChange(function(value) { SPOT.config.waves.breaking_block_left_interval_max = value; });	
-		breaking.add(custom, 'LBreakBlockWidth',0).onChange(function(value) { SPOT.config.waves.breaking_block_left_width = value; });	
-		breaking.add(custom, 'LBreakBlockWidthMax',0).onChange(function(value) { SPOT.config.waves.breaking_block_left_width_max = value; });
+		breaking.add(custom, 'LBreakWidth',1,50).onChange(function(value) { SPOT.config.waves.breaking.left.width = value; });
+		breaking.add(custom, 'LBreakWidthMax',1,50).onChange(function(value) { SPOT.config.waves.breaking.left.width_max = value; });
+		breaking.add(custom, 'LBreakWidthInt',0).onChange(function(value) { SPOT.config.waves.breaking.left.width_interval = value; });
+		breaking.add(custom, 'LBreakWidthPause',0).onChange(function(value) { SPOT.config.waves.breaking.left.width_pause = value; });
+		breaking.add(custom, 'LBreakBlockInt',0).onChange(function(value) { SPOT.config.waves.breaking.left.block_interval = value; });	
+		breaking.add(custom, 'LBreakBlockIntMax',0).onChange(function(value) { SPOT.config.waves.breaking.left.block_interval_max = value; });	
+		breaking.add(custom, 'LBreakBlockWidth',0).onChange(function(value) { SPOT.config.waves.breaking.left.block_width = value; });	
+		breaking.add(custom, 'LBreakBlockWidthMax',0).onChange(function(value) { SPOT.config.waves.breaking.left.block_width_max = value; });
 
 		var breaking = gui.addFolder('Breaking Right');
-		breaking.add(custom, 'RBreakingWidth',1,50).onChange(function(value) { SPOT.config.waves.breaking_width_right = value; });	
-		breaking.add(custom, 'RBreakBlockInt',0).onChange(function(value) { SPOT.config.waves.breaking_block_right_interval = value; });	
-		breaking.add(custom, 'RBreakBlockIntMax',0).onChange(function(value) { SPOT.config.waves.breaking_block_right_interval_max = value; });	
-		breaking.add(custom, 'RBreakBlockWidth',0).onChange(function(value) { SPOT.config.waves.breaking_block_right_width = value; });	
-		breaking.add(custom, 'RBreakBlockWidthMax',0).onChange(function(value) { SPOT.config.waves.breaking_block_right_width_max = value; });	
+		breaking.add(custom, 'RBreakWidth',1,50).onChange(function(value) { SPOT.config.waves.breaking.right.width = value; });	
+		breaking.add(custom, 'RBreakWidthMax',1,50).onChange(function(value) { SPOT.config.waves.breaking.right.width_max = value; });	
+		breaking.add(custom, 'RBreakWidthInt',0).onChange(function(value) { SPOT.config.waves.breaking.right.width_interval = value; });	
+		breaking.add(custom, 'RBreakWidthPause',0).onChange(function(value) { SPOT.config.waves.breaking.right.width_pause = value; });	
+		breaking.add(custom, 'RBreakBlockInt',0).onChange(function(value) { SPOT.config.waves.breaking.right.block_interval = value; });	
+		breaking.add(custom, 'RBreakBlockIntMax',0).onChange(function(value) { SPOT.config.waves.breaking.right.block_interval_max = value; });	
+		breaking.add(custom, 'RBreakBlockWidth',0).onChange(function(value) { SPOT.config.waves.breaking.right.block_width = value; });	
+		breaking.add(custom, 'RBreakBlockWidthMax',0).onChange(function(value) { SPOT.config.waves.breaking.right.block_width_max = value; });	
 
 		var series = gui.addFolder('Series');
 		series.add(custom, 'NbWaves', 1, 10).onChange(function(value) { SPOT.config.series.length = value; });

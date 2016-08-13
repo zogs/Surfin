@@ -62,8 +62,8 @@ window.initialize = function() {
 	MOUSE_POINTS = [new createjs.Point(MOUSE_X,MOUSE_Y)];
 
 	DEBUG = 0;
-	TEST = 1;
-
+	TEST = 0;
+	PAUSED = 0;
 
 	//SPOT
 	SPOT = new Spot();
@@ -88,7 +88,8 @@ window.initialize = function() {
 	 //keyboard handlers
 	window.onkeyup = keyUpHandler;
 	window.onkeydown = keyDownHandler;
-	
+
+
 }
 
 window.addSpot = function(config) {
@@ -108,23 +109,25 @@ window.addSpot = function(config) {
 window.tick = function() {
 
 	stage.update();
+
 }
 
 window.keyDownHandler = function(e)
 {
    switch(e.keyCode)
    {
-    case KEYCODE_B:  SPOT.getWave().addBlockBreaking(); break;
+    case KEYCODE_B:  SPOT.getWave().addBlockBreaking(200); break;
     case KEYCODE_N:  SPOT.getWave().addBreakingPeak(200,800); break;
     case KEYCODE_S:  window.addSpot(); break;
     case KEYCODE_A:  SPOT.breakAllWaves(); break;
-    case KEYCODE_R:  SPOT.removeAllWaves(); break;
-    case KEYCODE_P:  SPOT.pauseAllWaves(); break;
+    case KEYCODE_P:  window.pause(); break;
     case KEYCODE_M:  SCORE.say('Hello !',3000); break;
-    case KEYCODE_T:  SPOT.getWave().getSurfer().testTrail(); break;
+    case KEYCODE_T:  switchTestMode(); break;
     case KEYCODE_F:  SPOT.getWave().getSurfer().fall(); break;
-    //case KEYCODE_F:  SPOT.initFallScreen(); break;
-    case KEYCODE_O:  SPOT.getWave().addObstacle(); break;
+    case KEYCODE_Z:  SPOT.addPaddlerBot(); break;
+    case KEYCODE_R:  SPOT.getWave().addTestSurferBot(); break;
+    case KEYCODE_O:  SPOT.getWave().addRandomObstacle(); break;
+    case KEYCODE_I:  SPOT.getWave().addFlyingObstacle(); break;
     case KEYCODE_D:  switchDebugMode(); break;
    } 
 }
@@ -148,15 +151,15 @@ window.onMouseMove= function(e) {
 
 }
 
-window._getMousePoint = function(n) {
+window.getMousePoint = function(n) {
 
 	if(MOUSE_POINTS.length < n) return MOUSE_POINTS[MOUSE_POINTS.length];
 	return MOUSE_POINTS[n];
 }
 
-window._getMouseVector = function(n) {
+window.getMouseVector = function(n) {
 
-	return vec2.fromValues(_getMousePoint(n).x - _getMousePoint(n+1).x,_getMousePoint(n).y - _getMousePoint(n+1).y);
+	return vec2.fromValues(getMousePoint(n).x - getMousePoint(n+1).x,getMousePoint(n).y - getMousePoint(n+1).y);
 }
 
 window.switchDebugMode = function() {
@@ -181,4 +184,18 @@ window.switchTestMode = function() {
 		TEST = 1;
 		console.log('TEST ACTIVATED !');
 	}
+}
+
+window.pause = function() {
+
+	if(PAUSED === 1) {
+		PAUSED = 0;
+		createjs.Ticker.setPaused(false);		
+		console.log('PAUSE DESACTIVATED');
+	}
+	else {
+		PAUSED = 1;
+		createjs.Ticker.setPaused(true);		
+		console.log('PAUSE ACTIVATED !');
+	}	
 }

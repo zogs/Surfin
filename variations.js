@@ -13,13 +13,13 @@ Variation = function(config) {
 	this.slope = config.slope != undefined ? config.slope : 'both';	
 	this.stop = config.stop != undefined ? config.stop : false;
 	this.override = config.override != undefined ? config.override : true;
+	this.ease = config.ease != undefined ? config.ease : null;
 	this.loop = 0;
 
 	//check if 
 	this.min = (this.min instanceof Variation)? this.min.valueOf() : this.min;
 	this.max = (this.max instanceof Variation)? this.max.valueOf() : this.max;
 
-	
 	this.beginVariation();	
 }
 
@@ -28,9 +28,9 @@ Variation.prototype.beginVariation = function() {
 	if(this.stop === true) return;
 	this.w = this.min;
 	var tween = createjs.Tween.get(this, {override: this.override});
-	if(this.slope == 'both' || this.slope == 'up') tween.to({w:this.max},this.time);
+	if(this.slope == 'both' || this.slope == 'up') tween.to({w:this.max}, this.time, this.ease);
 	if(this.wait != 0) tween.wait(Math.random()*this.wait);
-	if(this.slope == 'both' || this.slope == 'down') tween.to({w:this.min},this.time);
+	if(this.slope == 'both' || this.slope == 'down') tween.to({w:this.min}, this.time, this.ease);
 	tween.call(proxy(this.restartVariation,this));
 	tween.on('change',proxy(this.onchange,this));
 

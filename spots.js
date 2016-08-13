@@ -17,21 +17,33 @@
 			horizon_point : 180,
 			waves: {
 				height : 150,
-				width : 1500,
-				breaking_yspeed: 1200,
-				breaking_width_left: 20,
-				breaking_width_right: 10,
+				width : 0,
+				breaking: {
+					yspeed: 1200,
+					left: {
+						width: 20,
+						width_max: 0,				
+						width_interval: 3000,
+						width_pause: 1000,
+						block_interval: 0,
+						block_interval_max: 0,
+						block_width: 100,
+						block_width_max: 200,
+					},					
+					right: {
+						width: 20,
+						width_max: 0,
+						width_interval: 3000,
+						width_pause: 1000,
+						block_interval: 500,
+						block_interval_max: 600,
+						block_width: 100,
+						block_width_max: 200,
+					}
+				},
 				paddling_effort: 1,
 				bottom_fall_scale: 1,
-				top_fall_scale: 0.2,
-				breaking_block_left_interval: 0,
-				breaking_block_left_interval_max: 0,
-				breaking_block_left_width: 100,
-				breaking_block_left_width_max: 200,
-				breaking_block_right_interval: 500,
-				breaking_block_right_interval_max: 600,
-				breaking_block_right_width: 100,
-				breaking_block_right_width_max: 200,
+				top_fall_scale: 0.2,				
 				suction_x: 5,
 				suction_y: 3,
 				color_top: '#0b2648',
@@ -92,6 +104,9 @@
 		//trace debug
 		this.traceDebug();		
 
+		//Score
+		this.initScore();
+
 		//Listeners
 		this.initEventsListeners();
 
@@ -106,6 +121,7 @@
 
 		this.removeAllWaves();
 		this.initEventsListeners();
+		this.resetScore();
 		//this.addWave(0.3);
 		this.addWave(1);
 		this.addPaddler(STAGEWIDTH/2,300);
@@ -115,6 +131,7 @@
 
 		this.removeAllWaves();
 		this.initEventsListeners();
+		this.resetScore();
 		this.addInitialSerie();
 		this.addPaddler(STAGEWIDTH/2,300);
 	}
@@ -136,18 +153,18 @@
 			event.remove();
 		},this);
 
-		stage.on('player_paddling',function(event) {
-			this.playerPaddling(event);
+		stage.on('paddler_paddling',function(event) {
+			this.paddlerPaddling(event);
 		},this);
 
-		stage.on('surfer_fallen',function(event) {			
+		stage.on('player_fallen',function(event) {			
 			this.playerFalling(event);
 		},this);
 	}
 
 	prototype.tick = function() {
 
-		
+		if(PAUSED) return;
 		this.managePaddlers();
 		this.paralaxWaves();
 	}
@@ -226,6 +243,23 @@
 		this.paddlers.push(paddler);
 	}
 
+	prototype.addPaddlerBot = function(x,y) {
+
+		var x = x || STAGEWIDTH/4 + Math.random()*(STAGEWIDTH/2);
+		var y = y || Math.random()*(this.config.lines.beach - this.config.lines.horizon) + this.config.lines.horizon;
+		var y = 300;
+		var bot = new PaddlerBot({
+			spot: this,
+			x: x,
+			y: y,
+		});
+
+		this.cont.addChild(bot);
+		this.paddlers.push(bot);
+
+		console.log(this.paddlers);
+	}
+
 	prototype.addSeries = function() {
 
 		if(this.isPlayed == true) return;
@@ -297,9 +331,57 @@
 
 	}
 
-	prototype.playerPaddling = function(event) {
+	prototype.paddlerPaddling = function(event) {
 
 		var paddler = event.paddler;
+
+		if(paddler.isBot) this.botPaddling(paddler);
+		else if(paddler.isPlayer) this.playerPaddling(paddler);
+	}
+
+	prototype.botPaddling = function(bot) {
+
+
+		var index = this.cont.getChildIndex(bot) - 1;
+		while(index>=0) {
+
+			var wave = this.cont.getChildAt(index);
+
+			if(wave instanceof Wave) {
+
+				if(bot.y <= wave.y - wave.params.height/3 && bot.y > wave.y - wave.params.height) {
+					
+					if(bot.paddling_attempt >= 2) {
+
+						var x = ( bot.getX() - wave.getX() );
+						var y = ( wave.params.height - ( wave.getY() - bot.getY() ));
+						
+						var direction = (bot.getX() <= STAGEWIDTH/2)? 'left' : 'right';
+
+						var surfer = new SurferBot({
+							x: x,
+							y: y,
+							wave: wave,
+							spot: this,
+							direction: direction
+						});
+						wave.addSurferBot(surfer);
+
+
+						bot.removeListeners();
+						this.cont.removeChild(bot);
+						this.paddlers.splice(this.paddlers.indexOf(bot),1);
+
+						break;
+					}
+				}
+			}
+
+			index--;
+		}
+	}
+
+	prototype.playerPaddling = function(paddler) {
 
 		var index = this.cont.getChildIndex(paddler) - 1;
 		while(index>=0) {
@@ -334,11 +416,9 @@
 					this.cont.removeChild(paddler);
 					this.paddlers.splice(this.paddlers.indexOf(paddler),1);
 
-					//init score
-					this.initScore();
+					//init score					
+					this.showScore();
 					
-					//remove event
-					event.remove();
 					//break loop
 					break;
 				}
@@ -350,12 +430,20 @@
 
 	prototype.initScore = function() {
 
-		//Score
-		this.score = new Score();
-		this.score.setSpot(this);
+		//Score		
 		this.score_cont.removeAllChildren();
+		this.score = new Score();
+		this.score.alpha = 0;
+		this.score.setSpot(this);
 		this.score_cont.addChild(this.score);
+	}
 
+	prototype.resetScore = function() {
+		this.score.reset();
+	}
+
+	prototype.showScore = function() {
+		this.score.alpha = 1;
 	}
 
 	prototype.paralaxWaves = function() {
@@ -384,34 +472,22 @@
 
 	prototype.playerFalling = function(event) {
 		
-
-		//var surfer = event.surfer;
-		//var pos = surfer.localToGlobal(0,0);
-		//
 		if(TEST) return;
 
+		//stop useless interval
+		window.clearInterval(this.wave.clearnerInterval);
+		//freaze the wave after 6s
+		window.setTimeout(proxy(function(){ this.stopWaveAfterFall(); },this), 6000);
+		//launch fall screen
 		this.initFallScreen();
 
-		//emit particle
-		/*var emitter = new ParticleEmitter({
-			position: vec2.fromValues(pos.x,pos.y),
-			magnitude: 50,
-			color: '#FFF',
-			size: 40,
-			sizemax: 50,
-			fade: 0.1,
-			fademax: 0.3,
-			rotate: 5,
-			rotatemax: -5,
-			scaler: 0.1
+	}
 
-		});
-		for(var i=0; i < 5; i++) {
-			var particule = emitter.emitParticle();
-			console.log(particule.position);
-			this.overlay_cont.addChild(particule);
+	prototype.stopWaveAfterFall = function() {
+
+		if(this.wave) {
+			this.wave.removeAllEventListeners('tick');
 		}
-		*/
 	}
 
 
@@ -447,10 +523,16 @@
 
 		var dx = Math.random()*500 + 200;
 
-		createjs.Tween.get(wash).to({y: 200,x:-dx},700);
-		createjs.Tween.get(wash2).to({y: 150,x:-dx - STAGEWIDTH/2},800);
 		createjs.Tween.get(backred).to({alpha:0.7},200).to({alpha:0.2},500);
-		createjs.Tween.get(backwhite).wait(200).to({alpha:0.7},500);
+		createjs.Tween.get(backwhite).wait(200).to({alpha:0.8},500);
+
+
+		createjs.Tween.get(wash).to({y: 200,x:-dx},700);
+		createjs.Tween.get(wash2).to({y: 150,x:-dx - STAGEWIDTH/2},800)
+						.call(function(){
+							createjs.Tween.get(wash,{loop:true}).to({x: wash.x+200},2000).to({x: wash.x},2000);
+							createjs.Tween.get(wash2,{loop:true}).to({x: wash2.x+100},2000).to({x: wash2.x},2000);
+						});
 
 		this.overlay_cont.addChild(wash);
 		this.overlay_cont.addChild(wash2);
@@ -483,27 +565,47 @@
 			createjs.Tween.get(drop).wait(200).to({alpha:0.3,scaleX:1,scaleY:1},300);
 		}
 
-		var text = new createjs.Bitmap(queue.getResult('washed_text'));
-		text.alpha = 0;
-		text.x = STAGEWIDTH/2;
-		text.y = STAGEHEIGHT;
-		text.regX = text.image.width/2;
-		text.regY = text.image.height/2;
-		text.scaleX = text.scaleY = 0.2;
-		var y = STAGEHEIGHT*2/3 - text.image.height/2;
+		var title = new createjs.Bitmap(queue.getResult('washed_text'));
+		title.alpha = 0;
+		title.x = STAGEWIDTH/2;
+		title.y = STAGEHEIGHT*2/3 - title.image.height/2;
+		title.regX = title.image.width/2;
+		title.regY = title.image.height/2;
+		title.scaleX = title.scaleY = 1;
 
-		this.overlay_cont.addChild(text);
-		createjs.Tween.get(text).wait(500).to({y:y,alpha:1,scaleX:1,scaleY:1},300,createjs.Ease.backOut);
+		this.overlay_cont.addChild(title);
+		createjs.Tween.get(title).wait(1000).to({alpha:1},2000);
 
-		var subtext = new createjs.Text("PRESS TO RETRY", "16px Arial", "#AAA");
-		subtext.alpha = 0;
-		subtext.x = text.x ;
-		subtext.y = 500;
-		subtext.regX = subtext.getMeasuredWidth()/2;
-		subtext.regY = subtext.getMeasuredHeight()/2;
+		var failphrase = new createjs.Text('" '+this.score.getFailPhrase()+' "', "bold italic 18px Arial", "#95474a");
+		failphrase.alpha = 0;
+		failphrase.x = title.x ;
+		failphrase.y = title.y + 125;
+		failphrase.regX = failphrase.getMeasuredWidth()/2;
+		failphrase.regY = failphrase.getMeasuredHeight()/2;
 
-		this.overlay_cont.addChild(subtext);
-		createjs.Tween.get(subtext).wait(1000).to({alpha:1,y:450},500);
+		this.overlay_cont.addChild(failphrase);
+		createjs.Tween.get(failphrase).wait(1500).to({alpha:1},500);
+
+		var subscore = new createjs.Text("Score : " + this.score.getScore(), "bold 18px Arial", "#AAA");
+		subscore.alpha = 0;
+		subscore.x = title.x ;
+		subscore.y = title.y + 150;
+		subscore.regX = subscore.getMeasuredWidth()/2;
+		subscore.regY = subscore.getMeasuredHeight()/2;
+
+		this.overlay_cont.addChild(subscore);
+		createjs.Tween.get(subscore).wait(1800).to({alpha:1},500);
+
+
+		var retry = new createjs.Text("[ CLICK TO RETRY ]", "14px Arial", "#AAA");
+		retry.alpha = 0;
+		retry.x = title.x ;
+		retry.y = STAGEHEIGHT - 75;
+		retry.regX = retry.getMeasuredWidth()/2;
+		retry.regY = retry.getMeasuredHeight()/2;
+
+		this.overlay_cont.addChild(retry);
+		createjs.Tween.get(retry).wait(2000).to({alpha:1},500);
 
 		this.click_retry = stage.on('click',proxy(this.fallRetry,this));
 
@@ -600,7 +702,7 @@
 		}
 	}
 
-	prototype.pauseAllWaves = function() {
+	prototype.pause = function() {
 
 		for(var i=0; i < this.waves.length; i++) {
 

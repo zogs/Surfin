@@ -159,7 +159,7 @@
 		this.particles_cont = new createjs.Container();
 		this.addChild(this.particles_cont);
 
-		this.addEventListener('tick',proxy(this.moveParticles,this));
+		this.addEventListener('tick',proxy(this.tick,this));
 
 		this.cleaner = window.setInterval(proxy(this.cleanParticles,this),1000);
 
@@ -229,6 +229,13 @@
 		});
 	}
 
+	prototype.tick = function() {
+
+		if(PAUSED) return;
+
+		this.moveParticles();
+	}
+
 	prototype.moveParticles = function() {
 
 		if(this.particles_cont.numChildren == 0) return;
@@ -245,6 +252,8 @@
 	}
 
 	prototype.cleanParticles = function() {
+
+		if(PAUSED) return;
 
 		var i = this.particles_cont.numChildren - 1;
 		while(i >= 0) {
@@ -266,7 +275,7 @@
 		if(this.particles_cont.numChildren === 0) {
 			
 			window.clearInterval(this.cleaner);
-			createjs.Ticker.removeEventListener("tick", this.moveParticles);
+			createjs.Ticker.removeEventListener("tick", this.tick);
 			this.removeAllChildren();
 			this.callback(this);
 
