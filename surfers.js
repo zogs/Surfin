@@ -12,7 +12,6 @@
 	//public static properties
 	prototype.gravity = vec2.fromValues(0,2);
 	prototype.hitbox_proportion = 25;
-	prototype.isBot = false;
 	prototype.origin_height = 80;
 	prototype.height = 80;
 
@@ -23,6 +22,8 @@
 		this.spot = params.spot;
 		this.x = params.x;
 		this.y = params.y;
+
+		this.type = 'player';
 
 		this.location = [this.x,this.y];
 		this.locations = [this.location];
@@ -37,6 +38,8 @@
 		this.status = 'wait';
 		this.hitbox_radius = null;
 		this.tubing = false;
+		this.tubeTime = 0;
+		this.tubeMinimumTime = 1000;
 		this.riding = false;
 		this.falling = false;
 		this.surfing = false;
@@ -44,6 +47,7 @@
 		this.autoSilhouette = true;
 		this.ollie_cooldown = 1000;
 		this.trailsize_origin = this.trailsize;
+		this.fall_reason = null;
 
 		this.skill = {
 			speed: 1, //0 to 1
@@ -71,6 +75,14 @@
 		this.silhouette_height = this.silhouette.getChildAt(0).image.height;
 		this.silhouette.alpha = 0;
 
+		this.offcanvasTrail = document.createElement("canvas");
+		this.offcanvasTrail.height = this.wave.config.height;
+		this.offcanvasTrail.width = STAGEWIDTH;
+		this.offstageTrail = new createjs.Stage(this.offcanvasTrail);
+		this.trailBmp = new createjs.Bitmap(this.offcanvasTrail);
+		this.trailBmp.alpha = 0.2;
+		this.wave.trail_cont.addChild(this.trailBmp);
+
 		this.debug_cont = new createjs.Container();
 		this.addChild(this.debug_cont);
 
@@ -87,11 +99,11 @@
 
 	prototype.tick = function() {
 
+		if(PAUSED) return;
 		this.updateLocation();
 		this.move();
 		this.stock();
 		this.testFall();
-		this.drawTrails();
 		this.drawDebug();
 
 	}
@@ -105,36 +117,94 @@
 		},this);
 
 		//custom events
+		
+		this.on('take_off',function(event) {
+			var ev = new createjs.Event('surfer_take_off');
+			stage.dispatchEvent(ev);
+		},this);
+
+		this.on('take_off_ended',function(event) {
+			var ev = new createjs.Event('surfer_take_off_ended');
+			stage.dispatchEvent(ev);
+		},this);
+
+		this.on('arial_start',function(event) {
+			var ev = new createjs.Event('surfer_arial_start');
+			ev.tricks = event.tricks;
+			stage.dispatchEvent(ev);
+		},this);
+
+
+		this.on('arial_end',function(event) {
+			var ev = new createjs.Event('surfer_arial_end');
+			stage.dispatchEvent(ev);
+		},this);
+
+		this.on('fall',function(event) {	
+			if(this.isPlayer()) stage.dispatchEvent('player_fall');
+		},this,true);
+
+		this.on('fallen',function(event) {	
+			if(this.isPlayer()) stage.dispatchEvent('player_fallen');
+		},this,true);
+
 		this.on('fall_bottom',function(event) {	
-			this.fall();		
-			this.status = 'fall';
 			stage.dispatchEvent('surfer_fall_bottom');
 			window.setTimeout(proxy(this.initEventsListener,this),2000);
 		},this,true);
 
-		this.on('fall_top',function(event) {
-			this.fall();			
-			this.status = 'fall';
+		this.on('fall_top',function(event) {	
 			stage.dispatchEvent('surfer_fall_top');
 			window.setTimeout(proxy(this.initEventsListener,this),2000);
 		},this,true);
 
 		this.on('fall_edge',function(event) {
-			this.fall();			
-			this.status = 'fall';
 			stage.dispatchEvent('surfer_fall_edge');
 			window.setTimeout(proxy(this.initEventsListener,this),2000);
 		},this,true);
 
+		this.on('fall_obstacle',function(event) {
+			stage.dispatchEvent('surfer_fall_obstacle');
+			window.setTimeout(proxy(this.initEventsListener,this),2000);
+		},this,true);
+
+		this.on('fall_tricks',function(event) {	
+			stage.dispatchEvent('fall_tricks');
+			window.setTimeout(proxy(this.initEventsListener,this),2000);
+		},this,true);
+
 		this.on('tube_in',function(event) {
-			this.tubing = true;
 			stage.dispatchEvent('surfer_tube_in');
 		});
 
 		this.on('tube_out',function(event) {
-			this.tubing = false;
 			stage.dispatchEvent('surfer_tube_out');
 		});
+
+		this.on('paddler_bonus_hitted', function(event) {
+			stage.dispatchEvent('paddler_malus_hitted');
+		},this);
+
+		this.on('paddler_malus_hitted', function(event) {
+			//save reason
+			this.fall_reason = 'fall_obstacle';
+			//init fall
+			this.fall();
+		},this);
+
+		this.on('photo_bonus_hitted', function(event) {
+			stage.dispatchEvent('photo_bonus_hitted');
+		},this);
+
+		this.on('photo_malus_hitted', function(event) {
+			stage.dispatchEvent('photo_malus_hitted');
+		},this);
+
+		this.on('multiplier_bonus_hitted', function(event) {			
+			var ev = new createjs.Event('multiplier_bonus_hitted');
+			ev.multiplier = event.obj.multiplier;
+			stage.dispatchEvent(ev);
+		},this);
 
 		this.on('surfing',function(event) {
 
@@ -154,9 +224,8 @@
 		var takeoff = new createjs.SpriteSheet({
 		    images: [queue.getResult('surfer_takeoff')],
 		    frames: {width:80, height:80},
-		    framerate: 1,
 		    animations: {	        
-		        takeoff: [0,4,false,0.3],	        
+		        takeoff: [0,4,false,0.9],	        
 		    }
 		});
 
@@ -173,10 +242,10 @@
 			;		
 
 
-		var event = new createjs.Event("surfer_take_off");
+		var event = new createjs.Event("take_off");
 		event.wave = this.wave;
 		event.surfer = this;
-		stage.dispatchEvent(event);
+		this.dispatchEvent(event);
 		
 		return this;
 	}
@@ -192,7 +261,10 @@
 		this.automove = false;
 		this.riding = true;
 
-		stage.dispatchEvent("surfer_take_off_done");
+		var ev = new createjs.Event("take_off_ended");
+		ev.wave = this.wave;
+		ev.surfer = this;
+		this.dispatchEvent(ev);
 	}
 
 	prototype.setWave = function(wave) {
@@ -228,6 +300,16 @@
 	prototype.getVanishVector = function() {
 
 		return vec2.fromValues(this.wave.getVanishPoint().x,this.wave.getVanishPoint().y);
+	}
+
+	prototype.isPlayer = function() {
+		if(this.type=='player') return true;
+		return false;
+	}
+
+	prototype.isBot = function() {
+		if(this.type=='bot') return true;
+		return false;
 	}
 
 	prototype.isOnWave = function() {
@@ -274,7 +356,7 @@
 
 		if( this.isOnAir() ) {	
 
-			this.initArial();
+			this.initAerial();
 			this.moveOnAir();
 		}
 		else if( this.isOllieing() ) {
@@ -400,11 +482,17 @@
 
 	}
 
+	prototype.getMousePoint = function(n) {
+
+		var mouse = window.getMousePoint(n);
+		mouse = this.wave.foreground_cont.globalToLocal(mouse.x,mouse.y);
+		return mouse;
+	}
+
 	prototype.moveOnWave = function() {		
 
 		//interpolation to mouse
-		var mouse = _getMousePoint(0);
-		var mouse = this.wave.foreground_cont.globalToLocal(mouse.x,mouse.y);
+		var mouse = this.getMousePoint(0);
 		vec2.lerp(this.location,this.location,vec2.fromValues(mouse.x,mouse.y),0.24);
 
 		//interpolation to vanish
@@ -430,8 +518,8 @@
 
 	prototype.moveZigZag = function() {
 
-		if(!this.zigzag) this.zigzag = new Variation({min:5, max:10, time: 200});
-		this.location[1] = this.location[1] + ( 5 - this.zigzag);
+		if(!this.zigzag) this.zigzag = new Variation({min:4, max:8, time: 200});
+		this.location[1] = this.location[1] + ( 4 - this.zigzag);
 	}
 
 	prototype.moveOnAir = function() {
@@ -476,19 +564,17 @@
 
 	}
 
-	prototype.initArial = function() {
+	prototype.initAerial = function() {
 
 		//if already on air
 		if(this.status=='arial') return;
 		//set current status
 		this.status = 'arial';
-		//set score
-		stage.dispatchEvent("surfer_arial_start");
 		//hide trail
 		this.saveTrailSize();
 		this.trailsize = 0;
 		//particles
-		this.arialParticles();	
+		this.aerialParticles();	
 		//tricks		
 		this.initTricks();
 
@@ -496,16 +582,25 @@
 
 	prototype.initTricks = function() {
 
+		var ev = new createjs.Event("arial_start");
+
 		var impulse = vec2.length(this.velocity);
 
 		if(impulse > 35) {
-			return this.initDoubleBackflip();
-		}
 
-		if(impulse > 30) {
-			return this.initBackflip();
+			ev.tricks = 'Double Backflip';
+			this.initDoubleBackflip();
 		}
+		else if(impulse > 30) {
 
+			ev.tricks = 'Backflip';
+			this.initBackflip();
+		}
+		else {
+
+			ev.tricks = 'Aerial';
+		}
+		this.dispatchEvent(ev);
 	}
 
 	prototype.initBackflip = function() {
@@ -532,7 +627,7 @@
 		this.tricked = false;
 	}
 
-	prototype.arialParticles = function() {
+	prototype.aerialParticles = function() {
 
 		//emit particle
 		var emitter = new ParticleEmitter({
@@ -552,13 +647,13 @@
 			fadermax: 0.2,
 			scaler: -0.1,
 			forces: [this.gravity],
-			callback: proxy(this.removeArialParticles,this)
+			callback: proxy(this.removeaerialParticles,this)
 		});
 		
 		this.wave.particles_cont.addChild(emitter);
 	}
 
-	prototype.removeArialParticles = function(emitter) {
+	prototype.removeaerialParticles = function(emitter) {
 
 		this.wave.particles_cont.removeChild(emitter);
 	}
@@ -569,7 +664,7 @@
 		if(this.status == 'arial') {
 
 			this.endArial();		
-			stage.dispatchEvent('surfer_arial_end');
+			this.dispatchEvent('arial_end');
 		}
 
 		//set status
@@ -592,7 +687,12 @@
 
 		//if a tricks is not ended, surfer fall
 		if(this.tricked == true) {
+			//init fall
 			this.fall();
+			//throw event			
+			this.dispatchEvent('fall_tricks')
+			//save reason
+			this.fall_reason = 'fall_tricks';
 		}
 
 		this.resetTrailSize();	
@@ -674,9 +774,9 @@
 		if(this.falling == true) return;
 		this.falling = true;
 
-		var e = new createjs.Event('surfer_fall');
+		var e = new createjs.Event('fall');
 			e.surfer = this;
-		stage.dispatchEvent(e);
+		this.dispatchEvent(e);
 
 		this.showFallPlouf();
 		this.ploufinterval = window.setInterval(proxy(this.showFallPlouf,this),200);
@@ -684,6 +784,7 @@
 		createjs.Tween.get(this.silhouette_cont)
 		.to({rotation:360*this.wave.direction*-1,alpha:0,scaleX:0.4,scaleY:0.4},1000)
 		.to({rotation:0,alpha:1,scaleX:1,scaleY:1},0)
+		.call(proxy(this.fallFinished,this))
 		;
 	
 	}
@@ -694,17 +795,14 @@
 
 		window.clearInterval(this.ploufinterval);
 
-		var e = new createjs.Event('surfer_fallen');
+		var e = new createjs.Event('fallen');
 			e.surfer = this;
-		stage.dispatchEvent(e);
+		this.dispatchEvent(e);
 
 		if(!TEST) {
 			//remove surfer movement
 			this.removeAllEventListeners('tick');
-			//remove wave cleaning points
-			window.clearInterval(this.wave.clearnerInterval);
-			//remove wave tickering after 2s
-			window.setTimeout(proxy(function(){ this.wave.removeAllEventListeners('tick'); },this), 6000);
+			
 		}
 
 		
@@ -783,9 +881,13 @@
 		while(j--) {		
 			var point = this.wave.top_fall_points[j];			
 			//check hit 
-			if(this.hit(point,point.size)) {			
+			if(this.hit(point,point.size)) {
+				//init fall
+				this.fall();			
 				//throw event
 				this.dispatchEvent('fall_top');
+				//save reason
+				this.fall_reason = 'fall_top';
 				break;
 			} 			
 		}
@@ -795,21 +897,25 @@
 		while(i--){
 			var point = this.wave.bottom_fall_points[i];			
 			//check hit 
-			if(this.hit(point,point.size)) {							
+			if(this.hit(point,point.size)) {	
+				//init fall
+				this.fall();						
 				//throw event
 				this.dispatchEvent('fall_bottom');
+				//save reason
+				this.fall_reason = 'fall_bottom';
 				break;
 			} 			
 		}
 
 		//does surfer hits tube point
 		if(this.isTubing()) {
-			//throw event tube in
-			if(this.tubing == false) this.dispatchEvent('tube_in');			
+			//surfer is in da tube
+			this.tubeIn(); 		
 		}
 		else {
-			//trhow event tube out
-			if(this.tubing == true) this.dispatchEvent('tube_out');
+			//surfer is out da tube
+			this.tubeOut(); 
 		}
 
 		//does surfer hits obstacles
@@ -822,6 +928,29 @@
 
 	}
 
+	prototype.tubeIn = function() {
+
+		if(this.tubing === false) {
+
+			this.tubeTime += createjs.Ticker.interval;
+			//the surfer must stay a minimum time in the tube to dispatch event
+			if(this.tubeTime < this.tubeMinimumTime) return;
+
+			this.tubing = true;
+			this.dispatchEvent('tube_in');	
+		}
+	}
+
+	prototype.tubeOut = function() {
+
+		if(this.tubing === true) {
+			this.dispatchEvent('tube_out');
+		}
+
+		this.tubing = false;
+		this.tubeTime = 0;
+	}
+
 	prototype.checkTrajectory = function() {
 
 		if(this.angles[5] == undefined) return;
@@ -830,8 +959,13 @@
 		var diff = (delta > 180)? 360 - delta : delta;
 		var allowed = 120 + 60*this.skill.agility;
 			
-		if(diff > allowed) {			
+		if(diff > allowed) {
+			//init fall
+			this.fall();
+			//throw event			
 			this.dispatchEvent('fall_edge')
+			//save reason
+			this.fall_reason = 'fall_edge'
 		}
 	}
 
@@ -845,10 +979,20 @@
 			var obstacle = this.wave.obstacles[i];
 
 			if(obstacle.hitBonus(this)) {
-
+				//launch obstacle method
+				obstacle.bonusHitted();
+				//launch event
+				var ev = new createjs.Event(obstacle.config.name+'_bonus_hitted');
+				ev.obj = obstacle;
+				this.dispatchEvent(ev);
 			}
 			if(obstacle.hitMalus(this)) {
-				this.fall();
+				//launch obstacle method
+				obstacle.malusHitted();
+				//launch event
+				var ev = new createjs.Event(obstacle.config.name+'_malus_hitted');
+				ev.obj = obstacle;
+				this.dispatchEvent(ev);
 			}
 		}
 	}
@@ -870,18 +1014,12 @@
 	}
 
 	prototype.drawTrail = function() {
-		//if surfer is not on the wave, dont do anything
-		if(this.wave == undefined) return;
 
-		//begin by clearing all trails
-		this.wave.trail_cont.removeAllChildren();
-		
 		var nb = this.trailpoints.length - 1;
 		var points = [];
 		var xs = [];
 
-		//if no trails points, return early
-		if(nb <= 0) return;
+		//if(this.isBot()) continue;
 
 		//update points with the suction vector
 		for (var i = 0; i <= nb; i++) {
@@ -889,7 +1027,9 @@
 			var trail = this.trailpoints[i];
 			vec2.add(trail.location,trail.location,this.wave.params.suction);	
 			//create xy Point
-			var point = new createjs.Point(trail.location[0] + 5,trail.location[1]);
+			var x = trail.location[0] + 5;
+			var y = trail.location[1];
+			var point = new createjs.Point(x,y);
 			point.size = trail.size;
 			points.push(point);
 			//save all x values
@@ -902,10 +1042,37 @@
 		var xmax = Math.max.apply(null,xs) + 100;
 
 		//draw trail
+		var cont = new createjs.Container();
 		var trail = new createjs.Shape();
 		var subtrail = new createjs.Shape();	
+		
+		trail.graphics.beginFill('white');
 
 
+		for(var i=0; i<=nb; i++) {
+			var size = i*points[i].size + this.trailcoef*points[i].size;
+			trail.graphics.lineTo(points[i].x - size/4,points[i].y - size/2);
+		}
+		for(var i=nb; i>=0; i--) {
+			var size = i*points[i].size + this.trailcoef*points[i].size;
+			trail.graphics.lineTo(points[i].x - size/4,points[i].y + size/2);
+		}	
+		trail.graphics.closePath();
+		for(var i=nb; i>=0; i--) {
+			var size = i*points[i].size + this.trailcoef*points[i].size;
+			//trail.graphics.drawCircle(points[i].x,points[i].y,size/2).closePath();		
+		}	
+
+		trail.cache(xmin,0,xmax-xmin,this.wave.params.height);
+		trail.alpha = 0.4;
+
+		trail.mask = this.wave.shape_mask;
+		subtrail.mask = this.wave.shape_mask;
+
+		cont.addChild(trail);
+
+		this.wave.trail_cont.addChild(cont);
+		/*
 		for(var i = 0; i <= nb - 1; i++) {
 
 				var xc = ( points[i].x + points[i+1].x) >> 1; // divide by 2
@@ -916,42 +1083,27 @@
 				if(trail_size==0) continue;
 
 				trail.graphics
-				.setStrokeStyle(trail_size,'round','round').beginStroke('#FFF')
+				.setStrokeStyle(trail_size,'round','round').beginStroke('white')
 				.moveTo(points[i].x,points[i].y)
 				.quadraticCurveTo(xc,yc,points[i+1].x,points[i+1].y)
 				;
 
 				subtrail.graphics
-				.setStrokeStyle(trail_size/5,'butt').beginStroke('rgba(0,0,0,0.1')
+				.setStrokeStyle(trail_size/5,'butt').beginStroke('rgba(0,0,0,0.2')
 				.moveTo(points[i].x,points[i].y)
 				.lineTo(points[i+1].x,points[i+1].y)
 		}
-		
-		//create linear gradient mask
-		// var box = new createjs.Shape();
-		 // 		box.x = xmin;
-		 // 		box.graphics.beginLinearGradientFill(["#000000", "rgba(0, 0, 0, 0)"], [0, 1], 0, 0, STAGEWIDTH, 0);
-		 // 		box.graphics.moveTo(0,0);
-		 // 		box.graphics.drawRect(0, 0, STAGEWIDTH, wave.height);
-		 // 		box.cache(0, 0, STAGEWIDTH, wave.height);
-		 // 	trail.filters = [
-		 // 		new createjs.AlphaMaskFilter(box.cacheCanvas) 		
-		 // 	];
-	 	//cache the shape 	
-		trail.cache(xmin,0,xmax-xmin,this.wave.params.height);
-		//subtrail.cache(xmin,0,xmax-xmin,this.height);
-		trail.alpha = 0.3;
-		//subtrail.alpha = 0.1;
-	 	
-		//apply mask
-		trail.mask = this.wave.shape_mask;;
-		subtrail.mask = this.wave.shape_mask;;
+
+		cont.addChild(trail);
+		cont.addChild(subtrail);
 
 		//add trail
-		this.wave.trail_cont.addChild(trail);
-		this.wave.trail_cont.addChild(subtrail);
-
-		
+		this.offstageTrail.removeAllChildren();
+		this.offstageTrail.addChild(cont);
+		this.offstageTrail.update();
+		this.trailBmp.x = - this.cont.x;
+		//dont forget to add :var x = trail.location[0] + this.wave.cont.x;
+		*/
 	}
 
 	prototype.drawSpatter = function() {
@@ -1067,4 +1219,153 @@
 
 	//assign Surfer to window's scope & promote
 	window.Surfer = createjs.promote(Surfer, "Container");
+}());
+
+
+
+
+
+//=============================
+// SURFER BOT
+//=============================
+
+(function() {
+
+	function SurferBot(config) {
+
+		this.Surfer_constructor(config);
+		this.initBot(config);
+	}
+
+	var prototype = createjs.extend(SurferBot, Surfer);
+
+	prototype.initEventsListener = function() {
+		//override and clear parent function
+
+		//on bot fall
+		this.on('fallen',function(event) {	
+			console.log('fallen '+ this.fall_reason);
+			this.removeBot();
+		},this,true);
+	}
+
+	prototype.initBot = function(config) {
+
+		this.type = 'bot';
+		this.config = config;
+		this.initVirtualMouse();
+		this.addEventListener('tick',proxy(this.tickBot,this));
+	}
+
+	prototype.initVirtualMouse = function() {
+
+		this.virtualMouse = new createjs.Shape();
+		this.virtualMouse.graphics.beginFill(createjs.Graphics.getHSL(Math.random()*360, 100, 50)).drawCircle(0,0,20);
+		this.virtualMouse.y = 0;
+		var xd = Math.random()*(STAGEWIDTH/4);
+		if(this.config.direction == 'left') {
+			this.virtualMouse.x -= xd;
+			this.wave.shoulder_left.mouse_cont.addChild(this.virtualMouse);
+		}
+		if(this.config.direction == 'right') {
+			this.virtualMouse.x += xd;
+			this.wave.shoulder_right.mouse_cont.addChild(this.virtualMouse);
+		}
+		//this.spot.debug_cont.addChild(this.virtualMouse);
+
+		this.initMouseResting();
+	}
+
+	prototype.removeVirtualMouse = function() {
+	
+		createjs.Tween.removeTweens(this.virtualMouse);
+		if(this.config.direction == 'left') {
+			this.wave.shoulder_left.mouse_cont.removeChild(this.virtualMouse);
+		}
+		if(this.config.direction == 'right') {
+			this.wave.shoulder_right.mouse_cont.removeChild(this.virtualMouse);
+		}
+		this.virtualMouse = null;
+	}
+
+	prototype.initMouseMove = function() {
+
+		this.initMouseMoveX();
+		this.initMouseMoveY();
+	}
+
+	prototype.initMouseMoveY = function() {
+	
+		var time = 500 + Math.random()*500;
+		createjs.Tween.get(this.virtualMouse)
+			.to({y: this.wave.params.height }, time, createjs.Ease.sineInOut)
+			.to({y: 0 }, time, createjs.Ease.sineInOut)
+			.call(proxy(this.initMouseMoveY,this))
+			;
+	}
+
+	prototype.initMouseMoveX = function() {
+	
+		if(this.wave.direction == 1) var dx = Math.random()*(STAGEWIDTH/4);
+		if(this.wave.direction == -1) var dx = -Math.random()*(STAGEWIDTH/4);
+		createjs.Tween.get(this.virtualMouse)
+			.to({x: this.virtualMouse.x + dx}, 3000)
+			.to({x: this.virtualMouse.x}, 2000)
+			.call(proxy(this.initMouseMoveX,this))
+			;
+
+	}
+
+	prototype.initMouseResting = function() {
+		
+		createjs.Tween.get(this.virtualMouse,{override:true})
+			.to({y: this.wave.y}, 500)
+			.to({y: this.wave.params.height}, 1500)
+			.wait(1000)
+			.call(proxy(this.initMouseMove,this))
+			;
+	}
+
+	prototype.initMouseJumping = function(now) {
+		console.log('initMouseJumping')
+		if(now !== false) createjs.Tween.get(this.virtualMouse,{override:true}).to({y: this.wave.y - Math.random()*(STAGEHEIGHT/2)}, 500).call(proxy(this.initMouseResting,this));
+
+		this.jumpTimeout = window.setTimeout(proxy(this.initMouseJumping,this),Math.random()*10000 + 2000);
+	}
+
+	prototype.removeJumping = function() {
+
+		window.clearTimeout(this.jumpTimeout);
+	}
+
+	prototype.tickBot = function() {
+
+		this.synchronizeWithWaveMovement();
+
+	}
+
+	prototype.synchronizeWithWaveMovement = function() {
+
+		//this.x += -this.wave.movingX;
+	}
+
+	prototype.getMousePoint = function(n) {
+
+		//get the virtual mouse coordinate
+		var mouse = this.virtualMouse.localToLocal(0,0,this.wave.cont);
+
+		return mouse;
+	}
+
+	prototype.removeBot = function() {
+
+		//remove bot element
+		this.removeJumping();
+		this.removeVirtualMouse();
+		//remove bot from within the wave
+		this.wave.removeBot(this);
+	}
+
+	window.SurferBot = createjs.promote(SurferBot, 'Surfer');
+
 }());
