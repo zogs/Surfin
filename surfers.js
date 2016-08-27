@@ -548,8 +548,8 @@
 		}
 		//add point to trail points array
 		this.trailpoints.unshift(point);
-		this.trailpoints = this.trailpoints.slice(0,60);
-		
+		this.trailpoints = this.trailpoints.slice(0,50);
+
 		//stock velocities
 		vec2.sub(this.velocity,this.locations[0],this.locations[1]);	
 		this.velocities.unshift(vec2.clone(this.velocity));
@@ -1044,32 +1044,40 @@
 		//draw trail
 		var cont = new createjs.Container();
 		var trail = new createjs.Shape();
-		var subtrail = new createjs.Shape();	
-		
-		trail.graphics.beginFill('white');
 
-
+		/*trail.graphics.beginFill('white');
 		for(var i=0; i<=nb; i++) {
 			var size = i*points[i].size + this.trailcoef*points[i].size;
-			trail.graphics.lineTo(points[i].x - size/4,points[i].y - size/2);
+			trail.graphics.lineTo(points[i].x,points[i].y - size/2);	
 		}
 		for(var i=nb; i>=0; i--) {
 			var size = i*points[i].size + this.trailcoef*points[i].size;
-			trail.graphics.lineTo(points[i].x - size/4,points[i].y + size/2);
+			trail.graphics.lineTo(points[i].x,points[i].y + size/2);
 		}	
-		trail.graphics.closePath();
-		for(var i=nb; i>=0; i--) {
-			var size = i*points[i].size + this.trailcoef*points[i].size;
-			//trail.graphics.drawCircle(points[i].x,points[i].y,size/2).closePath();		
-		}	
+		trail.graphics.closePath();	
+		*/
+		for(var i = 0; i <= nb - 1; i++) {
 
-		trail.cache(xmin,0,xmax-xmin,this.wave.params.height);
-		trail.alpha = 0.4;
+				var trail_size = i*points[i].size+this.trailcoef*points[i].size;
 
-		trail.mask = this.wave.shape_mask;
-		subtrail.mask = this.wave.shape_mask;
+				if(trail_size==0) continue;
+
+				trail.graphics
+				.setStrokeStyle(trail_size,'round','round').beginStroke('white')
+				.moveTo(points[i].x,points[i].y)
+				.lineTo(points[i+1].x,points[i+1].y)
+				;
+
+		}
 
 		cont.addChild(trail);
+
+		cont.mask = this.wave.shape_mask;
+
+		cont.cache(xmin,0,xmax-xmin,this.wave.params.height);
+		cont.alpha = 0.4;
+
+
 
 		this.wave.trail_cont.addChild(cont);
 		/*

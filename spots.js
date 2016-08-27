@@ -477,7 +477,7 @@
 		//stop useless interval
 		window.clearInterval(this.wave.clearnerInterval);
 		//freaze the wave after 6s
-		window.setTimeout(proxy(function(){ this.stopWaveAfterFall(); },this), 6000);
+		//this.stopWaveTimeout = window.setTimeout(proxy(function(){ this.stopWaveAfterFall(); },this), 6000);
 		//launch fall screen
 		this.initFallScreen();
 
@@ -617,6 +617,10 @@
 		e.remove();
 
 		this.overlay_cont.removeAllChildren();
+
+		console.log(this.stopWaveTimeout);
+		window.clearTimeout(this.stopWaveTimeout);
+
 		this.init();
 
 	}
