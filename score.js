@@ -251,8 +251,8 @@
 		text.text = tx;
 		text.alpha = 0.8;
 		var b = text.getBounds();
-		if(this.spot.wave.direction === 1) text.x = pos.x + b.width*2;
-		if(this.spot.wave.direction === -1) text.x = pos.x - b.width*2;
+		if(this.spot.wave.direction === 1) text.x = pos.x + b.width;
+		if(this.spot.wave.direction === -1) text.x = pos.x - b.width;
 		if(this.spot.wave.direction === 0) text.x = pos.x + b.width/2;
 		text.y = -this.spot.wave.params.height/2;
 		var y = - this.spot.wave.params.height - b.height;
@@ -286,7 +286,7 @@
 			magnitude: 20,
 			angle: - Math.PI/2,
 			spread: Math.PI/2,
-			size: 5,
+			size: 8,
 			scaler: 0.2,
 			fader: 0.1,
 			rotate: 0.1,

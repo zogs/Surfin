@@ -640,7 +640,7 @@
 		var emitter = new ParticleEmitter({
 			x: this.x, // + this.wave.params.breaking_width*3*(-1*this.wave.direction),
 			y: 0,
-			density: 20,
+			density: 5,
 			frequency: 50,
 			duration: 250,
 			angle: this.angle_rad,
@@ -648,19 +648,23 @@
 			magnitude: this.speed,
 			magnitudemax: this.speed*2,
 			color: '#FFF',
-			size: 0.5,
+			size: 3,
 			sizemax: 5,
-			fader: 0.1,
-			fadermax: 0.2,
-			scaler: -0.1,
+			fader: 0.2,
+			fadermax: 0.5,
+			scaler: 0.1,
 			forces: [this.gravity],
-			callback: proxy(this.removeaerialParticles,this)
+			shapes: [
+					{shape:'circle',percentage:50,fill:'#FFF'},
+					{shape:'circle',percentage:50,stroke:1,strokeColor:'#FFF'},
+				],
+			callback: proxy(this.removeAerialParticles,this)
 		});
 		
 		this.wave.particles_cont.addChild(emitter);
 	}
 
-	prototype.removeaerialParticles = function(emitter) {
+	prototype.removeAerialParticles = function(emitter) {
 
 		this.wave.particles_cont.removeChild(emitter);
 	}

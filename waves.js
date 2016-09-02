@@ -700,25 +700,26 @@ prototype.createBreakingPoint = function(params) {
 	
 	var point = new createjs.Container();
 	point.x = x;
-	var shape = new createjs.Shape();
-	shape.graphics.beginFill(color).drawCircle(0,0,5);
+	this.splash_cont.addChild(point);
+
+	if(DEBUG) {
+		var shape = new createjs.Shape();
+		shape.graphics.beginFill(color).drawCircle(0,0,5);
+		point.addChild(shape);
+	}
 	
-	point.addChild(shape);
 
-	if(DEBUG) this.debug_cont.addChild(point);
-
+	if(this.isPlayed()) var bounce = (this.params.height + (Math.random()*this.params.height/3));
+	else var bounce = (this.params.height + Math.random()*this.params.height/4);
 	
 	var tween = createjs.Tween.get(point)
 			.wait(delay)
-			.to(
-				{y:this.params.height},
-				this.params.breaking.yspeed + Math.random()*50,
-				//createjs.Ease.getPowIn(5)
-				createjs.Ease.quartIn
-				)
-			.call(proxy(this.splashPointReached,this,[point]));
-
-	point.tween = tween;
+			.to({y:this.params.height},this.params.breaking.yspeed + Math.random()*50,createjs.Ease.quartIn)
+			.call(proxy(this.splashPointReached,this,[point]))
+			.to({y: this.params.height - bounce},1000)
+			.call(proxy(this.updateVanishPoints,this,[point.x]))
+			.to({y: this.params.height -bounce/2},2500,createjs.Ease.easeOutSine)
+		;
 	
 	return point;
 }
@@ -726,9 +727,6 @@ prototype.createBreakingPoint = function(params) {
 prototype.splashPointReached = function(point) {
 
 	point.splashed = true;
-
-	//draw splash
-	this.initSplashPoint(point);
 
 	//draw fall shape
 	this.addBottomFallPoint(point);
@@ -748,35 +746,7 @@ prototype.splashPointReached = function(point) {
 
 	}
 
-}
-
-
-prototype.initSplashPoint = function(point) {
-
-	var splash = new createjs.Container();
-	splash.x = point.x;
-	splash.y = point.y;
-	point.splash = splash;		
-	this.splash_cont.addChild(splash);
-
-	if(DEBUG) {
-		var circle = new createjs.Shape();
-			circle.graphics.beginFill('black').drawCircle(0,0,5);
-			splash.addChild(circle);			
-	}
-
-	var bounce;
-	if(this.isPlayed()) bounce = (this.params.height + (Math.random()*this.params.height/3));
-	else bounce = (this.params.height + Math.random()*this.params.height/4);
-
-	var tween = createjs.Tween.get(splash)
-		.to({y: splash.y - bounce},1000)
-		.call(proxy(this.updateVanishPoints,this,[point.x]))
-		.to({y: splash.y -bounce/2},2500,createjs.Ease.easeOutSine)
-
-	//tween.addEventListener('change',proxy(this.splashParticles,this,[point]));
-	//
-	//
+	//add particle
 	if(this.isPlayed() && PERF > 0) {
 		var emitter = new ParticleEmitter({
 				x: 0,
@@ -798,8 +768,9 @@ prototype.initSplashPoint = function(point) {
 					{shape:'circle',percentage:50,stroke:1,strokeColor:'#FFF'}
 				]
 		});
-		splash.addChild(emitter);		
+		point.addChild(emitter);		
 	}
+
 }
 
 prototype.initBreakingBlockLeftInterval = function() {
@@ -1093,8 +1064,6 @@ prototype.drawSplash = function () {
 	var shape = new createjs.Shape();
 	shape.mouseEnabled = false;
 	var k = shape.graphics;
-	
-	var t0 = performance.now();
 
 	//get peaks
 	var peaks = [];
@@ -1118,37 +1087,33 @@ prototype.drawSplash = function () {
 
 		points = peaks[j];
 
-
 		if(points.length==0) continue;
 
-		k.moveTo(points[0].splash.x - this.params.breaking.left.width, points[0].y);
+		k.moveTo(points[0].x - this.params.breaking.left.width, this.params.height);
 		k.beginFill('#FFF').beginStroke('rgba(0,0,0,0.2').setStrokeStyle(1);
-		k.lineTo(points[0].splash.x,points[0].y);
+		k.lineTo(points[0].x,this.params.height);
 
 		if(PERF==0) {
 			for(var i=1,len=points.length; i<len - 2; i++) {
-				k.lineTo(points[i].splash.x,points[i].splash.y);
+				k.lineTo(points[i].x,points[i].y);
 			}
 		}
 		else {
 			for(var i=1,len=points.length; i<len - 2; i++) {
-				var xc = ( points[i].splash.x + points[i+1].splash.x) >> 1; // divide by 2
-				var yc = ( points[i].splash.y + points[i+1].splash.y) >> 1; // divide by 2
-				k.quadraticCurveTo(points[i].splash.x,points[i].splash.y,xc,yc);
+				var xc = ( points[i].x + points[i+1].x) >> 1; // divide by 2
+				var yc = ( points[i].y + points[i+1].y) >> 1; // divide by 2
+				k.quadraticCurveTo(points[i].x,points[i].y,xc,yc);
 			}
 		}
-		k.lineTo(points[len-1].splash.x, points[len-1].y);
+		k.lineTo(points[len-1].x, this.params.height);
 
-		if(this.cleanedRight && this.direction===1) k.lineTo(points[len-1].splash.x,this.params.height);
-		if(this.cleanedLeft && this.direction===-1) k.lineTo(points[0].splash.x,this.params.height);
+		if(this.cleanedRight && this.direction===1) k.lineTo(points[len-1].x,this.params.height);
+		if(this.cleanedLeft && this.direction===-1) k.lineTo(points[0].x,this.params.height);
 	}
 
 
 	this.froth_cont.removeAllChildren();
 	this.froth_cont.addChild(shape);
-
-	var t1 = performance.now();
-	console.log("Call to doSomething took " + (t1 - t0) + " milliseconds.")
 
 }
 
@@ -1182,7 +1147,11 @@ prototype.drawLip = function() {
 
 		if(PERF==0) {
 			for(var i=1,len=points.length; i<len -2; i++){
-				shape.graphics.lineTo(points[i].x,points[i].y);
+				var x = points[i].x,
+					y = points[i].y;
+				if(points[i].splashed) y = this.params.height;
+
+				shape.graphics.lineTo(x,y);
 				//save first and last spashed point for later use
 				if(!firstSplashed && points[i].splashed) { firstSplashed = points[i];}
 				if(!lastSplashed && points[len-2-i].splashed) { lastSplashed = points[len-1];}
@@ -1190,13 +1159,18 @@ prototype.drawLip = function() {
 		}
 		else {		
 			for(var i=1,len=points.length; i<len -2; i++){
-					var xc = ( points[i].x + points[i+1].x) >> 1; // divide by 2
-					var yc = ( points[i].y + points[i+1].y) >> 1; // divide by 2
-					shape.graphics.quadraticCurveTo(points[i].x,points[i].y,xc,yc);
+				var x1 = points[i].x,
+					x2 = points[i+1].x,
+					y1 = (points[i].splashed)? this.params.height : points[i].y,
+					y2 = (points[i].splashed)? this.params.height : points[i+1].y,
+					xc = ( x1 + x2 ) >> 1,
+					yc = ( y1 + y2 ) >> 1;
+				
+				shape.graphics.quadraticCurveTo(x1,y1,xc,yc);
 
-					//save first and last spashed point for later use
-					if(!firstSplashed && points[i].splashed) { firstSplashed = points[i];}
-					if(!lastSplashed && points[len-2-i].splashed) {lastSplashed = points[len-1];}
+				//save first and last spashed point for later use
+				if(!firstSplashed && points[i].splashed) { firstSplashed = points[i];}
+				if(!lastSplashed && points[len-2-i].splashed) {lastSplashed = points[len-1];}
 			}
 		}
 		//faire passer par l'avant dernier point
