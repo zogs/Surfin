@@ -8,6 +8,7 @@
 
 		this.Width = SPOT.config.waves.width;
 		this.Height = SPOT.config.waves.height;
+		this.Height_meter = SPOT.config.waves.real_height;
 		this.YSpeed = SPOT.config.waves.breaking.yspeed;
 		this.SuctionX = SPOT.config.waves.suction_x;
 		this.SuctionY = SPOT.config.waves.suction_y;
@@ -84,7 +85,8 @@
 
 		var waves = gui.addFolder('Waves');
 		waves.add(custom, 'Width', 100, 10000).step(200).onChange(function(value) { SPOT.config.waves.width = value; });
-		waves.add(custom, 'Height', 10, 300).onChange(function(value) { SPOT.config.waves.height = value; });
+		waves.add(custom, 'Height', 10, 500).onChange(function(value) { SPOT.config.waves.height = value; });
+		waves.add(custom, 'Height_meter', 1, 30).onChange(function(value) { SPOT.config.waves.real_height = value; });
 		waves.add(custom, 'YSpeed',0).step(50).onChange(function(value) { SPOT.config.waves.breaking.yspeed = value; });
 		waves.add(custom, 'LShoulderMarge',0).onChange(function(value) { SPOT.config.waves.shoulder.left.marge = value; });
 		waves.add(custom, 'RShoulderWidth',0).onChange(function(value) { SPOT.config.waves.shoulder.right.width = value; });

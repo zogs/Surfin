@@ -21,6 +21,7 @@
 
 		this.paddling_force = 0;
 		this.paddling_progress = 0;
+		this.pixel_height = 80;
 		this.lifttotal = 0;
 		this.isPlayer = true;
 		this.isPaddling = false;
@@ -75,11 +76,17 @@
 		this.debug_cont.addChild(center);
 	}
 
+	prototype.getSurferProportion = function() {
+
+		var c = (1.8 / this.spot.config.waves.real_height) * (this.spot.config.waves.height / ( this.pixel_height/2));
+		return c;
+	}
+
 	prototype.resize = function() {
 
 		var scale = (this.y - this.spot.getHorizon()) / (this.spot.getBeach() - this.spot.getHorizon());
 
-		this.scale = scale * this.spot.config.surfers.proportion;
+		this.scale = scale * this.getSurferProportion();
 
 		this.silhouette.scaleX = this.scale;
 		this.silhouette.scaleY = this.scale;

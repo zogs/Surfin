@@ -10,6 +10,7 @@ function Wave(params) {
 		y: 0,
 		height: 100,
 		width: 1500,
+		real_height: 4,
 		peak_width: 200,
 		breaking: {
 			yspeed: 1200,
@@ -776,7 +777,7 @@ prototype.initSplashPoint = function(point) {
 	//tween.addEventListener('change',proxy(this.splashParticles,this,[point]));
 	//
 	//
-	if(this.isPlayed()) {
+	if(this.isPlayed() && PERF > 0) {
 		var emitter = new ParticleEmitter({
 				x: 0,
 				y: 0,
@@ -1093,6 +1094,7 @@ prototype.drawSplash = function () {
 	shape.mouseEnabled = false;
 	var k = shape.graphics;
 	
+	var t0 = performance.now();
 
 	//get peaks
 	var peaks = [];
@@ -1123,12 +1125,18 @@ prototype.drawSplash = function () {
 		k.beginFill('#FFF').beginStroke('rgba(0,0,0,0.2').setStrokeStyle(1);
 		k.lineTo(points[0].splash.x,points[0].y);
 
-		for(var i=1,len=points.length; i<len - 2; i++) {
-			var xc = ( points[i].splash.x + points[i+1].splash.x) >> 1; // divide by 2
-			var yc = ( points[i].splash.y + points[i+1].splash.y) >> 1; // divide by 2
-			k.quadraticCurveTo(points[i].splash.x,points[i].splash.y,xc,yc);
+		if(PERF==0) {
+			for(var i=1,len=points.length; i<len - 2; i++) {
+				k.lineTo(points[i].splash.x,points[i].splash.y);
+			}
 		}
-		
+		else {
+			for(var i=1,len=points.length; i<len - 2; i++) {
+				var xc = ( points[i].splash.x + points[i+1].splash.x) >> 1; // divide by 2
+				var yc = ( points[i].splash.y + points[i+1].splash.y) >> 1; // divide by 2
+				k.quadraticCurveTo(points[i].splash.x,points[i].splash.y,xc,yc);
+			}
+		}
 		k.lineTo(points[len-1].splash.x, points[len-1].y);
 
 		if(this.cleanedRight && this.direction===1) k.lineTo(points[len-1].splash.x,this.params.height);
@@ -1138,6 +1146,9 @@ prototype.drawSplash = function () {
 
 	this.froth_cont.removeAllChildren();
 	this.froth_cont.addChild(shape);
+
+	var t1 = performance.now();
+	console.log("Call to doSomething took " + (t1 - t0) + " milliseconds.")
 
 }
 
@@ -1168,20 +1179,26 @@ prototype.drawLip = function() {
 
 		//draw a lip 		
 		shape.graphics.moveTo(points[0].x,0);
-		for(var i=1,len=points.length; i<len -2; i++){
-				var xc = ( points[i].x + points[i+1].x) >> 1; // divide by 2
-				var yc = ( points[i].y + points[i+1].y) >> 1; // divide by 2
-				shape.graphics.quadraticCurveTo(points[i].x,points[i].y,xc,yc);
 
+		if(PERF==0) {
+			for(var i=1,len=points.length; i<len -2; i++){
+				shape.graphics.lineTo(points[i].x,points[i].y);
 				//save first and last spashed point for later use
-				if(!firstSplashed && points[i].splashed) {
-					firstSplashed = points[i];
-				}
-				if(!lastSplashed && points[len-2-i].splashed) {
-					lastSplashed = points[len-1];
-				}
+				if(!firstSplashed && points[i].splashed) { firstSplashed = points[i];}
+				if(!lastSplashed && points[len-2-i].splashed) { lastSplashed = points[len-1];}
+			}
 		}
+		else {		
+			for(var i=1,len=points.length; i<len -2; i++){
+					var xc = ( points[i].x + points[i+1].x) >> 1; // divide by 2
+					var yc = ( points[i].y + points[i+1].y) >> 1; // divide by 2
+					shape.graphics.quadraticCurveTo(points[i].x,points[i].y,xc,yc);
 
+					//save first and last spashed point for later use
+					if(!firstSplashed && points[i].splashed) { firstSplashed = points[i];}
+					if(!lastSplashed && points[len-2-i].splashed) {lastSplashed = points[len-1];}
+			}
+		}
 		//faire passer par l'avant dernier point
 		shape.graphics.quadraticCurveTo(points[i].x,points[i].y,points[i+1].x,points[i+1].y);		
 		//le dernier point

@@ -16,8 +16,9 @@
 			peak_point : 500,
 			horizon_point : 180,
 			waves: {
-				height : 150,
+				height : 100,
 				width : 0,
+				real_height: 3,
 				breaking: {
 					yspeed: 1200,
 					left: {

@@ -20,6 +20,7 @@
 
 		this.wave = params.wave;
 		this.spot = params.spot;
+		this.params = params;
 		this.x = params.x;
 		this.y = params.y;
 
@@ -273,11 +274,17 @@
 		return this;
 	}
 
+	prototype.getSurferProportion = function() {
+
+		var c = (1 / this.wave.params.real_height) * (this.wave.params.height / (this.silhouette_height/2));
+		return c;
+	}
+
 	prototype.resize = function() {
 
-		var scale = (this.wave.y - this.wave.params.height/2 - this.spot.getHorizon()) / (this.spot.getPeak() - this.spot.getHorizon());
+		var y_persperctive = (this.wave.y - this.spot.getHorizon()) / (this.spot.getPeak() - this.spot.getHorizon());
 
-		this.scale = scale * this.spot.config.surfers.proportion;
+		this.scale = y_persperctive * this.getSurferProportion();
 
 		this.height = this.origin_height*this.scale;
 

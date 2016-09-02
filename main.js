@@ -2,14 +2,11 @@ var stage;
 
 window.loaded = function() {
 
-	var width = window.innerWidth
-	|| document.documentElement.clientWidth
-	|| document.body.clientWidth;
-
-	document.getElementById('canvas').style.width = width+'px';
+	window.resizeCanvas();
 
 	stage = new createjs.Stage('canvas');
-
+	stage.snapToPixelEnabled = true;
+	stage.enableMouseOver(10);
 
 
 	queue = new createjs.LoadQueue();
@@ -64,15 +61,12 @@ window.initialize = function() {
 	DEBUG = 0;
 	TEST = 0;
 	PAUSED = 0;
+	PERF = 1;
 
 	//SPOT
 	SPOT = new Spot();
 	SPOT.init();
 	stage.addChild(SPOT);
-
-
-
-
 	
 	//customizer
 	initCustomizer();
@@ -89,7 +83,29 @@ window.initialize = function() {
 	window.onkeyup = keyUpHandler;
 	window.onkeydown = keyDownHandler;
 
+	//resize event
+	window.onresize = browserResize;
 
+
+}
+
+window.browserResize = function() {
+	if(window.browserResizeTimeout) window.clearTimeout(window.browserResizeTimeout);	
+	window.browserResizeTimeout = window.setTimeout(window.browserResizeEnded,500);
+}
+
+window.browserResizeEnded = function() {
+
+	window.resizeCanvas();
+}
+
+window.resizeCanvas = function() {
+
+	var width = window.innerWidth || document.documentElement.clientWidth || document.body.clientWidth;
+	var height = window.innerHeight || document.documentElement.clientHeight || document.body.clientHeight;
+	
+	document.getElementById('canvas').style.width = width+'px';
+	document.getElementById('canvas').style.height = height+'px';
 }
 
 window.addSpot = function(config) {
@@ -148,7 +164,6 @@ window.onMouseMove= function(e) {
 	var pt = new createjs.Point(MOUSE_X,MOUSE_Y);
 	MOUSE_POINTS.unshift(pt);
 	MOUSE_POINTS = MOUSE_POINTS.slice(0,300);
-
 }
 
 window.getMousePoint = function(n) {
