@@ -21,6 +21,10 @@
 		this.RShoulderOuter = SPOT.config.waves.shoulder.right.outer;
 		this.RShoulderMarge = SPOT.config.waves.shoulder.right.marge;
 
+		this.CapLifetime = SPOT.config.waves.lip.cap.lifetime;
+		this.CapHeight = SPOT.config.waves.lip.cap.height;
+		this.CapWidth = SPOT.config.waves.lip.cap.width;
+
 		this.LBreakWidth = SPOT.config.waves.breaking.left.width;
 		this.LBreakWidthMax = SPOT.config.waves.breaking.left.width_max;
 		this.LBreakWidthInt = SPOT.config.waves.breaking.left.width_interval;
@@ -96,6 +100,13 @@
 		waves.add(custom, 'SuctionX',1,50).onChange(function(value) { SPOT.config.waves.suction_x = value; });
 		waves.add(custom, 'SuctionY',1,50).onChange(function(value) { SPOT.config.waves.suction_y = value; });
 		waves.close();
+
+		var lip = gui.addFolder('Lip');
+
+		lip.add(custom, 'CapLifetime', 0, 2000).onChange(function(value) { SPOT.config.waves.lip.cap.lifetime = value; });
+		lip.add(custom, 'CapHeight', 0, 50).onChange(function(value) { SPOT.config.waves.lip.cap.height = value; });
+		lip.add(custom, 'CapWidth', 0, 1000).onChange(function(value) { SPOT.config.waves.lip.cap.width = value; });
+
 
 		var breaking = gui.addFolder('Breaking Left');
 		breaking.add(custom, 'LBreakWidth',1,50).onChange(function(value) { SPOT.config.waves.breaking.left.width = value; });

@@ -50,12 +50,7 @@
 		this.trailsize_origin = this.trailsize;
 		this.fall_reason = null;
 
-		this.skill = {
-			speed: 1, //0 to 1
-			aerial: 1, //0 to 1
-			agility: 0.8, //0 to 1
-			paddling: 1,
-		}
+		this.skill = USER.get().skill;
 
 		this.hitbox = new createjs.Shape();
 		this.hitbox.graphics.beginFill('red').drawCircle(0,0,1);
@@ -83,6 +78,9 @@
 		this.trailBmp = new createjs.Bitmap(this.offcanvasTrail);
 		this.trailBmp.alpha = 0.2;
 		this.wave.trail_cont.addChild(this.trailBmp);
+
+		this.particles_cont = new createjs.Container();
+		this.addChild(this.particles_cont);
 
 		this.debug_cont = new createjs.Container();
 		this.addChild(this.debug_cont);
@@ -237,7 +235,7 @@
 		this.silhouette.alpha = 1;
 
 		var tween = createjs.Tween.get(this);
-			tween.to({ y: this.y + this.wave.params.height*1/3 },1000,createjs.Tween.quartOut);
+			tween.to({ y: this.y + this.wave.params.height*1/3 },1000,createjs.Ease.quartOut);
 			tween.addEventListener('change',proxy(this.updateLocation,this));
 			tween.call(proxy(this.endTakeOff,this));
 			;		
@@ -581,7 +579,7 @@
 		this.saveTrailSize();
 		this.trailsize = 0;
 		//particles
-		this.aerialParticles();	
+		this.initAerialParticles();	
 		//tricks		
 		this.initTricks();
 
@@ -613,7 +611,7 @@
 	prototype.initBackflip = function() {
 
 		this.tricked = true;
-		createjs.Tween.get(this)
+		createjs.Tween.get(this.silhouette_cont)
 			.to({rotation:360 * this.wave.direction},1000)
 			.call(proxy(this.endBackflip,this))
 			;
@@ -622,7 +620,7 @@
 	prototype.initDoubleBackflip = function() {
 
 		this.tricked = true;
-		createjs.Tween.get(this)
+		createjs.Tween.get(this.silhouette_cont)
 			.to({rotation:720 * this.wave.direction},1500)
 			.call(proxy(this.endBackflip,this))
 			;
@@ -634,34 +632,45 @@
 		this.tricked = false;
 	}
 
-	prototype.aerialParticles = function() {
+	prototype.initAerialParticles = function() {
 
+		this.timeoutArialParticles = window.setInterval(proxy(this.aerialParticles,this),50);
+	}
+
+	prototype.stopAerialParticles = function() {
+
+		if(this.timeoutArialParticles) {
+			window.clearInterval(this.timeoutArialParticles);
+			this.timeoutArialParticles = null;
+		}
+	}
+
+	prototype.aerialParticles = function() {
+		
 		//emit particle
 		var emitter = new ParticleEmitter({
-			x: this.x, // + this.wave.params.breaking_width*3*(-1*this.wave.direction),
+			x: 0, // + this.wave.params.breaking_width*3*(-1*this.wave.direction),
 			y: 0,
-			density: 5,
-			frequency: 50,
-			duration: 250,
-			angle: this.angle_rad,
-			spread: Math.PI / 5,
+			density: 2,
+			angle: this.angle_rad + Math.PI,
+			spread: Math.PI / 8,
 			magnitude: this.speed,
 			magnitudemax: this.speed*2,
 			color: '#FFF',
-			size: 3,
+			size: 2,
 			sizemax: 5,
 			fader: 0.2,
 			fadermax: 0.5,
 			scaler: 0.1,
 			forces: [this.gravity],
 			shapes: [
-					{shape:'circle',percentage:50,fill:'#FFF'},
-					{shape:'circle',percentage:50,stroke:1,strokeColor:'#FFF'},
+				{shape:'circle',percentage:50,fill:'#FFF'},
+				{shape:'circle',percentage:50,stroke:1,strokeColor:'#FFF'},
 				],
 			callback: proxy(this.removeAerialParticles,this)
 		});
 		
-		this.wave.particles_cont.addChild(emitter);
+		this.particles_cont.addChild(emitter);
 	}
 
 	prototype.removeAerialParticles = function(emitter) {
@@ -706,8 +715,11 @@
 			this.fall_reason = 'fall_tricks';
 		}
 
-		this.resetTrailSize();	
+		//remove aerial particles
+		this.stopAerialParticles();
 
+		//handle trail size
+		this.resetTrailSize();	
 		Variation.prototype.applyOnce(this,'trailsize',{
 					min: this.trailsize*7,
 					max: this.trailsize,
@@ -795,7 +807,6 @@
 		createjs.Tween.get(this.silhouette_cont)
 		.to({rotation:360*this.wave.direction*-1,alpha:0,scaleX:0.4,scaleY:0.4},1000)
 		.to({rotation:0,alpha:1,scaleX:1,scaleY:1},0)
-		.call(proxy(this.fallFinished,this))
 		;
 	
 	}
@@ -809,6 +820,7 @@
 		var e = new createjs.Event('fallen');
 			e.surfer = this;
 		this.dispatchEvent(e);
+
 
 		if(!TEST) {
 			//remove surfer movement
@@ -890,7 +902,9 @@
 		//does surfer hits top points	
 		var j = this.wave.top_fall_points.length;
 		while(j--) {		
-			var point = this.wave.top_fall_points[j];			
+			var point = this.wave.top_fall_points[j];	
+			//if point is not breaking yet, quit and continue
+			if(point.breaking === true) continue;
 			//check hit 
 			if(this.hit(point,point.size)) {
 				//init fall

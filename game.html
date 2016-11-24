@@ -1,15 +1,20 @@
-<html>
+<html lang="fr">
 	<head>
-		
+	<meta charset="UTF-8">
+	<meta name='viewport' content="width=device-width,user-scalable=no, initial-scale=1,maximum-scale=1,user-scalable=0" />
+	<meta name='apple-mobile-web-app-capable' content="yes" />
+	<meta name='apple-mobile-we-app-status-bar-style' content="black-translucent" />
+
 	<link rel="stylesheet" href="assets/font/Alba/stylesheet.css">
 	<link rel="stylesheet" href="assets/font/Boogaloo/stylesheet.css">
 	<link rel="stylesheet" href="assets/font/Bubblegum/stylesheet.css">
 	</head>
 
 	<body onload="loaded()" style="margin:0">
-		<canvas id="canvas" width="1500" height="600"></canvas>
+		<div id="game" style="width:1200px; height:600px"><!-- size of the game box -->
+			<canvas id="canvas" width="1500" height="800"><!-- dont touch the dimension, it is use to calculate the proportion --></canvas>			
+		</div>
 	</body>
-	
 	
 
 	<script src="lib/createjs/easeljs-0.8.1.min.js"></script>
@@ -20,6 +25,7 @@
 	<script src="lib/dat/dat.gui.min.js"></script>
 	<script src="keycodes.js" type="text/javascript"></script>
 	<script src="utils.js" type="text/javascript"></script>
+	<script src="user.js" type="text/javascript"></script>
 	<script src="variations.js" type="text/javascript"></script>
 	<script src="obstacles.js" type="text/javascript"></script>
 	<script src="score.js" type="text/javascript"></script>

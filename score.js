@@ -13,10 +13,23 @@
 
 		this.phrases = {
 			fall_bottom : ['Open your mouth for a free teethbrush','This wave is too big for you'],
-			fall_top : ['Beware the power of the lip !', "Quick advice, avoid touching the lip with your head !","Riding on the top of the wave can be dangerous..."],
+			fall_top : ['Beware the power of the LIP !', "May the Tube be with you !", "Yeah.. you might not want to touch the lip with your head...","Riding the top of the wave can be dangerous..."],
 			fall_edge : ['Be smooth, you are not Kelly Slater yet...'],
 			paddler_hitted : ['Outch, this man is hurt...',"Try to avoid your fellow surfers"],
 			photograf_hitted : ['Damn it, you will pay for this camera !'],
+		}
+
+		this.levels = {
+			1: 10000,
+			2: 20000,
+			3: 30000,
+			4: 40000,
+			5: 50000,
+			6: 60000,
+			7: 70000,
+			8: 80000,
+			9: 90000,
+			10: 100000
 		}
 
 		this.score = new createjs.Text('0','50px Arial','#FFFFFF');
@@ -60,11 +73,11 @@
 	prototype.initEventsListeners = function() {
 
 		stage.on('surfer_take_off_ended',function(event) {
-			this.add(50).say('Take Off !', 1000);
+			this.add(3500).say('Take Off !', 1000);
 		},this);
 
 		stage.on('surfer_arial_start',function(event) {	
-			this.start(20).say(event.tricks +' !');
+			this.start(200).say(event.tricks +' !');
 		},this);
 
 		stage.on('surfer_arial_end',function(event) {			
@@ -91,7 +104,7 @@
 			this.failPhrase = this.getRandomPhrase('fall_edge');
 		},this);
 
-		stage.on('surfer_fallen',function(event) {
+		stage.on('player_fallen',function(event) {
 			this.end().silence();
 		},this);
 
@@ -104,7 +117,6 @@
 		},this);
 
 		stage.on('photo_bonus_hitted',function(event) {
-			console.log('score')
 			this.add(200).say("Photo",500);
 		},this);
 
@@ -113,9 +125,12 @@
 		},this);
 
 		stage.on('multiplier_bonus_hitted',function(event) {
-			console.log(event);
 			if(this.current_multiplier == 0) this.current_multiplier = event.multiplier;
 			else this.current_multiplier = this.current_multiplier * event.multiplier;
+		},this);
+
+		stage.on('level_up',function(event) {
+			this.levelUp(event.level);
 		},this);
 	}
 
@@ -338,6 +353,106 @@
 
 		if(offscreen != null) {
 			cont.removeChildAt(offscreen);
+		}
+	}
+
+
+	prototype.getXpBar = function(width,height) {
+
+		if(this.xpbar) return this.xpbar;
+
+		this.xpbar = new createjs.Container();
+		this.xpbar.width = width;
+		this.xpbar.height = height;
+		this.xpbar.duration = 3000;
+		this.xpbar.background = new createjs.Container();
+		this.xpbar.current = new createjs.Container();
+		this.xpbar.progress = new createjs.Container();
+		this.xpbar.xp_counter = new createjs.Text("0", "bold 18px Arial", "#AAA");
+		this.xpbar.level_counter = new createjs.Text("0", "bold 18px Arial", "#AAA");
+		this.xpbar.addChild(this.xpbar.background);
+		this.xpbar.addChild(this.xpbar.progress);
+		this.xpbar.addChild(this.xpbar.current);
+
+		var background = new createjs.Shape();
+		background.graphics.beginFill('#AAA').drawRect(0,0,this.xpbar.width,this.xpbar.height);
+		this.xpbar.background.addChild(background);
+
+		var progress = new createjs.Shape();
+		progress.graphics.beginFill('red').drawRect(0,0,this.xpbar.width,this.xpbar.height);
+		this.xpbar.progress.addChild(progress);
+
+		var current = new createjs.Shape();
+		current.graphics.beginFill('blue').drawRect(0,0,this.xpbar.width,this.xpbar.height);
+		this.xpbar.current.addChild(current);		
+
+		return this.xpbar;
+	}
+
+	prototype.startXpBar = function(current_xp,win_xp,level) {
+
+		var level_xp = this.levels[level];
+		var ratio = current_xp/level_xp;
+
+		this.xpbar.current.scaleX = ratio;
+		this.xpbar.progress.scaleX = ratio;
+		this.xpbar.progress.xp = current_xp;
+		this.xpbar.level_counter.text = parseInt(level);
+		
+		var newRatio = (win_xp + current_xp)/level_xp;
+		var excedent_xp = (current_xp + win_xp) - level_xp;
+		var time = this.xpbar.duration * (newRatio-ratio);
+		
+		createjs.Tween.removeTweens(this.xpbar.progress);
+		createjs.Tween.get(this.xpbar.progress)
+				.to({scaleX:newRatio,xp: current_xp + win_xp},time)
+				.addEventListener('change',proxy(this.checkXpbarProgress,this,[level,excedent_xp]))
+				;
+	}
+
+	prototype.checkXpbarProgress = function(level,excedent_xp) {
+		
+		//update xp counter
+		this.xpbar.xp_counter.text = parseInt(this.xpbar.progress.xp)+'/'+parseInt(this.levels[level]);
+
+		//check for level up
+		if(this.xpbar.progress.scaleX >= 1) {
+
+			//level up
+			var new_level = level+1;
+			var event = new createjs.Event('level_up');
+			event.level = new_level;
+			stage.dispatchEvent(event);
+
+			//new progress bar
+			this.startXpBar(0,excedent_xp,new_level);
+			
+		}	
+	}
+
+	prototype.levelUp = function(level) {
+
+		//nothig
+	}
+
+	prototype.calculXpUp = function(current_xp,win_xp,level) {
+
+		var level_ups, xp_ups;
+		var level_xp = this.levels[level];
+		
+		for(var i = 1; i<= win_xp; i++) {
+
+			current_xp++;
+			if(current_xp >= level_xp) {				
+				level++;
+				var exc = win_xp - current_xp;
+				return this.calculXpUp(0,exc,level);
+			}
+		}
+
+		return {
+			xp: current_xp,
+			level: level,
 		}
 	}
 

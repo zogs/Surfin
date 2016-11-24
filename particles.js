@@ -229,9 +229,15 @@
 		});
 	}
 
+	prototype.setPaused = function(bool) {
+
+		this.paused = (bool === true)? true : false;
+		return this;
+	}
+
 	prototype.tick = function() {
 
-		if(PAUSED) return;
+		if(this.paused) return;
 
 		this.moveParticles();
 	}
@@ -253,18 +259,18 @@
 
 	prototype.cleanParticles = function() {
 
-		if(PAUSED) return;
+		if(this.paused) return;
 
 		var i = this.particles_cont.numChildren - 1;
 		while(i >= 0) {
 
 			var particle = this.particles_cont.getChildAt(i);
 
-			if(particle.alpha < 0) this.particles_cont.removeChildAt(i);
+			if(particle.alpha <= 0) this.particles_cont.removeChildAt(i);
 			if(particle.y + this.y - particle.scale <= 0) this.particles_cont.removeChildAt(i);
-			if(particle.y + this.y - particle.scale >= STAGEHEIGHT) this.particles_cont.removeChildAt(i);
+			if(particle.y + this.y - particle.scale >= stage.canvas.height) this.particles_cont.removeChildAt(i);
 			if(particle.x + this.x - particle.scale <= 0) this.particles_cont.removeChildAt(i);
-			if(particle.x + this.x - particle.scale >= STAGEWIDTH) this.particles_cont.removeChildAt(i);
+			if(particle.x + this.x - particle.scale >= stage.canvas.width) this.particles_cont.removeChildAt(i);
 			
 			particle = null;
 

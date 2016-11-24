@@ -4,16 +4,15 @@ window.loaded = function() {
 
 	window.resizeCanvas();
 
-	stage = new createjs.Stage('canvas');
-	stage.snapToPixelEnabled = true;
+	stage = new createjs.Stage('canvas');	
 	stage.enableMouseOver(10);
-
 
 	queue = new createjs.LoadQueue();
 	queue.addEventListener('complete',initialize);
 	queue.loadManifest([
-		{id:'bg_paradize',src:'assets/img/bkg/spot.jpg'},
+		{id:'bg_paradize',src:'assets/img/bkg/sea.jpg'},
 		{id:'wave',src:'assets/img/waves/wave1.jpg'},
+		{id:'wave_riddle',src:'assets/img/waves/wave-riddle.png'},
 		{id:'surfer_E',src:'assets/img/surfer/E.png'},
 		{id:'surfer_EEEN',src:'assets/img/surfer/EEEN.png'},
 		{id:'surfer_EEES',src:'assets/img/surfer/EEES.png'},
@@ -61,23 +60,26 @@ window.initialize = function() {
 	DEBUG = 0;
 	TEST = 0;
 	PAUSED = 0;
-	PERF = 1;
+	PERF = 3;
+
+	//USER
+	USER = new UserManager();
+	USER.init();
 
 	//SPOT
 	SPOT = new Spot();
 	SPOT.init();
 	stage.addChild(SPOT);
 	
+
 	//customizer
 	initCustomizer();
 
 	//init onEnterFrame
 	createjs.Ticker.addEventListener('tick',tick);
 
-
 	//init Mouse move 
 	stage.addEventListener('stagemousemove',onMouseMove);
-
 
 	 //keyboard handlers
 	window.onkeyup = keyUpHandler;
@@ -85,7 +87,6 @@ window.initialize = function() {
 
 	//resize event
 	window.onresize = browserResize;
-
 
 }
 
@@ -101,9 +102,16 @@ window.browserResizeEnded = function() {
 
 window.resizeCanvas = function() {
 
+	//parent div size
+	//var parent = document.getElementById('canvas').parentElement;
+	//var width = parent.style.width;
+	//var height = parent.style.height;
+	//document.getElementById('canvas').style.width = width;
+	//document.getElementById('canvas').style.height = height;
+
+	//fullscreen
 	var width = window.innerWidth || document.documentElement.clientWidth || document.body.clientWidth;
-	var height = window.innerHeight || document.documentElement.clientHeight || document.body.clientHeight;
-	
+	var height = window.innerHeight || document.documentElement.clientHeight || document.body.clientHeight;	
 	document.getElementById('canvas').style.width = width+'px';
 	document.getElementById('canvas').style.height = height+'px';
 }
@@ -137,13 +145,13 @@ window.keyDownHandler = function(e)
     case KEYCODE_S:  window.addSpot(); break;
     case KEYCODE_A:  SPOT.breakAllWaves(); break;
     case KEYCODE_P:  window.pause(); break;
-    case KEYCODE_M:  SCORE.say('Hello !',3000); break;
-    case KEYCODE_T:  switchTestMode(); break;
+    //case KEYCODE_M:  SCORE.say('Hello !',3000); break;
     case KEYCODE_F:  SPOT.getWave().getSurfer().fall(); break;
     case KEYCODE_Z:  SPOT.addPaddlerBot(); break;
     case KEYCODE_R:  SPOT.getWave().addTestSurferBot(); break;
     case KEYCODE_O:  SPOT.getWave().addRandomObstacle(); break;
     case KEYCODE_I:  SPOT.getWave().addFlyingObstacle(); break;
+    case KEYCODE_T:  switchTestMode(); break;
     case KEYCODE_D:  switchDebugMode(); break;
    } 
 }
