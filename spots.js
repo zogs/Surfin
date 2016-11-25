@@ -86,10 +86,10 @@
 				}
 			},
 			series: {
-				length :  3,
-				interval : 21000,				
+				length :  1,
+				interval : 11000,				
 				spread : 200,				
-				speed : 25000,
+				speed : 10000,
 				frequency : 8000,
 			},	
 			surfers: {
@@ -129,6 +129,7 @@
 		//this.addWave(0.3);
 		this.addWave(1);
 		this.addPaddler(STAGEWIDTH/2,370);
+
 	}
 
 	prototype.launch = function() {
@@ -259,7 +260,6 @@
 
 		var x = x || STAGEWIDTH/4 + Math.random()*(STAGEWIDTH/2);
 		var y = y || Math.random()*(this.config.lines.beach - this.config.lines.horizon) + this.config.lines.horizon;
-		var y = 300;
 		var bot = new PaddlerBot({
 			spot: this,
 			x: x,
@@ -302,7 +302,7 @@
 
 			//start tween
 			var tween  = createjs.Tween.get(wave);		
-			tween.to({y: this.config.lines.beach + this.config.waves.height}, this.config.series.speed, createjs.Ease.cubicIn)
+			tween.to({y: this.config.lines.beach + this.config.waves.height}, this.config.series.speed)
 			tween.call(proxy(this.removeWave,this,[wave]))
 			tween.addEventListener('change',proxy(wave.coming,wave));
 
@@ -336,7 +336,7 @@
 
 		//start tween
 		var tween = createjs.Tween.get(wave);		
-		tween.to({y: this.config.lines.beach + this.config.waves.height}, this.config.series.speed, createjs.Ease.cubicIn)
+		tween.to({y: this.config.lines.beach + this.config.waves.height}, this.config.series.speed)
 		tween.call(proxy(this.removeWave,this,[wave]))
 		tween.addEventListener('change',proxy(wave.coming,wave));
 
@@ -395,51 +395,56 @@
 		}
 	}
 
-	prototype.playerPaddling = function(paddler) {
+	prototype.firstWaveBehindPaddler = function(paddler) {
 
 		var index = this.cont.getChildIndex(paddler) - 1;
 		while(index>=0) {
-
 			var wave = this.cont.getChildAt(index);
-
-			if(wave instanceof Wave) {
-			
-				if(paddler.y <= wave.y - wave.params.height/3 && paddler.y > wave.y - wave.params.height) {
-					
-					//if paddling force is not enougth, quit and return
-					if(paddler.paddling_force <= wave.params.paddling_effort) return;
-					
-					//calcul paddler position relative to wave
-					var y = ( wave.params.height - ( wave.getY() - paddler.getY() ));
-					var x = ( paddler.getX() - wave.getX() );
-
-					//add surfer to wave
-					var surfer = new Surfer({
-						x: x,
-						y: y,	
-						wave: wave,
-						spot: this,				
-					});
-					wave.playerTakeOff(surfer);
-
-					//set rided wave
-					this.wave = wave;
-					
-					//remove paddler
-					paddler.removeListeners();
-					this.cont.removeChild(paddler);
-					this.paddlers.splice(this.paddlers.indexOf(paddler),1);
-
-					//init score					
-					this.showScore();
-					
-					//break loop
-					break;
-				}
-			}
-
+			if(wave instanceof Wave) return wave;
 			index--;
 		}
+		return false;
+	}
+
+	prototype.isPaddlerOnWave = function(paddler,wave) {
+
+		if(paddler.getY() < wave.getY() && paddler.getY() > (wave.getY() - wave.params.height)) return true;
+		return false;
+	}
+
+	prototype.playerPaddling = function(paddler) {
+
+		var wave = this.firstWaveBehindPaddler(paddler);
+		//return if no wave
+		if(!wave) return;		
+		//return is not ON wave
+		if(!this.isPaddlerOnWave(paddler,wave)) return;
+		//return if paddling force not enough
+		if(paddler.paddling_force <= wave.params.paddling_effort) return;
+
+		//calcul paddler position relative to the wave
+		var y = ( wave.params.height - (wave.getY() - paddler.getY() ));
+		var x = ( paddler.getX() - wave.getX() );
+
+		//replace paddler by surfer
+		var surfer = new Surfer({
+			x: x, y: y, wave: wave, spot: this
+		});
+		wave.playerTakeOff(surfer);
+		this.removePaddler(paddler);
+
+		//score
+		this.showScore();
+
+		this.wave = wave;
+
+	}
+
+	prototype.removePaddler = function(paddler) {
+
+		paddler.removeListeners();
+		this.cont.removeChild(paddler);
+		this.paddlers.splice(this.paddlers.indexOf(paddler),1);
 	}
 
 	prototype.initScore = function() {

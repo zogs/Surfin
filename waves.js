@@ -286,14 +286,10 @@ prototype.resize = function() {
 	this.drawBackground();
 
 	//progressive alpha background
-	if(coef>=0.5) {
-		this.background.alpha = (coef - 0.5)*2;
-		this.background_shadow.alpha = 1 - (coef - 0.5)*2;
-	}
-	else {
-		this.background.alpha = 0;
-		this.background_shadow.alpha = 1;
-	}
+	this.background.alpha = coef;
+	this.background_shadow.alpha = 1 - coef;
+
+
 
 
 	//resize background
@@ -1227,7 +1223,7 @@ prototype.drawLip = function() {
 				if(!lastSplashed && points[len-2-i].splashed) { lastSplashed = points[len-1];}
 
 				//draw cap
-				if(p1.cap) cap.graphics.lineTo(pt.x,pt.cap.y);
+				if(pt.cap) cap.graphics.lineTo(pt.x,pt.cap.y);
 
 			}
 		}
@@ -1386,6 +1382,8 @@ prototype.drawBackground = function() {
 
 	//colored gradient background
 	this.background = new createjs.Container();	
+	this.background_cont.addChild(this.background);	
+
 	let gradient = new createjs.Shape();
 	let colors = this.config.colors;
 	for(let i=0,ln=colors.length-1;i<ln;i++) {
@@ -1397,13 +1395,32 @@ prototype.drawBackground = function() {
 
 		gradient.graphics
 			.beginLinearGradientFill([color1[0],color2[0]],[0+color1[1],1-color2[1]],0,y1,0,y2)
-			.drawRect(0,y1,STAGEWIDTH,y2);	
+			.drawRect(0,y1,STAGEWIDTH*2,y2);	
 	}	
+
 	this.background.addChild(gradient);
-	this.background_cont.addChild(this.background);	
 	
 	//add riddle pattern image
 	this.background.riddles = new createjs.Container();
+	let riddle1 = new createjs.Bitmap(queue.getResult('wave_riddle'));
+	riddle1.x = 0;
+	riddle1.y = 0;
+	this.background.riddles.addChild(riddle1);
+	this.background.riddles.alpha = 0.1;
+	this.background.addChild(this.background.riddles);
+
+	//shadow gradient background
+	this.background_shadow = new createjs.Shape();
+	this.background_shadow.graphics
+		.beginLinearGradientFill(['rgba(0,0,0,0.4)','rgba(0,0,0,0)'],[0,1],0,0,0,this.params.height)
+		.drawRect(0,0,STAGEWIDTH*2,this.params.height);
+	this.background_cont.addChild(this.background_shadow);
+}
+
+prototype.initAnimateBackground = function() {
+
+	this.background.riddles.removeAllChildren();
+
 	let riddle1 = new createjs.Bitmap(queue.getResult('wave_riddle'));
 	riddle1.x = 0;
 	riddle1.y = 0;
@@ -1416,19 +1433,11 @@ prototype.drawBackground = function() {
 	let riddle4 = new createjs.Bitmap(queue.getResult('wave_riddle'));
 	riddle4.x = riddle4.image.width;
 	riddle4.y = riddle4.image.height;
+
 	this.background.riddles.addChild(riddle1);
 	this.background.riddles.addChild(riddle2);
 	this.background.riddles.addChild(riddle3);
 	this.background.riddles.addChild(riddle4);
-	this.background.riddles.alpha = 0.1;
-	this.background.addChild(this.background.riddles);
-
-	//shadow gradient background
-	this.background_shadow = new createjs.Shape();
-	this.background_shadow.graphics
-			.beginLinearGradientFill(['rgba(0,0,0,0.2)','rgba(0,0,0,0)'],[0.5,1],0,0,0,this.params.height)
-			.drawRect(0,0,STAGEWIDTH,this.params.height);
-	this.background_cont.addChild(this.background_shadow);
 }
 
 prototype.animateBackground = function() {
@@ -1436,6 +1445,9 @@ prototype.animateBackground = function() {
 	if(this.breaked == false) return;
 
 	if(PERF == 0) return;
+
+	//create all sub riddles if not created yet
+	if(this.background.riddles.numChildren < 2) this.initAnimateBackground();
 
 	let riddle1 = this.background.riddles.getChildAt(0);
 	let riddle2 = this.background.riddles.getChildAt(1);
@@ -1509,6 +1521,7 @@ prototype.drawShape = function() {
 		.bezierCurveTo(left.x - this.params.shoulder.left.width + this.params.shoulder.left.outer - this.params.shoulder.left.marge, this.params.height + this.params.shoulder.left.slope,left.x - this.params.shoulder.left.inner - this.params.shoulder.left.marge,0,left.x - this.params.shoulder.left.marge,0)
 		.lineTo(right.x + this.params.shoulder.right.marge,0)
 		.bezierCurveTo(right.x + this.params.shoulder.right.inner + this.params.shoulder.right.marge,0,right.x + this.params.shoulder.right.width + this.params.shoulder.right.marge - this.params.shoulder.right.outer,this.params.height + this.params.shoulder.right.slope,right.x + this.params.shoulder.right.width + this.params.shoulder.right.marge ,this.params.height)		
+		.closePath()
 		;
 
 	//ajust position of the background image

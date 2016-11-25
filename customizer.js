@@ -64,6 +64,8 @@
 		this.paddlerPercentage = SPOT.config.waves.obstacles['paddler'].percentage;
 		this.photographPercentage = SPOT.config.waves.obstacles['photograph'].percentage;
 
+		this.performance = window.PERF;
+
 		this.resetSpot = function() {
 			window.addSpot(SPOT.config);
 		}
@@ -75,6 +77,7 @@
 		this.activateTesting = function() {
 			window.switchTestMode();
 		}
+
 	};
 
 
@@ -160,7 +163,9 @@
 
 		gui.add(custom, 'resetSpot');
 		gui.add(custom, 'activateDebug');
-		gui.add(custom, 'activateTesting');
+		gui.add(custom, 'activateTesting')
+		;
+		gui.add(custom, 'performance',0,3).step(1).onChange(function(value) { window.PERF = value; });
 
 
 	}
