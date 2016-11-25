@@ -10,6 +10,12 @@
 			paddling: 0.1,
 		}
 
+		this.device = {};
+		//detect ANDROID or IOS
+		var ua = navigator.userAgent.toLowerCase();
+		this.device.android = ua.indexOf('android') > -1 ? true : false;
+		this.device.ios = ( ua.indexOf('iphone') > -1 || ua.indexOf('ipad') > -1  ) ? true : false;
+
 	}
 
 	function UserManager() {
@@ -44,9 +50,14 @@
 			}
 		}
 
+		this.new = function() {
+
+			return this.user = new User();
+		}
+
 		this.init = function() {
 
-			this.get();
+			return this.get();
 		}
 	}
 

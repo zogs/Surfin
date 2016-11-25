@@ -63,7 +63,7 @@ window.initialize = function() {
 
 	//USER
 	USER = new UserManager();
-	USER.init();
+	USER.new();
 
 	//SPOT
 	SPOT = new Spot();
@@ -117,6 +117,13 @@ window.resizeCanvas = function() {
 		currentWidth = windowWidth;
 		currentHeight = currentWidth / RATIO;
 	}
+
+	if (USER.get().device.android || USER.get().device.ios) { //if android or ios
+		//hide address bar
+        document.body.style.height = (windowHeight + 50) + 'px';
+        //enable Touch event
+        createjs.Touch.enable(stage);
+    }
 
 	document.getElementById('canvas').style.width = currentWidth+'px';
 	document.getElementById('canvas').style.height = currentHeight+'px';
