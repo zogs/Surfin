@@ -2,8 +2,6 @@ var stage;
 
 window.loaded = function() {
 
-	window.resizeCanvas();
-
 	stage = new createjs.Stage('canvas');	
 	stage.enableMouseOver(10);
 
@@ -53,6 +51,7 @@ window.initialize = function() {
 	//Globals
 	STAGEWIDTH = stage.canvas.width;
 	STAGEHEIGHT = stage.canvas.height;
+	RATIO = STAGEWIDTH / STAGEHEIGHT;
 	MOUSE_X = STAGEWIDTH/2;
 	MOUSE_Y = STAGEHEIGHT/2;
 	MOUSE_POINTS = [new createjs.Point(MOUSE_X,MOUSE_Y)];
@@ -88,6 +87,9 @@ window.initialize = function() {
 	//resize event
 	window.onresize = browserResize;
 
+
+	window.resizeCanvas();
+
 }
 
 window.browserResize = function() {
@@ -102,18 +104,31 @@ window.browserResizeEnded = function() {
 
 window.resizeCanvas = function() {
 
-	//parent div size
-	//var parent = document.getElementById('canvas').parentElement;
-	//var width = parent.style.width;
-	//var height = parent.style.height;
-	//document.getElementById('canvas').style.width = width;
-	//document.getElementById('canvas').style.height = height;
+	var windowWidth = window.innerWidth || document.documentElement.clientWidth || document.body.clientWidth;
+	var windowHeight = window.innerHeight || document.documentElement.clientHeight || document.body.clientHeight;	
 
-	//fullscreen
-	var width = window.innerWidth || document.documentElement.clientWidth || document.body.clientWidth;
-	var height = window.innerHeight || document.documentElement.clientHeight || document.body.clientHeight;	
-	document.getElementById('canvas').style.width = width+'px';
-	document.getElementById('canvas').style.height = height+'px';
+	var currentHeight = stage.canvas.height;
+	var currentWidth = stage.canvas.width;
+	if(windowHeight < stage.canvas.height) {
+		currentHeight = windowHeight;
+		currentWidth = currentHeight * RATIO;
+	}
+	if(windowWidth < stage.canvas.width) {
+		currentWidth = windowWidth;
+		currentHeight = currentWidth / RATIO;
+	}
+
+	document.getElementById('canvas').style.width = currentWidth+'px';
+	document.getElementById('canvas').style.height = currentHeight+'px';
+
+	STAGEWIDTH = currentWidth;
+	STAGEHEIGHT = currentHeight;
+
+	//scroll to top
+	window.setTimeout(function() { //rowsers don't fire if there is not short delay
+		window.scrollTo(0,1);
+    }, 1);
+
 }
 
 window.addSpot = function(config) {
