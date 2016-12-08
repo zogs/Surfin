@@ -129,7 +129,6 @@
 		//this.addWave(0.3);
 		this.addWave(1);
 		this.addPaddler(STAGEWIDTH/2,370);
-
 	}
 
 	prototype.launch = function() {
@@ -786,6 +785,7 @@
 		this.overlay_cont.addChild(button);
 
 		button.addEventListener('click',function(e) { proxy(this.initSkillScreen,this,[e]) },false);
+
 
 	}
 

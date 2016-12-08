@@ -133,8 +133,8 @@ prototype.init = function(params) {
 		this.particles_cont = new createjs.Container();
 		this.foreground_cont.addChild(this.particles_cont);
 		//surfer trails cont
-		this.trail_cont = new createjs.Container();
-		this.foreground_cont.addChild(this.trail_cont);	
+		this.trails_cont = new createjs.Container();
+		this.foreground_cont.addChild(this.trails_cont);	
 		//spatter cont
 		this.spatter_cont = new createjs.Container();
 		this.foreground_cont.addChild(this.spatter_cont);	
@@ -796,7 +796,7 @@ prototype.splashPointReached = function(point) {
 	}
 
 	//add particle
-	if(this.isPlayed() || PERF > 0) {
+	if(PERF > 0) {
 
 		var emitter = new ParticleEmitter({
 				x: 0,
@@ -1299,9 +1299,6 @@ prototype.drawTrails = function() {
 
 	//do not draw anythings if there is no surfers, or the wave is not played
 	if(this.surfers.length == 0) return;
-
-	//begin by clearing all trails
-	this.trail_cont.removeAllChildren();
 
 	//draw for each surfers
 	for(var j=0,len=this.surfers.length; j<len; j++) {

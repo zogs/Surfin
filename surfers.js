@@ -71,19 +71,16 @@
 		this.silhouette_height = this.silhouette.getChildAt(0).image.height;
 		this.silhouette.alpha = 0;
 
-		this.offcanvasTrail = document.createElement("canvas");
-		this.offcanvasTrail.height = this.wave.config.height;
-		this.offcanvasTrail.width = STAGEWIDTH;
-		this.offstageTrail = new createjs.Stage(this.offcanvasTrail);
-		this.trailBmp = new createjs.Bitmap(this.offcanvasTrail);
-		this.trailBmp.alpha = 0.2;
-		this.wave.trail_cont.addChild(this.trailBmp);
-
 		this.particles_cont = new createjs.Container();
 		this.addChild(this.particles_cont);
 
 		this.debug_cont = new createjs.Container();
 		this.addChild(this.debug_cont);
+
+		this.trail_shape = new createjs.Shape();
+		this.trail_cont = new createjs.Container();
+		this.trail_cont.addChild(this.trail_shape);
+		this.wave.trails_cont.addChild(this.trail_cont);
 
 		this.addEventListener('tick',proxy(this.tick,this));
 		
@@ -1066,77 +1063,39 @@
 		var xmin = Math.min.apply(null,xs) - 100;
 		var xmax = Math.max.apply(null,xs) + 100;
 
-		//draw trail
-		var cont = new createjs.Container();
-		var trail = new createjs.Shape();
+		this.trail_shape.graphics.clear();
+		this.trail_shape.graphics.beginFill('white');
 
-		/*trail.graphics.beginFill('white');
+
 		for(var i=0; i<=nb; i++) {
 			var size = i*points[i].size + this.trailcoef*points[i].size;
-			trail.graphics.lineTo(points[i].x,points[i].y - size/2);	
+			this.trail_shape.graphics.lineTo(points[i].x,points[i].y - size/2);	
 		}
 		for(var i=nb; i>=0; i--) {
 			var size = i*points[i].size + this.trailcoef*points[i].size;
-			trail.graphics.lineTo(points[i].x,points[i].y + size/2);
+			this.trail_shape.graphics.lineTo(points[i].x,points[i].y + size/2);
 		}	
-		trail.graphics.closePath();	
-		*/
+		this.trail_shape.graphics.closePath();	
+	
+/* SLOW
 		for(var i = 0; i <= nb - 1; i++) {
 
 				var trail_size = i*points[i].size+this.trailcoef*points[i].size;
 
 				if(trail_size==0) continue;
 
-				trail.graphics
+				this.trail_shape.graphics
 				.setStrokeStyle(trail_size,'round','round').beginStroke('white')
 				.moveTo(points[i].x,points[i].y)
 				.lineTo(points[i+1].x,points[i+1].y)
 				;
-
 		}
+*/	
 
-		cont.addChild(trail);
+		this.trail_cont.mask = this.wave.shape_mask;
+		//this.trail_cont.cache(xmin,0,xmax-xmin,this.wave.params.height);
+		this.trail_cont.alpha = 0.4;
 
-		cont.mask = this.wave.shape_mask;
-
-		cont.cache(xmin,0,xmax-xmin,this.wave.params.height);
-		cont.alpha = 0.4;
-
-
-
-		this.wave.trail_cont.addChild(cont);
-		/*
-		for(var i = 0; i <= nb - 1; i++) {
-
-				var xc = ( points[i].x + points[i+1].x) >> 1; // divide by 2
-				var yc = ( points[i].y + points[i+1].y) >> 1; // divide by 2
-
-				var trail_size = i*points[i].size+this.trailcoef*points[i].size;
-
-				if(trail_size==0) continue;
-
-				trail.graphics
-				.setStrokeStyle(trail_size,'round','round').beginStroke('white')
-				.moveTo(points[i].x,points[i].y)
-				.quadraticCurveTo(xc,yc,points[i+1].x,points[i+1].y)
-				;
-
-				subtrail.graphics
-				.setStrokeStyle(trail_size/5,'butt').beginStroke('rgba(0,0,0,0.2')
-				.moveTo(points[i].x,points[i].y)
-				.lineTo(points[i+1].x,points[i+1].y)
-		}
-
-		cont.addChild(trail);
-		cont.addChild(subtrail);
-
-		//add trail
-		this.offstageTrail.removeAllChildren();
-		this.offstageTrail.addChild(cont);
-		this.offstageTrail.update();
-		this.trailBmp.x = - this.cont.x;
-		//dont forget to add :var x = trail.location[0] + this.wave.cont.x;
-		*/
 	}
 
 	prototype.drawSpatter = function() {
@@ -1386,7 +1345,7 @@
 
 		//get the virtual mouse coordinate
 		var mouse = this.virtualMouse.localToLocal(0,0,this.wave.cont);
-
+console.log(mouse);
 		return mouse;
 	}
 

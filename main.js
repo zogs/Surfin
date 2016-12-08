@@ -128,9 +128,6 @@ window.resizeCanvas = function() {
 	document.getElementById('canvas').style.width = currentWidth+'px';
 	document.getElementById('canvas').style.height = currentHeight+'px';
 
-	STAGEWIDTH = currentWidth;
-	STAGEHEIGHT = currentHeight;
-
 	//scroll to top
 	window.setTimeout(function() { //rowsers don't fire if there is not short delay
 		window.scrollTo(0,1);
