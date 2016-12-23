@@ -123,7 +123,6 @@ prototype.init = function(params) {
 	//wave background
 	this.background_cont = new createjs.Container();
 	this.cont.addChild(this.background_cont);
-	this.drawBackground();
 
 
 	this.foreground_cont = new createjs.Container();
@@ -151,8 +150,8 @@ prototype.init = function(params) {
 		this.lip_cont = new createjs.Container();
 		this.foreground_cont.addChild(this.lip_cont);
 		//splash cont
-		this.froth_cont = new createjs.Container();
-		this.foreground_cont.addChild(this.froth_cont);
+		this.foam_cont = new createjs.Container();
+		this.foreground_cont.addChild(this.foam_cont);
 		//splash particles cont
 		this.splash_cont = new createjs.Container();
 		this.foreground_cont.addChild(this.splash_cont);
@@ -179,6 +178,38 @@ prototype.init = function(params) {
 			this.shoulder_cont = new createjs.Container();
 			this.debug_cont.addChild(this.shoulder_cont);
 
+
+
+		//Shapes
+		this.splash_shape = new createjs.Shape();
+		this.splash_shape.mouseEnabled = false;
+		this.splash_gfx = this.splash_shape.graphics;
+		this.foam_cont.addChild(this.splash_shape);
+
+		this.lip_shape = new createjs.Shape();
+		this.lip_shadow = new createjs.Shape();
+		this.lip_cap = new createjs.Shape();
+		this.lip_thick = new createjs.Shape();
+		this.lip_cont.addChild(this.lip_shape,this.lip_shadow,this.lip_thick);
+		this.lipcap_cont.addChild(this.lip_cap);
+
+		this.background = new createjs.Container();
+		this.background_gradient = new createjs.Shape();
+		this.background_riddles = new createjs.Container();
+		this.background_shadow = new createjs.Shape();
+		this.background.addChild(this.background_gradient,this.background_riddles);
+		this.background_cont.addChild(this.background,this.background_shadow);
+
+		this.background_riddle1 = new createjs.Bitmap(queue.getResult('wave_riddle'));
+		this.background_riddles.alpha = 0.1;
+		this.background_riddles.addChild(this.background_riddle1);
+
+
+
+		//draw shape mask beetween the two shoulder
+		this.shape_mask = new createjs.Shape();
+
+
 		//clicking the wave
 		//this.on('click',this.onTakeoffClick);	
 
@@ -188,6 +219,106 @@ prototype.init = function(params) {
 		this.initWave(STAGEWIDTH/2);
 		
 		this.resize();
+
+}
+
+prototype.drawBackground = function() {
+
+	const colors = this.config.colors;
+	this.background_gradient.graphics.clear();
+	for(let i=0,ln=colors.length-1;i<ln;i++) {
+		if(colors[i+1] == undefined) break;
+		let color1 = colors[i];		
+		let color2 = colors[i+1];		
+		let y1 = this.params.height * color1[2] / 100;
+		let y2 = this.params.height * color2[2] / 100;
+
+		this.background_gradient.graphics
+			.beginLinearGradientFill([color1[0],color2[0]],[0+color1[1],1-color2[1]],0,y1,0,y2)
+			.drawRect(0,y1,STAGEWIDTH*2,y2);	
+	}
+	
+	//shadow gradient background
+	this.background_shadow.graphics.clear()
+		.beginLinearGradientFill(['rgba(0,0,0,0.4)','rgba(0,0,0,0)'],[0,1],0,0,0,this.params.height)
+		.drawRect(0,0,STAGEWIDTH*2,this.params.height);
+}
+
+prototype.initAnimateBackground = function() {
+
+	this.background_riddle2 = new createjs.Bitmap(queue.getResult('wave_riddle'));
+	this.background_riddle2.x = 0;
+	this.background_riddle2.y = this.background_riddle1.image.height;
+	this.background_riddle3 = new createjs.Bitmap(queue.getResult('wave_riddle'));
+	this.background_riddle3.x = this.background_riddle1.image.width;
+	this.background_riddle3.y = 0;
+	this.background_riddle4 = new createjs.Bitmap(queue.getResult('wave_riddle'));
+	this.background_riddle4.x = this.background_riddle4.image.width;
+	this.background_riddle4.y = this.background_riddle4.image.height;
+
+	this.background_riddles.addChild(this.background_riddle2,this.background_riddle3,this.background_riddle4);
+}
+
+prototype.animateBackground = function() {
+
+	if(this.breaked == false) return;
+
+	if(PERF == 0) return;
+	
+	//create all sub riddles if not created yet
+	if(this.background_riddles.numChildren < 4) this.initAnimateBackground();
+
+	const riddle1 = this.background_riddle1;
+	const riddle2 = this.background_riddle2;
+	const riddle3 = this.background_riddle3;
+	const riddle4 = this.background_riddle4;
+	const width  = riddle1.image.width;
+	const height = riddle1.image.height;
+
+	riddle1.y -= 4;
+	riddle2.y -= 4;
+	riddle3.y -= 4;
+	riddle4.y -= 4;
+
+	if(riddle1.y <= - riddle1.image.height) riddle1.y = riddle2.y + height;
+	if(riddle2.y <= - riddle2.image.height) riddle2.y = riddle1.y + height;
+	if(riddle3.y <= - riddle3.image.height) riddle3.y = riddle4.y + height;
+	if(riddle4.y <= - riddle4.image.height) riddle4.y = riddle3.y + height;
+
+	riddle1.x += this.movingX;
+	riddle2.x += this.movingX;
+	riddle3.x += this.movingX;
+	riddle4.x += this.movingX;
+
+	if(this.direction == 1) {
+		if(riddle1.x >= STAGEWIDTH) {
+			riddle1.x = riddle3.x - width;
+		}
+		if(riddle2.x >= STAGEWIDTH) {
+			riddle2.x = riddle4.x - width;
+		}
+		if(riddle3.x >= STAGEWIDTH) {
+			riddle3.x = riddle1.x - width;
+		}
+		if(riddle4.x >= STAGEWIDTH) {
+			riddle4.x = riddle2.x - width;
+		}
+	}
+
+	if(this.direction == -1) {
+		if(riddle1.x <= -STAGEWIDTH) {
+			riddle1.x = riddle3.x + width;
+		}
+		if(riddle2.x <= -STAGEWIDTH) {
+			riddle2.x = riddle4.x + width;
+		}
+		if(riddle3.x <= -STAGEWIDTH) {
+			riddle3.x = riddle1.x + width;
+		}
+		if(riddle4.x <= -STAGEWIDTH) {
+			riddle4.x = riddle2.x + width;
+		}
+	}
 
 }
 
@@ -478,14 +609,18 @@ prototype.unshake = function() {
 
 prototype.addTubePoint = function(point) {
 
-	var tube = new createjs.Shape();
-		tube.graphics.beginFill('green').drawCircle(0,0,this.params.height>>1);
-		tube.size = this.params.height>>1;
-		tube.x = point.x;
-		tube.y = this.params.height >> 1; // divide by 2
-		this.tube_points.unshift(tube);
-		
-		if(DEBUG) this.tube_points_cont.addChild(tube);
+	const tube = new createjs.Point();
+	tube.x = point.x;
+	tube.y = tube.size = this.params.height >> 1;
+	this.tube_points.unshift(tube);
+	
+	if(DEBUG) {
+		const dot = new createjs.Shape();
+		dot.graphics.beginFill('green').drawCircle(0,0,this.params.height>>1);
+		dot.size = dot.y = this.params.height>>1;
+		dot.x = point.x;
+		this.tube_points_cont.addChild(dot);
+	}
 	
 	createjs.Tween.get(tube)
 		.to({},1000,createjs.quartIn)
@@ -496,42 +631,51 @@ prototype.addTubePoint = function(point) {
 
 prototype.addTopFallPoint = function(pt) {
 
-	var point = new createjs.Shape();
-		point.graphics.beginFill('red').drawCircle(0,0,1);
-		point.size = 0;
-		if(this.direction == 0) point.x = pt.x;
-		//slightly move the points to free lip's shoulder
-		if(this.direction == 1) point.x = pt.x + this.params.breaking.left.width*10;
-		if(this.direction == -1) point.x = pt.x - this.params.breaking.right.width*10;
+	const point = new createjs.Point();
+	point.x = pt.x;
+	point.size = 0;
+	this.top_fall_points.unshift(point);
 
-		this.top_fall_points.unshift(point);
+	const scale = this.params.height * this.params.top_fall_scale;
+	const timing = 2000;
 		
-		if(DEBUG) this.top_points_cont.addChild(point);
-
-	var scale = this.params.height * this.params.top_fall_scale;
+	if(DEBUG) {
+		var dot = new createjs.Shape();
+		dot.graphics.beginFill('red').drawCircle(0,0,1);
+		dot.x = pt.x;
+		dot.size = 0;
+		this.top_points_cont.addChild(dot);	
+		createjs.Tween.get(dot).to({scaleX: scale, scaleY: scale}, timing, createjs.quartIn);
+	} 
 
 	createjs.Tween.get(point)
-		.to({scaleX:scale,scaleY:scale,size:scale},2000,createjs.quartIn)
+		.to({scaleX:scale,scaleY:scale,size:scale}, timing, createjs.quartIn)
 		.call(proxy(this.removeTopDebugPoint,this,[point]))		
 		;
 }
 
 prototype.addBottomFallPoint = function(pt) {
 
-	var point = new createjs.Shape();
-		point.graphics.beginFill('red').drawCircle(0,0,1);
-		point.y = this.params.height;
-		point.x = pt.x;
-		point.size = 0;
-
-		this.bottom_fall_points.unshift(point);
+	const point = new createjs.Point();
+	point.x = pt.x;
+	point.y = this.params.height;
+	point.size = 0;
+	this.bottom_fall_points.unshift(point);
+	
+	const scale = this.params.height * this.params.bottom_fall_scale;
+	const timing = 1800;
 		
-		if(DEBUG) this.bottom_points_cont.addChild(point);
-
-	var scale = this.params.height * this.params.bottom_fall_scale;
+	if(DEBUG) {
+		const dot = new createjs.Shape();
+		dot.graphics.beginFill('red').drawCircle(0,0,1);
+		dot.y = this.params.height;
+		dot.x = pt.x;
+		this.bottom_points_cont.addChild(dot);
+		createjs.Tween.get(dot).to({ scaleX: scale, scaleY: scale}, timing, createjs.quartIn);
+	}
 
 	createjs.Tween.get(point)
-		.to({scaleX:scale,scaleY:scale,size:scale},1800,createjs.quartIn)
+		.to({size:scale}, timing, createjs.quartIn)
 		.call(proxy(this.removeBottomDebugPoint,this,[point]))
 		;
 }
@@ -707,8 +851,100 @@ prototype.addLeftPeak = function(center,width) {
 	this.peakpoints.unshift(points);
 }
 
-prototype.createBreakingPoint = function(params) {
+prototype.createLipPoint = function(params) {
 
+	var params = params === undefined ? {} : params;
+	var delay = params.delay === undefined ? this.config.lip.cap.lifetime : this.config.lip.cap.lifetime + params.delay;
+	var color = params.color === undefined ? 'white' : params.color;
+	var direction = params.direction ? params.direction : null;
+	var x = params.x === undefined ? 0 : params.x;
+	var bounce = (this.isPlayed())? this.params.height + Math.random() * this.params.height / 3 : this.params.height + Math.random() * this.params.height / 4;
+
+
+	const point = new createjs.Point();
+	point.x = x;
+	point.direction = direction;
+
+	const cap = new createjs.Point();
+	point.cap = cap;
+
+	if(DEBUG) {
+		const pt = new createjs.Shape();
+		pt.graphics.beginFill(color).drawCircle(0,0,5);
+		pt.x = x;
+		this.debug_lip_cont.addChild(pt);
+
+		const cp = new createjs.Shape();
+		cp.x = x;
+		cp.graphics.beginFill(color).drawCircle(0,0,5);
+		this.debug_lip_cont.addChild(cp);
+
+		createjs.Tween.get(pt)
+		//delay
+		.wait(delay)
+		//break
+		.set({breaking: true})
+		.call(proxy(this.addTopFallPoint,this,[point]))
+		//fall
+		.to({y:this.config.height},this.params.breaking.yspeed + Math.random()*50,createjs.Ease.quartIn)
+		//splash
+		.set({breaking: false, splashed: true})
+		.call(proxy(this.splashPointReached,this,[point]))
+		//bounce
+		.to({y: this.params.height - bounce},1000)
+		.call(proxy(this.updateVanishPoints,this,[point.x]))
+		//fade
+		.to({y: this.params.height -bounce/2},2500,createjs.Ease.bounceOut)
+		;
+
+		createjs.Tween.get(cp)		
+		.to(
+			{y: - this.config.lip.cap.height + Math.random()*5},
+			this.config.lip.cap.lifetime + this.config.lip.cap.width/2,
+			createjs.Ease.sineIn
+			)
+		.to(
+			{y:0},
+			this.config.lip.cap.width/2,
+			createjs.Ease.quartInOut)
+		;
+	}
+
+	createjs.Tween.get(point)
+		//delay
+		.wait(delay)
+		//break
+		.set({breaking: true})
+		.call(proxy(this.addTopFallPoint,this,[point]))
+		//fall
+		.to({y:this.config.height},this.params.breaking.yspeed + Math.random()*50,createjs.Ease.quartIn)
+		//splash
+		.set({breaking: false, splashed: true})
+		.call(proxy(this.splashPointReached,this,[point]))
+		//bounce
+		.to({y: this.params.height - bounce},1000)
+		.call(proxy(this.updateVanishPoints,this,[point.x]))
+		//fade
+		.to({y: this.params.height -bounce/2},2500,createjs.Ease.bounceOut)
+	;
+
+	createjs.Tween.get(cap)		
+		.to(
+			{y: - this.config.lip.cap.height + Math.random()*5},
+			this.config.lip.cap.lifetime + this.config.lip.cap.width/2,
+			createjs.Ease.sineIn
+			)
+		.to(
+			{y:0},
+			this.config.lip.cap.width/2,
+			createjs.Ease.quartInOut)
+		;
+
+	return point;
+}
+
+prototype.createBreakingPoint = function(params) {
+return this.createLipPoint(params);
 	var params = params === undefined ? {} : params;
 	var delay = params.delay === undefined ? this.config.lip.cap.lifetime : this.config.lip.cap.lifetime + params.delay;
 	var color = params.color === undefined ? 'white' : params.color;
@@ -796,7 +1032,7 @@ prototype.splashPointReached = function(point) {
 	}
 
 	//add particle
-	if(PERF > 0) {
+	if(PERF > 10) {
 
 		var emitter = new ParticleEmitter({
 				x: 0,
@@ -1111,10 +1347,6 @@ prototype.drawSplash = function () {
 	
 	if(this.breaked == false) return;
 
-	var shape = new createjs.Shape();
-	shape.mouseEnabled = false;
-	var k = shape.graphics;
-
 	//get peaks
 	var peaks = [];
 	for(var i=0, len=this.peakpoints.length; i<len; i++) {
@@ -1139,37 +1371,34 @@ prototype.drawSplash = function () {
 
 		if(points.length==0) continue;
 
-		k.moveTo(points[0].x - this.params.breaking.left.width, points[0].splash_y);
-		k.beginFill('#FFF').beginStroke('rgba(0,0,0,0.2').setStrokeStyle(1);
-		k.lineTo(points[0].x,points[0].splash_y);
+		this.splash_gfx.clear().moveTo(points[0].x - this.params.breaking.left.width, points[0].splash_y);
+		this.splash_gfx.beginFill('#FFF').beginStroke('rgba(0,0,0,0.2').setStrokeStyle(1);
+		this.splash_gfx.lineTo(points[0].x,points[0].splash_y);
 
 		if(PERF==0) {
 			for(var i=1,len=points.length; i<len - 2; i++) {
-				k.lineTo(points[i].x,points[i].y);
+				this.splash_gfx.lineTo(points[i].x,points[i].y);
 			}
 			//close in straigh line
-			k.lineTo(points[len-1].x, this.params.height);
-			if(this.cleanedRight && this.direction===1) k.lineTo(points[len-1].x,this.params.height);
-			if(this.cleanedLeft && this.direction===-1) k.lineTo(points[0].x,this.params.height);
+			this.splash_gfx.lineTo(points[len-1].x, this.params.height);
+			if(this.cleanedRight && this.direction===1) this.splash_gfx.lineTo(points[len-1].x,this.params.height);
+			if(this.cleanedLeft && this.direction===-1) this.splash_gfx.lineTo(points[0].x,this.params.height);
 		}
 		else {
 			for(var i=1,len=points.length; i<len - 2; i++) {
 				var xc = ( points[i].x + points[i+1].x) >> 1; // divide by 2
 				var yc = ( points[i].y + points[i+1].y) >> 1; // divide by 2
-				k.quadraticCurveTo(points[i].x,points[i].y,xc,yc);
+				this.splash_gfx.quadraticCurveTo(points[i].x,points[i].y,xc,yc);
 			}
 
 			//close in straigh line
-			k.lineTo(points[len-1].x, this.params.height);
-			if(this.cleanedRight && this.direction===1) k.lineTo(points[len-1].x,this.params.height);
-			if(this.cleanedLeft && this.direction===-1) k.lineTo(points[0].x,this.params.height);
+			this.splash_gfx.lineTo(points[len-1].x, this.params.height);
+			if(this.cleanedRight && this.direction===1) this.splash_gfx.lineTo(points[len-1].x,this.params.height);
+			if(this.cleanedLeft && this.direction===-1) this.splash_gfx.lineTo(points[0].x,this.params.height);
 		}
 
 		
 	}
-
-	this.froth_cont.removeAllChildren();
-	this.froth_cont.addChild(shape);
 
 }
 
@@ -1180,17 +1409,11 @@ prototype.drawLip = function() {
 	//return if not breked yet
 	if(this.breaked == false) return;
 
-	var shape = new createjs.Shape();
-	shape.mouseEnabled = false;
-	shape.graphics.beginFill('rgba(255,255,255,0.5)');
-	var shadow = new createjs.Shape();
-	shadow.mouseEnabled = false;
-	shadow.graphics.beginLinearGradientFill(["rgba(0,0,0,0.1)","rgba(0,0,0,0)"], [0, 1], 0, 0, 0, this.params.height);
-	var cap = new createjs.Shape();
-	cap.mouseEnabled = false;
-	cap.graphics.beginFill('rgba(255,255,255,0.5');
-
 	//shape.alpha = 0.5;
+	this.lip_shape.graphics.clear().beginFill('rgba(255,255,255,0.5)');
+	this.lip_shadow.graphics.clear().beginLinearGradientFill(["rgba(0,0,0,0.1)","rgba(0,0,0,0)"], [0, 1], 0, 0, 0, this.params.height);
+	this.lip_cap.graphics.clear().beginFill('rgba(255,255,255,0.5');
+	this.lip_thick.graphics.clear().beginFill('rgba(255,255,255,0.5)');
 
 	//get peaks
 	var peaks = [];
@@ -1204,26 +1427,32 @@ prototype.drawLip = function() {
 		var points = peaks[j];
 		var lastSplashed = null, firstSplashed = null;
 
-		//draw a lip 		
-		shape.graphics.moveTo(points[0].x,0);
-		if(points[0].cap) cap.graphics.moveTo(points[0].x,0);
+		//draw from the first point of the lip	
+		this.lip_shape.graphics.moveTo(points[0].x,0);
+		this.lip_thick.graphics.moveTo(points[0].x,0);
+		this.lip_shadow.graphics.moveTo(points[0].x,0);
 
-		//LOW PERD
+		if(points[0].cap) this.lip_cap.graphics.moveTo(points[0].x,0);
+
+		//LOW PERF
 		if(PERF==0) {
 			for(var i=1,len=points.length; i<len -2; i++){
 				var pt = points[i],
 					x = pt.x,
-					y = (pt.splashed)? this.params.height : pt.y;				
+					y = (pt.splashed)? this.params.height : pt.y,
+					thk = this.params.lip.thickness,
+					yt = (pt.y - thk < 0)? 0 : pt.y - thk;			
 
-				//draw shape line
-				shape.graphics.lineTo(x,y);
+				//draw shape line through all points of the lip
+				this.lip_shape.graphics.lineTo(x,y);
+				this.lip_thick.lineTo(x,yt);
 
 				//save first and last splashed point for later use
 				if(!firstSplashed && points[i].splashed) { firstSplashed = points[i];}
 				if(!lastSplashed && points[len-2-i].splashed) { lastSplashed = points[len-1];}
 
 				//draw cap
-				if(pt.cap) cap.graphics.lineTo(pt.x,pt.cap.y);
+				if(pt.cap) this.lip_cap.graphics.lineTo(pt.x,pt.cap.y);
 
 			}
 		}
@@ -1236,63 +1465,56 @@ prototype.drawLip = function() {
 					p2 = points[i+1]
 					x1 = p1.x,
 					x2 = p2.x,
-					//y1 = (p1.splashed)? this.params.height : p1.y,
-					//y2 = (p2.splashed)? this.params.height : p2.y,
 					y1 = (p1.splashed)? p1.splash_y : p1.y,
 					y2 = (p2.splashed)? p2.splash_y : p2.y,
 					xc = ( x1 + x2 ) >> 1,
-					yc = ( y1 + y2 ) >> 1;
+					yc = ( y1 + y2 ) >> 1,
+					thk = this.params.lip.thickness,
+					y1t = (y1 - thk < 0)? 0 : y1 - thk,
+					yct = (yc - thk < 0)? 0 : yc - thk;
 				
-				shape.graphics.quadraticCurveTo(x1,y1,xc,yc);
+				this.lip_shape.graphics.quadraticCurveTo(x1,y1,xc,yc);
+				this.lip_thick.graphics.quadraticCurveTo(x1,y1t,xc,yct);
+				this.lip_shadow.graphics.quadraticCurveTo(x1,y1*10,xc,yc*10);
 
 				//save first and last spashed point for later use
 				if(!firstSplashed && points[i].splashed) { firstSplashed = points[i];}
 				if(!lastSplashed && points[len-2-i].splashed) {lastSplashed = points[len-1];}
 
 				//draw cap
-				if(p1.cap) cap.graphics.lineTo(p1.x,p1.cap.y);
+				if(p1.cap) this.lip_cap.graphics.lineTo(p1.x,p1.cap.y);
 
 			}
 		}
 		//faire passer par l'avant dernier point
-		shape.graphics.quadraticCurveTo(points[i].x,points[i].y,points[i+1].x,points[i+1].y);	
-		if(points[i].cap) cap.graphics.lineTo(points[i].x,points[i].cap.y);	
+		this.lip_shape.graphics.quadraticCurveTo(points[i].x,points[i].y,points[i+1].x,points[i+1].y);	
+		this.lip_thick.graphics.quadraticCurveTo(points[i].x,points[i].y,points[i+1].x,points[i+1].y);	
+		this.lip_shadow.graphics.quadraticCurveTo(points[i].x,points[i].y,points[i+1].x,points[i+1].y);	
+
+
+		if(points[i].cap) this.lip_cap.graphics.lineTo(points[i].x,points[i].cap.y);	
 		//le dernier point
-		shape.graphics.lineTo(points[len-1].x,0);
-		if(points[len-1].cap) cap.graphics.lineTo(points[len-1].x,points[len-1].cap.y);
+		this.lip_shape.graphics.lineTo(points[len-1].x,0);
+		if(points[len-1].cap) this.lip_cap.graphics.lineTo(points[len-1].x,points[len-1].cap.y);
 
 		//draw a shadow
-		if(firstSplashed && lastSplashed) {
-			shadow.graphics.moveTo(points[0].x,points[0].y);
-			shadow.graphics.bezierCurveTo((firstSplashed.x+points[0].x)/2,0,(firstSplashed.x+points[0].x)/2,this.params.height,firstSplashed.x,firstSplashed.y)
-			shadow.graphics.lineTo(lastSplashed.x,lastSplashed.y);
-			shadow.graphics.bezierCurveTo((lastSplashed.x+points[len-1].x)/2,this.params.height,(lastSplashed.x+points[len-1].x)/2,0,points[len-1].x,points[len-1].y)
-			shadow.graphics.lineTo(points[0].x,points[0].y);			
+		/*if(firstSplashed && lastSplashed) {
+			this.lip_shadow.graphics.moveTo(points[0].x,points[0].y);
+			this.lip_shadow.graphics.bezierCurveTo((firstSplashed.x+points[0].x)/2,0,(firstSplashed.x+points[0].x)/2,this.params.height,firstSplashed.x,firstSplashed.y)
+			this.lip_shadow.graphics.lineTo(lastSplashed.x,lastSplashed.y);
+			this.lip_shadow.graphics.bezierCurveTo((lastSplashed.x+points[len-1].x)/2,this.params.height,(lastSplashed.x+points[len-1].x)/2,0,points[len-1].x,points[len-1].y)
+			this.lip_shadow.graphics.lineTo(points[0].x,points[0].y);			
 		}
-
+		*/
 
 		
 	}
 
-	shape.graphics.closePath();
-	shadow.graphics.closePath();
-	cap.graphics.closePath();
+	this.lip_shape.graphics.closePath();
+	this.lip_shadow.graphics.closePath();
+	this.lip_cap.graphics.closePath();
+	this.lip_thick.graphics.closePath();
 
-	//copy lip to make an effect of thickness
-	var thickness = shape.clone(true);
-	thickness.y = -10;
-	thickness.mask = this.shape_mask;
-
-	this.lip_cont.removeAllChildren();
-	this.lip_cont.addChild(shadow);
-	this.lip_cont.addChild(shape);
-	this.lip_cont.addChild(thickness);
-
-	this.lipcap_cont.removeAllChildren();	
-	this.lipcap_cont.addChild(cap);
-
-	//this.drawLipCap();
-	//this.lip_cont.mask = this.shape_mask;
 }
 
 prototype.drawTrails = function() {
@@ -1373,132 +1595,9 @@ prototype.removeObstacle = function(obs) {
 	this.obstacle_cont.removeChild(obs);
 }
 
-prototype.drawBackground = function() {
 
-	this.background_cont.removeAllChildren();
 
-	//colored gradient background
-	this.background = new createjs.Container();	
-	this.background_cont.addChild(this.background);	
 
-	let gradient = new createjs.Shape();
-	let colors = this.config.colors;
-	for(let i=0,ln=colors.length-1;i<ln;i++) {
-		if(colors[i+1] == undefined) break;
-		let color1 = colors[i];		
-		let color2 = colors[i+1];		
-		let y1 = this.params.height * color1[2] / 100;
-		let y2 = this.params.height * color2[2] / 100;
-
-		gradient.graphics
-			.beginLinearGradientFill([color1[0],color2[0]],[0+color1[1],1-color2[1]],0,y1,0,y2)
-			.drawRect(0,y1,STAGEWIDTH*2,y2);	
-	}	
-
-	this.background.addChild(gradient);
-	
-	//add riddle pattern image
-	this.background.riddles = new createjs.Container();
-	let riddle1 = new createjs.Bitmap(queue.getResult('wave_riddle'));
-	riddle1.x = 0;
-	riddle1.y = 0;
-	this.background.riddles.addChild(riddle1);
-	this.background.riddles.alpha = 0.1;
-	this.background.addChild(this.background.riddles);
-
-	//shadow gradient background
-	this.background_shadow = new createjs.Shape();
-	this.background_shadow.graphics
-		.beginLinearGradientFill(['rgba(0,0,0,0.4)','rgba(0,0,0,0)'],[0,1],0,0,0,this.params.height)
-		.drawRect(0,0,STAGEWIDTH*2,this.params.height);
-	this.background_cont.addChild(this.background_shadow);
-}
-
-prototype.initAnimateBackground = function() {
-
-	this.background.riddles.removeAllChildren();
-
-	let riddle1 = new createjs.Bitmap(queue.getResult('wave_riddle'));
-	riddle1.x = 0;
-	riddle1.y = 0;
-	let riddle2 = new createjs.Bitmap(queue.getResult('wave_riddle'));
-	riddle2.x = 0;
-	riddle2.y = riddle1.image.height;
-	let riddle3 = new createjs.Bitmap(queue.getResult('wave_riddle'));
-	riddle3.x = riddle1.image.width;
-	riddle3.y = 0;
-	let riddle4 = new createjs.Bitmap(queue.getResult('wave_riddle'));
-	riddle4.x = riddle4.image.width;
-	riddle4.y = riddle4.image.height;
-
-	this.background.riddles.addChild(riddle1);
-	this.background.riddles.addChild(riddle2);
-	this.background.riddles.addChild(riddle3);
-	this.background.riddles.addChild(riddle4);
-}
-
-prototype.animateBackground = function() {
-
-	if(this.breaked == false) return;
-
-	if(PERF == 0) return;
-
-	//create all sub riddles if not created yet
-	if(this.background.riddles.numChildren < 2) this.initAnimateBackground();
-
-	let riddle1 = this.background.riddles.getChildAt(0);
-	let riddle2 = this.background.riddles.getChildAt(1);
-	let riddle3 = this.background.riddles.getChildAt(2);
-	let riddle4 = this.background.riddles.getChildAt(3);
-	let width  = riddle1.image.width;
-	let height = riddle1.image.height;
-
-	riddle1.y -= 4;
-	riddle2.y -= 4;
-	riddle3.y -= 4;
-	riddle4.y -= 4;
-
-	if(riddle1.y <= - riddle1.image.height) riddle1.y = riddle2.y + height;
-	if(riddle2.y <= - riddle2.image.height) riddle2.y = riddle1.y + height;
-	if(riddle3.y <= - riddle3.image.height) riddle3.y = riddle4.y + height;
-	if(riddle4.y <= - riddle4.image.height) riddle4.y = riddle3.y + height;
-
-	riddle1.x += this.movingX;
-	riddle2.x += this.movingX;
-	riddle3.x += this.movingX;
-	riddle4.x += this.movingX;
-
-	if(this.direction == 1) {
-		if(riddle1.x >= STAGEWIDTH) {
-			riddle1.x = riddle3.x - width;
-		}
-		if(riddle2.x >= STAGEWIDTH) {
-			riddle2.x = riddle4.x - width;
-		}
-		if(riddle3.x >= STAGEWIDTH) {
-			riddle3.x = riddle1.x - width;
-		}
-		if(riddle4.x >= STAGEWIDTH) {
-			riddle4.x = riddle2.x - width;
-		}
-	}
-
-	if(this.direction == -1) {
-		if(riddle1.x <= -STAGEWIDTH) {
-			riddle1.x = riddle3.x + width;
-		}
-		if(riddle2.x <= -STAGEWIDTH) {
-			riddle2.x = riddle4.x + width;
-		}
-		if(riddle3.x <= -STAGEWIDTH) {
-			riddle3.x = riddle1.x + width;
-		}
-		if(riddle4.x <= -STAGEWIDTH) {
-			riddle4.x = riddle2.x + width;
-		}
-	}
-
-}
 
 prototype.drawShape = function() {
 
@@ -1510,8 +1609,7 @@ prototype.drawShape = function() {
 	if(this.breaked == true && this.params.shoulder.left.slope == null) this.params.shoulder.left.slope = new Variation({min:-50,max:50});
 	if(this.breaked == true && this.params.shoulder.right.slope == null) this.params.shoulder.right.slope = new Variation({min:-50,max:50});
 
-	//draw shape mask beetween the two shoulder
-	this.shape_mask = new createjs.Shape();
+	//draw the shape of the wave
 	this.shape_mask.graphics
 		.beginFill('#FFFFFF')
 		.moveTo(left.x - this.params.shoulder.left.width - this.params.shoulder.left.marge, this.params.height)
@@ -1522,8 +1620,8 @@ prototype.drawShape = function() {
 		;
 
 	//ajust position of the background image
-	this.background_cont.x = - this.cont.x,
-	//use the shape to mask the background image
+	this.background_cont.x = - this.cont.x;
+		//use the shape to mask the background image
 	this.background_cont.mask = this.shape_mask;
 		
 }

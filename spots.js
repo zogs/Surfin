@@ -44,11 +44,12 @@
 					}
 				},
 				lip: {
+					thickness: 10,
 					cap: {
 						width: 700,
 						height: 10,
 						lifetime: 800,
-					}
+					},
 				},
 				paddling_effort: 1,
 				bottom_fall_scale: 1,
@@ -114,7 +115,6 @@
 		
 		this.debug_cont = new createjs.Container();
 		this.addChild(this.debug_cont);	
-	
 	}
 
 	var prototype = createjs.extend(Spot, createjs.Container);

@@ -1066,18 +1066,17 @@
 		this.trail_shape.graphics.clear();
 		this.trail_shape.graphics.beginFill('white');
 
-
 		for(var i=0; i<=nb; i++) {
 			var size = i*points[i].size + this.trailcoef*points[i].size;
-			this.trail_shape.graphics.lineTo(points[i].x,points[i].y - size/2);	
+			this.trail_shape.graphics.lineTo(points[i].x - size/2,points[i].y - size/2);	
 		}
 		for(var i=nb; i>=0; i--) {
 			var size = i*points[i].size + this.trailcoef*points[i].size;
-			this.trail_shape.graphics.lineTo(points[i].x,points[i].y + size/2);
+			this.trail_shape.graphics.lineTo(points[i].x + size/2,points[i].y + size/2);
 		}	
 		this.trail_shape.graphics.closePath();	
 	
-/* SLOW
+/*
 		for(var i = 0; i <= nb - 1; i++) {
 
 				var trail_size = i*points[i].size+this.trailcoef*points[i].size;
@@ -1090,7 +1089,7 @@
 				.lineTo(points[i+1].x,points[i+1].y)
 				;
 		}
-*/	
+*/
 
 		this.trail_cont.mask = this.wave.shape_mask;
 		//this.trail_cont.cache(xmin,0,xmax-xmin,this.wave.params.height);
