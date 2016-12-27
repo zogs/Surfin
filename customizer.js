@@ -147,8 +147,8 @@
 		spot.add(custom, 'beach', 0, STAGEHEIGHT).onChange(function(value) { SPOT.config.lines.beach = value; });
 
 		var diff = gui.addFolder('Difficulty');
-		diff.add(custom, 'fallAtBottom', 0, 2).step(0.1).onChange(function(value) { SPOT.config.waves.bottom_fall_scale = value; });
-		diff.add(custom, 'fallAtTop', 0, 2).step(0.1).onChange(function(value) { SPOT.config.waves.top_fall_scale = value; });
+		diff.add(custom, 'fallAtBottom', 0, 1).step(0.1).onChange(function(value) { SPOT.config.waves.bottom_fall_scale = value; });
+		diff.add(custom, 'fallAtTop', 0, 1).step(0.1).onChange(function(value) { SPOT.config.waves.top_fall_scale = value; });
 		diff.add(custom, 'wavePaddlingEffort',0).onChange(function(value) { SPOT.config.waves.paddling_effort = value; });
 
 		var obstacles = gui.addFolder('Obstacles');

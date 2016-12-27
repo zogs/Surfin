@@ -85,11 +85,8 @@ prototype.init = function(params) {
 	this.lip_points = [];
 	this.lip_cap_points = [];
 	this.breaking_peaks = [];
-	this.peakpoints = [];
-	this.tube_points = [];
-	this.bottom_fall_points = [];
-	this.top_fall_points = [];
-	this.particles = [];
+	this.peakpoints = []
+;	this.particles = [];
 	this.debug_alpha = 0.1;
 	this.shaking_force = 1.2;
 	this.direction = 0;
@@ -159,18 +156,13 @@ prototype.init = function(params) {
 		this.debug_cont = new createjs.Container();
 		this.debug_cont.alpha = this.debug_alpha;
 		this.foreground_cont.addChild(this.debug_cont);
+
+			//points of the wave
+			this.debug_points_cont = new createjs.Container();
+			this.debug_cont.addChild(this.debug_points_cont);
 			//lip of the wave
 			this.debug_lip_cont = new createjs.Container();
 			this.debug_cont.addChild(this.debug_lip_cont);
-			//tube points
-			this.tube_points_cont = new createjs.Container();
-			this.debug_cont.addChild(this.tube_points_cont);
-			//top wave points
-			this.top_points_cont = new createjs.Container();
-			this.debug_cont.addChild(this.top_points_cont);
-			//bottom wave points
-			this.bottom_points_cont = new createjs.Container();
-			this.debug_cont.addChild(this.bottom_points_cont);
 			//vanish points container
 			this.vanishs_cont = new createjs.Container();
 			this.debug_cont.addChild(this.vanishs_cont);
@@ -426,6 +418,9 @@ prototype.resize = function() {
 	//resize background
 	this.resizeBackground(h);	
 
+	//draw shpa
+	this.drawShape();
+
 }
 
 prototype.initWave = function(center) {
@@ -559,15 +554,22 @@ prototype.onTakeoffClick = function(evt) {
 }
 
 prototype.tick = function(ev) {
-	
 	if(PAUSED) return;	
-	this.breaking();
-	this.drawLip();
-	this.drawSplash();
-	this.drawTrails();
-	this.moveWave();
-	this.drawShape();	
-	this.animateBackground();
+
+	if(this.breaked) {
+
+		this.breaking();
+		this.drawLip();
+		this.drawSplash();
+		this.drawTrails();
+		this.moveWave();
+		this.drawShape();	
+		this.animateBackground();
+	}
+
+	if(DEBUG) {
+		this.drawDebug();		
+	}
 		
 }
 
@@ -604,93 +606,6 @@ prototype.unshake = function() {
 	createjs.Tween.get(this.lip)
 		.to({x:this.lip_cont.x-this.shake_x,y:this.lip_cont.y-this.shake_y},50)
 		.call(proxy(this.shake,this));
-}
-
-
-prototype.addTubePoint = function(point) {
-
-	const tube = new createjs.Point();
-	tube.x = point.x;
-	tube.y = tube.size = this.params.height >> 1;
-	this.tube_points.unshift(tube);
-	
-	if(DEBUG) {
-		const dot = new createjs.Shape();
-		dot.graphics.beginFill('green').drawCircle(0,0,this.params.height>>1);
-		dot.size = dot.y = this.params.height>>1;
-		dot.x = point.x;
-		this.tube_points_cont.addChild(dot);
-	}
-	
-	createjs.Tween.get(tube)
-		.to({},1000,createjs.quartIn)
-		.call(proxy(this.removeTubeDebugPoint,this,[point]))		
-		;
-}
-
-
-prototype.addTopFallPoint = function(pt) {
-
-	const point = new createjs.Point();
-	point.x = pt.x;
-	point.size = 0;
-	this.top_fall_points.unshift(point);
-
-	const scale = this.params.height * this.params.top_fall_scale;
-	const timing = 2000;
-		
-	if(DEBUG) {
-		var dot = new createjs.Shape();
-		dot.graphics.beginFill('red').drawCircle(0,0,1);
-		dot.x = pt.x;
-		dot.size = 0;
-		this.top_points_cont.addChild(dot);	
-		createjs.Tween.get(dot).to({scaleX: scale, scaleY: scale}, timing, createjs.quartIn);
-	} 
-
-	createjs.Tween.get(point)
-		.to({scaleX:scale,scaleY:scale,size:scale}, timing, createjs.quartIn)
-		.call(proxy(this.removeTopDebugPoint,this,[point]))		
-		;
-}
-
-prototype.addBottomFallPoint = function(pt) {
-
-	const point = new createjs.Point();
-	point.x = pt.x;
-	point.y = this.params.height;
-	point.size = 0;
-	this.bottom_fall_points.unshift(point);
-	
-	const scale = this.params.height * this.params.bottom_fall_scale;
-	const timing = 1800;
-		
-	if(DEBUG) {
-		const dot = new createjs.Shape();
-		dot.graphics.beginFill('red').drawCircle(0,0,1);
-		dot.y = this.params.height;
-		dot.x = pt.x;
-		this.bottom_points_cont.addChild(dot);
-		createjs.Tween.get(dot).to({ scaleX: scale, scaleY: scale}, timing, createjs.quartIn);
-	}
-
-	createjs.Tween.get(point)
-		.to({size:scale}, timing, createjs.quartIn)
-		.call(proxy(this.removeBottomDebugPoint,this,[point]))
-		;
-}
-
-prototype.removeTubeDebugPoint = function(point) {
-	this.tube_points_cont.removeChild(point);	
-	this.tube_points.splice(-1,1);
-}
-prototype.removeTopDebugPoint = function(point) {
-	this.top_points_cont.removeChild(point);	
-	this.top_fall_points.splice(-1,1);
-}
-prototype.removeBottomDebugPoint = function(point) {
-	this.bottom_points_cont.removeChild(point);	
-	this.bottom_fall_points.splice(-1,1);
 }
 
 prototype.resizeBackground = function() {
@@ -803,13 +718,13 @@ prototype.breaking = function() {
 
 		//add left point
 		var x = peak[0].x - this.params.breaking.left.width;
-		var point = this.createBreakingPoint({x:x, color:'red',direction:'left'});
+		var point = this.createLipPoint({x:x, color:'red',direction:'left'});
 		peak.unshift(point);		
 		this.updateLeftShoulder(x);		
 
 		//add right point		
 		var x = peak[peak.length-1].x + this.params.breaking.right.width;
-		var point = this.createBreakingPoint({x:x, color:'red', direction:'right'});
+		var point = this.createLipPoint({x:x, color:'red', direction:'right'});
 		peak.push(point);
 		this.updateRightShoulder(x);
 
@@ -823,11 +738,11 @@ prototype.breaking = function() {
 prototype.addPeak = function(center,width) {
 
 	var points = [];
-	var point = this.createBreakingPoint({x:center, color:'red',delay:0});
+	var point = this.createLipPoint({x:center, color:'red',delay:0});
 	points.push(point);
-	var point = this.createBreakingPoint({x:center + width/2, direction:'right'});
+	var point = this.createLipPoint({x:center + width/2, direction:'right'});
 	points.push(point);
-	var point = this.createBreakingPoint({x:center - width/2, direction:'left'});
+	var point = this.createLipPoint({x:center - width/2, direction:'left'});
 	points.unshift(point);
 
 	this.peakpoints.push(points);
@@ -841,11 +756,11 @@ prototype.addRightPeak = function(center,width) {
 prototype.addLeftPeak = function(center,width) {
 
 	var points = [];
-	var point = this.createBreakingPoint({x:center, color:'red',delay:0});
+	var point = this.createLipPoint({x:center, color:'red',delay:0});
 	points.push(point);
-	var point = this.createBreakingPoint({x:center + width/2, direction:'right'});
+	var point = this.createLipPoint({x:center + width/2, direction:'right'});
 	points.push(point);
-	var point = this.createBreakingPoint({x:center - width/2, direction:'left'});
+	var point = this.createLipPoint({x:center - width/2, direction:'left'});
 	points.unshift(point);
 
 	this.peakpoints.unshift(points);
@@ -863,173 +778,69 @@ prototype.createLipPoint = function(params) {
 
 	const point = new createjs.Point();
 	point.x = x;
+
+	//initial property of the lip's point
 	point.direction = direction;
+	point.breaking = false;
+	point.topfallscale = 0;
+	point.topfallscaleMax = (this.params.top_fall_scale * this.params.height);
+	point.splashed = false;
+	point.bounce_y = this.params.height;
+	point.bottomfallscale = 0;
+	point.bottomfallscaleMax = (this.params.bottom_fall_scale * this.params.height);
+	point.tubescale = this.params.height / 4;
+	point.tubescaleMax = this.params.height / 2;
+	point.tubedeep = 0;
+	point.tubedeepMax = 1;
 
 	const cap = new createjs.Point();
 	point.cap = cap;
 
-	if(DEBUG) {
-		const pt = new createjs.Shape();
-		pt.graphics.beginFill(color).drawCircle(0,0,5);
-		pt.x = x;
-		this.debug_lip_cont.addChild(pt);
-
-		const cp = new createjs.Shape();
-		cp.x = x;
-		cp.graphics.beginFill(color).drawCircle(0,0,5);
-		this.debug_lip_cont.addChild(cp);
-
-		createjs.Tween.get(pt)
-		//delay
-		.wait(delay)
-		//break
-		.set({breaking: true})
-		.call(proxy(this.addTopFallPoint,this,[point]))
-		//fall
-		.to({y:this.config.height},this.params.breaking.yspeed + Math.random()*50,createjs.Ease.quartIn)
-		//splash
-		.set({breaking: false, splashed: true})
-		.call(proxy(this.splashPointReached,this,[point]))
-		//bounce
-		.to({y: this.params.height - bounce},1000)
-		.call(proxy(this.updateVanishPoints,this,[point.x]))
-		//fade
-		.to({y: this.params.height -bounce/2},2500,createjs.Ease.bounceOut)
-		;
-
-		createjs.Tween.get(cp)		
-		.to(
-			{y: - this.config.lip.cap.height + Math.random()*5},
-			this.config.lip.cap.lifetime + this.config.lip.cap.width/2,
-			createjs.Ease.sineIn
-			)
-		.to(
-			{y:0},
-			this.config.lip.cap.width/2,
-			createjs.Ease.quartInOut)
-		;
-	}
-
 	createjs.Tween.get(point)
 		//delay
 		.wait(delay)
 		//break
 		.set({breaking: true})
-		.call(proxy(this.addTopFallPoint,this,[point]))
 		//fall
-		.to({y:this.config.height},this.params.breaking.yspeed + Math.random()*50,createjs.Ease.quartIn)
+		.to({y:this.config.height, topfallscale: point.topfallscaleMax},this.params.breaking.yspeed + Math.random()*50,createjs.Ease.quartIn)
 		//splash
 		.set({breaking: false, splashed: true})
 		.call(proxy(this.splashPointReached,this,[point]))
 		//bounce
-		.to({y: this.params.height - bounce},1000)
-		.call(proxy(this.updateVanishPoints,this,[point.x]))
+		.to({bounce_y: this.params.height - bounce, bottomfallscale: point.bottomfallscaleMax, tubescale: point.tubescaleMax, tubedeep: point.tubedeepMax},1000)
+		.call(proxy(this.updateVanishPoints,this,[point]))
 		//fade
-		.to({y: this.params.height -bounce/2},2500,createjs.Ease.bounceOut)
+		.to({bounce_y: this.params.height -bounce/2},2500,createjs.Ease.bounceOut)
 	;
 
 	createjs.Tween.get(cap)		
-		.to(
-			{y: - this.config.lip.cap.height + Math.random()*5},
-			this.config.lip.cap.lifetime + this.config.lip.cap.width/2,
-			createjs.Ease.sineIn
-			)
-		.to(
-			{y:0},
-			this.config.lip.cap.width/2,
-			createjs.Ease.quartInOut)
+		.to({y: - this.config.lip.cap.height + Math.random()*5}, this.config.lip.cap.lifetime + this.config.lip.cap.width/2, createjs.Ease.sineIn)
+		.to({y:0},this.config.lip.cap.width/2,createjs.Ease.quartInOut)
 		;
 
 	return point;
 }
 
-prototype.createBreakingPoint = function(params) {
-return this.createLipPoint(params);
-	var params = params === undefined ? {} : params;
-	var delay = params.delay === undefined ? this.config.lip.cap.lifetime : this.config.lip.cap.lifetime + params.delay;
-	var color = params.color === undefined ? 'white' : params.color;
-	var direction = params.direction ? params.direction : null;
-	var x = params.x === undefined ? 0 : params.x;
-	
-	var point = new createjs.Container();
-	point.x = x;
-	point.direction = direction;
-	point.snapToPixelEnabled = true;
-	this.splash_cont.addChild(point);
-
-	if(DEBUG) {
-		var shape = new createjs.Shape();
-		shape.graphics.beginFill(color).drawCircle(0,0,3);
-		point.addChild(shape);
-	}
-	
-
-	if(this.isPlayed()) var bounce = (this.params.height + (Math.random()*this.params.height/3));
-	else var bounce = (this.params.height + Math.random()*this.params.height/4);
-
-	createjs.Tween.get(point)
-		//delay
-		.wait(delay)
-		//break
-		.set({breaking: true})
-		.call(proxy(this.addTopFallPoint,this,[point]))
-		//fall
-		.to({y:this.config.height},this.params.breaking.yspeed + Math.random()*50,createjs.Ease.quartIn)
-		//splash
-		.set({breaking: false, splashed: true})
-		.call(proxy(this.splashPointReached,this,[point]))
-		//bounce
-		.to({y: this.params.height - bounce},1000)
-		.call(proxy(this.updateVanishPoints,this,[point.x]))
-		//fade
-		.to({y: this.params.height -bounce/2},2500,createjs.Ease.bounceOut)
-	;
-
-
-	//cap
-	var cap = new createjs.Container();
-	point.cap = cap;
-	point.addChild(cap);	
-
-	if(DEBUG) {
-		var shape = new createjs.Shape();
-		shape.graphics.beginFill(color).drawCircle(0,0,2);
-		cap.addChild(shape);
-	}
-
-	var width = this.config.lip.cap.width,
-		height = this.config.lip.cap.height + Math.random()*5;
-		lifetime = this.config.lip.cap.lifetime;
-	createjs.Tween.get(cap)		
-		.to({y: -height}, lifetime + width/2, createjs.Ease.sineIn).to({y:0}, width/2, createjs.Ease.quartInOut)
-		;
-
-	
-	return point;
-}
 
 prototype.splashPointReached = function(point) {
+
+	
 
 	//save splash height
 	point.splash_y = point.y;
 
-	//draw fall shape
-	this.addBottomFallPoint(point);
-
-	//draw tube points
-	this.addTubePoint(point);
-	
 	//set direction
 	if(this.direction==0) {
 		this.setDirection();
 		//this.startShaking();
 		
+
 		//init breaked intervals
 		if(this.isPlayed) {
 			this.initPlayedIntervals();
 		}
 
-	}
+	} 
 
 	//add particle
 	if(PERF > 10) {
@@ -1120,7 +931,7 @@ prototype.initBlockBreakingLeft = function(width) {
 	var peak = this.peakpoints[0];
 	while( width > 0 ) {
 		var x = peak[0].x - this.params.breaking.left.width;
-		var point = this.createBreakingPoint({x:x, color:'green', direction:'left'});
+		var point = this.createLipPoint({x:x, color:'green', direction:'left'});
 		peak.unshift(point);
 		width = width - this.params.breaking.left.width;
 	}		
@@ -1133,7 +944,7 @@ prototype.initBlockBreakingRight = function(width) {
 	var peak = this.peakpoints[this.peakpoints.length-1];
 	while( width > 0) {
 		var x = peak[peak.length-1].x + this.params.breaking.right.width;	
-		var point = this.createBreakingPoint({x:x, color:'green', direction:'right'});
+		var point = this.createLipPoint({x:x, color:'green', direction:'right'});
 		peak.push(point);
 		width = width - this.params.breaking.right.width;
 	}
@@ -1371,34 +1182,37 @@ prototype.drawSplash = function () {
 
 		if(points.length==0) continue;
 
-		this.splash_gfx.clear().moveTo(points[0].x - this.params.breaking.left.width, points[0].splash_y);
+		this.splash_gfx.clear();
 		this.splash_gfx.beginFill('#FFF').beginStroke('rgba(0,0,0,0.2').setStrokeStyle(1);
-		this.splash_gfx.lineTo(points[0].x,points[0].splash_y);
 
-		if(PERF==0) {
-			for(var i=1,len=points.length; i<len - 2; i++) {
-				this.splash_gfx.lineTo(points[i].x,points[i].y);
+			this.splash_gfx.moveTo(points[0].x - this.params.breaking.left.width, points[0].splash_y);
+			this.splash_gfx.lineTo(points[0].x,points[0].splash_y);
+
+			if(PERF==0) {
+				for(var i=1,len=points.length; i<len - 2; i++) {
+					this.splash_gfx.lineTo(points[i].x,points[i].y);
+				}
+				//close in straigh line
+				this.splash_gfx.lineTo(points[len-1].x, this.params.height);
+				if(this.cleanedRight && this.direction===1) this.splash_gfx.lineTo(points[len-1].x,this.params.height);
+				if(this.cleanedLeft && this.direction===-1) this.splash_gfx.lineTo(points[0].x,this.params.height);
 			}
-			//close in straigh line
-			this.splash_gfx.lineTo(points[len-1].x, this.params.height);
-			if(this.cleanedRight && this.direction===1) this.splash_gfx.lineTo(points[len-1].x,this.params.height);
-			if(this.cleanedLeft && this.direction===-1) this.splash_gfx.lineTo(points[0].x,this.params.height);
-		}
-		else {
-			for(var i=1,len=points.length; i<len - 2; i++) {
-				var xc = ( points[i].x + points[i+1].x) >> 1; // divide by 2
-				var yc = ( points[i].y + points[i+1].y) >> 1; // divide by 2
-				this.splash_gfx.quadraticCurveTo(points[i].x,points[i].y,xc,yc);
+			else {
+				for(var i=1,len=points.length; i<len - 2; i++) {
+					var xc = ( points[i].x + points[i+1].x) >> 1; // divide by 2
+					var yc = ( points[i].bounce_y + points[i+1].bounce_y) >> 1; // divide by 2
+					this.splash_gfx.quadraticCurveTo(points[i].x,points[i].bounce_y,xc,yc);
+				}
+
+				//close in straigh line
+				this.splash_gfx.lineTo(points[len-1].x, this.params.height);
+				if(this.cleanedRight && this.direction===1) this.splash_gfx.lineTo(points[len-1].x,this.params.height);
+				if(this.cleanedLeft && this.direction===-1) this.splash_gfx.lineTo(points[0].x,this.params.height);
 			}
-
-			//close in straigh line
-			this.splash_gfx.lineTo(points[len-1].x, this.params.height);
-			if(this.cleanedRight && this.direction===1) this.splash_gfx.lineTo(points[len-1].x,this.params.height);
-			if(this.cleanedLeft && this.direction===-1) this.splash_gfx.lineTo(points[0].x,this.params.height);
-		}
-
 		
 	}
+
+
 
 }
 
@@ -1471,7 +1285,11 @@ prototype.drawLip = function() {
 					yc = ( y1 + y2 ) >> 1,
 					thk = this.params.lip.thickness,
 					y1t = (y1 - thk < 0)? 0 : y1 - thk,
-					yct = (yc - thk < 0)? 0 : yc - thk;
+					yct = (yc - thk < 0)? 0 : yc - thk
+					//y1t = (y1 >= this.params.height - thk)? this.params.height : y1t,
+					//yct = (yc >= this.params.height - thk)? this.params.height : yct
+
+					;
 				
 				this.lip_shape.graphics.quadraticCurveTo(x1,y1,xc,yc);
 				this.lip_thick.graphics.quadraticCurveTo(x1,y1t,xc,yct);
@@ -1496,17 +1314,6 @@ prototype.drawLip = function() {
 		//le dernier point
 		this.lip_shape.graphics.lineTo(points[len-1].x,0);
 		if(points[len-1].cap) this.lip_cap.graphics.lineTo(points[len-1].x,points[len-1].cap.y);
-
-		//draw a shadow
-		/*if(firstSplashed && lastSplashed) {
-			this.lip_shadow.graphics.moveTo(points[0].x,points[0].y);
-			this.lip_shadow.graphics.bezierCurveTo((firstSplashed.x+points[0].x)/2,0,(firstSplashed.x+points[0].x)/2,this.params.height,firstSplashed.x,firstSplashed.y)
-			this.lip_shadow.graphics.lineTo(lastSplashed.x,lastSplashed.y);
-			this.lip_shadow.graphics.bezierCurveTo((lastSplashed.x+points[len-1].x)/2,this.params.height,(lastSplashed.x+points[len-1].x)/2,0,points[len-1].x,points[len-1].y)
-			this.lip_shadow.graphics.lineTo(points[0].x,points[0].y);			
-		}
-		*/
-
 		
 	}
 
@@ -1611,6 +1418,7 @@ prototype.drawShape = function() {
 
 	//draw the shape of the wave
 	this.shape_mask.graphics
+		.clear()
 		.beginFill('#FFFFFF')
 		.moveTo(left.x - this.params.shoulder.left.width - this.params.shoulder.left.marge, this.params.height)
 		.bezierCurveTo(left.x - this.params.shoulder.left.width + this.params.shoulder.left.outer - this.params.shoulder.left.marge, this.params.height + this.params.shoulder.left.slope,left.x - this.params.shoulder.left.inner - this.params.shoulder.left.marge,0,left.x - this.params.shoulder.left.marge,0)
@@ -1688,19 +1496,19 @@ prototype.initVanishPoints = function(x) {
 	this.vanish_right = vanish;
 
 }
-prototype.updateVanishPoints = function(x) {	
+prototype.updateVanishPoints = function(pt) {	
 
 	if(this.direction == 1) {
 		var point = this.vanish_left;
 		if(DEBUG) point.alpha = 1;
-		if(x > point.x) return;
-		return point.x = x;		
+		if( pt.x > point.x) return;
+		return point.x = pt.x;		
 	}
 	if(this.direction == -1) {
 		var point = this.vanish_right;
 		if(DEBUG) point.alpha = 1;
-		if( x < point.x ) return;
-		return point.x = x;		
+		if( pt.x < point.x ) return;
+		return point.x = pt.x;		
 	}
 }
 prototype.getLeftVanishPoint = function() {
@@ -1720,6 +1528,74 @@ prototype.isPlayed = function() {
 prototype.isSurfed = function() {
 	return this.surfed || false;
 }
+
+prototype.getAllPeaksPoints = function() {
+
+	//get peaks
+	const points = [];
+	for(let i=0, len=this.peakpoints.length; i<len; i++) {
+		for(let j=0, ln=this.peakpoints[i].length; j<ln; j++) {
+			points.push(this.peakpoints[i][j]);
+		}
+	}
+	return points;
+}
+
+prototype.drawDebug = function() {
+
+
+	var points = this.getAllPeaksPoints();
+	//get only splashed point
+	this.debug_points_cont.removeAllChildren();
+	for(let j=0, ln=points.length; j<ln; j++) {
+			
+		let point = points[j];
+
+		//DRAW LIP POINTS
+		const lip = new createjs.Shape();
+		lip.graphics.beginFill('black').drawCircle(0,0,5);
+		lip.x = point.x;
+		lip.y = point.y;
+		this.debug_points_cont.addChild(lip);
+
+		//DRAW CAP POINTS
+		const cap = new createjs.Shape();
+		cap.graphics.beginFill('black').drawCircle(0,0,3);
+		cap.x = point.x;
+		cap.y = point.cap.y;
+		this.debug_points_cont.addChild(cap);
+
+		//DRAW TOP FALL POINTS
+		const top = new createjs.Shape();
+		top.graphics.beginFill('red').drawCircle(0,0,1);
+		top.x = point.x;
+		top.y = 0;
+		top.scaleX = top.scaleY = point.topfallscale;
+		this.debug_points_cont.addChild(top);	
+		
+		//DRAW BOTTOM FALL POINTS	
+		if(point.splashed == true) {
+			
+			const bot = new createjs.Shape();
+			bot.graphics.beginFill('red').drawCircle(0,0,1);
+			bot.x = point.x;
+			bot.y = this.params.height;
+			bot.scaleX = bot.scaleY = point.bottomfallscale;
+			this.debug_points_cont.addChild(bot);	
+
+			const tube = new createjs.Shape();
+			tube.graphics.beginFill('green').drawCircle(0,0,1);
+			tube.x = point.x;
+			tube.y = this.params.height/2;
+			tube.scaleX = tube.scaleY = point.tubescale;
+			this.debug_points_cont.addChild(tube);	
+		}
+
+	}
+
+}
+
+
 //<-- end methods
 
 

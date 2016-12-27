@@ -151,8 +151,8 @@ window.addSpot = function(config) {
 
 window.tick = function() {
 
+	//console.log(createjs.Tween._tweens.length);
 	stage.update();
-
 }
 
 window.keyDownHandler = function(e)

@@ -41,6 +41,7 @@
 		this.tubing = false;
 		this.tubeTime = 0;
 		this.tubeMinimumTime = 1000;
+		this.tubeDepths = [];
 		this.riding = false;
 		this.falling = false;
 		this.surfing = false;
@@ -136,7 +137,8 @@
 			stage.dispatchEvent(ev);
 		},this);
 
-		this.on('fall',function(event) {	
+		this.on('fall',function(event) {
+		console.log('fall',this.fall_reason);	
 			if(this.isPlayer()) stage.dispatchEvent('player_fall');
 		},this,true);
 
@@ -727,29 +729,11 @@
 				});
 	}
 
-	prototype.hit = function(point,radius) {
-		
-		
+	prototype.hit = function(x,y,radius) {
+				
 		var minDistance = radius + this.hitbox_radius;
-		var xDist = point.x - this.x - this.hitbox.x;
-		var yDist = point.y - this.y - this.hitbox.y;
-		//console.log(xDist+' '+yDist);
-		var distance = Math.sqrt(xDist*xDist + yDist*yDist);
-
-		if (distance < minDistance) {
-			return true;
-		}
-		return false;
-	}
-
-	prototype.hitStage = function(circle,radius) {
-
-		var pt = circle.localToLocal(0,0,this);
-
-		var minDistance = radius + this.hitbox_radius;
-		var xDist = pt.x - this.hitbox.x;
-		var yDist = pt.y - this.hitbox.y;
-		//console.log(xDist+' '+yDist);
+		var xDist = x - this.x - this.hitbox.x;
+		var yDist = y - this.y - this.hitbox.y;
 		var distance = Math.sqrt(xDist*xDist + yDist*yDist);
 
 		if (distance < minDistance) {
@@ -772,17 +756,6 @@
 		return false;
 	}
 
-	prototype.isTubing = function() {
-
-		var i = this.wave.tube_points.length;
-		while(i--) {	
-			var point = this.wave.tube_points[i];			
-			if(this.hit(point,point.size)) {			
-				return true;			
-			} 		
-		}
-		return false;
-	}
 
 
 	prototype.isFalling = function() {
@@ -892,42 +865,39 @@
 
 		if(this.wave == undefined) return;
 
+		if(this.falling) return;
 
 		//check trajectory
 		this.checkTrajectory();
 
-		//does surfer hits top points	
-		var j = this.wave.top_fall_points.length;
+
+		//new method for checking fall point
+		var points = this.wave.getAllPeaksPoints();
+		var falltop_y = 0;
+		var fallbot_y = this.wave.params.height;
+
+		var j = points.length;
 		while(j--) {		
-			var point = this.wave.top_fall_points[j];	
-			//if point is not breaking yet, quit and continue
-			if(point.breaking === true) continue;
-			//check hit 
-			if(this.hit(point,point.size)) {
-				//init fall
-				this.fall();			
-				//throw event
-				this.dispatchEvent('fall_top');
-				//save reason
+			var point = points[j];	
+			break;
+			//check all top fall points
+			if(point.topfallscale > 1 && this.hit(point.x, falltop_y, point.topfallscale)) {
 				this.fall_reason = 'fall_top';
-				break;
-			} 			
-		}
-		
-		//does surfer hits bottom points	
-		var i = this.wave.bottom_fall_points.length;	
-		while(i--){
-			var point = this.wave.bottom_fall_points[i];			
-			//check hit 
-			if(this.hit(point,point.size)) {	
-				//init fall
-				this.fall();						
-				//throw event
-				this.dispatchEvent('fall_bottom');
-				//save reason
-				this.fall_reason = 'fall_bottom';
-				break;
-			} 			
+				this.fall();
+				this.dispatchEvent('fall_top');
+				return;
+			}
+
+			//check only splashed points
+			if(point.splashed) {
+				if(this.hit(point.x, fallbot_y, point.bottomfallscale)) {
+					this.fall_reason = 'fall_bottom';
+					this.fall();
+					this.dispatchEvent('fall_bottom');
+					return;
+				}
+			}
+ 			
 		}
 
 		//does surfer hits tube point
@@ -950,6 +920,24 @@
 
 	}
 
+	prototype.isTubing = function() {
+
+		const points = this.wave.getAllPeaksPoints();
+		const waveHeight = this.wave.params.height;
+		const tubePoints = [];
+		let i = points.length;
+		while(i--) {	
+			var point = points[i];		
+			if(point.splashed && this.hit(point.x, waveHeight>>1, point.tubescale)) {
+				//stock the current deep of the tube 			
+				this.tubeDepths.push(point.tubedeep);
+				//yes we are tubing !							
+				return true;
+			} 		
+		}
+		return false;
+	}
+
 	prototype.tubeIn = function() {
 
 		if(this.tubing === false) {
@@ -965,10 +953,22 @@
 
 	prototype.tubeOut = function() {
 
-		if(this.tubing === true) {
-			this.dispatchEvent('tube_out');
+		//make sure triggring only when getting out of the tube
+		if(this.tubing === false) {
+			return;
 		}
 
+		//get the deep of the tube
+		this.lastTubeDeep = this.tubeDepths.reduce((max,deep) => {
+			return (deep > max) ?  deep : max;
+		},0);
+
+		console.log('tube deep = ', this.lastTubeDeep);
+
+		//empty the tube
+		this.tubeDepths = [];
+
+		this.dispatchEvent('tube_out');
 		this.tubing = false;
 		this.tubeTime = 0;
 	}
