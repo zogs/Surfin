@@ -29,8 +29,8 @@
 		this.location = [this.x,this.y];
 		this.locations = [this.location];
 		this.trailpoints = [];
-		this.trailsize = 1.3;
-		this.trailcoef = 4.2;
+		this.trailsize = 1;
+		this.trailcoef = 3.2;
 		this.velocity = vec2.create();
 		this.velocities = [];
 		this.speed = 0;
@@ -54,12 +54,9 @@
 		this.skill = USER.get().skill;
 
 		this.hitbox = new createjs.Shape();
-		this.hitbox.graphics.beginFill('red').drawCircle(0,0,1);
-		this.hitbox.alpha = 0;
 		this.addChild(this.hitbox);
 
-		this.hitboard = new createjs.Shape();
-		this.hitboard.graphics.beginFill('red').drawCircle(0,0,3);		
+		this.hitboard = new createjs.Shape();	
 		this.addChild(this.hitboard);
 
 		this.silhouette_cont = new createjs.Container();
@@ -80,6 +77,7 @@
 
 		this.trail_shape = new createjs.Shape();
 		this.trail_cont = new createjs.Container();
+		this.trail_cont.y =  11; //align trail to board
 		this.trail_cont.addChild(this.trail_shape);
 		this.wave.trails_cont.addChild(this.trail_cont);
 
@@ -125,20 +123,19 @@
 			stage.dispatchEvent(ev);
 		},this);
 
-		this.on('arial_start',function(event) {
-			var ev = new createjs.Event('surfer_arial_start');
+		this.on('aerial_start',function(event) {
+			var ev = new createjs.Event('surfer_aerial_start');
 			ev.tricks = event.tricks;
 			stage.dispatchEvent(ev);
 		},this);
 
 
-		this.on('arial_end',function(event) {
-			var ev = new createjs.Event('surfer_arial_end');
+		this.on('aerial_end',function(event) {
+			var ev = new createjs.Event('surfer_aerial_end');
 			stage.dispatchEvent(ev);
 		},this);
 
 		this.on('fall',function(event) {
-		console.log('fall',this.fall_reason);	
 			if(this.isPlayer()) stage.dispatchEvent('player_fall');
 		},this,true);
 
@@ -184,10 +181,8 @@
 		},this);
 
 		this.on('paddler_malus_hitted', function(event) {
-			//save reason
-			this.fall_reason = 'fall_obstacle';
 			//init fall
-			this.fall();
+			this.fall('hit obstacle');
 		},this);
 
 		this.on('photo_bonus_hitted', function(event) {
@@ -252,6 +247,7 @@
 
 		this.location = vec2.fromValues(this.x,this.y);
 		this.locations.push(this.location);
+		this.getAngle();
 	}
 
 	prototype.endTakeOff = function() {
@@ -548,7 +544,9 @@
 		//stock trails locations
 		var point = {
 			location: this.location,
-			size: this.trailsize	
+			size: this.trailsize,
+			angle : this.angle,
+			angle_rad : this.angle_rad	
 		}
 		//add point to trail points array
 		this.trailpoints.unshift(point);
@@ -571,9 +569,9 @@
 	prototype.initAerial = function() {
 
 		//if already on air
-		if(this.status=='arial') return;
+		if(this.status=='aerial') return;
 		//set current status
-		this.status = 'arial';
+		this.status = 'aerial';
 		//hide trail
 		this.saveTrailSize();
 		this.trailsize = 0;
@@ -586,16 +584,16 @@
 
 	prototype.initTricks = function() {
 
-		var ev = new createjs.Event("arial_start");
+		var ev = new createjs.Event("aerial_start");
 
 		var impulse = vec2.length(this.velocity);
 
-		if(impulse > 35) {
+		if(impulse > 55) {
 
 			ev.tricks = 'Double Backflip';
 			this.initDoubleBackflip();
 		}
-		else if(impulse > 30) {
+		else if(impulse > 40) {
 
 			ev.tricks = 'Backflip';
 			this.initBackflip();
@@ -612,7 +610,8 @@
 		this.tricked = true;
 		createjs.Tween.get(this.silhouette_cont)
 			.to({rotation:360 * this.wave.direction},1000)
-			.call(proxy(this.endBackflip,this))
+			.set({rotation: 0})
+			.call(proxy(this.tricksEnded,this))
 			;
 	}
 
@@ -621,26 +620,26 @@
 		this.tricked = true;
 		createjs.Tween.get(this.silhouette_cont)
 			.to({rotation:720 * this.wave.direction},1500)
-			.call(proxy(this.endBackflip,this))
+			.set({rotation:0})
+			.call(proxy(this.tricksEnded,this))
 			;
 	}
 
-	prototype.endBackflip = function() {
+	prototype.tricksEnded = function() {
 
-		this.rotation = 0;
 		this.tricked = false;
 	}
 
 	prototype.initAerialParticles = function() {
 
-		this.timeoutArialParticles = window.setInterval(proxy(this.aerialParticles,this),50);
+		this.timeoutAerialParticles = window.setInterval(proxy(this.aerialParticles,this),50);
 	}
 
 	prototype.stopAerialParticles = function() {
 
-		if(this.timeoutArialParticles) {
-			window.clearInterval(this.timeoutArialParticles);
-			this.timeoutArialParticles = null;
+		if(this.timeoutAerialParticles) {
+			window.clearInterval(this.timeoutAerialParticles);
+			this.timeoutAerialParticles = null;
 		}
 	}
 
@@ -679,11 +678,11 @@
 
 	prototype.initRide = function() {
 
-		//end of an arial
-		if(this.status == 'arial') {
+		//end of an Aerial
+		if(this.status == 'aerial') {
 
-			this.endArial();		
-			this.dispatchEvent('arial_end');
+			this.endAerial();		
+			this.dispatchEvent('aerial_end');
 		}
 
 		//set status
@@ -702,16 +701,14 @@
 	}
 
 
-	prototype.endArial = function() {
+	prototype.endAerial = function() {
 
 		//if a tricks is not ended, surfer fall
 		if(this.tricked == true) {
 			//init fall
-			this.fall();
+			this.fall('bad landing aerial');
 			//throw event			
 			this.dispatchEvent('fall_tricks')
-			//save reason
-			this.fall_reason = 'fall_tricks';
 		}
 
 		//remove aerial particles
@@ -762,13 +759,17 @@
 		if(this.falling === true) return true;
 	}
 
-	prototype.fall = function() {
+	prototype.fall = function(reason) {
 
 		if(this.falling == true) return;
 		this.falling = true;
 
+		this.fall_reason = reason;
+		console.log('fall because: ', reason);
+
 		var e = new createjs.Event('fall');
 			e.surfer = this;
+			e.reason = reason;
 		this.dispatchEvent(e);
 
 		this.showFallPlouf();
@@ -879,20 +880,18 @@
 		var j = points.length;
 		while(j--) {		
 			var point = points[j];	
-			break;
+			
 			//check all top fall points
 			if(point.topfallscale > 1 && this.hit(point.x, falltop_y, point.topfallscale)) {
-				this.fall_reason = 'fall_top';
-				this.fall();
+				this.fall('hit top lip');
 				this.dispatchEvent('fall_top');
 				return;
 			}
 
 			//check only splashed points
 			if(point.splashed) {
-				if(this.hit(point.x, fallbot_y, point.bottomfallscale)) {
-					this.fall_reason = 'fall_bottom';
-					this.fall();
+				if(this.hit(point.x, fallbot_y, point.bottomfallscale)) {					
+					this.fall('hit bottom splash');
 					this.dispatchEvent('fall_bottom');
 					return;
 				}
@@ -983,11 +982,9 @@
 			
 		if(diff > allowed) {
 			//init fall
-			this.fall();
+			this.fall('bad trajectory');
 			//throw event			
 			this.dispatchEvent('fall_edge')
-			//save reason
-			this.fall_reason = 'fall_edge'
 		}
 	}
 
@@ -1053,6 +1050,7 @@
 			var y = trail.location[1];
 			var point = new createjs.Point(x,y);
 			point.size = trail.size;
+			point.angle = trail.angle_rad;
 			points.push(point);
 			//save all x values
 			xs.push(point.x);
@@ -1064,18 +1062,25 @@
 		var xmax = Math.max.apply(null,xs) + 100;
 
 		this.trail_shape.graphics.clear();
-		this.trail_shape.graphics.beginFill('white');
+		this.trail_shape.graphics.beginRadialGradientFill(["rgba(255,255,255,1)","rgba(255,255,255,0)"], [0,1], this.x, this.y, 0, this.x, this.y, 400 );
 
 		for(var i=0; i<=nb; i++) {
+			var point = points[i];
 			var size = i*points[i].size + this.trailcoef*points[i].size;
-			this.trail_shape.graphics.lineTo(points[i].x - size/2,points[i].y - size/2);	
+			var x = size * Math.cos(point.angle + Math.PI/2) + point.x;
+			var y = size * Math.sin(point.angle + Math.PI/2) + point.y;
+			this.trail_shape.graphics.lineTo(x,y);	
+
 		}
 		for(var i=nb; i>=0; i--) {
+			var point = points[i];
 			var size = i*points[i].size + this.trailcoef*points[i].size;
-			this.trail_shape.graphics.lineTo(points[i].x + size/2,points[i].y + size/2);
+			var x = size * Math.cos(point.angle + Math.PI + Math.PI/2) + point.x;
+			var y = size * Math.sin(point.angle + Math.PI + Math.PI/2) + point.y;
+			this.trail_shape.graphics.lineTo(x,y);
 		}	
 		this.trail_shape.graphics.closePath();	
-	
+
 /*
 		for(var i = 0; i <= nb - 1; i++) {
 
@@ -1123,12 +1128,17 @@
 
 	prototype.drawDebug = function() {
 		
+		this.debug_cont.removeAllChildren();
+		this.hitboard.alpha = 0;	
+		this.hitbox.alpha = 0;
+
 		if(!DEBUG) return;
 
-		this.hitbox.alpha = 0.5;
+		this.hitbox.graphics.beginFill('red').drawCircle(0,0,1);
+		this.hitbox.alpha = 0.2;
 
-
-		this.debug_cont.removeAllChildren();
+		this.hitboard.graphics.beginFill('red').drawCircle(0,0,3);	
+		this.hitboard.alpha = 0.8;	
 
 		var pt = findPointFromAngle(0,0,this.direction,this.speed*3);
 		var angle = new createjs.Shape();	
@@ -1160,7 +1170,7 @@
 
 	prototype.getAngle = function() {
 
-		if(this.locations[1] == undefined) return this.angle = 160;
+		if(this.locations[1] == undefined) return this.angle = 270;
 		this.angle_rad = Math.atan2(this.locations[0][1]-this.locations[1][1],this.locations[0][0]-this.locations[1][0]);
 		this.angle = Math.degrees(this.angle_rad);
 		this.direction = this.angle;		

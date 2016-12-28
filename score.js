@@ -76,11 +76,11 @@
 			this.add(3500).say('Take Off !', 1000);
 		},this);
 
-		stage.on('surfer_arial_start',function(event) {	
+		stage.on('surfer_aerial_start',function(event) {	
 			this.start(200).say(event.tricks +' !');
 		},this);
 
-		stage.on('surfer_arial_end',function(event) {			
+		stage.on('surfer_aerial_end',function(event) {			
 			this.end().silence();
 		},this);
 
