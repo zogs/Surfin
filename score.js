@@ -299,6 +299,7 @@
 			density: 5 + Math.random()*5,
 			callback : proxy(this.removeTextParticles,this),
 			magnitude: 20,
+			magnitudemax : 25,
 			angle: - Math.PI/2,
 			spread: Math.PI/2,
 			size: 8,
@@ -310,6 +311,7 @@
 			forces: [vec2.fromValues(0,0.5)],
 			shapes: [{shape:'star',fill:'yellow',stroke:0.1,strokeColor:'yellow',percentage:100}]
 		});
+		
 		this.spot.wave.score_particles_cont.addChild(emitter);
 	}
 

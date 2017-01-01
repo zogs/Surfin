@@ -54,9 +54,11 @@
 		this.skill = USER.get().skill;
 
 		this.hitbox = new createjs.Shape();
+		this.hitbox.graphics.beginFill('red').drawCircle(0,0,1);
 		this.addChild(this.hitbox);
 
 		this.hitboard = new createjs.Shape();	
+		this.hitboard.graphics.beginFill('red').drawCircle(0,0,3);	
 		this.addChild(this.hitboard);
 
 		this.silhouette_cont = new createjs.Container();
@@ -99,6 +101,7 @@
 		this.move();
 		this.stock();
 		this.testFall();
+		this.drawTrails();
 		this.drawDebug();
 
 	}
@@ -1062,7 +1065,7 @@
 		var xmax = Math.max.apply(null,xs) + 100;
 
 		this.trail_shape.graphics.clear();
-		this.trail_shape.graphics.beginRadialGradientFill(["rgba(255,255,255,1)","rgba(255,255,255,0)"], [0,1], this.x, this.y, 0, this.x, this.y, 400 );
+		this.trail_shape.graphics.beginRadialGradientFill(["rgba(255,255,255,1)","rgba(255,255,255,0)"], [0,1], this.x, this.y, 0, this.x, this.y, 600 );
 
 		for(var i=0; i<=nb; i++) {
 			var point = points[i];
@@ -1134,10 +1137,8 @@
 
 		if(!DEBUG) return;
 
-		this.hitbox.graphics.beginFill('red').drawCircle(0,0,1);
-		this.hitbox.alpha = 0.2;
-
-		this.hitboard.graphics.beginFill('red').drawCircle(0,0,3);	
+		
+		this.hitbox.alpha = 0.2;		
 		this.hitboard.alpha = 0.8;	
 
 		var pt = findPointFromAngle(0,0,this.direction,this.speed*3);

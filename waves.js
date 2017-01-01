@@ -85,9 +85,8 @@ prototype.init = function(params) {
 	this.lip_points = [];
 	this.lip_cap_points = [];
 	this.breaking_peaks = [];
-	this.peakpoints = []
-;	this.particles = [];
-	this.debug_alpha = 0.1;
+	this.peakpoints = [];
+	this.particles = [];
 	this.shaking_force = 1.2;
 	this.direction = 0;
 	this.movingX = 0;
@@ -154,7 +153,6 @@ prototype.init = function(params) {
 		this.foreground_cont.addChild(this.splash_cont);
 		//debug
 		this.debug_cont = new createjs.Container();
-		this.debug_cont.alpha = this.debug_alpha;
 		this.foreground_cont.addChild(this.debug_cont);
 
 			//points of the wave
@@ -561,7 +559,6 @@ prototype.tick = function(ev) {
 		this.breaking();
 		this.drawLip();
 		this.drawSplash();
-		this.drawTrails();
 		this.moveWave();
 		this.drawShape();	
 		this.animateBackground();
@@ -1176,41 +1173,50 @@ prototype.drawSplash = function () {
 		peaks[j] = splashed;
 	}
 
+	this.splash_gfx.clear();
+
 	for(var j=0, ln=peaks.length; j<ln; j++) {
 
 		points = peaks[j];
 
 		if(points.length==0) continue;
 
-		this.splash_gfx.clear();
+		//var color = createjs.Graphics.getHSL(Math.random()*360,100,50);
 		this.splash_gfx.beginFill('#FFF').beginStroke('rgba(0,0,0,0.2').setStrokeStyle(1);
+		this.splash_gfx.moveTo(points[0].x, this.params.height);
+		//this.splash_gfx.moveTo(points[0].x - this.params.breaking.left.width, points[0].splash_y);
+		//this.splash_gfx.lineTo(points[0].x,points[0].splash_y);
 
-			this.splash_gfx.moveTo(points[0].x - this.params.breaking.left.width, points[0].splash_y);
-			this.splash_gfx.lineTo(points[0].x,points[0].splash_y);
-
-			if(PERF==0) {
-				for(var i=1,len=points.length; i<len - 2; i++) {
-					this.splash_gfx.lineTo(points[i].x,points[i].y);
-				}
-				//close in straigh line
-				this.splash_gfx.lineTo(points[len-1].x, this.params.height);
-				if(this.cleanedRight && this.direction===1) this.splash_gfx.lineTo(points[len-1].x,this.params.height);
-				if(this.cleanedLeft && this.direction===-1) this.splash_gfx.lineTo(points[0].x,this.params.height);
+		if(PERF==0) {
+			console.log('lol')
+			for(var i=1,len=points.length; i<len - 2; i++) {
+				this.splash_gfx.lineTo(points[i].x,points[i].bounce_y);
 			}
-			else {
-				for(var i=1,len=points.length; i<len - 2; i++) {
-					var xc = ( points[i].x + points[i+1].x) >> 1; // divide by 2
-					var yc = ( points[i].bounce_y + points[i+1].bounce_y) >> 1; // divide by 2
-					this.splash_gfx.quadraticCurveTo(points[i].x,points[i].bounce_y,xc,yc);
-				}
-
-				//close in straigh line
-				this.splash_gfx.lineTo(points[len-1].x, this.params.height);
-				if(this.cleanedRight && this.direction===1) this.splash_gfx.lineTo(points[len-1].x,this.params.height);
-				if(this.cleanedLeft && this.direction===-1) this.splash_gfx.lineTo(points[0].x,this.params.height);
+			//close in straigh line
+			this.splash_gfx.lineTo(points[len-1].x, this.params.height);
+			if(this.cleanedRight && this.direction===1) this.splash_gfx.lineTo(points[len-1].x,this.params.height);
+			if(this.cleanedLeft && this.direction===-1) this.splash_gfx.lineTo(points[0].x,this.params.height);
+		}
+		else {
+			for(var i=1,len=points.length; i<len - 2; i++) {
+				var xc = ( points[i].x + points[i+1].x) >> 1; // divide by 2
+				var yc = ( points[i].bounce_y + points[i+1].bounce_y) >> 1; // divide by 2
+				this.splash_gfx.quadraticCurveTo(points[i].x,points[i].bounce_y,xc,yc);
 			}
-		
+
+			//close in straigh line
+			this.splash_gfx.lineTo(points[len-1].x, this.params.height);
+			if(this.cleanedRight && this.direction===1) this.splash_gfx.lineTo(points[len-1].x,this.params.height);
+			if(this.cleanedLeft && this.direction===-1) this.splash_gfx.lineTo(points[0].x,this.params.height);
+		}		
+
+		//for(let i=points.length-1; i>=0; i--) {
+		//	this.splash_gfx.lineTo(points[i].x,points[i].y);
+		//}
+//
+		//this.splash_gfx.closePath();
 	}
+
 
 
 
@@ -1259,7 +1265,8 @@ prototype.drawLip = function() {
 
 				//draw shape line through all points of the lip
 				this.lip_shape.graphics.lineTo(x,y);
-				this.lip_thick.lineTo(x,yt);
+				this.lip_thick.graphics.lineTo(x,yt);
+
 
 				//save first and last splashed point for later use
 				if(!firstSplashed && points[i].splashed) { firstSplashed = points[i];}
@@ -1322,22 +1329,6 @@ prototype.drawLip = function() {
 	this.lip_cap.graphics.closePath();
 	this.lip_thick.graphics.closePath();
 
-}
-
-prototype.drawTrails = function() {
-
-	//do not draw anythings if there is no surfers, or the wave is not played
-	if(this.surfers.length == 0) return;
-
-	//draw for each surfers
-	for(var j=0,len=this.surfers.length; j<len; j++) {
-
-
-		var surfer = this.surfers[j];
-		surfer.drawTrail();		
-		
-	}
-	
 }
 
 prototype.initObstaclesInterval = function() {
@@ -1553,14 +1544,16 @@ prototype.drawDebug = function() {
 
 		//DRAW LIP POINTS
 		const lip = new createjs.Shape();
-		lip.graphics.beginFill('black').drawCircle(0,0,5);
+		lip.graphics.beginFill('black').drawCircle(0,0,3);
+		lip.alpha = 0.8;
 		lip.x = point.x;
 		lip.y = point.y;
 		this.debug_points_cont.addChild(lip);
 
 		//DRAW CAP POINTS
 		const cap = new createjs.Shape();
-		cap.graphics.beginFill('black').drawCircle(0,0,3);
+		cap.graphics.beginFill('black').drawCircle(0,0,2);
+		cap.alpha = 1;
 		cap.x = point.x;
 		cap.y = point.cap.y;
 		this.debug_points_cont.addChild(cap);
@@ -1568,6 +1561,7 @@ prototype.drawDebug = function() {
 		//DRAW TOP FALL POINTS
 		const top = new createjs.Shape();
 		top.graphics.beginFill('red').drawCircle(0,0,1);
+		top.alpha = 0.1;
 		top.x = point.x;
 		top.y = 0;
 		top.scaleX = top.scaleY = point.topfallscale;
@@ -1578,6 +1572,7 @@ prototype.drawDebug = function() {
 			
 			const bot = new createjs.Shape();
 			bot.graphics.beginFill('red').drawCircle(0,0,1);
+			bot.alpha = 0.1;
 			bot.x = point.x;
 			bot.y = this.params.height;
 			bot.scaleX = bot.scaleY = point.bottomfallscale;
@@ -1585,6 +1580,7 @@ prototype.drawDebug = function() {
 
 			const tube = new createjs.Shape();
 			tube.graphics.beginFill('green').drawCircle(0,0,1);
+			tube.alpha = 0.1;
 			tube.x = point.x;
 			tube.y = this.params.height/2;
 			tube.scaleX = tube.scaleY = point.tubescale;
