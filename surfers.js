@@ -1,5 +1,10 @@
 (function() {
 	
+	// define usefull constant (NB: use positive numeric for perf reason)
+	const LEFT = 1;
+	const CENTER = 0;
+	const RIGHT = 2;
+
 	function Surfer(params) {
 
 		this.Container_constructor();
@@ -10,7 +15,7 @@
 	//add EventDispatcher
 	createjs.EventDispatcher.initialize(prototype);
 	//public static properties
-	prototype.gravity = vec2.fromValues(0,2);
+	prototype.gravity = new Victor(0,7);
 	prototype.hitbox_proportion = 25;
 	prototype.origin_height = 80;
 	prototype.height = 80;
@@ -31,13 +36,14 @@
 		this.config.velocityX = this.wave.params.breaking.left.width * this.config.velocityX_idx;
 		this.config.velocityY = 20 * this.config.velocityY_idx;
 
-		this.location = [this.x,this.y];
+		this.location = new Victor(this.x,this.y);
 		this.locations = [this.location];
 		this.trailpoints = [];
 		this.trailsize = 1;
 		this.trailcoef = 3.2;
-		this.velocity = vec2.create();
+		this.velocity = new Victor();
 		this.velocities = [];
+		this.pumped = [];
 		this.speed = 0;
 		this.angle;
 		this.angles = [];
@@ -253,7 +259,7 @@
 
 	prototype.updateLocation = function(e) {
 
-		this.location = vec2.fromValues(this.x,this.y);
+		this.location = new Victor(this.x, this.y);
 		this.locations.push(this.location);
 		this.getAngle();
 	}
@@ -307,7 +313,7 @@
 
 	prototype.getVanishVector = function() {
 
-		return vec2.fromValues(this.wave.getVanishPoint().x,this.wave.getVanishPoint().y);
+		return new Victor(this.wave.getVanishPoint().x, this.wave.getVanishPoint().y);
 	}
 
 	prototype.isPlayer = function() {
@@ -382,8 +388,8 @@
 		}	
 
 		//set this position
-		this.x = this.location[0];
-		this.y = this.location[1];		
+		this.x = this.location.x;
+		this.y = this.location.y;		
 		
 		//set silhouette
 		this.setSurferSilhouette();	
@@ -393,10 +399,9 @@
 	prototype.moveOnOllie = function() {
 
 		//add gravity to ollie initial vector
-		vec2.add(this.ollie_vector,this.ollie_vector,this.gravity);		
+		this.ollie_vector.add(this.gravity);
 		//add initial 
-		vec2.add(this.location,this.location,this.ollie_vector);
-		
+		this.location.add(this.ollie_vector);		
 	}
 
 	prototype.ollie = function() {
@@ -405,20 +410,19 @@
 		if(this.ollieing === true) return;
 		this.ollieing = true;		
 		
-		this.ollie_height = vec2.fromValues(0,-13);
-		this.ollie_vector = vec2.create();
-		vec2.add(this.ollie_vector,this.velocity,this.ollie_height);	
+		this.ollie_impluse = new Victor(0,-30);
+		this.ollie_vector = this.velocity.clone().add(this.ollie_impluse);		
 
 		this.saveTrailSize();
 		this.trailsize = 0;
 		this.autoSilhouette = false;
 	
-		//console.log('ollie');
-		window.setTimeout(proxy(this.endOllie,this),500);
+		window.setTimeout(proxy(this.endOllie,this),350);
 
 	}
 
 	prototype.endOllie = function() {
+
 		this.ollieing = false;
 		this.autoSilhouette = true;
 
@@ -494,13 +498,13 @@
 
 	prototype.moveOnWave = function() {
 
-		return this.moveFromVelicities();
+		return this.moveFromVelocities();
 		// return this.moveFromLerp();
 		// return this.moveOnWaveOLD();
 	}
 
-	prototype.moveFromVelicities = function() {
-
+	prototype.moveFromVelocities = function() {
+		
 		// get which lip point surfer is under
 		const point_under = this.findWavePointUnder();
 
@@ -508,7 +512,7 @@
 		const mouse = this.getMousePoint(0);
 
 		// calcul distance between surfer and mouse
-		let distance = vec2.distance(vec2.fromValues(mouse.x,0),vec2.fromValues(this.x,0));
+		let distance = this.location.absDistanceX(mouse);
 		const distanceMax = 400;
 		const distanceMin = 20;
 		if(distance >= distanceMax) distance = distanceMax;
@@ -516,7 +520,7 @@
 		const distanceIdx = ( distance ) / ( distanceMax - distanceMin );
 	
 		// get horizontal velocity from lip position
-		let vX = point_under.breaking_width * ( 1 + point_under.breaking_idx );
+		let vX = point_under.breaking_width * ( 0.5 + point_under.breaking_idx );
 
 		// get vertical velocity from mouse position
 		let vY = ( mouse.y - this.y ) / 10;
@@ -526,37 +530,84 @@
 		vX = vX * direction;
 		
 		// set initial velocity
-		let velocities = vec2.fromValues(vX,vY);
+		let velocity = new Victor(vX,vY);
 
 		// scale with mouse distance
-		vec2.scale(velocities,velocities,distanceIdx);
+		velocity.scale(distanceIdx);
 
 		// scale with user skill ( from x1 to x1.5)
 		const skill_idx = 1 + (this.skill.speed / 2); 
-		vec2.scale(velocities,velocities,skill_idx);
+		velocity.scale(skill_idx);
 
 		// surfer have more speed where on top of the segment ( from x1 to x2 )
 		const y_coef = 1 + 1 - ( this.y / this.wave.config.height );
-		vec2.scale(velocities,velocities, y_coef);
+		velocity.scale(y_coef);
 
-		// scale with wave config surfer's velocities coef (from x0 to ...)
-		const config = vec2.fromValues(this.config.velocityX_idx,this.config.velocityY_idx);
-		vec2.multiply(velocities,velocities,config);
+		// scale with wave config surfer's velocity coef (from x0 to ...)
+		velocity.scaleX(this.config.velocityX_idx);
+		velocity.scaleY(this.config.velocityY_idx);
 
 		// surfer get more speed when angled to the bottom ( from x1 to x1.5)
 		let angle_coef = (this.angle_rad > 0 )? 1 + (this.angle_rad / Math.PI/2)/2 : 1;
-		vec2.scale(velocities,velocities,angle_coef);
+		velocity.scale(angle_coef);
+
+		// add pump-pump to velocity
+		velocity = this.addPumpedInertia(velocity);
 		
-		//set current position
-		vec2.add(this.location,this.location,velocities);
+		// set global velocity
+		this.velocity = velocity.clone();
+
+		// apply velocity to position
+		this.location.add(velocity);
 
 		//sightly up and down random movement
-		this.addMoveZigZag();
+		//this.addMoveZigZag();
 
 		//surfer can't go bellow the wave
-		if( this.location[1] > this.wave.params.height ) {
-			this.location[1] = this.wave.params.height;
+		if( this.location.y > this.wave.params.height) {
+			this.location.y = this.wave.params.height;
 		}
+
+	}
+
+	prototype.isGoingHorizontal = function(angle) {
+		
+		const del = 20; // 20° tolerance
+		if( this.direction === LEFT && ( angle > 180 - del/2 || angle < - 180 + del/2 )) return true;
+		if( this.direction === RIGHT && ( angle < del/2 && angle > - del/2 )) return true;
+		return false;
+	}
+
+	prototype.addPumpedInertia = function(velocity) {
+		
+		
+		// if going horizontal for 15 frame , reset pumped stock
+		if( this.isGoingHorizontal(this.angle) ) {
+			let countHorizontal = 0;
+			for(let i=0,len=60; i<len; ++i) {
+				if( this.angles[i] && this.isGoingHorizontal(this.angles[i]) ) countHorizontal++;
+				else break;
+			}
+			if(countHorizontal >= 15) {
+				this.pumped = [];
+			}
+			return velocity;
+		}		
+		
+		// if angle toward bottom, stock inertia in array
+		if(this.angle_rad > 0) {
+			this.pumped.push(velocity.clone());
+		}
+		// if angle upward, apply inertia
+		else {
+			if(this.pumped.length === 0) return velocity;
+			const pump = this.pumped.pop();
+			pump.scale(0.3);
+			velocity.addX(pump);
+			velocity.subtractY(pump);
+		}
+
+		return velocity;
 
 	}
 
@@ -565,25 +616,25 @@
 
 		//interpolation to mouse
 		var mouse = this.getMousePoint(0);
-		vec2.lerp(this.location,this.location,vec2.fromValues(mouse.x,mouse.y),0.24);
+		this.location.mix(mouse,0.24);
 
 		//interpolation to vanish
 		var vanish = this.getVanishPoint();
-		vec2.lerp(this.location,this.location,vec2.fromValues(vanish.x,vanish.y),0.05);
+		this.location.mix(vanish,0.05);
 
 		//apply skill limit
-		var speed = new vec2.create();
-		vec2.sub(speed,this.location,this.locations[0]);
+		var speed = new Victor();
+		speed.subtract(this.location,this.locations[0]);
 		var limit = 0.5 + this.skill.speed/2;
-		vec2.scale(speed,speed,limit);		
-		vec2.add(this.location,this.locations[0],speed);
+		speed.scale(limit);
+		this.location.add(speed);
 
 		//sightly up and down random movement
 		this.addMoveZigZag();
 
 		//sufer cant go bellow the wave
-		if(this.location[1] > this.wave.params.height) {
-			this.location[1] = this.wave.params.height;
+		if( this.location.y > this.wave.params.height) {
+			this.location.y = this.wave.params.height;
 		}
 
 	}
@@ -591,18 +642,24 @@
 	prototype.addMoveZigZag = function() {
 
 		if(!this.zigzag) this.zigzag = new Variation({min:4, max:8, time: 200});
-		this.location[1] = this.location[1] + ( 4 - this.zigzag);
+		this.location.y = this.location.y + ( 4 - this.zigzag);
+
 	}
 
 	prototype.moveOnAir = function() {
 
-		//add initial velocity
-		vec2.add(this.location,this.location,this.velocity);
-		//apply skill limit
-		var gravity = vec2.create();
-		vec2.scale(gravity,this.gravity,2-this.skill.aerial);
-		//add gravity
-		vec2.add(this.location,this.location,gravity);	
+		// add initial velocity
+		this.location.add(this.velocity);
+		// get gravity
+		const gravity = this.gravity.clone();
+		// calcul skill aerial
+		const antigrav = gravity.clone().scale(this.skill.aerial/2);
+		// compensate gravity with user skill aerial
+		gravity.subtract(antigrav);
+		// apply gravity to location
+		this.location.add(gravity);
+		// calcul new velocity
+		this.velocity = this.locations[0].clone().subtract(this.locations[1]);		
 
 	}
 
@@ -611,7 +668,7 @@
 		
 		
 		//stock locations		
-		this.locations.unshift(vec2.clone(this.location));
+		this.locations.unshift(this.location.clone());
 		this.locations = this.locations.slice(0,60);
 		//stock trails locations
 		var point = {
@@ -625,16 +682,18 @@
 		this.trailpoints = this.trailpoints.slice(0,50);
 
 		//stock velocities
-		vec2.sub(this.velocity,this.locations[0],this.locations[1]);	
-		this.velocities.unshift(vec2.clone(this.velocity));
+		this.velocities.unshift(this.velocity.clone());
 		this.velocities = this.velocities.slice(0,50);
 
 		//stock speed
-		this.speed = vec2.dist(this.locations[0],this.locations[1]);	
+		this.speed = this.locations[0].distance(this.locations[1]);
 
 		//stock angle
 		this.angles.unshift(this.angle);
 		this.angles = this.angles.slice(0,50);
+
+		//set direction
+		this.direction = (this.locations[0].x - this.locations[1].x < 0) ? LEFT : RIGHT;
 
 	}
 
@@ -658,7 +717,7 @@
 
 		var ev = new createjs.Event("aerial_start");
 
-		var impulse = vec2.length(this.velocity);
+		var impulse = this.velocity.length();
 
 		if(impulse > 55) {
 
@@ -876,12 +935,13 @@
 
 	prototype.fallWithInertia = function() 
 	{
-		vec2.scale(this.velocity,this.velocity,0.8);
-		
-		if(vec2.sqrLen(this.velocity) < 1) {
+		this.velocity.scale(0.8);
+	
+		if( this.velocity.lengthSq() < 1) {
 			this.fallFinished();
-		}
-		vec2.add(this.location,this.location,this.velocity);
+		}	
+		
+		this.location.add(this.velocity);
 	}
 
 	prototype.showFallPlouf = function() {
@@ -1113,10 +1173,10 @@ return;
 		for (var i = 0; i <= nb; ++i) {
 			//apply vector suction
 			var trail = this.trailpoints[i];
-			vec2.add(trail.location,trail.location,this.wave.params.suction);	
+			trail.location.add(this.wave.params.suction);
 			//create xy Point
-			var x = trail.location[0] + 5;
-			var y = trail.location[1];
+			var x = trail.location.x + 5;
+			var y = trail.location.y;
 			var point = new createjs.Point(x,y);
 			point.size = trail.size;
 			point.angle = trail.angle_rad;
@@ -1207,47 +1267,20 @@ return;
 		this.hitbox.alpha = 0.2;		
 		this.hitboard.alpha = 0.8;	
 
-		var pt = findPointFromAngle(0,0,this.direction,this.speed*3);
-		var angle = new createjs.Shape();	
-		angle.graphics.setStrokeStyle(1).beginStroke('red').moveTo(0,0).lineTo(pt.x,pt.y);
-		this.debug_cont.addChild(angle);
-
-		
-		//calcul suction vector
-		var vec = new vec2.create();
-		vec2.sub(vec, this.getVanishVector(),this.location);			
-		res = this.localToLocal(vec[0],vec[1],this);
-		vec2.scale(vec,vec2.fromValues(res.x,res.y),0.4);
-		//draw section vector
-		var suction = new createjs.Shape();
-		suction.graphics.setStrokeStyle(1).beginStroke('pink').moveTo(0,0).lineTo(vec[0],vec[1]);
-		this.debug_cont.addChild(suction);
-
-		//calcul mouse vector
-		var vec = new vec2.create();
-		var mouse = this.globalToLocal(MOUSE_X,MOUSE_Y);
-		var loc = this.localToLocal(0,0,this);
-		vec2.sub(vec,vec2.fromValues(mouse.x,mouse.y),vec2.fromValues(loc.x,loc.y));	
-		vec2.scale(vec,vec,0.4);
-		//draw mouse vector
-		var mvector = new createjs.Shape();
-		mvector.graphics.setStrokeStyle(1).beginStroke('green').moveTo(0,0).lineTo(vec[0],vec[1]);
-		this.debug_cont.addChild(mvector);
 	}
 
 	prototype.getAngle = function() {
 
 		if(this.locations[1] === undefined) return this.angle = 270;
-		this.angle_rad = Math.atan2(this.locations[0][1]-this.locations[1][1],this.locations[0][0]-this.locations[1][0]);
-		this.angle = Math.degrees(this.angle_rad);
-		this.direction = this.angle;		
+		this.angle_rad = Math.atan2(this.locations[0].y - this.locations[1].y,this.locations[0].x - this.locations[1].x);
+		this.angle = Math.degrees(this.angle_rad);	
 		
 		return this.angle;
 	}
 
 	prototype.setSurferSilhouette = function() {	
 		
-		if(this.autoSilhouette==false) return;
+		if(this.autoSilhouette === false) return;
 
 		this.getAngle();
 		this.silhouette.removeChildAt(0);
@@ -1258,7 +1291,7 @@ return;
 	prototype.getAngledSilhouette = function() {
 		//dont touch
 		//unless you want to rewrite all bitmap condition......
-		var rad = Math.atan2(this.locations[1][0]-this.locations[0][0],this.locations[1][1]-this.locations[0][1]);
+		var rad = Math.atan2(this.locations[1].x-this.locations[0].x,this.locations[1].y-this.locations[0].y);
 		var deg = -1*Math.degrees(rad);
 		if(deg>170) return new createjs.Bitmap(queue.getResult('surfer_S'));
 		if(deg>160) return new createjs.Bitmap(queue.getResult('surfer_SE'));

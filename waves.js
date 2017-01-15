@@ -94,7 +94,7 @@ prototype.init = function(params) {
 	this.movingX = 0;
 
 	//initiale suction force with no x value, later suction will be defined when direction is setted
-	this.params.suction = vec2.fromValues(0, - this.params.suction_y);		
+	this.params.suction = new Victor(0, - this.params.suction_y);		
 	
 	this.breaked = false;
 	this.played = false;
@@ -1083,8 +1083,8 @@ prototype.setDirection = function() {
 	}
 
 	//invert suction direction for left waves
-	if(this.direction === LEFT) this.params.suction = vec2.fromValues(this.params.suction_x*-1,- this.params.suction_y);	
-	if(this.direction === RIGHT) this.params.suction = vec2.fromValues(this.params.suction_x,- this.params.suction_y);	
+	if(this.direction === LEFT) this.params.suction = new Victor(this.params.suction_x*-1,- this.params.suction_y);	
+	if(this.direction === RIGHT) this.params.suction = new Victor(this.params.suction_x,- this.params.suction_y);	
 	
 }
 
@@ -1095,16 +1095,18 @@ prototype.moveWave = function() {
 	if(this.surfer.riding === false) return;
 	if(this.direction === CENTER) return;
 
-	//var coef = 1 - ((100*this.y/SPOT.peak_point) / 100);	
-	var surfer_pos = this.cont.localToGlobal(this.surfer.x,0);
-	var delta = (STAGEWIDTH>>1) - surfer_pos.x;
+	// get absolute surfer x position on the screen
+	const surfer_pos = this.cont.localToGlobal(this.surfer.x,0);
+
+	// horizontal position the which the wave will be translate to a side of the screen
+	let delta = (STAGEWIDTH>>1) - surfer_pos.x;
 
 	if(this.direction === LEFT) {
-		delta += 200;
+		delta += STAGEWIDTH / 5;
 		this.movingX = delta/this.params.breaking.left.width;
 	}
 	if(this.direction === RIGHT) {
-		delta += -200;
+		delta += -STAGEWIDTH / 5;
 		this.movingX = delta/this.params.breaking.right.width;
 	}
 
@@ -1317,10 +1319,9 @@ prototype.drawLip = function() {
 
 
 	//for each peak
-	for(var j=0, ln=this.peaks.length; j<ln; j++) {		
+	for(let j=0, ln=this.peaks.length; j<ln; j++) {		
 
-		var points = this.peaks[j].points;
-		var lastSplashed = null, firstSplashed = null;
+		let points = this.peaks[j].points;
 
 		//do NOT draw when there are no lip points
 		if(points.length === 0) continue;
@@ -1344,11 +1345,6 @@ prototype.drawLip = function() {
 				//draw shape line through all points of the lip
 				this.lip_shape.graphics.lineTo(x,y);
 				this.lip_thick.graphics.lineTo(x,yt);
-
-
-				//save first and last splashed point for later use
-				if(!firstSplashed && points[i].splashed) { firstSplashed = points[i];}
-				if(!lastSplashed && points[len-2-i].splashed) { lastSplashed = points[len-1];}
 
 				//draw cap
 				if(pt.cap) this.lip_cap.graphics.lineTo(pt.x,pt.cap.y);
@@ -1379,10 +1375,6 @@ prototype.drawLip = function() {
 				this.lip_shape.graphics.quadraticCurveTo(x1,y1,xc,yc);
 				this.lip_thick.graphics.quadraticCurveTo(x1,y1t,xc,yct);
 				this.lip_shadow.graphics.quadraticCurveTo(x1,y1*10,xc,yc*10);
-
-				//save first and last spashed point for later use
-				if(!firstSplashed && points[i].splashed) { firstSplashed = points[i];}
-				if(!lastSplashed && points[len-2-i].splashed) {lastSplashed = points[len-1];}
 
 				//draw cap
 				if(p1.cap) this.lip_cap.graphics.lineTo(p1.x,p1.cap.y);
@@ -1472,8 +1464,8 @@ prototype.drawSplash = function () {
 prototype.drawMask = function() {
 
 	//get shoulders positions
-	var left = this.shoulder_left;
-	var right = this.shoulder_right;
+	const left = this.shoulder_left;
+	const right = this.shoulder_right;
 	
 	//minor shoulder variations
 	if(this.breaked === true && this.params.shoulder.left.slope === null) this.params.shoulder.left.slope = new Variation({min:-50,max:50});
@@ -1498,7 +1490,7 @@ prototype.drawMask = function() {
 }
 
 prototype.drawDebug = function() {
-return;
+
 	var points = this.getAllPeaksPoints();
 	//get only splashed point
 	this.debug_points_cont.removeAllChildren();
@@ -1509,7 +1501,7 @@ return;
 		//DRAW LIP POINTS
 		const lip = new createjs.Shape();
 		let color = 'black';
-		if(this.surfer.point_under.x === point.x) color = 'red';
+		if(this.surfer.point_under && this.surfer.point_under.x === point.x) color = 'red';
 		lip.graphics.beginFill(color).drawCircle(0,0,3);
 		lip.alpha = 0.8;
 		lip.x = point.x;

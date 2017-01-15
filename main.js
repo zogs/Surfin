@@ -58,7 +58,7 @@ window.initialize = function() {
 	MOUSE_Y = STAGEHEIGHT/2;
 	MOUSE_POINTS = [new createjs.Point(MOUSE_X,MOUSE_Y)];
 
-	DEBUG = 1;
+	DEBUG = 0;
 	TEST = 0;
 	PAUSED = 0;
 	PERF = 3;
@@ -203,7 +203,7 @@ window.getMousePoint = function(n) {
 
 window.getMouseVector = function(n) {
 
-	return vec2.fromValues(getMousePoint(n).x - getMousePoint(n+1).x,getMousePoint(n).y - getMousePoint(n+1).y);
+	return new Victor(getMousePoint(n).x - getMousePoint(n+1).x, getMousePoint(n).y - getMousePoint(n+1).y );
 }
 
 window.switchDebugMode = function() {

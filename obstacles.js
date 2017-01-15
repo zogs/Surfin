@@ -18,7 +18,7 @@
 		this.img = this.config.img != undefined ? this.config.img : 'surfer_paddle';
 		this.config.name = config.name || 'paddler';
 
-		this.location = new vec2.create();		
+		this.location = new Victor();
 		this.ducking = false;
 		this.hitted = false;
 		this.bonuses = [];
@@ -68,7 +68,7 @@
 
 		this.x = x;
 		this.y = y;
-		this.location = vec2.fromValues(x,y);
+		this.location = new Victor(x,y);
 	}
 
 	prototype.tick = function() {
@@ -140,10 +140,11 @@
 
 	prototype.move = function() {
 
-		var moving = vec2.fromValues(0,-5);
-		vec2.add(this.location,this.location,moving);
-		this.x = this.location[0];
-		this.y = this.location[1];
+		const moving = new Victor(0, -5);
+
+		this.location.add(moving);
+		this.x = this.location.x;
+		this.y = this.location.y;
 	}
 
 	/*
@@ -265,8 +266,8 @@
 
 		prototype.move = function() {
 
-			var moving = vec2.fromValues(0,0);
-			vec2.add(this.location,this.location,moving);
+			const moving = new Victor(0,0);
+			this.location.add(moving);
 			this.x = this.location[0];
 			this.y = this.location[1];
 		}
@@ -284,7 +285,7 @@
 
 			this.x = x;
 			this.y = y;
-			this.location = vec2.fromValues(x,y);
+			this.location = new Victor(x,y);
 
 		}
 
