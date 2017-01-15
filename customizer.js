@@ -56,8 +56,9 @@
 		this.fallAtBottom = SPOT.config.waves.bottom_fall_scale;
 		this.fallAtTop = SPOT.config.waves.top_fall_scale;
 
-		this.ColorTop = SPOT.config.waves.color_top;
-		this.ColorBottom = SPOT.config.waves.color_bot;
+		this.ColorTop = SPOT.config.waves.colors[0][0];
+		this.ColorMiddle = SPOT.config.waves.colors[1][0];
+		this.ColorBottom = SPOT.config.waves.colors[2][0];
 
 		this.obstaclesInterval = SPOT.config.waves.obstacles_interval;
 		this.obstaclesIntervalMax = SPOT.config.waves.obstacles_interval_max;
@@ -158,8 +159,9 @@
 		obstacles.add(custom, 'photographPercentage',0,100).onChange(function(value) { SPOT.config.waves.obstacles['photograph'].percentage = value; });
 
 		var colors = gui.addFolder('Colors');
-		colors.addColor(custom, 'ColorTop').onChange(function(value) { SPOT.config.waves.color_top = value; });
-		colors.addColor(custom, 'ColorBottom').onChange(function(value) { SPOT.config.waves.color_bot = value; });
+		colors.addColor(custom, 'ColorTop').onChange(function(value) { SPOT.config.waves.colors[0][0] = value; });
+		colors.addColor(custom, 'ColorMiddle').onChange(function(value) { SPOT.config.waves.colors[1][0] = value; });
+		colors.addColor(custom, 'ColorBottom').onChange(function(value) { SPOT.config.waves.color[2][0] = value; });
 
 		gui.add(custom, 'resetSpot');
 		gui.add(custom, 'activateDebug');

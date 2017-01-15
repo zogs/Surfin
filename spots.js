@@ -22,6 +22,8 @@
 				real_height: 3,
 				breaking: {
 					yspeed: 1200,
+					splash_h_percent: 90,
+					splash_h_ease: 0.4,
 					left: {
 						width: 20,
 						width_max: 0,				
@@ -58,8 +60,6 @@
 				tube_difficulty_max	: 10,	
 				suction_x: 5,
 				suction_y: 3,
-				color_top: '#17719b',
-				color_bot: '#0d6087',
 				colors: [
 					['#093950',0,0],
 					['#146389',0,50],
@@ -96,7 +96,9 @@
 				frequency : 8000,
 			},	
 			surfers: {
-				proportion: 1.5
+				proportion: 1.5,
+				velocityX_idx : 1,
+				velocityY_idx : 1
 			}		
 		}
 
@@ -186,7 +188,7 @@
 	prototype.managePaddlers = function() {
 
 		//for each paddlers
-		for(var i=0,len=this.paddlers.length;i<len;i++) {
+		for(var i=0,len=this.paddlers.length;i<len;++i) {
 
 			var paddler = this.paddlers[i];
 
@@ -284,7 +286,7 @@
 
 	prototype.addSerieWaves = function() {
 
-		for(var i=0; i < this.config.series.length; i++) {
+		for(var i=0; i < this.config.series.length; ++i) {
 
 			this.waves_interval = window.setTimeout(proxy(this.addSwell,this),this.config.series.frequency*i);
 		}
@@ -292,7 +294,7 @@
 
 	prototype.addInitialSerie = function() {
 
-		for(var i = 1; i <=this.config.series.length; i++) {
+		for(var i = 1; i <=this.config.series.length; ++i) {
 
 			var config = this.config.waves;
 			config.spot = this;
@@ -429,7 +431,11 @@
 
 		//replace paddler by surfer
 		var surfer = new Surfer({
-			x: x, y: y, wave: wave, spot: this
+			x: x, 
+			y: y, 
+			wave: wave, 
+			spot: this,
+			config: this.config.surfers
 		});
 		wave.playerTakeOff(surfer);
 		this.removePaddler(paddler);
@@ -550,7 +556,7 @@
 		var skills = ['speed','aerial','agility','paddling'];
 		this.stars = {};
 
-		for(var i=0,len=skills.length-1;i<=len;i++) {
+		for(var i=0,len=skills.length-1;i<=len;++i) {
 
 			var skill = skills[i];
 			this.stars[skill] = [];
@@ -598,7 +604,7 @@
 
 	prototype.addSkillPoint = function(skill) {
 
-		for(var i=0,len=this.stars[skill].length;i<len;i++) {
+		for(var i=0,len=this.stars[skill].length;i<len;++i) {
 
 			var icon = this.stars[skill][i];
 			if(icon.active) continue;
@@ -679,7 +685,7 @@
 		this.overlay_cont.addChild(backred);
 		this.overlay_cont.addChild(backwhite);
 
-		for(var i=0; i<=5; i++) {
+		for(var i=0; i<=5; ++i) {
 
 			var drop = new createjs.Shape();
 			drop.graphics.beginFill('white').drawCircle(0,0,Math.random()*150+50);
@@ -692,7 +698,7 @@
 			createjs.Tween.get(drop).wait(200).to({alpha:0.3,scaleX:1,scaleY:1},300);
 		}
 
-		for(var i=0; i<=3; i++) {
+		for(var i=0; i<=3; ++i) {
 
 			var drop = new createjs.Shape();
 			drop.graphics.setStrokeStyle(Math.random()*15+5).beginStroke('#FFF').drawCircle(0,0,Math.random()*50+25);
@@ -906,7 +912,7 @@
 
 	prototype.breakAllWaves = function() {
 
-		for(var i=0; i < this.waves.length; i++) {
+		for(var i=0; i < this.waves.length; ++i) {
 
 			this.waves[i].initBreak(700);
 		}
@@ -914,7 +920,7 @@
 
 	prototype.pause = function() {
 
-		for(var i=0; i < this.waves.length; i++) {
+		for(var i=0; i < this.waves.length; ++i) {
 
 			this.waves[i].pause();
 		}
@@ -922,7 +928,7 @@
 
 	prototype.stopOtherWaves = function() {
 
-		for(var i=0; i < this.waves.length; i++) {
+		for(var i=0; i < this.waves.length; ++i) {
 
 			//except the riding wave
 			if(this.waves[i] == this.wave) continue;

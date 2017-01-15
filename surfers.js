@@ -21,10 +21,15 @@
 		this.wave = params.wave;
 		this.spot = params.spot;
 		this.params = params;
+		this.config = params.config;
 		this.x = params.x;
 		this.y = params.y;
 
 		this.type = 'player';
+
+		//calcul initial velocity
+		this.config.velocityX = this.wave.params.breaking.left.width * this.config.velocityX_idx;
+		this.config.velocityY = 20 * this.config.velocityY_idx;
 
 		this.location = [this.x,this.y];
 		this.locations = [this.location];
@@ -50,6 +55,7 @@
 		this.ollie_cooldown = 1000;
 		this.trailsize_origin = this.trailsize;
 		this.fall_reason = null;
+		this.point_under = null;
 
 		this.skill = USER.get().skill;
 
@@ -131,7 +137,6 @@
 			ev.tricks = event.tricks;
 			stage.dispatchEvent(ev);
 		},this);
-
 
 		this.on('aerial_end',function(event) {
 			var ev = new createjs.Event('surfer_aerial_end');
@@ -350,12 +355,12 @@
 
 	prototype.isOllieing = function() {
 
-		if(this.ollieing == true) return true;
+		if(this.ollieing === true) return true;
 		return false;
 	}
 
 	prototype.move = function() {		
-		if(this.automove == true) return;		
+		if(this.automove === true) return;		
 
 		if( this.isOnAir() ) {	
 
@@ -397,7 +402,7 @@
 	prototype.ollie = function() {
 
 		//check cooldown
-		if(this.ollieing == true) return;
+		if(this.ollieing === true) return;
 		this.ollieing = true;		
 		
 		this.ollie_height = vec2.fromValues(0,-13);
@@ -421,7 +426,7 @@
 
 		this.resetTrailSize();
 		this.saveTrailSize();		
-		if(this.trailsize_variated == true) return;
+		if(this.trailsize_variated === true) return;
 		this.trailsize_variated = true;
 		this.trailsize = new Variation({
 					min: this.trailsize*5,
@@ -458,41 +463,105 @@
 
 	}
 
-	prototype.moveOnWaveOLD = function() {
-
-		//calcul mouse vector
-		var mouse = this.globalToLocal(MOUSE.x,MOUSE.y);
-		var loc = this.localToLocal(0,0,this);
-		var vec = new vec2.create();
-		vec2.sub(vec,vec2.fromValues(mouse.x,mouse.y),vec2.fromValues(loc.x,loc.y));	
-		vec2.scale(vec,vec,0.8);
-		//add it to current position
-		vec2.add(this.location,this.location,vec);
-
-
-		//calcul vanish vector		
-		vec2.sub(vec, this.getVanishVector(),this.location);			
-		res = this.localToLocal(vec[0],vec[1],this);
-		vec2.scale(vec,vec2.fromValues(res.x,res.y),0.4);
-		//add it to current position
-		vec2.add(this.location,this.location,vec);
-		
-
-		//sufer can't go bellow the wave
-		if(this.location[1] > this.wave.height) {
-			this.location[1] = this.wave.height;
-		}
-
-	}
-
-	prototype.getMousePoint = function(n) {
+	prototype.getMousePoint = function(n = 0) {
 
 		var mouse = window.getMousePoint(n);
 		mouse = this.wave.foreground_cont.globalToLocal(mouse.x,mouse.y);
 		return mouse;
 	}
 
-	prototype.moveOnWave = function() {		
+	prototype.findWavePointUnder = function() {
+
+		//find point where surfer is bellow
+		for(let i=0,len=this.wave.allpoints.length; i<len; ++i) {
+			let point = this.wave.allpoints[i];
+			if( get2dDistance(this.x,0,point.x,0) <= point.breaking_width >> 1) {
+				return this.point_under = point;
+			}
+		}
+
+		// if there is no point return the most LEFT or RIGHT
+		if( this.wave.isLEFT()) {
+			const peak = this.wave.findTheLeftPeak();
+			return peak.points[0];
+		}
+		else {
+			const peak = this.wave.findTheRightPeak();
+			return peak.points[peak.points.length-1];
+		}
+	}
+
+
+	prototype.moveOnWave = function() {
+
+		return this.moveFromVelicities();
+		// return this.moveFromLerp();
+		// return this.moveOnWaveOLD();
+	}
+
+	prototype.moveFromVelicities = function() {
+
+		// get which lip point surfer is under
+		const point_under = this.findWavePointUnder();
+
+		// get mouse position
+		const mouse = this.getMousePoint(0);
+
+		// calcul distance between surfer and mouse
+		let distance = vec2.distance(vec2.fromValues(mouse.x,0),vec2.fromValues(this.x,0));
+		const distanceMax = 400;
+		const distanceMin = 20;
+		if(distance >= distanceMax) distance = distanceMax;
+		if(distance <= distanceMin) distance = distanceMin;
+		const distanceIdx = ( distance ) / ( distanceMax - distanceMin );
+	
+		// get horizontal velocity from lip position
+		let vX = point_under.breaking_width * ( 1 + point_under.breaking_idx );
+
+		// get vertical velocity from mouse position
+		let vY = ( mouse.y - this.y ) / 10;
+
+		// adapt horizontal velocity to mouse direction
+		const direction = ( this.x - mouse.x < 0)? 1 : -1;
+		vX = vX * direction;
+		
+		// set initial velocity
+		let velocities = vec2.fromValues(vX,vY);
+
+		// scale with mouse distance
+		vec2.scale(velocities,velocities,distanceIdx);
+
+		// scale with user skill ( from x1 to x1.5)
+		const skill_idx = 1 + (this.skill.speed / 2); 
+		vec2.scale(velocities,velocities,skill_idx);
+
+		// surfer have more speed where on top of the segment ( from x1 to x2 )
+		const y_coef = 1 + 1 - ( this.y / this.wave.config.height );
+		vec2.scale(velocities,velocities, y_coef);
+
+		// scale with wave config surfer's velocities coef (from x0 to ...)
+		const config = vec2.fromValues(this.config.velocityX_idx,this.config.velocityY_idx);
+		vec2.multiply(velocities,velocities,config);
+
+		// surfer get more speed when angled to the bottom ( from x1 to x1.5)
+		let angle_coef = (this.angle_rad > 0 )? 1 + (this.angle_rad / Math.PI/2)/2 : 1;
+		vec2.scale(velocities,velocities,angle_coef);
+		
+		//set current position
+		vec2.add(this.location,this.location,velocities);
+
+		//sightly up and down random movement
+		this.addMoveZigZag();
+
+		//surfer can't go bellow the wave
+		if( this.location[1] > this.wave.params.height ) {
+			this.location[1] = this.wave.params.height;
+		}
+
+	}
+
+	/** NOT IN USE  */
+	prototype.moveFromLerp = function() {		
 
 		//interpolation to mouse
 		var mouse = this.getMousePoint(0);
@@ -507,10 +576,10 @@
 		vec2.sub(speed,this.location,this.locations[0]);
 		var limit = 0.5 + this.skill.speed/2;
 		vec2.scale(speed,speed,limit);		
-		vec2.add(this.location,this.locations[0],speed);	
+		vec2.add(this.location,this.locations[0],speed);
 
 		//sightly up and down random movement
-		this.moveZigZag();
+		this.addMoveZigZag();
 
 		//sufer cant go bellow the wave
 		if(this.location[1] > this.wave.params.height) {
@@ -519,7 +588,7 @@
 
 	}
 
-	prototype.moveZigZag = function() {
+	prototype.addMoveZigZag = function() {
 
 		if(!this.zigzag) this.zigzag = new Variation({min:4, max:8, time: 200});
 		this.location[1] = this.location[1] + ( 4 - this.zigzag);
@@ -682,7 +751,7 @@
 	prototype.initRide = function() {
 
 		//end of an Aerial
-		if(this.status == 'aerial') {
+		if(this.status === 'aerial') {
 
 			this.endAerial();		
 			this.dispatchEvent('aerial_end');
@@ -707,7 +776,7 @@
 	prototype.endAerial = function() {
 
 		//if a tricks is not ended, surfer fall
-		if(this.tricked == true) {
+		if(this.tricked === true) {
 			//init fall
 			this.fall('bad landing aerial');
 			//throw event			
@@ -764,7 +833,7 @@
 
 	prototype.fall = function(reason) {
 
-		if(this.falling == true) return;
+		if(this.falling === true) return;
 		this.falling = true;
 
 		this.fall_reason = reason;
@@ -828,7 +897,7 @@
 		plouf.y = this.y;
 		plouf.scaleX = plouf.scaleY = this.scale;
 		plouf.rotation = Math.random(10)*(Math.random(2)-1);
-		this.wave.surfer_cont.addChild(plouf);
+		this.wave.surfers_cont.addChild(plouf);
 
 		var c = this.scale*3;
 		createjs.Tween.get(plouf)
@@ -857,7 +926,7 @@
 			scaler: 0.1
 
 		});
-		for(var i=0; i < 30; i++) {
+		for(var i=0; i < 30; ++i) {
 			var particule = emitter.emitParticle();
 			this.wave.particles_cont.addChild(particule);
 			this.wave.particles.push(particule);
@@ -866,26 +935,23 @@
 	}
 
 	prototype.testFall = function() {
-
-		if(this.wave == undefined) return;
+return;
+		if(this.wave === undefined) return;
 
 		if(this.falling) return;
 
 		//check trajectory
 		this.checkTrajectory();
 
-
 		//new method for checking fall point
 		var points = this.wave.getAllPeaksPoints();
-		var falltop_y = 0;
-		var fallbot_y = this.wave.params.height;
 
 		var j = points.length;
 		while(j--) {		
 			var point = points[j];	
 			
 			//check all top fall points
-			if(point.topfallscale > 1 && this.hit(point.x, falltop_y, point.topfallscale)) {
+			if(point.topfallscale > 1 && this.hit(point.x, 0, point.topfallscale)) {
 				this.fall('hit top lip');
 				this.dispatchEvent('fall_top');
 				return;
@@ -893,7 +959,7 @@
 
 			//check only splashed points
 			if(point.splashed) {
-				if(this.hit(point.x, fallbot_y, point.bottomfallscale)) {					
+				if(this.hit(point.x, point.splash_y, point.bottomfallscale)) {					
 					this.fall('hit bottom splash');
 					this.dispatchEvent('fall_bottom');
 					return;
@@ -977,7 +1043,7 @@
 
 	prototype.checkTrajectory = function() {
 
-		if(this.angles[5] == undefined) return;
+		if(this.angles[5] === undefined) return;
 
 		var delta = Math.abs(this.angle - this.angles[5])%360;
 		var diff = (delta > 180)? 360 - delta : delta;
@@ -994,10 +1060,10 @@
 	prototype.hitObstacles = function() {
 
 		//no hit when surfer is ollying
-		if(this.isOllieing() == true) return;
+		if(this.isOllieing() === true) return;
 
 		//test all waves obstacles
-		for(var i=0,l=this.wave.obstacles.length;i<l;i++) {
+		for(var i=0,l=this.wave.obstacles.length;i<l;++i) {
 			var obstacle = this.wave.obstacles[i];
 
 			if(obstacle.hitBonus(this)) {
@@ -1044,7 +1110,7 @@
 		//if(this.isBot()) continue;
 
 		//update points with the suction vector
-		for (var i = 0; i <= nb; i++) {
+		for (var i = 0; i <= nb; ++i) {
 			//apply vector suction
 			var trail = this.trailpoints[i];
 			vec2.add(trail.location,trail.location,this.wave.params.suction);	
@@ -1065,9 +1131,10 @@
 		var xmax = Math.max.apply(null,xs) + 100;
 
 		this.trail_shape.graphics.clear();
-		this.trail_shape.graphics.beginRadialGradientFill(["rgba(255,255,255,1)","rgba(255,255,255,0)"], [0,1], this.x, this.y, 0, this.x, this.y, 600 );
+		this.trail_shape.graphics.beginFill("rgba(255,255,255,0.5)");
+		//this.trail_shape.graphics.beginRadialGradientFill(["rgba(255,255,255,1)","rgba(255,255,255,0)"], [0,1], this.x, this.y, 0, this.x, this.y, 600 );
 
-		for(var i=0; i<=nb; i++) {
+		for(var i=0; i<=nb; ++i) {
 			var point = points[i];
 			var size = i*points[i].size + this.trailcoef*points[i].size;
 			var x = size * Math.cos(point.angle + Math.PI/2) + point.x;
@@ -1085,7 +1152,7 @@
 		this.trail_shape.graphics.closePath();	
 
 /*
-		for(var i = 0; i <= nb - 1; i++) {
+		for(var i = 0; i <= nb - 1; ++i) {
 
 				var trail_size = i*points[i].size+this.trailcoef*points[i].size;
 
@@ -1137,7 +1204,6 @@
 
 		if(!DEBUG) return;
 
-		
 		this.hitbox.alpha = 0.2;		
 		this.hitboard.alpha = 0.8;	
 
@@ -1171,7 +1237,7 @@
 
 	prototype.getAngle = function() {
 
-		if(this.locations[1] == undefined) return this.angle = 270;
+		if(this.locations[1] === undefined) return this.angle = 270;
 		this.angle_rad = Math.atan2(this.locations[0][1]-this.locations[1][1],this.locations[0][0]-this.locations[1][0]);
 		this.angle = Math.degrees(this.angle_rad);
 		this.direction = this.angle;		
@@ -1265,11 +1331,11 @@
 		this.virtualMouse.graphics.beginFill(createjs.Graphics.getHSL(Math.random()*360, 100, 50)).drawCircle(0,0,20);
 		this.virtualMouse.y = 0;
 		var xd = Math.random()*(STAGEWIDTH/4);
-		if(this.config.direction == 'left') {
+		if(this.config.direction === 'left') {
 			this.virtualMouse.x -= xd;
 			this.wave.shoulder_left.mouse_cont.addChild(this.virtualMouse);
 		}
-		if(this.config.direction == 'right') {
+		if(this.config.direction === 'right') {
 			this.virtualMouse.x += xd;
 			this.wave.shoulder_right.mouse_cont.addChild(this.virtualMouse);
 		}
@@ -1281,10 +1347,10 @@
 	prototype.removeVirtualMouse = function() {
 	
 		createjs.Tween.removeTweens(this.virtualMouse);
-		if(this.config.direction == 'left') {
+		if(this.config.direction === 'left') {
 			this.wave.shoulder_left.mouse_cont.removeChild(this.virtualMouse);
 		}
-		if(this.config.direction == 'right') {
+		if(this.config.direction === 'right') {
 			this.wave.shoulder_right.mouse_cont.removeChild(this.virtualMouse);
 		}
 		this.virtualMouse = null;
@@ -1308,8 +1374,8 @@
 
 	prototype.initMouseMoveX = function() {
 	
-		if(this.wave.direction == 1) var dx = Math.random()*(STAGEWIDTH/4);
-		if(this.wave.direction == -1) var dx = -Math.random()*(STAGEWIDTH/4);
+		if(this.wave.direction === 1) var dx = Math.random()*(STAGEWIDTH/4);
+		if(this.wave.direction === -1) var dx = -Math.random()*(STAGEWIDTH/4);
 		createjs.Tween.get(this.virtualMouse)
 			.to({x: this.virtualMouse.x + dx}, 3000)
 			.to({x: this.virtualMouse.x}, 2000)

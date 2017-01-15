@@ -1,3 +1,5 @@
+
+// define usefull const 
 var stage;
 
 window.loaded = function() {
@@ -56,7 +58,7 @@ window.initialize = function() {
 	MOUSE_Y = STAGEHEIGHT/2;
 	MOUSE_POINTS = [new createjs.Point(MOUSE_X,MOUSE_Y)];
 
-	DEBUG = 0;
+	DEBUG = 1;
 	TEST = 0;
 	PAUSED = 0;
 	PERF = 3;
@@ -160,7 +162,7 @@ window.keyDownHandler = function(e)
    switch(e.keyCode)
    {
     case KEYCODE_B:  SPOT.getWave().addBlockBreaking(200); break;
-    case KEYCODE_N:  SPOT.getWave().addBreakingPeak(200,800); break;
+    case KEYCODE_N:  SPOT.getWave().addBreakingPeak(50,500); break;
     case KEYCODE_S:  window.addSpot(); break;
     case KEYCODE_A:  SPOT.breakAllWaves(); break;
     case KEYCODE_P:  window.pause(); break;
