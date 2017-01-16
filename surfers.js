@@ -25,8 +25,7 @@
 
 		this.wave = params.wave;
 		this.spot = params.spot;
-		this.params = params;
-		this.config = params.config;
+		this.config = cloneObject(this.spot.config.surfers);
 		this.x = params.x;
 		this.y = params.y;
 
@@ -36,8 +35,8 @@
 		this.config.velocityX = this.wave.params.breaking.left.width * this.config.velocityX_idx;
 		this.config.velocityY = 20 * this.config.velocityY_idx;
 
-		this.location = new Victor(this.x,this.y);
-		this.locations = [this.location];
+		this.location;
+		this.locations = [];
 		this.trailpoints = [];
 		this.trailsize = 1;
 		this.trailcoef = 3.2;
@@ -56,7 +55,7 @@
 		this.riding = false;
 		this.falling = false;
 		this.surfing = false;
-		this.automove = true;
+		this.automove = false;
 		this.autoSilhouette = true;
 		this.ollie_cooldown = 1000;
 		this.trailsize_origin = this.trailsize;
@@ -109,7 +108,6 @@
 	prototype.tick = function() {
 
 		if(PAUSED) return;
-		this.updateLocation();
 		this.move();
 		this.stock();
 		this.testFall();
@@ -222,54 +220,67 @@
 	prototype.takeOff = function(x,y) {
 
 		this.x = x;
-		this.y = y;	
+		this.y = y;
+		this.location = new Victor(x,y);
+		this.locations.push(this.location);
 
-		this.automove = true;
-		this.surfing = true;
+		this.autoSilhouette = false;
 
-
-		var takeoff = new createjs.SpriteSheet({
-		    images: [queue.getResult('surfer_takeoff')],
-		    frames: {width:80, height:80},
-		    animations: {	        
-		        takeoff: [0,4,false,0.9],	        
-		    }
+		const speed = 0.1 + this.getSkill('takeoff');
+		const takeoff = new createjs.SpriteSheet({
+			images: [queue.getResult('surfer_takeoff')],
+			frames: {width:80, height:80},
+			animations: {
+				takeoff: [0,4,false,speed],
+			}
 		});
 
-		var animation = new createjs.Sprite(takeoff,'takeoff');	
-
-		this.silhouette.removeChildAt(0);
+		const animation = new createjs.Sprite(takeoff,'takeoff');
+		this.silhouette.removeAllChildren();
 		this.silhouette.addChild(animation);
 		this.silhouette.alpha = 1;
 
-		var tween = createjs.Tween.get(this);
-			tween.to({ y: this.y + this.wave.params.height*1/3 },1000,createjs.Ease.quartOut);
-			tween.addEventListener('change',proxy(this.updateLocation,this));
-			tween.call(proxy(this.endTakeOff,this));
-			;		
 
+		const event = new createjs.Event("take_off");
+			event.wave = this.wave;
+			event.surfer = this;
+			this.dispatchEvent(event);
 
-		var event = new createjs.Event("take_off");
-		event.wave = this.wave;
-		event.surfer = this;
-		this.dispatchEvent(event);
-		
+		// stock initial velocity config
+		const vX = this.config.velocityX_idx;
+		const vY = this.config.velocityY_idx;
+		// set velocities to zero
+		this.config.velocityX_idx = 0;
+		this.config.velocityY_idx = 0;
+		// calc time from skill
+		const default_time = 2000;
+		const time = default_time * (1 - this.getSkill('takeoff')/2);
+		// tween it slowly to initial config
+		createjs.Tween.get(this.config)
+			.to({ velocityY_idx: vY/2}, time / 2)
+			.call(proxy(function(){ this.autoSilhouette = true;},this))
+			.to({ velocityX_idx: vX}, time / 2)
+			.call(proxy(function(){ this.config.velocityY_idx = vY ;},this))
+			.call(proxy(this.endTakeOff,this));
+
 		return this;
 	}
 
-	prototype.updateLocation = function(e) {
+	prototype.getSkill = function(comp) {
 
-		this.location = new Victor(this.x, this.y);
-		this.locations.push(this.location);
-		this.getAngle();
+		if(this.skill[comp] === undefined) {
+			console.error(comp + " is not a skill competence...");
+			return 1;
+		}
+		return this.skill[comp];
 	}
 
 	prototype.endTakeOff = function() {
 
-		this.automove = false;
+		this.autoSilhouette = true;
 		this.riding = true;
 
-		var ev = new createjs.Event("take_off_ended");
+		const ev = new createjs.Event("take_off_ended");
 		ev.wave = this.wave;
 		ev.surfer = this;
 		this.dispatchEvent(ev);
@@ -338,22 +349,28 @@
 
 		//check near left shoulder 
 		if(this.x < this.wave.shoulder_left.x) {
-			var x1 = this.wave.shoulder_left.x;
-			var y1 = this.wave.shoulder_left.y;
-			var x2 = this.wave.shoulder_left.x - this.wave.params.shoulder.left.marge - this.wave.params.shoulder.left.width;
-			var y2 = this.wave.params.height;
-			var r = intersection(x1,y1,x2,y2,this.x,this.y,this.x,-500); //get the intersection between the shoulder line and a vertical top line above the surfer
-			if(r === null) return true;
+			const x1 = this.wave.shoulder_left.x;
+			const y1 = this.wave.shoulder_left.y;
+			const x2 = this.wave.shoulder_left.x - this.wave.params.shoulder.left.marge - this.wave.params.shoulder.left.width;
+			const y2 = this.wave.params.height;
+			const r = intersection(x1,y1,x2,y2,this.x,this.y,this.x,-500); //get the intersection between the shoulder line and a vertical top line above the surfer
+			if(r === null) {
+				console.log(' --above left shoulder');
+				return true;
+			}
 		}
 
 		//check near right shoulder 
 		if(this.x > this.wave.shoulder_right.x) {
-			var x1 = this.wave.shoulder_right.x;
-			var y1 = this.wave.shoulder_right.y;
-			var x2 = this.wave.shoulder_right.x + this.wave.params.shoulder.right.marge + this.wave.params.shoulder.right.width;
-			var y2 = this.wave.params.height;
-			var r = intersection(x1,y1,x2,y2,this.x,this.y,this.x,-500); //get the intersection between the shoulder line and a vertical top line above the surfer
-			if(r === null) return true;
+			const x1 = this.wave.shoulder_right.x;
+			const y1 = this.wave.shoulder_right.y;
+			const x2 = this.wave.shoulder_right.x + this.wave.params.shoulder.right.marge + this.wave.params.shoulder.right.width;
+			const y2 = this.wave.params.height;
+			const r = intersection(x1,y1,x2,y2,this.x,this.y,this.x,-500); //get the intersection between the shoulder line and a vertical top line above the surfer
+			if(r === null) {
+				console.log(' --above right shoulder');
+				return true;
+			}
 		}
 
 		return false;
@@ -365,8 +382,11 @@
 		return false;
 	}
 
-	prototype.move = function() {		
+	prototype.move = function() {	
+
 		if(this.automove === true) return;		
+
+		this.getAngle();
 
 		if( this.isOnAir() ) {	
 
@@ -498,6 +518,7 @@
 
 	prototype.moveOnWave = function() {
 
+		//return this.moveFromLerp();
 		return this.moveFromVelocities();
 		// return this.moveFromLerp();
 		// return this.moveOnWaveOLD();
@@ -506,7 +527,7 @@
 	prototype.moveFromVelocities = function() {
 		
 		// get which lip point surfer is under
-		const point_under = this.findWavePointUnder();
+		const point_under = this.findWavePointUnder();		
 
 		// get mouse position
 		const mouse = this.getMousePoint(0);
@@ -543,13 +564,13 @@
 		const y_coef = 1 + 1 - ( this.y / this.wave.config.height );
 		velocity.scale(y_coef);
 
-		// scale with wave config surfer's velocity coef (from x0 to ...)
-		velocity.scaleX(this.config.velocityX_idx);
-		velocity.scaleY(this.config.velocityY_idx);
-
 		// surfer get more speed when angled to the bottom ( from x1 to x1.5)
 		let angle_coef = (this.angle_rad > 0 )? 1 + (this.angle_rad / Math.PI/2)/2 : 1;
 		velocity.scale(angle_coef);
+
+		// scale with wave config surfer's velocity coef (from x0 to ...)
+		velocity.scaleX(this.config.velocityX_idx);
+		velocity.scaleY(this.config.velocityY_idx);
 
 		// add pump-pump to velocity
 		velocity = this.addPumpedInertia(velocity);
@@ -622,13 +643,6 @@
 		var vanish = this.getVanishPoint();
 		this.location.mix(vanish,0.05);
 
-		//apply skill limit
-		var speed = new Victor();
-		speed.subtract(this.location,this.locations[0]);
-		var limit = 0.5 + this.skill.speed/2;
-		speed.scale(limit);
-		this.location.add(speed);
-
 		//sightly up and down random movement
 		this.addMoveZigZag();
 
@@ -663,16 +677,15 @@
 
 	}
 
-
 	prototype.stock = function() {
-		
-		
+
 		//stock locations		
 		this.locations.unshift(this.location.clone());
 		this.locations = this.locations.slice(0,60);
+		
 		//stock trails locations
 		var point = {
-			location: this.location,
+			location: this.location.clone(),
 			size: this.trailsize,
 			angle : this.angle,
 			angle_rad : this.angle_rad	
@@ -995,7 +1008,7 @@
 	}
 
 	prototype.testFall = function() {
-return;
+
 		if(this.wave === undefined) return;
 
 		if(this.falling) return;
@@ -1167,6 +1180,7 @@ return;
 		var points = [];
 		var xs = [];
 
+
 		//if(this.isBot()) continue;
 
 		//update points with the suction vector
@@ -1184,7 +1198,6 @@ return;
 			//save all x values
 			xs.push(point.x);
 		}
-
 
 		//get minimum x and maximum x a the trail
 		var xmin = Math.min.apply(null,xs) - 100;
@@ -1291,6 +1304,7 @@ return;
 	prototype.getAngledSilhouette = function() {
 		//dont touch
 		//unless you want to rewrite all bitmap condition......
+		if(this.locations[0] === undefined || this.locations[1] === undefined) return new createjs.Bitmap(queue.getResult('surfer_S'));		
 		var rad = Math.atan2(this.locations[1].x-this.locations[0].x,this.locations[1].y-this.locations[0].y);
 		var deg = -1*Math.degrees(rad);
 		if(deg>170) return new createjs.Bitmap(queue.getResult('surfer_S'));
@@ -1320,153 +1334,4 @@ return;
 
 	//assign Surfer to window's scope & promote
 	window.Surfer = createjs.promote(Surfer, "Container");
-}());
-
-
-
-
-
-//=============================
-// SURFER BOT
-//=============================
-
-(function() {
-
-	function SurferBot(config) {
-
-		this.Surfer_constructor(config);
-		this.initBot(config);
-	}
-
-	var prototype = createjs.extend(SurferBot, Surfer);
-
-	prototype.initEventsListener = function() {
-		//override and clear parent function
-
-		//on bot fall
-		this.on('fallen',function(event) {	
-			console.log('fallen '+ this.fall_reason);
-			this.removeBot();
-		},this,true);
-	}
-
-	prototype.initBot = function(config) {
-
-		this.type = 'bot';
-		this.config = config;
-		this.initVirtualMouse();
-		this.addEventListener('tick',proxy(this.tickBot,this));
-	}
-
-	prototype.initVirtualMouse = function() {
-
-		this.virtualMouse = new createjs.Shape();
-		this.virtualMouse.graphics.beginFill(createjs.Graphics.getHSL(Math.random()*360, 100, 50)).drawCircle(0,0,20);
-		this.virtualMouse.y = 0;
-		var xd = Math.random()*(STAGEWIDTH/4);
-		if(this.config.direction === 'left') {
-			this.virtualMouse.x -= xd;
-			this.wave.shoulder_left.mouse_cont.addChild(this.virtualMouse);
-		}
-		if(this.config.direction === 'right') {
-			this.virtualMouse.x += xd;
-			this.wave.shoulder_right.mouse_cont.addChild(this.virtualMouse);
-		}
-		//this.spot.debug_cont.addChild(this.virtualMouse);
-
-		this.initMouseResting();
-	}
-
-	prototype.removeVirtualMouse = function() {
-	
-		createjs.Tween.removeTweens(this.virtualMouse);
-		if(this.config.direction === 'left') {
-			this.wave.shoulder_left.mouse_cont.removeChild(this.virtualMouse);
-		}
-		if(this.config.direction === 'right') {
-			this.wave.shoulder_right.mouse_cont.removeChild(this.virtualMouse);
-		}
-		this.virtualMouse = null;
-	}
-
-	prototype.initMouseMove = function() {
-
-		this.initMouseMoveX();
-		this.initMouseMoveY();
-	}
-
-	prototype.initMouseMoveY = function() {
-	
-		var time = 500 + Math.random()*500;
-		createjs.Tween.get(this.virtualMouse)
-			.to({y: this.wave.params.height }, time, createjs.Ease.sineInOut)
-			.to({y: 0 }, time, createjs.Ease.sineInOut)
-			.call(proxy(this.initMouseMoveY,this))
-			;
-	}
-
-	prototype.initMouseMoveX = function() {
-	
-		if(this.wave.direction === 1) var dx = Math.random()*(STAGEWIDTH/4);
-		if(this.wave.direction === -1) var dx = -Math.random()*(STAGEWIDTH/4);
-		createjs.Tween.get(this.virtualMouse)
-			.to({x: this.virtualMouse.x + dx}, 3000)
-			.to({x: this.virtualMouse.x}, 2000)
-			.call(proxy(this.initMouseMoveX,this))
-			;
-
-	}
-
-	prototype.initMouseResting = function() {
-		
-		createjs.Tween.get(this.virtualMouse,{override:true})
-			.to({y: this.wave.y}, 500)
-			.to({y: this.wave.params.height}, 1500)
-			.wait(1000)
-			.call(proxy(this.initMouseMove,this))
-			;
-	}
-
-	prototype.initMouseJumping = function(now) {
-		console.log('initMouseJumping')
-		if(now !== false) createjs.Tween.get(this.virtualMouse,{override:true}).to({y: this.wave.y - Math.random()*(STAGEHEIGHT/2)}, 500).call(proxy(this.initMouseResting,this));
-
-		this.jumpTimeout = window.setTimeout(proxy(this.initMouseJumping,this),Math.random()*10000 + 2000);
-	}
-
-	prototype.removeJumping = function() {
-
-		window.clearTimeout(this.jumpTimeout);
-	}
-
-	prototype.tickBot = function() {
-
-		this.synchronizeWithWaveMovement();
-
-	}
-
-	prototype.synchronizeWithWaveMovement = function() {
-
-		//this.x += -this.wave.movingX;
-	}
-
-	prototype.getMousePoint = function(n) {
-
-		//get the virtual mouse coordinate
-		var mouse = this.virtualMouse.localToLocal(0,0,this.wave.cont);
-console.log(mouse);
-		return mouse;
-	}
-
-	prototype.removeBot = function() {
-
-		//remove bot element
-		this.removeJumping();
-		this.removeVirtualMouse();
-		//remove bot from within the wave
-		this.wave.removeBot(this);
-	}
-
-	window.SurferBot = createjs.promote(SurferBot, 'Surfer');
-
 }());

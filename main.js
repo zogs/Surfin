@@ -2,6 +2,13 @@
 // define usefull const 
 var stage;
 
+
+// define global usefull constant 
+// (NB: use positive numeric for perf reason)
+const LEFT = 1;
+const CENTER = 0;
+const RIGHT = 2;
+
 window.loaded = function() {
 
 	stage = new createjs.Stage('canvas');	

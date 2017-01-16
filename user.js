@@ -8,6 +8,7 @@
 			aerial: 0.2, //0 to 1
 			agility: 1, //0 to 1
 			paddling: 0.1,
+			takeoff: 0
 		}
 
 		this.device = {};

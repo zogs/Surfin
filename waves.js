@@ -1,9 +1,5 @@
 (function() {
 
-// define usefull constant (NB: use positive numeric for perf reason)
-const LEFT = 1;
-const CENTER = 0;
-const RIGHT = 2;
 
 // create new class
 function Wave(params) {
@@ -254,7 +250,7 @@ prototype.mergeCollidingPeaks = function() {
 		if(second === undefined) break;
 
 		if( first.points.length !== 0 && second.points.length !==0 &&
-			first.right_x >= second.left_x - this.params.breaking.left.width) {
+			first.boundaries[RIGHT] >= second.boundaries[LEFT] - this.params.breaking.left.width) {
 
 			//remove last point to make a nice visual merge
 			first.points.splice(first.points.length-1,1);
@@ -282,7 +278,7 @@ prototype.mergeCollidingPeaks = function() {
 		if(second === undefined) break;
 
 		if( first.points.length !==0 && second.points.length !==0 &&
-			first.boundaries.right >= second.boundaries.left - this.params.breaking.left.width) {
+			first.boundaries[RIGHT] >= second.boundaries[LEFT] - this.params.breaking.left.width) {
 
 			first.points.splice(first.points.length-1,1);
 			var merged = first.points.concat(second.points);
@@ -298,6 +294,8 @@ prototype.mergeCollidingPeaks = function() {
 		}
 		
 	}
+
+	
 
 }
 
@@ -328,8 +326,8 @@ prototype.continousBreaking = function() {
 		this.updateRightShoulder(rx);
 
 		//update peak boundaries
-		peak.left_x = lx;
-		peak.right_x = rx;
+		peak.boundaries[LEFT] = lx;
+		peak.boundaries[RIGHT] = rx;
 	}
 	
 }
@@ -344,9 +342,8 @@ prototype.addPeak = function(center, width) {
 		id : this.peak_count,
 		center : center,
 		width : width,
-		left_x : center,
-		right_x : center,
 		points : [],
+		boundaries : { LEFT: center, RIGHT: center },
 	}
 	//create points of the lip
 	const points = this.createPeakPoints(peak);
@@ -830,7 +827,7 @@ prototype.addTestSurfer = function(x) {
 prototype.addSurfer = function(surfer) {
 
 	surfer.takeOff(surfer.x,surfer.y);
-	this.surfers_cont.addChild(this.surfer);
+	this.surfers_cont.addChild(surfer);
 	this.surfers.push(surfer);
 }
 
@@ -847,10 +844,10 @@ prototype.addTestSurferBot = function(surfer) {
 
 	if(this.direction === LEFT) {
 		var direction = LEFT;
-		var takeoffX = this.shoulder_left.x - this.params.shoulder.left.marge;
+		var takeX = this.shoulder_left.x;
 	} else {
 		var direction = RIGHT;
-		var takeoffX = this.shoulder_right.x + this.params.shoulder.right.marge;
+		var takeX = this.shoulder_right.x;
 	}
 
 	var bot = new SurferBot({
@@ -859,8 +856,7 @@ prototype.addTestSurferBot = function(surfer) {
 		direction: direction
 	});
 
-
-	bot.takeOff( takeoffX, this.params.height*1/3);
+	bot.takeOff( takeX, 20);
 	this.surfers_cont.addChild(bot);
 	this.surfers.unshift(bot);
 	console.log(this.surfers);
@@ -1315,7 +1311,7 @@ prototype.drawLip = function() {
 	this.lip_shape.graphics.clear().beginFill('rgba(255,255,255,0.5)');
 	this.lip_shadow.graphics.clear().beginLinearGradientFill(["rgba(0,0,0,0.1)","rgba(0,0,0,0)"], [0, 1], 0, 0, 0, this.params.height);
 	this.lip_cap.graphics.clear().beginFill('rgba(255,255,255,0.5');
-	this.lip_thick.graphics.clear().beginLinearGradientFill([this.params.colors[0][0],'rgba(81,231,255,0.1'],[0,0.5], 0, 0, 0, this.params.height);
+	this.lip_thick.graphics.clear().beginLinearGradientFill([this.params.colors[0][0],'rgba(81,231,255,0.1'],[0,0.8], 0, this.params.height / 10, 0, this.params.height);
 
 
 	//for each peak
@@ -1667,7 +1663,7 @@ prototype.updateLeftShoulder = function(x) {
 
 	if(this.shoulder_left === undefined) {
 		this.shoulder_left = new createjs.Container();
-		this.shoulder_left.alpha = 0;
+		this.shoulder_left.alpha = 1;
 		var point = new createjs.Shape();
 		point.graphics.beginFill('yellow').drawCircle(0,0,10);
 		this.shoulder_left.addChild(point);
@@ -1690,7 +1686,7 @@ prototype.updateRightShoulder = function(x) {
 
 	if(this.shoulder_right === undefined) {
 		this.shoulder_right = new createjs.Container();
-		this.shoulder_right.alpha = 0;
+		this.shoulder_right.alpha = 1;
 		var point = new createjs.Shape();
 		point.graphics.beginFill('yellow').drawCircle(0,0,10);
 		this.shoulder_right.addChild(point);
