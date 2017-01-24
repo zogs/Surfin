@@ -20,6 +20,9 @@ window.loaded = function() {
 		{id:'bg_paradize',src:'assets/img/bkg/sea.jpg'},
 		{id:'wave',src:'assets/img/waves/wave1.jpg'},
 		{id:'wave_riddle',src:'assets/img/waves/wave-riddle.png'},
+		{id:'spot_seariddle',src:'assets/img/spots/default/seariddles.png'},
+		{id:'spot_front',src:'assets/img/spots/default/front.png'},
+		{id:'spot_back',src:'assets/img/spots/default/back.png'},
 		{id:'surfer_E',src:'assets/img/surfer/E.png'},
 		{id:'surfer_EEEN',src:'assets/img/surfer/EEEN.png'},
 		{id:'surfer_EEES',src:'assets/img/surfer/EEES.png'},
@@ -75,13 +78,11 @@ window.initialize = function() {
 	USER.new();
 
 	//SPOT
-	SPOT = new Spot();
-	SPOT.init();
-	stage.addChild(SPOT);
+	const spot = SPOTSCONF.find(s => s.alias == 'default');
+	window.addSpot(spot,false);
 	
-
-	//customizer
-	initCustomizer();
+	//MENU
+	addMenu();
 
 	//init onEnterFrame
 	createjs.Ticker.addEventListener('tick',tick);
@@ -96,6 +97,8 @@ window.initialize = function() {
 	//resize event
 	window.onresize = browserResize;
 
+	// set customizer
+	initCustomizer();
 
 	window.resizeCanvas();
 
@@ -144,19 +147,106 @@ window.resizeCanvas = function() {
 
 }
 
-window.addSpot = function(config) {
+window.loadSpot = function(event, name = 'default') {
+
+	console.log('Loading spot "'+name+'"')
+
+	const spot = SPOTSCONF.find(s => s.name === name || s.alias === name);
+
+	if(spot === undefined) {
+		console.error(name+ " spot can't be found...");
+	}
+
+	if(event) {
+		event.stopPropagation();
+	}
+
+	window.addSpot(spot);
+}
+
+window.addSpot = function(spot, launch = true) {
 
 	//clear stage
 	stage.removeAllChildren();
 	//create spot with new config
-	SPOT = new Spot(config);
+	SPOT = new Spot(spot);
 	//add it
 	stage.addChild(SPOT);
 	//launch initial set
-	SPOT.launch();
+	if(launch)  SPOT.launch();
+	else SPOT.init();
+	// add menu
+	window.addMenu();
 
 }
 
+window.addMenu = function() {
+
+	const cont = new createjs.Container();
+	const bkg = new createjs.Shape();
+	const txt = new createjs.Text('Menu','16px Helvetica');
+	const bound = txt.getBounds();
+	const pad = {x: 10, y: 5};
+
+	bkg.graphics.beginFill('#FFF').drawRoundRect(-bound.x/2 - pad.x, -bound.y - pad.y, bound.width + pad.x*2, bound.height + pad.y*2, 5);
+
+	cont.x = 20;
+	cont.y = 10;
+	cont.addChild(bkg,txt);
+	stage.addChild(cont);
+
+	cont.on('click',showMenu);
+}
+
+window.showMenu = function(e) {
+
+	e.stopPropagation();
+	console.log('menu');
+
+	stage.removeAllChildren();
+
+	const spots = SPOTSCONF;
+
+	const background = new createjs.Bitmap(queue.getResult('bg_paradize'));
+	stage.addChild(background);
+
+	const cont = new createjs.Container();
+	cont.x = STAGEWIDTH/10;
+	stage.addChild(cont);
+
+	let rowx = 200;
+	let rowy = 100;
+	let posx = 0;
+	let posy = 0;
+	for(let i=0,len=spots.length; i< len; ++i) {
+
+		let spot = spots[i];
+		let button = new createjs.Container();
+		let txt = new createjs.Text(spot.name,'26px Helvetica');
+		let bkg = new createjs.Shape();
+		let bound = txt.getBounds();
+		let pad = {x: 30, y: 15};
+
+		bkg.graphics.beginFill('#EEE').drawRoundRect(-bound.x/2 - pad.x, -bound.y - pad.y, bound.width + pad.x*2, bound.height + pad.y*2, 5);
+
+		posy += rowy;
+
+		if(posy >= STAGEHEIGHT - 100) {
+			posx += rowx;
+			posy = rowy;
+		}
+
+		button.x = posx;
+		button.y = posy;
+		button.addChild(bkg,txt);
+		cont.addChild(button);
+
+		button.on('click', loadSpot, null, true, spot.name, true);
+
+	}
+
+
+}
 
 window.tick = function() {
 
@@ -166,30 +256,28 @@ window.tick = function() {
 
 window.keyDownHandler = function(e)
 {
-   switch(e.keyCode)
+   switch(e.key)
    {
-    case KEYCODE_B:  SPOT.getWave().addBlockBreaking(200); break;
-    case KEYCODE_N:  SPOT.getWave().addBreakingPeak(50,500); break;
-    case KEYCODE_S:  window.addSpot(); break;
-    case KEYCODE_A:  SPOT.breakAllWaves(); break;
-    case KEYCODE_P:  window.pause(); break;
-    //case KEYCODE_M:  SCORE.say('Hello !',3000); break;
-    case KEYCODE_F:  SPOT.getWave().getSurfer().fall(); break;
-    case KEYCODE_Z:  SPOT.addPaddlerBot(); break;
-    case KEYCODE_R:  SPOT.getWave().addTestSurferBot(); break;
-    case KEYCODE_O:  SPOT.getWave().addRandomObstacle(); break;
-    case KEYCODE_I:  SPOT.getWave().addFlyingObstacle(); break;
-    case KEYCODE_T:  switchTestMode(); break;
-    case KEYCODE_D:  switchDebugMode(); break;
+    case 'b':  SPOT.getWave().addBlockBreaking(200); break;
+    case 'n':  SPOT.getWave().addBreakingPeak(50,500); break;
+    case 's':  window.loadSpot(null,'default'); break;
+    case 'a':  SPOT.breakAllWaves(); break;
+    case 'p':  window.pause(); break;
+    case ' ':  window.pause(); break;
+    case 'f':  SPOT.getWave().getSurfer().fall(); break;
+    case 'z':  SPOT.addPaddlerBot(); break;
+    case 'r':  SPOT.getWave().addTestSurferBot(); break;
+    case 'o':  SPOT.getWave().addRandomObstacle(); break;
+    case 'i':  SPOT.getWave().addFlyingObstacle(); break;
+    case 't':  switchTestMode(); break;
+    case 'd':  switchDebugMode(); break;
+    default: console.log('Key "'+e.key+'" have no handler.');
    } 
 }
 
 window.keyUpHandler = function(e)
 {
-   switch(e.keyCode)
-   {
-    case KEYCODE_B:  break;
-   } 
+   
 }
 
 window.onMouseMove= function(e) {
@@ -241,12 +329,14 @@ window.pause = function() {
 
 	if(PAUSED === 1) {
 		PAUSED = 0;
-		createjs.Ticker.setPaused(false);		
+		createjs.Ticker.setPaused(false);	
+		SPOT.resume();	
 		console.log('PAUSE DESACTIVATED');
 	}
 	else {
 		PAUSED = 1;
 		createjs.Ticker.setPaused(true);		
+		SPOT.pause();
 		console.log('PAUSE ACTIVATED !');
 	}	
 }

@@ -31,13 +31,10 @@
 
 		this.type = 'player';
 
-		//calcul initial velocity
-		this.config.velocityX = this.wave.params.breaking.left.width * this.config.velocityX_idx;
-		this.config.velocityY = 20 * this.config.velocityY_idx;
-
 		this.location;
 		this.locations = [];
 		this.trailpoints = [];
+		this.spatterpoints = [];
 		this.trailsize = 1;
 		this.trailcoef = 3.2;
 		this.velocity = new Victor();
@@ -59,8 +56,12 @@
 		this.autoSilhouette = true;
 		this.ollie_cooldown = 1000;
 		this.trailsize_origin = this.trailsize;
+		this.color_spatter_num = 0;
 		this.fall_reason = null;
 		this.point_under = null;
+		this.aerial_start_point = null;
+		this.aerial_end_point = null;
+		this.control_velocities = {x:1,y:1};
 
 		this.skill = USER.get().skill;
 
@@ -93,6 +94,13 @@
 		this.trail_cont.y =  11; //align trail to board
 		this.trail_cont.addChild(this.trail_shape);
 		this.wave.trails_cont.addChild(this.trail_cont);
+
+		this.spatter_shape_inner = new createjs.Shape();
+		this.spatter_shape_outer = new createjs.Shape();
+		this.spatter_ramp_shape = new createjs.Shape();
+		this.spatter_cont = new createjs.Container();
+		this.spatter_cont.addChild(this.spatter_ramp_shape,this.spatter_shape_outer,this.spatter_shape_inner);
+		this.wave.spatters_cont.addChild(this.spatter_cont);
 
 		this.addEventListener('tick',proxy(this.tick,this));
 		
@@ -246,21 +254,18 @@
 			event.surfer = this;
 			this.dispatchEvent(event);
 
-		// stock initial velocity config
-		const vX = this.config.velocityX_idx;
-		const vY = this.config.velocityY_idx;
 		// set velocities to zero
-		this.config.velocityX_idx = 0;
-		this.config.velocityY_idx = 0;
+		this.control_velocities.x = 0;
+		this.control_velocities.y = 0;
 		// calc time from skill
 		const default_time = 2000;
 		const time = default_time * (1 - this.getSkill('takeoff')/2);
-		// tween it slowly to initial config
-		createjs.Tween.get(this.config)
-			.to({ velocityY_idx: vY/2}, time / 2)
+		// tween it slowly to normal config
+		createjs.Tween.get(this.control_velocities)
+			.to({ y: 0.5 }, time / 2)
 			.call(proxy(function(){ this.autoSilhouette = true;},this))
-			.to({ velocityX_idx: vX}, time / 2)
-			.call(proxy(function(){ this.config.velocityY_idx = vY ;},this))
+			.to({ x: 1 }, time / 2)
+			.set({ y: 1 })
 			.call(proxy(this.endTakeOff,this));
 
 		return this;
@@ -300,7 +305,7 @@
 
 	prototype.resize = function() {
 
-		var y_persperctive = (this.wave.y - this.spot.getHorizon()) / (this.spot.getPeak() - this.spot.getHorizon());
+		var y_persperctive = (this.wave.y - this.spot.config.lines.horizon) / (this.spot.config.lines.peak - this.spot.config.lines.horizon);
 
 		this.scale = y_persperctive * this.getSurferProportion();
 
@@ -569,8 +574,12 @@
 		velocity.scale(angle_coef);
 
 		// scale with wave config surfer's velocity coef (from x0 to ...)
-		velocity.scaleX(this.config.velocityX_idx);
-		velocity.scaleY(this.config.velocityY_idx);
+		velocity.scaleX(this.config.velocities.x);
+		velocity.scaleY(this.config.velocities.y);
+
+		// scale with controls coef (from x0 to x1)
+		velocity.scaleX(this.control_velocities.x);
+		velocity.scaleY(this.control_velocities.y);
 
 		// add pump-pump to velocity
 		velocity = this.addPumpedInertia(velocity);
@@ -679,50 +688,61 @@
 
 	prototype.stock = function() {
 
-		//stock locations		
+		// stock locations		
 		this.locations.unshift(this.location.clone());
 		this.locations = this.locations.slice(0,60);
 		
-		//stock trails locations
+		// create point object
 		var point = {
 			location: this.location.clone(),
 			size: this.trailsize,
 			angle : this.angle,
 			angle_rad : this.angle_rad	
 		}
-		//add point to trail points array
+
+		// add point to trails array
 		this.trailpoints.unshift(point);
 		this.trailpoints = this.trailpoints.slice(0,50);
 
-		//stock velocities
+		// add point to spatters array
+		if(point.location.y < 0) {
+			this.spatterpoints.unshift(point);
+			this.spatterpoints = this.spatterpoints.slice(0,50);
+		}
+
+		// stock velocities
 		this.velocities.unshift(this.velocity.clone());
 		this.velocities = this.velocities.slice(0,50);
 
-		//stock speed
+		// stock speed
 		this.speed = this.locations[0].distance(this.locations[1]);
 
-		//stock angle
+		// stock angle
 		this.angles.unshift(this.angle);
 		this.angles = this.angles.slice(0,50);
 
-		//set direction
+		// set direction
 		this.direction = (this.locations[0].x - this.locations[1].x < 0) ? LEFT : RIGHT;
 
 	}
 
 	prototype.initAerial = function() {
 
-		//if already on air
+		// cancel if already on air
 		if(this.status=='aerial') return;
-		//set current status
+		// set current status
 		this.status = 'aerial';
-		//hide trail
+		// hide trail
 		this.saveTrailSize();
 		this.trailsize = 0;
-		//particles
+		// particles
 		this.initAerialParticles();	
-		//tricks		
+		// tricks		
 		this.initTricks();
+		// save aerial position
+		this.aerial_start_point = this.location.clone();
+		// fade out spatter ramp
+		createjs.Tween.get(this.spatter_ramp_shape).to({alpha: 0}, 1000, createjs.Ease.quartIn);
 
 	}
 
@@ -730,7 +750,7 @@
 
 		var ev = new createjs.Event("aerial_start");
 
-		var impulse = this.velocity.length();
+		var impulse = 10; //this.velocity.length();
 
 		if(impulse > 55) {
 
@@ -804,7 +824,7 @@
 			fader: 0.2,
 			fadermax: 0.5,
 			scaler: 0.1,
-			forces: [this.gravity],
+			forces: [vec2.fromValues(this.gravity.x,this.gravity.y * 0.1)],
 			shapes: [
 				{shape:'circle',percentage:50,fill:'#FFF'},
 				{shape:'circle',percentage:50,stroke:1,strokeColor:'#FFF'},
@@ -857,6 +877,22 @@
 
 		//remove aerial particles
 		this.stopAerialParticles();
+
+		// remove spatter 
+		this.clearSpatter();
+
+		// update aerial end point
+		this.aerial_end_point = this.location.clone();
+
+		// landiing slowly
+		const default_time = 2000;
+		const time = default_time * (1 - this.getSkill('aerial'));
+		// tween it slowly to normal config
+		const tween = createjs.Tween.get(this.control_velocities)
+			.to({ x: 0.5, y: 0.5 }, time / 2)			
+			.to({ x: 1, y: 1 }, time / 2)			
+			;	
+		
 
 		//handle trail size
 		this.resetTrailSize();	
@@ -1009,6 +1045,8 @@
 
 	prototype.testFall = function() {
 
+		if(TEST === 1) return;
+
 		if(this.wave === undefined) return;
 
 		if(this.falling) return;
@@ -1158,20 +1196,15 @@
 		}
 	}
 
+
 	prototype.drawTrails = function() {
 
-		//draw spatter when surfer is on air
-		if(this.isOnAir()) {
+		if( this.isOnAir()) {
 			this.drawSpatter();
 		}
-
-		//dont show trail when surfer is ollieing
-		if(this.isOllieing()) {
-
+		else {
+			this.drawTrail();
 		}
-		
-		this.drawTrail();
-		
 	}
 
 	prototype.drawTrail = function() {
@@ -1215,7 +1248,7 @@
 			this.trail_shape.graphics.lineTo(x,y);	
 
 		}
-		for(var i=nb; i>=0; i--) {
+		for(var i=nb; i>=0; --i) {
 			var point = points[i];
 			var size = i*points[i].size + this.trailcoef*points[i].size;
 			var x = size * Math.cos(point.angle + Math.PI + Math.PI/2) + point.x;
@@ -1246,27 +1279,118 @@
 	}
 
 	prototype.drawSpatter = function() {
+	
+		if(this.spatterpoints.length === 0) return;
+
+		if(this.status !== 'aerial') return;
+
+		const points = this.spatterpoints;
+		const nb     = points.length-1;
+
+		const actual = points[0].location;
+		const start  = this.aerial_start_point;
+		start.y      = 0;
+
+		this.color_spatter_num += 10;
+		const inner = 'rgba(255,255,255,0.6)'; //createjs.Graphics.getHSL(this.color_spatter_num, 100, 50);
+		const outer = 'rgba(255,255,255,0.3)'; //createjs.Graphics.getHSL(this.color_spatter_num, 100, 50, 0.3);
+		const alpha = 'rgba(255,255,255,0)'; //createjs.Graphics.getHSL(this.color_spatter_num, 100, 50, 0.3);
+
+		this.spatter_shape_inner.graphics.clear();
+		this.spatter_shape_outer.graphics.clear();
+		this.spatter_shape_inner.graphics.beginLinearGradientFill([inner,alpha],[0,0.9], actual.x, actual.y, start.x, start.y);
+		this.spatter_shape_outer.graphics.beginLinearGradientFill([outer,alpha],[0,0.9], actual.x, actual.y, start.x, start.y);
+
+		const thick_min = 2;
+		const thick_max = 20;
+		const outerwidth = (this.wave.direction === LEFT)? 5 : -5;
+
+		for(let i=0; i<nb; ++i) {
+			let p1 = points[i],
+				p2 = points[i+1],
+				z1 = thick_min + i * (thick_max - thick_min) / nb,
+				z2 = thick_min + (i+1) * (thick_max - thick_min) / nb,
+				x1 = z1 * Math.cos(p1.angle_rad + Math.PI/2) + p1.location.x,
+				y1 = z1 * Math.sin(p1.angle_rad + Math.PI/2) + p1.location.y,
+				x2 = z2 * Math.cos(p2.angle_rad + Math.PI/2) + p2.location.x,
+				y2 = z2 * Math.sin(p2.angle_rad + Math.PI/2) + p2.location.y,
+				xc = ( x1 + x2 ) >> 1,
+				yc = ( y1 + y2 ) >> 1
+				;
+			this.spatter_shape_inner.graphics.quadraticCurveTo(x1,y1,xc,yc);	
+			this.spatter_shape_outer.graphics.quadraticCurveTo(x1,y1 - outerwidth,xc,yc - outerwidth);	
+
+		}
+		for(let i=nb; i>0; --i) {
+			let p1 = points[i],
+				p2 = points[i-1],
+				z1 = thick_max - (nb-i-1) * (thick_max - thick_min) / nb,
+				z2 = thick_max - (nb-i) * (thick_max - thick_min) / nb,
+				x1 = z1 * Math.cos(p1.angle_rad + Math.PI + Math.PI/2) + p1.location.x,
+				y1 = z1 * Math.sin(p1.angle_rad + Math.PI + Math.PI/2) + p1.location.y
+				x2 = z2 * Math.cos(p2.angle_rad + Math.PI + Math.PI/2) + p2.location.x,
+				y2 = z2 * Math.sin(p2.angle_rad + Math.PI + Math.PI/2) + p2.location.y,
+				xc = ( x1 + x2 ) >> 1,
+				yc = ( y1 + y2 ) >> 1
+			;
+			this.spatter_shape_inner.graphics.quadraticCurveTo(x1,y1,xc,yc);
+			this.spatter_shape_outer.graphics.quadraticCurveTo(x1,y1 + outerwidth,xc,yc + outerwidth);	
+		}	
+
 		/*
-		var graphics = new createjs.Graphics()
-					.beginFill(createjs.Graphics.getRGB(255, 255, 255))
-					.drawCircle(0, 0, 6)
-					;	 
+		this.spatter_shape_inner.graphics.clear();
+		this.spatter_shape_outer.graphics.clear();
+		this.spatter_shape_inner.graphics.beginLinearGradientStroke([color1,'rgba(255,255,255,0)'], [0, 1],this.x,this.y,start.x,start.y).setStrokeStyle(thick*2/5,'round');
+		this.spatter_shape_outer.graphics.beginLinearGradientStroke([color2,'rgba(255,255,255,0)'], [0, 1],this.x,this.y,start.x,start.y).setStrokeStyle(thick,'round');
+
+		for(let i=0,len=points.length; i<len-1; ++i) {
+
+			let p1 = points[i],
+				p2 = points[i+1],
+				x1 = p1.location.x,
+				x2 = p2.location.x,
+				y1 = p1.location.y,
+				y2 = p2.location.y,
+				xc = ( x1 + x2 ) >> 1,
+				yc = ( y1 + y2 ) >> 1
+				;
+
+			this.spatter_shape_inner.graphics.quadraticCurveTo(x1,y1,xc,yc);
+			this.spatter_shape_outer.graphics.quadraticCurveTo(x1,y1,xc,yc);
+			
+		}
+		*/	
+
+		//draw ramp
+
 		
-		var spatter = new createjs.Shape(graphics)
-		spatter.x = this.x;
-		spatter.y = this.y;
-		spatter.alpha = 0.6;
-		
+		const width = 200;
+		const height = actual.y - start.y;
+		const ch = height * 0.2;
+		const cw = width/10;
 
-		var dx = Math.random(100)*(Math.round(Math.random())*2 - 1);
+		if(actual.y < -150  || get1dDistance(actual.x,start.x) > 100 ) return;
+		this.spatter_ramp_shape.graphics.clear();
+		this.spatter_ramp_shape.graphics.beginFill('#FFF');
+		this.spatter_ramp_shape.graphics.moveTo(start.x - width/2,start.y)
+										.lineTo(start.x + width/2,start.y)
+										.quadraticCurveTo(start.x + cw, ch, actual.x, actual.y)
+										.quadraticCurveTo(start.x - cw, ch, start.x - width/2, start.y)
+										;
 
-		createjs.Tween.get(spatter)
-			.to({	
-				scaleX: 0.1,scaleY:0.1,alpha: 0
-			},500);
+	}
 
-		this.wave.spatter_cont.addChild(spatter);
-		*/
+	prototype.clearSpatter = function() {
+
+		createjs.Tween.get(this.spatter_cont).to({ alpha: 0}, 800).call(proxy(function() {
+			this.spatterpoints = [];
+			this.spatter_shape_outer.graphics.clear();
+			this.spatter_shape_inner.graphics.clear();
+			this.spatter_ramp_shape.graphics.clear();
+			this.spatter_ramp_shape.alpha = 1;		
+			this.spatter_cont.alpha = 1;	
+			this.color_spatter_num = 0;
+		},this));
 	}
 
 	prototype.drawDebug = function() {
@@ -1274,6 +1398,16 @@
 		this.debug_cont.removeAllChildren();
 		this.hitboard.alpha = 0;	
 		this.hitbox.alpha = 0;
+
+		// for(let i=0, len=this.trailpoints.length; i < len ; ++i) {
+		// 	let point = this.trailpoints[i];
+		// 	let circle = new createjs.Shape();
+		// 	circle.graphics.beginFill('black').drawCircle(0,0,5);
+		// 	circle.x = point.location.x;
+		// 	circle.y = point.location.y;
+
+		// 	this.wave.debug_cont.addChild(circle);
+		// }
 
 		if(!DEBUG) return;
 

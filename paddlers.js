@@ -84,7 +84,7 @@
 
 	prototype.resize = function() {
 
-		var scale = (this.y - this.spot.getHorizon()) / (this.spot.getBeach() - this.spot.getHorizon());
+		var scale = (this.y - this.spot.config.lines.horizon) / (this.spot.config.lines.beach - this.spot.config.lines.horizon);
 
 		this.scale = scale * this.getSurferProportion();
 

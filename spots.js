@@ -1,127 +1,186 @@
 (function() {
 	
-	function Spot(config) {
+	function Spot(spot) {
 
 		this.Container_constructor();
 
 		this.waves = [];
 		this.paddlers = [];
 
-		this.config = config || {
-			lines: {
-				horizon: 240,
-				break: 420,
-				peak: 500,
-				beach: 590
-			},
-			peak_point : 500,
-			horizon_point : 180,
-			waves: {
-				height : 150,
-				width : 0,
-				real_height: 3,
-				breaking: {
-					yspeed: 1200,
-					splash_h_percent: 90,
-					splash_h_ease: 0.4,
-					left: {
-						width: 20,
-						width_max: 0,				
-						width_interval: 3000,
-						width_pause: 1000,
-						block_interval: 0,
-						block_interval_max: 0,
-						block_width: 100,
-						block_width_max: 200,
-					},					
-					right: {
-						width: 20,
-						width_max: 0,
-						width_interval: 3000,
-						width_pause: 1000,
-						block_interval: 500,
-						block_interval_max: 600,
-						block_width: 100,
-						block_width_max: 200,
-					}
-				},
-				lip: {
-					thickness: 10,
-					cap: {
-						width: 700,
-						height: 10,
-						lifetime: 800,
-					},
-				},
-				paddling_effort: 1,
-				bottom_fall_scale: 0.8,
-				top_fall_scale: 0.15,	
-				tube_difficulty_min	: 1,	
-				tube_difficulty_max	: 10,	
-				suction_x: 5,
-				suction_y: 3,
-				colors: [
-					['#093950',0,0],
-					['#146389',0,50],
-					['#0f597d',0,100]
-				],
-				obstacles_interval: 0,
-				obstacles_interval_max: 0, 
-				obstacles: {
-					'paddler' : {percentage: 50},
-					'photograph' : {percentage: 50},
-				},
-				shoulder : {
-					left : {
-						width: 1000,
-						inner: 300,
-						outer: 300,
-						marge: 50,
-						slope: 0
-					},
-					right : {
-						width: 1000,
-						inner: 300,
-						outer: 300,
-						marge: 50,
-						slope: 0
-					}
-				}
-			},
-			series: {
-				length :  1,
-				interval : 11000,				
-				spread : 200,				
-				speed : 10000,
-				frequency : 8000,
-			},	
-			surfers: {
-				proportion: 1.5,
-				velocityX_idx : 1,
-				velocityY_idx : 1
-			}		
-		}
+		this.runing = false;
+		this.timers = [];
 
-		this.bkg_cont = new createjs.Container();
-		this.addChild(this.bkg_cont);
-		var background = new createjs.Bitmap(queue.getResult('bg_paradize'));
-		this.bkg_cont.addChild(background);
+		this.id = spot.id;
+		this.name = spot.name;
+		this.config = spot.config
 
 		//Score
 		this.score_cont = new createjs.Container();
 		this.addChild(this.score_cont);
 
-		this.cont = new createjs.Container();
-		this.addChild(this.cont);
+		this.background = new createjs.Container();
+		this.addChild(this.background);
+
+		this.sea_cont = new createjs.Container();
+		this.addChild(this.sea_cont);
+
+		this.frontground = new createjs.Container();
+		this.addChild(this.frontground);
 
 		this.overlay_cont = new createjs.Container();
 		this.addChild(this.overlay_cont);
 		
 		this.debug_cont = new createjs.Container();
 		this.addChild(this.debug_cont);	
+
+		this.drawBackground();
+		this.drawFrontground();
+
 	}
 
 	var prototype = createjs.extend(Spot, createjs.Container);
+
+	prototype.drawBackground = function() {
+
+		this.background.removeAllChildren();
+
+		const defaultbkg = new createjs.Shape();
+		defaultbkg.graphics.beginFill('#0d4e6d').drawRect(0,0,STAGEWIDTH,STAGEHEIGHT);
+		this.background.addChild(defaultbkg);
+
+		const skyimage = new createjs.Bitmap(queue.getResult('spot_back'));
+		this.background.addChild(skyimage);
+
+		const seagradient = new createjs.Shape();
+		seagradient.graphics
+					.beginLinearGradientFill([this.config.colors.top,this.config.colors.bottom],[0,1],0,this.config.lines.horizon,0,STAGEHEIGHT)
+					.drawRect(0,this.config.lines.horizon,STAGEWIDTH,STAGEHEIGHT)
+					;
+		this.background.addChild(seagradient);
+
+		const image1 = new createjs.Bitmap(queue.getResult('spot_seariddle'));
+		image1.alpha = 0.2;
+		image1.y = this.config.lines.horizon;
+		this.riddles1 = image1;
+		this.background.addChild(image1);
+
+		const image2 = new createjs.Bitmap(queue.getResult('spot_seariddle'));
+		image2.alpha = 0.2;
+		image2.y = this.config.lines.horizon;
+		image2.skewX = 1;
+		this.riddles2 = image2;
+		this.background.addChild(image2);
+
+		this.animateBackground();
+	}
+
+	prototype.animateBackground = function() {
+
+		if(PERF <= 2) return;
+
+		createjs.Tween.get(this.riddles1,{override: true, loop:true}).to({ x: this.riddles1.x + 20 }, 1500).to({x: this.riddles1.x }, 1500);
+		createjs.Tween.get(this.riddles2,{override: true, loop:true}).to({ x: this.riddles2.x - 20 }, 1500).to({x: this.riddles2.x }, 1500);
+	}
+
+	prototype.drawFrontground = function() {
+
+		const frontimage = new createjs.Bitmap(queue.getResult('spot_front'));
+		frontimage.alpha = 0.4;
+		this.frontground.addChild(frontimage);
+	}
+	
+	prototype.addNextSerie = function() {
+		
+		// launch a new serie timer
+		const serie_timer = new Timer(proxy(this.addSerie,this),this.config.series.interval);
+		this.timers.push(serie_timer);
+
+	}
+
+	prototype.addSerie = function() {
+		
+		// launch first wave
+		this.addSwell(1);
+
+		// launch the rest with delay
+		for(let i=2; i <= this.config.series.length; ++i) {
+
+			// calcul delay
+			let delay = (i-1) * this.config.series.frequency;			
+			// launch timer
+			const timer = new Timer(proxy(this.addSwell,this,[i]),delay);
+			// add timer to timers
+			this.timers.push(timer);
+
+		}
+	}
+
+	prototype.addSwell = function(nb) {		
+
+		//configuration of the wave
+		var config = this.config.waves;
+			config.spot = this;
+			config.x = (this.config.series.xshift/100 * STAGEWIDTH) + this.config.series.spread/2 - Math.random()*this.config.series.spread;
+			config.y = this.config.lines.horizon;
+
+		//create Wave at horizon point
+		var wave = new Wave(config);
+
+		//add to scene
+		this.sea_cont.addChildAt(wave,0);
+		this.waves.unshift(wave);
+
+		//start tween
+		var tween = createjs.Tween.get(wave);		
+		tween.to({y: this.config.lines.beach + this.config.waves.height}, this.config.series.speed)
+		tween.call(proxy(this.removeWave,this,[wave]))
+		tween.addEventListener('change',proxy(wave.coming,wave));
+
+		// if last wave of serie, add next wave
+		if( nb === this.config.series.length) {		
+			// remove all timers
+			this.timers = [];
+			// call next serie
+			this.addNextSerie();
+		}
+
+	}
+
+	prototype.addInitialSerie = function() {
+		
+		for(let i = 1; i <=this.config.series.length; ++i) {
+
+			// create config
+			let config = this.config.waves;
+			config.spot = this;
+			config.x = (this.config.series.xshift/100 * STAGEWIDTH) + this.config.series.spread/2 - Math.random()*this.config.series.spread;
+			config.y = this.config.lines.horizon;
+
+			// create wave
+			let wave = new Wave(config);		
+
+			// add to scene
+			this.sea_cont.addChildAt(wave);			
+
+			// add to array
+			this.waves.unshift(wave);
+
+			// set tween
+			let tween  = createjs.Tween.get(wave);					
+				tween.to({y: this.config.lines.beach + this.config.waves.height}, this.config.series.speed)
+				tween.call(proxy(this.removeWave,this,[wave]))
+				tween.addEventListener('change',proxy(wave.coming,wave));
+
+			// start tween at advanced position
+			let perCent = 0.4;			
+			let position = this.config.series.speed * perCent * (this.config.series.length - i + 1) / this.config.series.length; // DO NOT TOUCH		
+			tween.setPosition(position);
+
+		}
+
+		this.addNextSerie();
+	}
+
 
 	prototype.init = function() {
 
@@ -129,20 +188,23 @@
 		this.initEventsListeners();		
 		this.initScore();
 		this.resetScore();
-		this.traceDebug();		
+		this.drawDebug();		
 		//this.addWave(0.3);
 		this.addWave(1);
-		this.addPaddler(STAGEWIDTH/2,370);
+
+		this.addPaddler(STAGEWIDTH/2,this.waves[0].y - 2/3*this.waves[0].params.height);
 	}
 
 	prototype.launch = function() {
 
+		this.runing = true;
 		this.removeAllWaves();
 		this.initEventsListeners();
 		this.initScore();
 		this.addInitialSerie();
-		this.addPaddler(STAGEWIDTH/2,370);
-		this.traceDebug();	
+		//this.addSerie();
+		//this.addPaddler(STAGEWIDTH/2,370);
+		this.drawDebug();	
 	}
 
 	prototype.initEventsListeners = function() {
@@ -187,18 +249,21 @@
 
 	prototype.managePaddlers = function() {
 
-		//for each paddlers
+		// cancel if spot is not currently runing
+		if(this.runing === false) return;
+
+		// manage relative position for each paddler
 		for(var i=0,len=this.paddlers.length;i<len;++i) {
 
 			var paddler = this.paddlers[i];
 
 			//find lower indexed waves
-			var index = this.cont.getChildIndex(paddler) - 1;
+			var index = this.sea_cont.getChildIndex(paddler) - 1;
 			while(index >= 0) {
 
-				if(this.cont.getChildAt(index) instanceof Wave) {
+				if(this.sea_cont.getChildAt(index) instanceof Wave) {
 				
-					var wave = this.cont.getChildAt(index);
+					var wave = this.sea_cont.getChildAt(index);
 
 					//find if paddler superposed to wave
 					if(paddler.getY() < wave.y && paddler.getY() > wave.y - wave.params.height) {
@@ -210,7 +275,7 @@
 					if(paddler.getY() < wave.y - wave.params.height) {
 						
 						//swap index pos
-						this.cont.swapChildren(paddler,wave);
+						this.sea_cont.swapChildren(paddler,wave);
 
 						//lower paddler pos
 						paddler.liftdown();
@@ -245,6 +310,9 @@
 		this.isPlayed = true;
 		this.wave = wave;
 		this.surfer = surfer;
+
+		//stop spot timers
+		this.timers.map(t => t.clear());
 	}
 
 	prototype.addPaddler = function(x,y) {
@@ -255,7 +323,7 @@
 			y: y
 		});
 
-		this.cont.addChild(paddler);
+		this.sea_cont.addChild(paddler);
 		this.paddlers.push(paddler);
 	}
 
@@ -269,84 +337,13 @@
 			y: y,
 		});
 
-		this.cont.addChild(bot);
+		this.sea_cont.addChild(bot);
 		this.paddlers.push(bot);
 
 		console.log(this.paddlers);
 	}
 
-	prototype.addSeries = function() {
-
-		if(this.isPlayed == true) return;
-
-		this.addSerieWaves();
-
-		this.series_interval = window.setTimeout(proxy(this.addSeries,this),(this.config.series.interval + this.config.series.length*this.config.series.frequency));
-	}	
-
-	prototype.addSerieWaves = function() {
-
-		for(var i=0; i < this.config.series.length; ++i) {
-
-			this.waves_interval = window.setTimeout(proxy(this.addSwell,this),this.config.series.frequency*i);
-		}
-	}
-
-	prototype.addInitialSerie = function() {
-
-		for(var i = 1; i <=this.config.series.length; ++i) {
-
-			var config = this.config.waves;
-			config.spot = this;
-			config.x = this.config.series.spread/2 - Math.random()*this.config.series.spread;
-			config.y = this.config.lines.horizon;
-
-			var wave = new Wave(config);		
-
-			//start tween
-			var tween  = createjs.Tween.get(wave);		
-			tween.to({y: this.config.lines.beach + this.config.waves.height}, this.config.series.speed)
-			tween.call(proxy(this.removeWave,this,[wave]))
-			tween.addEventListener('change',proxy(wave.coming,wave));
-
-			var position = this.config.series.speed/2 * (this.config.series.length - i) / this.config.series.length;
-			tween.setPosition(position);
-			
-			//add to scene
-			this.cont.addChildAt(wave);			
-			this.waves.unshift(wave);
-		}
-
-		this.series_interval = window.setTimeout(proxy(this.addSeries,this),(this.config.series.interval));
-	}
-
-	prototype.addSwell = function() {
-
-		if(this.isPlayed) return;
-
-		//configuration of the wave
-		var config = this.config.waves;
-			config.spot = this;
-			config.x = this.config.series.spread/2 - Math.random()*this.config.series.spread;
-			config.y = this.config.lines.horizon;
-
-		//create Wave at horizon point
-		var wave = new Wave(config);
-
-		//add to scene
-		this.cont.addChildAt(wave,0);
-		this.waves.unshift(wave);
-
-		//start tween
-		var tween = createjs.Tween.get(wave);		
-		tween.to({y: this.config.lines.beach + this.config.waves.height}, this.config.series.speed)
-		tween.call(proxy(this.removeWave,this,[wave]))
-		tween.addEventListener('change',proxy(wave.coming,wave));
-
-		wave.alpha = 0;
-		createjs.Tween.get(wave).to({alpha: 1}, 5000);
-
-	}
+	
 
 	prototype.paddlerPaddling = function(event) {
 
@@ -359,10 +356,10 @@
 	prototype.botPaddling = function(bot) {
 
 
-		var index = this.cont.getChildIndex(bot) - 1;
+		var index = this.sea_cont.getChildIndex(bot) - 1;
 		while(index>=0) {
 
-			var wave = this.cont.getChildAt(index);
+			var wave = this.sea_cont.getChildAt(index);
 
 			if(wave instanceof Wave) {
 
@@ -386,7 +383,7 @@
 
 
 						bot.removeListeners();
-						this.cont.removeChild(bot);
+						this.sea_cont.removeChild(bot);
 						this.paddlers.splice(this.paddlers.indexOf(bot),1);
 
 						break;
@@ -400,9 +397,9 @@
 
 	prototype.firstWaveBehindPaddler = function(paddler) {
 
-		var index = this.cont.getChildIndex(paddler) - 1;
+		var index = this.sea_cont.getChildIndex(paddler) - 1;
 		while(index>=0) {
-			var wave = this.cont.getChildAt(index);
+			var wave = this.sea_cont.getChildAt(index);
 			if(wave instanceof Wave) return wave;
 			index--;
 		}
@@ -450,8 +447,16 @@
 	prototype.removePaddler = function(paddler) {
 
 		paddler.removeListeners();
-		this.cont.removeChild(paddler);
+		this.sea_cont.removeChild(paddler);
 		this.paddlers.splice(this.paddlers.indexOf(paddler),1);
+	}
+
+	prototype.removeAllPaddlers = function() {
+
+		for(let i=0,len=this.paddlers.length; i<len; ++i) {
+			let paddler = this.paddlers[i];
+			this.removePaddler(paddler);
+		}
 	}
 
 	prototype.initScore = function() {
@@ -475,11 +480,13 @@
 	prototype.paralaxWaves = function() {
 
 		if(!this.wave || this.wave.direction == 0) return;
+
+		if(PAUSED) return;
 		
-		var index = this.cont.getChildIndex(this.wave) - 1;
+		var index = this.sea_cont.getChildIndex(this.wave) - 1;
 		while(index >= 0) {
 
-			var wave = this.cont.getChildAt(index);
+			var wave = this.sea_cont.getChildAt(index);
 
 			if(wave instanceof Wave) {
 
@@ -854,28 +861,15 @@
 		return this.wave;
 	}
 
+	prototype.getWaves = function() {
+
+		return this.waves;
+	}
+
 	prototype.getRidingWave = function() {
 
 		return this.wave;
 	}
-
-	prototype.getPeak = function() {
-
-		return this.config.lines.peak;
-	}
-	prototype.getHorizon = function() {
-
-		return this.config.lines.horizon;
-	}
-	prototype.getBeach = function() {
-
-		return this.config.lines.beach;
-	}
-	prototype.getBreak = function() {
-
-		return this.config.lines.break;
-	}
-
 
 	prototype.addWave = function(coef) {
 
@@ -886,16 +880,18 @@
 		config.height = this.config.waves.height * coef
 		config.width = this.config.waves.width * coef
 		config.y = this.config.lines.horizon + (this.config.lines.peak - this.config.lines.horizon) * coef;
+		config.x = (this.config.series.xshift/100 * STAGEWIDTH) + this.config.series.spread/2 - Math.random()*this.config.series.spread;
 
 		var wave = new Wave(config);		
-		this.cont.addChild(wave);
+		this.sea_cont.addChild(wave);
 		this.waves.push(wave);
 	}
 
 	prototype.removeWave = function(wave) {
-		
+		console.log('removeWave');
+		createjs.Tween.removeTweens(wave);
 		wave.clearWave();
-		this.cont.removeChild(wave);
+		this.sea_cont.removeChild(wave);
 		this.waves.splice(this.waves.indexOf(wave),1);
 		wave = null;
 		return this;
@@ -903,7 +899,7 @@
 
 	prototype.removeAllWaves = function() {
 		
-		this.cont.removeAllChildren();
+		this.sea_cont.removeAllChildren();
 		this.waves = [];
 		this.paddlers = [];
 
@@ -921,8 +917,22 @@
 	prototype.pause = function() {
 
 		for(var i=0; i < this.waves.length; ++i) {
-
 			this.waves[i].pause();
+		}
+
+		for(var i=0; i < this.timers.length; ++i) {
+			this.timers[i].pause();
+		}
+	}
+
+	prototype.resume = function() {
+
+		for(var i=0; i < this.waves.length; ++i) {
+			this.waves[i].pause();
+		}
+
+		for(var i=0; i < this.timers.length; ++i) {
+			this.timers[i].resume();
 		}
 	}
 
@@ -947,7 +957,9 @@
 		window.clearInterval(this.swell_timer);
 	}
 
-	prototype.traceDebug = function() {
+	prototype.drawDebug = function() {
+
+		this.debug_cont.removeAllChildren();
 
 		var line = new createjs.Shape();
 		line.graphics.beginStroke('red').setStrokeStyle(2).moveTo(0, this.config.lines.horizon).lineTo(50,this.config.lines.horizon);

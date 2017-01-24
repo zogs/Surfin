@@ -30,8 +30,9 @@
 	<script src="lib/victor/victor.min.js"></script>
 	<script src="lib/victor/victor_custom.js"></script>
 	<script src="lib/dat/dat.gui.min.js"></script>
-	<script src="keycodes.js" type="text/javascript"></script>
 	<script src="utils.js" type="text/javascript"></script>
+	<script src="config/spots.conf.js" type="text/javascript"></script>
+	<?php loadJsDir('config/spots/'); ?>
 	<script src="user.js" type="text/javascript"></script>
 	<script src="variations.js" type="text/javascript"></script>
 	<script src="obstacles.js" type="text/javascript"></script>
@@ -45,4 +46,17 @@
 	<script src="main.js" type="text/javascript"></script>
 	<script src="customizer.js" type="text/javascript"></script>
 
+<?php 
+
+function loadJsDir($dir) {
+	
+	$handle = opendir($dir);
+	while(($file = readdir($handle))!==false) {
+		if($file == '.' || $file == '..') continue;
+		$file = $dir.$file;
+		echo '<script src="'.$file.'" type="text/javascript"></script>';
+	}
+	closedir($handle);
+}
+?>
 </html>

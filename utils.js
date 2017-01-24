@@ -42,6 +42,20 @@ function extend(obj, src) {
       return obj;
 }
 
+// Convert HEX color to rgba
+function hexToRgbA(hex,opacity = 1){
+    var c;
+    if(/^#([A-Fa-f0-9]{3}){1,2}$/.test(hex)){
+        c= hex.substring(1).split('');
+        if(c.length== 3){
+            c= [c[0], c[0], c[1], c[1], c[2], c[2]];
+        }
+        c= '0x'+c.join('');
+        return 'rgba('+[(c>>16)&255, (c>>8)&255, c&255].join(',')+','+opacity+')';
+    }
+    throw new Error('Bad Hex');
+}
+
 // Converts from degrees to radians.
 Math.radians = function(degrees) {
   return degrees * Math.PI / 180;
@@ -98,4 +112,30 @@ function cloneObject(obj) {
     }
  
     return temp;
+}
+
+// Create a timeout with a pause method
+// usage : new Timer(Function, Number, arg1, arg2, arg3...)
+function Timer(callback, delay) {
+    var args = arguments,
+        self = this,
+        timer, start;
+
+    this.clear = function () {
+        clearTimeout(timer);
+    };
+
+    this.pause = function () {
+        this.clear();
+        delay -= new Date() - start;
+    };
+
+    this.resume = function () {
+        start = new Date();
+        timer = setTimeout(function () {
+            callback.apply(self, Array.prototype.slice.call(args, 2, args.length));
+        }, delay);
+    };
+
+    this.resume();
 }

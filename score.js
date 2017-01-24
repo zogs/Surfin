@@ -266,8 +266,8 @@
 		text.text = tx;
 		text.alpha = 0.8;
 		var b = text.getBounds();
-		if(this.spot.wave.isLEFT()) text.x = pos.x + b.width;
-		if(this.spot.wave.isRIGHT()) text.x = pos.x - b.width;
+		if(this.spot.wave.isLEFT()) text.x = pos.x - 100 - b.width;
+		if(this.spot.wave.isRIGHT()) text.x = pos.x + 100 + b.width;
 		if(this.spot.wave.isCENTER()) text.x = pos.x + b.width/2;
 		text.y = -this.spot.wave.params.height/2;
 		var y = - this.spot.wave.params.height - b.height;
