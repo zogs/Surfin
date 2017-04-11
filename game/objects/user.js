@@ -3,12 +3,13 @@
 		this.level = 1;
 		this.xp = 0;
 		this.skill_pts = 10;
-		this.skill = {
+		this.skills = {
 			speed: 0.5, //0 to 1
 			aerial: 0.2, //0 to 1
 			agility: 1, //0 to 1
 			paddling: 0.1,
-			takeoff: 0
+			takeoff: 0,
+			force: 0.7
 		}
 
 		this.device = {};

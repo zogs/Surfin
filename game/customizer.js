@@ -10,16 +10,17 @@
 		this.SeaColorTop = SPOT.config.colors.top;
 		this.SeaColorBottom = SPOT.config.colors.bottom;
 
-		this.Width = SPOT.config.waves.width;
-		this.Height = SPOT.config.waves.height;
-		this.Meters = SPOT.config.waves.real_height;
-		this.BreakWidth = SPOT.config.waves.breaking.width;
-		this.BreakSpeed = SPOT.config.waves.breaking.yspeed;
-		this.BreakPerCent = SPOT.config.waves.breaking.splash_h_percent;
-		this.BreakEase = SPOT.config.waves.breaking.splash_h_ease;
-		this.ColorTop = SPOT.config.waves.colors[0][0];
-		this.ColorMiddle = SPOT.config.waves.colors[1][0];
-		this.ColorBottom = SPOT.config.waves.colors[2][0];
+		this.Width        = SPOT.config.waves.width;
+		this.Height       = SPOT.config.waves.height;
+		this.Meters       = SPOT.config.waves.real_height;
+		this.BreakWidth   = SPOT.config.waves.breaking.width;
+		this.BreakSpeed   = SPOT.config.waves.breaking.y_speed;
+		this.BreakEase    = SPOT.config.waves.breaking.y_ease;
+		this.SplashPerCent = SPOT.config.waves.breaking.splash_h_percent;
+		this.SplashEase = SPOT.config.waves.breaking.splash_h_ease;
+		this.ColorTop     = SPOT.config.waves.colors[0][0];
+		this.ColorMiddle  = SPOT.config.waves.colors[1][0];
+		this.ColorBottom  = SPOT.config.waves.colors[2][0];
 
 
 		this.SuctionX = SPOT.config.waves.suction_x;
@@ -32,12 +33,12 @@
 		this.RShoulderInner = SPOT.config.waves.shoulder.right.inner;
 		this.RShoulderOuter = SPOT.config.waves.shoulder.right.outer;
 		this.RShoulderMarge = SPOT.config.waves.shoulder.right.marge;
-
+		
 		this.Thickness = SPOT.config.waves.lip.thickness;
 		this.CapLifetime = SPOT.config.waves.lip.cap.lifetime;
 		this.CapHeight = SPOT.config.waves.lip.cap.height;
 		this.CapWidth = SPOT.config.waves.lip.cap.width;
-
+		
 		this.LBreakWidth = SPOT.config.waves.breaking.left.width;
 		this.LBreakWidthMax = SPOT.config.waves.breaking.left.width_max;
 		this.LBreakWidthInt = SPOT.config.waves.breaking.left.width_interval;
@@ -46,7 +47,7 @@
 		this.LBreakBlockWidthMax = SPOT.config.waves.breaking.left.block_width_max;
 		this.LBreakBlockInt = SPOT.config.waves.breaking.left.block_interval;	
 		this.LBreakBlockIntMax = SPOT.config.waves.breaking.left.block_interval_max;
-
+		
 		this.RBreakWidth = SPOT.config.waves.breaking.right.width;	
 		this.RBreakWidthMax = SPOT.config.waves.breaking.right.width_max;
 		this.RBreakWidthInt = SPOT.config.waves.breaking.right.width_interval;
@@ -56,21 +57,21 @@
 		this.RBreakBlockWidthMax = SPOT.config.waves.breaking.right.block_width_max;
 		this.RBreakBlockInt = SPOT.config.waves.breaking.right.block_interval;	
 		this.RBreakBlockIntMax = SPOT.config.waves.breaking.right.block_interval_max;	
-
+		
 		this.NbWaves = SPOT.config.series.length;
-		this.Interval = SPOT.config.series.interval;
-		this.Etalement = SPOT.config.series.spread;
-		this.WaveVitesse = SPOT.config.series.speed;
 		this.WaveFrequency = SPOT.config.series.frequency;
-
+		this.WaveSpeed = SPOT.config.series.speed;
+		this.Etalement = SPOT.config.series.spread;
+		this.IntervalBetweenSerie = SPOT.config.series.interval;
+		
 		this.surfersSize = SPOT.config.surfers.proportion;
 		this.surfersVX = SPOT.config.surfers.velocities.x;
 		this.surfersVY = SPOT.config.surfers.velocities.y;
-
+		
 		this.wavePaddlingEffort = SPOT.config.waves.paddling_effort;
 		this.fallAtBottom = SPOT.config.waves.bottom_fall_scale;
 		this.fallAtTop = SPOT.config.waves.top_fall_scale;
-
+		
 		this.obstaclesInterval = SPOT.config.waves.obstacles_interval;
 		this.obstaclesIntervalMax = SPOT.config.waves.obstacles_interval_max;
 		this.paddlerPercentage = SPOT.config.waves.obstacles['paddler'].percentage;
@@ -83,7 +84,10 @@
 			//remove pause if needed
 			if(PAUSED) window.pause();
 
-			//add spot
+			//clear
+			SPOT.clearSpot();
+
+			//add spot with updated config
 			window.addSpot(SPOT);
 		}
 
@@ -135,21 +139,19 @@
 
 		gui.close();
 
-		gui.add(custom, 'SwitchDebugMode');
-		gui.add(custom, 'SwitchTestMode');
 		gui.add(custom, 'LaunchSpot');
 		gui.add(custom, 'BreakWave');
 		gui.add(custom, 'TestWave');
-		gui.add(custom, 'Pause');
 
 		var waves = gui.addFolder('Waves');
 		waves.add(custom, 'Width', 100, 5000).step(100).onChange(function(value) { SPOT.config.waves.width = value; });
 		waves.add(custom, 'Height', 10, 400).onChange(function(value) { SPOT.config.waves.height = value; });
 		waves.add(custom, 'Meters', 1, 10).onChange(function(value) { SPOT.config.waves.real_height = value; });
 		waves.add(custom, 'BreakWidth',1,1500).step(10).onChange(function(value) { SPOT.config.waves.breaking.width = value; });
-		waves.add(custom, 'BreakSpeed',0,5000).step(50).onChange(function(value) { SPOT.config.waves.breaking.yspeed = value; });
-		waves.add(custom, 'BreakPerCent',0,100).step(1).onChange(function(value) { SPOT.config.waves.breaking.splash_h_percent = value; });
-		waves.add(custom, 'BreakEase',0,1).step(0.1).onChange(function(value) { SPOT.config.waves.breaking.splash_h_ease = value; });
+		waves.add(custom, 'BreakSpeed',0,5000).step(50).onChange(function(value) { SPOT.config.waves.breaking.y_speed = value; });
+		waves.add(custom, 'BreakEase',['quartIn','cubicIn','circIn']).onChange(function(value) { SPOT.config.waves.breaking.y_ease = value; });
+		waves.add(custom, 'SplashPerCent',0,100).step(1).onChange(function(value) { SPOT.config.waves.breaking.splash_h_percent = value; });
+		waves.add(custom, 'SplashEase',0,1).step(0.1).onChange(function(value) { SPOT.config.waves.breaking.splash_h_ease = value; });
 		waves.addColor(custom, 'ColorTop').onChange(function(value) { SPOT.config.waves.colors[0][0] = value; SPOT.getWaves().map(w => w.drawBackground()); });
 		waves.addColor(custom, 'ColorMiddle').onChange(function(value) { SPOT.config.waves.colors[1][0] = value; SPOT.getWaves().map(w => w.drawBackground()); });
 		waves.addColor(custom, 'ColorBottom').onChange(function(value) { SPOT.config.waves.colors[2][0] = value; SPOT.getWaves().map(w => w.drawBackground()); });
@@ -205,10 +207,10 @@
 
 		var series = gui.addFolder('Series');
 		series.add(custom, 'NbWaves', 1, 10).onChange(function(value) { SPOT.config.series.length = value; });
-		series.add(custom, 'Interval').min(0).step(100).onChange(function(value) { SPOT.config.series.interval = value; });
-		series.add(custom, 'Etalement',0).step(10).onChange(function(value) { SPOT.config.series.spread = value; });
-		series.add(custom, 'WaveVitesse',0).min(5000).step(100).onChange(function(value) { SPOT.config.series.speed = value; });
 		series.add(custom, 'WaveFrequency',0).min(0).step(100).onChange(function(value) { SPOT.config.series.frequency = value; });
+		series.add(custom, 'WaveSpeed',0).min(5000).step(100).onChange(function(value) { SPOT.config.series.speed = value; });
+		series.add(custom, 'Etalement',0).step(10).onChange(function(value) { SPOT.config.series.spread = value; });
+		series.add(custom, 'IntervalBetweenSerie').min(0).step(100).onChange(function(value) { SPOT.config.series.interval = value; });
 
 		var surfers = gui.addFolder('Surfers');
 		surfers.add(custom, 'surfersSize', 0, 3).onChange(function(value) { SPOT.config.surfers.proportion = value; })
@@ -228,6 +230,9 @@
 		obstacles.add(custom, 'photographPercentage',0,100).onChange(function(value) { SPOT.config.waves.obstacles['photograph'].percentage = value; });
 
 		gui.add(custom, 'performance',{ Minimum: 0, Normal:2, High: 3}).onChange(function(value) { window.PERF = value; });
+		gui.add(custom, 'SwitchDebugMode');
+		gui.add(custom, 'SwitchTestMode');
+		gui.add(custom, 'Pause');
 
 
 

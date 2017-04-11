@@ -14,7 +14,7 @@ function Wave(params) {
 		real_height: 4,
 		peak_width: 200,
 		breaking: {
-			yspeed: 1200,
+			y_speed: 1200,
 			left: {
 				width: 20,
 				width_max: 30,				
@@ -88,9 +88,11 @@ prototype.init = function(params) {
 	this.shaking_force = 1.2;
 	this.direction = CENTER;
 	this.movingX = 0;
+	this.time_scale = (TIME_SCALE) ? TIME_SCALE : 1;
 
 	//initiale suction force with no x value, later suction will be defined when direction is setted
-	this.params.suction = new Victor(0, - this.params.suction_y);		
+	this.params.suction = new Victor(0, - this.config.suction_y);		
+	this.config.suction = new Victor(0, - this.config.suction_y);		
 	
 	this.breaked = false;
 	this.played = false;
@@ -98,7 +100,16 @@ prototype.init = function(params) {
 	this.status = '';
 	this.paused = false;
 	this.cleaned = false;
-	
+
+	//timers
+	this.breaking_timer = false;
+	this.cleaning_timer = false;
+	this.obstacle_timer = false;
+	this.breaking_peak_left_timer = false;
+	this.breaking_peak_right_timer = false;
+	this.breaking_block_left_timer = false;
+	this.breaking_block_right_timer = false;
+
 	//on-wave static score container
 	this.score_cont = new createjs.Container();
 	this.addChild(this.score_cont);
@@ -222,12 +233,13 @@ prototype.getAllPeaksPoints = function() {
 
 
 prototype.tick = function(ev) {
-	if(PAUSED) return;	
+	if(this.paused) return;	
 
 	if(this.breaked) {
 
-		this.continousBreaking();
-		this.mergeCollidingPeaks();
+		// continuous breaking is now done by a settimeout
+		//this.continuousBreaking();
+		//this.mergeCollidingPeaks();
 		this.drawLip();
 		this.drawSplash();
 		this.moveWave();
@@ -241,6 +253,8 @@ prototype.tick = function(ev) {
 	}
 		
 }
+
+
 
 prototype.mergeCollidingPeaks = function() {
 
@@ -301,10 +315,16 @@ prototype.mergeCollidingPeaks = function() {
 
 }
 
-prototype.continousBreaking = function() {
+prototype.initContinuousBreaking = function() {
+
+	this.breaking_timer = new Timer(proxy(this.continuousBreaking,this), this.params.breaking.x_speed);
+	
+}
+
+prototype.continuousBreaking = function() {
 
 	// cancel if wave is paused or not breaked yet
-	if(this.paused === true || this.breaked === false) return;
+	//if(this.paused === true || this.breaked === false) return;
 
 	// add breaking points for each peaks
 	for(let i=0,len=this.peaks.length; i<len; ++i) {
@@ -331,6 +351,12 @@ prototype.continousBreaking = function() {
 		peak.boundaries[LEFT] = lx;
 		peak.boundaries[RIGHT] = rx;
 	}
+
+	// merge colliding peaks
+	this.mergeCollidingPeaks();
+
+	//init continuous breaking	
+	this.breaking_timer = new Timer(proxy(this.continuousBreaking,this), this.params.breaking.x_speed);
 	
 }
 
@@ -419,6 +445,8 @@ prototype.createLipPoint = function(params) {
 	const peak = params.peak === undefined ? null : params.peak;
 	const breaking_y = (this.params.breaking.splash_h_percent <= 100)? this.params.height * this.params.breaking.splash_h_percent/100 : this.params.height;
 	const bounce_y = (this.isPlayed())? breaking_y + Math.random() * breaking_y / 3 : breaking_y + Math.random() * breaking_y / 4;
+	const ease_y = (this.config.breaking.y_ease) ? this.config.breaking.y_ease : 'quartIn';
+
 
 	// lip point
 	const point = {
@@ -442,6 +470,7 @@ prototype.createLipPoint = function(params) {
 		tubedeep : 0,
 		tubedeepMax : 1,
 		cap : null,
+		tweens: []
 	};
 
 	// stock points in a array
@@ -451,13 +480,13 @@ prototype.createLipPoint = function(params) {
 	const cap = new createjs.Point();
 	point.cap = cap;
 
-	createjs.Tween.get(point)
+	const t1 = createjs.Tween.get(point, { timeScale: this.time_scale })
 		//delay
 		.wait(delay)
 		//break
 		.set({breaking: true})
 		//fall
-		.to({y: breaking_y, breaking_idx: 1, topfallscale: point.topfallscaleMax},this.params.breaking.yspeed + Math.random()*50,createjs.Ease.quartIn)
+		.to({y: breaking_y, breaking_idx: 1, topfallscale: point.topfallscaleMax},this.params.breaking.y_speed + Math.random()*50,createjs.Ease[ease_y])
 		//splash
 		.set({breaking: false, splashed: true})
 		.call(proxy(this.splashPointReached,this,[point]))
@@ -468,13 +497,17 @@ prototype.createLipPoint = function(params) {
 		.to({bounce_y: breaking_y - bounce_y/2},2500,createjs.Ease.bounceOut)
 	;
 
-	createjs.Tween.get(cap)		
+	const t2 = createjs.Tween.get(cap, { timeScale: this.time_scale })		
 		.to({y: - this.config.lip.cap.height + Math.random()*5}, this.config.lip.cap.lifetime + this.config.lip.cap.width/2, createjs.Ease.sineIn)
 		.to({y:0},this.config.lip.cap.width/2,createjs.Ease.quartInOut)
 		;
 
+	point.tweens.push(t1);
+	point.tweens.push(t2);
+
 	return point;
 }
+
 
 
 prototype.addPointToSplash = function(point,splash) {
@@ -697,6 +730,9 @@ prototype.initBreak = function(center) {
 
 	this.addPeak(center,this.config.breaking.width);
 
+	//init continuous breaking	
+	this.initContinuousBreaking();
+
 	//init points cleaner
 	this.initCleanOffscreenPoints();
 
@@ -883,7 +919,7 @@ prototype.addTestSurferBot = function(surfer) {
 	bot.takeOff( takeX, 20);
 	this.surfers_cont.addChild(bot);
 	this.surfers.unshift(bot);
-	console.log(this.surfers);
+	
 }
 
 prototype.removeBot = function(bot) {
@@ -900,25 +936,41 @@ prototype.getSurfer = function() {
 
 prototype.pause = function() {
 
-	if(this.status != 'paused') {
-		this.status = 'paused';
-		this.paused = true;
-		createjs.Ticker.setPaused(true);		
-	} else {
-		this.status = 'run';
-		this.paused = false;
-		createjs.Ticker.setPaused(false);
-	}
+	this.status = 'paused';
+	this.paused = true;	
+	this.surfers.map(s => s.pause());
+	this.getTimers().map(t => t.pause());
 }
 
+prototype.resume = function() {
 
+	this.status = 'run';
+	this.paused = false;
+	this.surfers.map(s => s.resume());
+	this.getTimers().map(t => t.resume());
+}
+
+prototype.getTimers = function() {
+
+	const timers = [];
+	if(this.breaking_timer instanceof Timer) timers.push(this.breaking_timer);
+	if(this.cleaning_timer instanceof Timer) timers.push(this.cleaning_timer);
+	if(this.obstacle_timer instanceof Timer) timers.push(this.obstacle_timer);
+	if(this.breaking_peak_left_timer instanceof Timer) timers.push(this.breaking_peak_left_timer);
+	if(this.breaking_peak_right_timer instanceof Timer) timers.push(this.breaking_peak_right_timer);
+	if(this.breaking_block_left_timer instanceof Timer) timers.push(this.breaking_block_left_timer);
+	if(this.breaking_block_right_timer instanceof Timer) timers.push(this.breaking_block_right_timer);
+
+	return timers;
+}
 
 prototype.initBreakingBlockLeftInterval = function() {
 
 	var t = this.config.breaking.left.block_interval + Math.random()*(this.config.breaking.left.block_interval_max - this.config.breaking.left.block_interval);
 	var w = this.config.breaking.left.block_width + Math.random()*(this.config.breaking.left.block_width_max - this.config.breaking.left.block_width);
 
-	window.setTimeout(proxy(this.continueBreakingBlockLeftInterval,this),t);
+	this.breaking_block_left_timer = new Timer(proxy(this.continueBreakingBlockLeftInterval,this),t);
+	
 }
 
 prototype.continueBreakingBlockLeftInterval = function() {
@@ -928,7 +980,7 @@ prototype.continueBreakingBlockLeftInterval = function() {
 
 	this.initBlockBreakingLeft(w);
 
-	this.continuousLeftBlockInterval = window.setTimeout(proxy(this.continueBreakingBlockLeftInterval,this),t);
+	this.breaking_block_left_timer = new Timer(proxy(this.continueBreakingBlockLeftInterval,this),t);
 }
 
 prototype.initBreakingBlockRightInterval = function() {
@@ -936,7 +988,8 @@ prototype.initBreakingBlockRightInterval = function() {
 	var t = this.config.breaking.right.block_interval + Math.random()*(this.config.breaking.right.block_interval_max - this.config.breaking.right.block_interval);
 	var w = this.config.breaking.right.block_width + Math.random()*(this.config.breaking.right.block_width_max - this.config.breaking.right.block_width);
 
-	window.setTimeout(proxy(this.continueBreakingBlockRightInterval,this),t);
+	this.breaking_block_right_timer = new Timer(proxy(this.continueBreakingBlockRightInterval,this),t);
+	
 }
 
 prototype.continueBreakingBlockRightInterval = function() {
@@ -946,7 +999,7 @@ prototype.continueBreakingBlockRightInterval = function() {
 
 	this.initBlockBreakingRight(w);
 
-	this.continuousRightBlockInterval = window.setTimeout(proxy(this.continueBreakingBlockRightInterval,this),t);
+	this.breaking_block_right_timer = new Timer(proxy(this.continueBreakingBlockRightInterval,this),t);
 }
 
 
@@ -1015,6 +1068,45 @@ prototype.findEmptyRightPeak = function() {
 		if(this.peaks[i].points.length === 0) return this.peaks[i];
 	}
 }
+
+prototype.initBreakingPeakRightInterval = function() {
+
+	var t = this.config.breaking.right.peak_interval + Math.random()*(this.config.breaking.right.peak_interval_max - this.config.breaking.right.peak_interval);
+	var w = this.config.breaking.right.peak_width + Math.random()*(this.config.breaking.right.peak_width_max - this.config.breaking.right.peak_width);
+
+	this.breaking_peak_right_timer = new Timer(proxy(this.continueBreakingPeakRightInterval,this),t);
+	
+}
+
+prototype.continueBreakingPeakRightInterval = function() {
+
+	var t = this.config.breaking.right.peak_interval + Math.random()*(this.config.breaking.right.peak_interval_max - this.config.breaking.right.peak_interval);
+	var w = this.config.breaking.right.peak_width + Math.random()*(this.config.breaking.right.peak_width_max - this.config.breaking.right.peak_width);
+
+	this.initBreakingPeakRight(w);
+
+	this.breaking_peak_right_timer = new Timer(proxy(this.continueBreakingPeakRightInterval,this),t);
+}
+
+prototype.initBreakingPeakLeftInterval = function() {
+
+	var t = this.config.breaking.left.peak_interval + Math.random()*(this.config.breaking.left.peak_interval_max - this.config.breaking.left.peak_interval);
+	var w = this.config.breaking.left.peak_width + Math.random()*(this.config.breaking.left.peak_width_max - this.config.breaking.left.peak_width);
+
+	this.breaking_peak_left_timer = new Timer(proxy(this.continueBreakingPeakLeftInterval,this),t);
+	
+}
+
+prototype.continueBreakingPeakLeftInterval = function() {
+
+	var t = this.config.breaking.left.peak_interval + Math.random()*(this.config.breaking.left.peak_interval_max - this.config.breaking.left.peak_interval);
+	var w = this.config.breaking.left.peak_width + Math.random()*(this.config.breaking.left.peak_width_max - this.config.breaking.left.peak_width);
+
+	this.initBreakingPeakLeft(w);
+
+	this.breaking_peak_left_timer = new Timer(proxy(this.continueBreakingPeakLeftInterval,this),t);
+}
+
 
 prototype.addBreakingPeak = function(width,distance) {
 	
@@ -1130,6 +1222,8 @@ prototype.moveWave = function() {
 		this.movingX = delta/this.params.breaking.right.width;
 	}
 
+	this.movingX *= this.time_scale;
+
 	this.cont.x += this.movingX;	
 }
 
@@ -1163,12 +1257,8 @@ prototype.oldmoveWave = function() {
 
 prototype.clearWave = function() {
 
-	this.removeAllEventListeners('tick');
-	window.clearInterval(this.clearnerInterval);
-	window.clearInterval(this.breakingInterval);
-	window.clearInterval(this.breakingPeaksInterval);
-	window.clearTimeout(this.continuousRightBlockInterval);
-	window.clearTimeout(this.continuousLeftBlockInterval);
+	this.removeAllEventListeners('tick');	
+	this.getTimers().map(t => t.clear());
 	this.allpoints.map(p => createjs.Tween.removeTweens(p));
 	this.cont.removeAllChildren();
 	this.removeAllChildren();
@@ -1187,7 +1277,7 @@ prototype.clearWave = function() {
 
 prototype.initCleanOffscreenPoints = function() {
 
-	this.clearnerInterval = window.setInterval(proxy(this.cleanOffscreenPoints,this),1000);
+	this.cleaning_timer = new Timer(proxy(this.cleanOffscreenPoints,this),1000);
 }
 
 prototype.findOnscreenPoints = function(points, removeOffscreen = true) {
@@ -1239,7 +1329,7 @@ prototype.findOnscreenPoints = function(points, removeOffscreen = true) {
 
 prototype.cleanOffscreenPoints = function() {
 
-	if(PAUSED) return;
+	if(this.paused) return;
 
 	if(this.direction === LEFT) {
 		let peak = this.findTheRightPeak();
@@ -1272,6 +1362,9 @@ prototype.cleanOffscreenPoints = function() {
 		// set on-screen points to the peak
 		peak.splashed = splashed_onscreen;
 	}
+
+	//continue cleaning
+	this.cleaning_timer = new Timer(proxy(this.cleanOffscreenPoints,this),1000);
 }
 
 
@@ -1279,8 +1372,7 @@ prototype.initObstaclesInterval = function() {
 
 	var t = this.config.obstacles_interval + Math.random()*(this.config.obstacles_interval_max - this.config.obstacles_interval);
 
-	window.setTimeout(proxy(this.continueObstaclesInterval,this),t);
-	
+	this.obstacle_timer = new Timer(proxy(this.continueObstaclesInterval,this),t);
 }
 
 prototype.continueObstaclesInterval = function() {
@@ -1289,7 +1381,7 @@ prototype.continueObstaclesInterval = function() {
 
 	this.addRandomObstacle();
 
-	window.setTimeout(proxy(this.initObstaclesInterval,this),t);
+	this.obstacle_timer = new Timer(proxy(this.initObstaclesInterval,this),t);
 	
 }
 prototype.addRandomObstacle = function() {
@@ -1305,6 +1397,11 @@ prototype.addRandomObstacle = function() {
 			return;
 		}
 	}
+}
+
+prototype.addBomb = function() {
+	var obj = new BombObstacle({wave: this});
+	return this.addObstacle(obj);
 }
 
 prototype.addPaddler = function() {
@@ -1417,19 +1514,17 @@ prototype.drawLip = function() {
 		this.lip_thickness.graphics.quadraticCurveTo(points[i].x,points[i].y,points[i+1].x,points[i+1].y);	
 		this.lip_surface.graphics.quadraticCurveTo(points[i].x,points[i].y,points[i+1].x,points[i+1].y);	
 		this.lip_shadow.graphics.quadraticCurveTo(points[i].x,points[i].y,points[i+1].x,points[i+1].y);	
-
-
 		if(points[i].cap) this.lip_cap.graphics.lineTo(points[i].x,points[i].cap.y);	
+
+
 		//le dernier point
 		this.lip_thickness.graphics.lineTo(points[len-1].x,0);
-		if(points[len-1].cap) this.lip_cap.graphics.lineTo(points[len-1].x,points[len-1].cap.y);
+		this.lip_surface.graphics.lineTo(points[len-1].x,0);	
+		this.lip_shadow.graphics.lineTo(points[len-1].x,0);	
+		if(points[len-1].cap) this.lip_cap.graphics.lineTo(points[len-1].x,0);
+
 		
 	}
-
-	this.lip_thickness.graphics.closePath();
-	this.lip_shadow.graphics.closePath();
-	this.lip_cap.graphics.closePath();
-	this.lip_surface.graphics.closePath();
 
 }
 
@@ -1802,7 +1897,13 @@ prototype.isRIGHT = function() {
 prototype.isCENTER = function() {
 	return (this.direction === CENTER)? true : false;
 }
-
+prototype.setTimeScale = function(scale) {
+	this.time_scale = scale;
+	this.params.breaking.x_speed = this.config.breaking.x_speed / scale;
+	this.params.suction = this.config.suction.clone().scale(scale);
+	this.allpoints.map(p => p.tweens.map(t => t.timeScale = scale));
+	this.surfers.map(s => s.setTimeScale(scale));
+}
 
 
 

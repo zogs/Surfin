@@ -10,6 +10,7 @@
 		this.y = 0;
 
 		this.talking = false;
+		this.kill_count = 0;
 
 		this.phrases = {
 			fall_bottom : ['Open your mouth for a free teethbrush','This wave is too big for you'],
@@ -125,12 +126,23 @@
 		},this);
 
 		stage.on('multiplier_bonus_hitted',function(event) {
-			if(this.current_multiplier == 0) this.current_multiplier = event.multiplier;
+			if(this.current_multiplier === 0) this.current_multiplier = event.multiplier;
 			else this.current_multiplier = this.current_multiplier * event.multiplier;
 		},this);
 
 		stage.on('level_up',function(event) {
 			this.levelUp(event.level);
+		},this);
+
+		stage.on('surfer_kill',function(event) {
+			if(event.player === event.killed) this.say("Boum...", 1000);
+			if(event.player === event.killer) {
+				this.kill_count++;
+				if(this.kill_count === 1) this.add(100).say("Killer !", 500);
+				if(this.kill_count === 2) this.add(500).say("Double kill !", 500);
+				if(this.kill_count === 3) this.add(1000).say("Triple kill !", 500);
+				if(this.kill_count > 3) this.add(1000).say("Multi kill !", 500);
+			}
 		},this);
 	}
 
@@ -285,7 +297,7 @@
 		if(color != undefined) text.color = color;
 
 		//lauch particles
-		window.setTimeout(proxy(this.launchTextParticles,this,[text]),200);
+		//window.setTimeout(proxy(this.launchTextParticles,this,[text]),200);
 
 		return this;
 	}

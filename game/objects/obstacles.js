@@ -23,20 +23,24 @@
 		this.hitted = false;
 		this.bonuses = [];
 		this.maluses = [];
+		this.duck_y = this.wave.params.height / 5;
 
 		this.image_cont = new createjs.Container();
 		this.addChild(this.image_cont);
 		this.debug_cont = new createjs.Container();
+		this.debug_cont.alpha = 0;
 		this.addChild(this.debug_cont);
 
 		this.drawImage();
 		this.drawMalus();
 		this.drawBonus();
 
-		if(DEBUG) {
 			this.center = new createjs.Shape();
 			this.center.graphics.beginFill('red').drawCircle(0,0,2);
-			this.addChild(this.center);			
+			this.addChild(this.center);		
+		if(DEBUG) {
+
+			this.debug_cont.alpha = 0.3;
 		}
 
 		this.initialPosition();
@@ -56,14 +60,14 @@
 
 	prototype.initialPosition = function() {
 
-		var x;
-		var y = (STAGEHEIGHT - this.wave.y) + this.wave.params.height;
+		let x = this.wave.params.breaking_center + (200 - Math.random() * 400);
+		let y = this.wave.spot.config.lines.obstacle - this.wave.y + this.wave.params.height;
 
-		if(this.wave.direction == -1) {
-			var x = this.wave.shoulder_right.x + ( STAGEWIDTH - Math.random()*STAGEWIDTH/2);
+		if(this.wave.direction === RIGHT) {
+			x = this.wave.shoulder_right.x + Math.random() * (this.wave.params.shoulder.right.width);
 		}
-		if(this.wave.direction == 1) {
-			var x = this.wave.shoulder_left.x - ( STAGEWIDTH - Math.random()*STAGEWIDTH/2);
+		if(this.wave.direction === LEFT) {
+			x = this.wave.shoulder_left.x - Math.random() * (this.wave.params.shoulder.left.width);
 		}
 
 		this.x = x;
@@ -81,13 +85,15 @@
 	prototype.hitBonus = function(surfer) {
 
 		if(this.hitted == true) return;
-		var j = this.bonuses.length;
+		let j = this.bonuses.length;
 		while(j--) {
-			var point = this.bonuses[j];
-			var radius = point.graphics.command.radius;
-			if(surfer.hitSurf(point,radius)) {
+			const point = this.bonuses[j];
+			const radius = point.graphics.command.radius;
+			const x = this.x + point.x;
+			const y = this.y + point.y;
+
+			if(surfer.hitBoard(x,y,radius)) {
 				this.hitted = true;
-				surfer.dispatchEvent('bonus_hitted_paddler');
 				return true;
 			}
 		}
@@ -97,13 +103,14 @@
 	prototype.hitMalus = function(surfer) {
 
 		if(this.hitted == true) return;
-		var i = this.maluses.length;
+		let i = this.maluses.length;
 		while(i--) {
-			var point = this.maluses[i];
-			var radius = point.graphics.command.radius;
-			if(surfer.hitSurf(point,radius)) {
+			const point = this.maluses[i];
+			const radius = point.graphics.command.radius;
+			const x = this.x + point.x;
+			const y = this.y + point.y;
+			if(surfer.hitBoard(x,y,radius)) {
 				this.hitted = true;
-				surfer.dispatchEvent('malus_hitted_paddler');
 				return true;
 			}
 		}
@@ -124,7 +131,6 @@
 		var bonus = new createjs.Shape();
 			bonus.graphics.beginFill('green').drawCircle(0,0,20);
 			bonus.y = 30;
-			if(!DEBUG) bonus.alpha = 0;
 			this.debug_cont.addChild(bonus);
 			this.bonuses.push(bonus);
 	}
@@ -133,14 +139,13 @@
 
 		var malus = new createjs.Shape();
 			malus.graphics.beginFill('red').drawCircle(0,0,20);
-			if(!DEBUG)  malus.alpha = 0;
 			this.debug_cont.addChild(malus);
 			this.maluses.push(malus);
 	}
 
 	prototype.move = function() {
 
-		const moving = new Victor(0, -5);
+		const moving = new Victor(0, this.wave.params.suction.y);
 
 		this.location.add(moving);
 		this.x = this.location.x;
@@ -163,7 +168,7 @@
 
 		if(this.ducking == true) return;
 
-		if(this.y < this.wave.params.height/3) {
+		if(this.y < this.duck_y) {
 			this.ducking = true;
 			createjs.Tween.get(this)
 				.to({ alpha: 0}, 300)
@@ -184,6 +189,69 @@
 	//assign Obstacle to window's scope & promote
 	window.Obstacle = createjs.promote(Obstacle, "Container");
 }());
+
+(function() {
+
+		function BombObstacle(config) {
+
+			config.img = 'bomb';
+			config.name = 'bomb';			
+			this.Obstacle_constructor(config);		    
+
+		}
+		BombObstacle.prototype = Object.create(Obstacle.prototype);
+		BombObstacle.prototype.constructor = BombObstacle;
+		window.BombObstacle = createjs.promote(BombObstacle, "Obstacle");
+
+		BombObstacle.prototype.drawImage = function() {			
+		
+			var sheet = new createjs.SpriteSheet({
+			    images: [queue.getResult('bomb_boom')],
+			    frames: {width:312, height:285, regX: 155, regY: 142},
+			    framerate: 1,
+			    animations: {
+			    	floating: [0, 1, false, 1],	        
+			        explode: [2, 7, false, 0.5],
+			    }
+			});			
+
+			this.sprite = new createjs.Sprite(sheet);
+			this.sprite.scaleX = this.sprite.scaleY = 0.5;
+			this.sprite.y = -50;
+			this.sprite.gotoAndPlay('floating');	
+			this.image_cont.addChild(this.sprite);
+
+		}
+
+		BombObstacle.prototype.drawBonus = function() {
+
+			/* no bonus */
+		}
+
+		BombObstacle.prototype.drawMalus = function() {
+
+			var malus = new createjs.Shape();
+				malus.graphics.beginFill('red').drawCircle(0,0,30);
+				malus.y = 0;
+				malus.x = 5;
+				this.debug_cont.addChild(malus);
+				this.maluses.push(malus);
+		}
+
+		BombObstacle.prototype.bonusHitted = function() {
+
+			/* no bonus */
+
+		}
+
+		BombObstacle.prototype.malusHitted = function() {
+
+			this.sprite.gotoAndPlay('explode');	
+
+		}
+
+}());
+
 
 
 (function() {
@@ -212,8 +280,8 @@
 			    }
 			});
 
-			this.animation = new createjs.Sprite(sheet);;	
-			this.image_cont.addChild(this.animation);
+			this.sprite = new createjs.Sprite(sheet);;	
+			this.image_cont.addChild(this.sprite);
 			
 		}
 
@@ -224,7 +292,6 @@
 			bonus.y = -30;
 			if(this.wave.direction == -1) bonus.x = -60;
 			if(this.wave.direction == 1) bonus.x = 60;
-			if(!DEBUG) bonus.alpha = 0;
 			this.debug_cont.addChild(bonus);
 			this.bonuses.push(bonus);
 		}
@@ -232,15 +299,14 @@
 		Photograf.prototype.drawMalus = function() {
 
 			var malus = new createjs.Shape();
-				malus.graphics.beginFill('red').drawCircle(0,0,10);
-				if(!DEBUG) malus.alpha = 0;				
+				malus.graphics.beginFill('red').drawCircle(0,0,10);		
 				this.debug_cont.addChild(malus);
 				this.maluses.push(malus);
 		}
 
 		Photograf.prototype.bonusHitted = function() {
 
-			this.animation.gotoAndPlay('flash');
+			this.sprite.gotoAndPlay('flash');
 		}
 
 		Photograf.prototype.malusHitted = function() {

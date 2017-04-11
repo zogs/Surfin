@@ -121,6 +121,10 @@ function Timer(callback, delay) {
         self = this,
         timer, start;
 
+    this.log = function() {
+      console.log(timer);
+    }
+
     this.clear = function () {
         clearTimeout(timer);
     };

@@ -23,6 +23,8 @@ window.loaded = function() {
 		{id:'spot_seariddle',src:'assets/img/spots/default/seariddles.png'},
 		{id:'spot_front',src:'assets/img/spots/default/front.png'},
 		{id:'spot_back',src:'assets/img/spots/default/back.png'},
+		{id:'bomb_boom',src:'assets/img/object/bomb_boom.png'},
+		{id:'surfer_splash',src:'assets/img/object/splash.gif'},
 		{id:'surfer_E',src:'assets/img/surfer/E.png'},
 		{id:'surfer_EEEN',src:'assets/img/surfer/EEEN.png'},
 		{id:'surfer_EEES',src:'assets/img/surfer/EEES.png'},
@@ -72,6 +74,8 @@ window.initialize = function() {
 	TEST = 0;
 	PAUSED = 0;
 	PERF = 3;
+	TIME_SCALE = 1;
+	SLOW_MOTION = false;
 
 	//USER
 	USER = new UserManager();
@@ -80,11 +84,29 @@ window.initialize = function() {
 	//SPOT
 	const spot = SPOTSCONF.find(s => s.alias == 'default');
 	window.addSpot(spot,false);
-	
+
+	const boom = new createjs.SpriteSheet({
+			images: [queue.getResult('bomb_boom')],
+			frames: {width:312, height:285},
+			framerate: 0.1,
+			animations: {
+				floating: [0,5,false],
+				explode: [2,7,false,1],
+			}
+		});
+
+		const animation = new createjs.Sprite(boom,'boom');
+		animation.y = 400;
+		animation.x = 300;
+		animation.gotoAndStop('floating');
+		stage.addChild(animation);
+
+
 	//MENU
 	addMenu();
 
 	//init onEnterFrame
+	createjs.Ticker.timingMode = createjs.Ticker.TIMEOUT;
 	createjs.Ticker.addEventListener('tick',tick);
 
 	//init Mouse move 
@@ -104,47 +126,11 @@ window.initialize = function() {
 
 }
 
-window.browserResize = function() {
-	if(window.browserResizeTimeout) window.clearTimeout(window.browserResizeTimeout);	
-	window.browserResizeTimeout = window.setTimeout(window.browserResizeEnded,500);
-}
 
-window.browserResizeEnded = function() {
+window.tick = function() {
 
-	window.resizeCanvas();
-}
-
-window.resizeCanvas = function() {
-
-	var windowWidth = window.innerWidth || document.documentElement.clientWidth || document.body.clientWidth;
-	var windowHeight = window.innerHeight || document.documentElement.clientHeight || document.body.clientHeight;	
-
-	var currentHeight = stage.canvas.height;
-	var currentWidth = stage.canvas.width;
-	if(windowHeight < stage.canvas.height) {
-		currentHeight = windowHeight;
-		currentWidth = currentHeight * RATIO;
-	}
-	if(windowWidth < stage.canvas.width) {
-		currentWidth = windowWidth;
-		currentHeight = currentWidth / RATIO;
-	}
-
-	if (USER.get().device.android || USER.get().device.ios) { //if android or ios
-		//hide address bar
-        document.body.style.height = (windowHeight + 50) + 'px';
-        //enable Touch event
-        createjs.Touch.enable(stage);
-    }
-
-	document.getElementById('canvas').style.width = currentWidth+'px';
-	document.getElementById('canvas').style.height = currentHeight+'px';
-
-	//scroll to top
-	window.setTimeout(function() { //rowsers don't fire if there is not short delay
-		window.scrollTo(0,1);
-    }, 1);
-
+	//console.log(createjs.Tween._tweens.length);
+	stage.update();
 }
 
 window.loadSpot = function(event, name = 'default') {
@@ -248,11 +234,6 @@ window.showMenu = function(e) {
 
 }
 
-window.tick = function() {
-
-	//console.log(createjs.Tween._tweens.length);
-	stage.update();
-}
 
 window.keyDownHandler = function(e)
 {
@@ -267,10 +248,12 @@ window.keyDownHandler = function(e)
     case 'f':  SPOT.getWave().getSurfer().fall(); break;
     case 'z':  SPOT.addPaddlerBot(); break;
     case 'r':  SPOT.getWave().addTestSurferBot(); break;
-    case 'o':  SPOT.getWave().addRandomObstacle(); break;
+    case 'o':  SPOT.getWave().addBomb(); break;
     case 'i':  SPOT.getWave().addFlyingObstacle(); break;
+    case 'k':  SPOT.getWave().getSurfer().updateLifebar(0.2); break;
     case 't':  switchTestMode(); break;
     case 'd':  switchDebugMode(); break;
+    case 'w':  switchSlowMo(0.1,500); break;
     default: console.log('Key "'+e.key+'" have no handler.');
    } 
 }
@@ -325,6 +308,26 @@ window.switchTestMode = function() {
 	}
 }
 
+window.switchSlowMo = function(scale,time) {
+	
+	if(SLOW_MOTION === false) {
+		SLOW_MOTION = true;
+		const tween = createjs.Tween.get(window).to({TIME_SCALE: scale}, time);
+		tween.addEventListener('change', window.updateTimeScale);
+	}
+	else {
+		SLOW_MOTION = false;
+		const tween = createjs.Tween.get(window).to({TIME_SCALE: 1}, time);
+		tween.addEventListener('change', window.updateTimeScale);
+
+	}
+}
+
+window.updateTimeScale = function() {
+
+	SPOT.setTimeScale(TIME_SCALE);
+}
+
 window.pause = function() {
 
 	if(PAUSED === 1) {
@@ -339,4 +342,48 @@ window.pause = function() {
 		SPOT.pause();
 		console.log('PAUSE ACTIVATED !');
 	}	
+}
+
+
+window.browserResize = function() {
+	if(window.browserResizeTimeout) window.clearTimeout(window.browserResizeTimeout);	
+	window.browserResizeTimeout = window.setTimeout(window.browserResizeEnded,500);
+}
+
+window.browserResizeEnded = function() {
+
+	window.resizeCanvas();
+}
+
+window.resizeCanvas = function() {
+
+	var windowWidth = window.innerWidth || document.documentElement.clientWidth || document.body.clientWidth;
+	var windowHeight = window.innerHeight || document.documentElement.clientHeight || document.body.clientHeight;	
+
+	var currentHeight = stage.canvas.height;
+	var currentWidth = stage.canvas.width;
+	if(windowHeight < stage.canvas.height) {
+		currentHeight = windowHeight;
+		currentWidth = currentHeight * RATIO;
+	}
+	if(windowWidth < stage.canvas.width) {
+		currentWidth = windowWidth;
+		currentHeight = currentWidth / RATIO;
+	}
+
+	if (USER.get().device.android || USER.get().device.ios) { //if android or ios
+		//hide address bar
+        document.body.style.height = (windowHeight + 50) + 'px';
+        //enable Touch event
+        createjs.Touch.enable(stage);
+    }
+
+	document.getElementById('canvas').style.width = currentWidth+'px';
+	document.getElementById('canvas').style.height = currentHeight+'px';
+
+	//scroll to top
+	window.setTimeout(function() { //rowsers don't fire if there is not short delay
+		window.scrollTo(0,1);
+    }, 1);
+
 }

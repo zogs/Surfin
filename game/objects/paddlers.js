@@ -64,7 +64,7 @@
 
 	}
 
-	prototype.removeListeners = function() {
+	prototype.removeAllListeners = function() {
 
 		stage.off('click',this.click_listener);
 	}
@@ -232,6 +232,12 @@
 
 		this.silhouette = new createjs.Sprite(paddler_sheet, "waitright");
 		this.silhouette_cont.addChild(this.silhouette);		
+	}
+
+	prototype.clearPaddler = function() {
+
+		clearTimeout(this.lifted);
+		this.removeAllListeners();
 	}
 
 	//assign Surfer to window's scope & promote

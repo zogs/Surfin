@@ -9,6 +9,7 @@
 
 		this.runing = false;
 		this.timers = [];
+		this.time_scale = (TIME_SCALE) ? TIME_SCALE : 1;
 
 		this.id = spot.id;
 		this.name = spot.name;
@@ -147,40 +148,69 @@
 	}
 
 	prototype.addInitialSerie = function() {
-		
-		for(let i = 1; i <=this.config.series.length; ++i) {
 
-			// create config
-			let config = this.config.waves;
-			config.spot = this;
-			config.x = (this.config.series.xshift/100 * STAGEWIDTH) + this.config.series.spread/2 - Math.random()*this.config.series.spread;
-			config.y = this.config.lines.horizon;
+		let speed = this.config.series.speed;
+		let length = this.config.series.length;
+		let frequency = this.config.series.frequency;
 
-			// create wave
-			let wave = new Wave(config);		
+		let startAt = 0.3;
 
-			// add to scene
-			this.sea_cont.addChildAt(wave);			
+		// launch first wave at advanced position
+		this.addInitialWave(speed * startAt);
 
-			// add to array
-			this.waves.unshift(wave);
+		// test others wave of the serie
+		for(let i=1; i < length; i++) {
 
-			// set tween
-			let tween  = createjs.Tween.get(wave);					
-				tween.to({y: this.config.lines.beach + this.config.waves.height}, this.config.series.speed)
-				tween.call(proxy(this.removeWave,this,[wave]))
-				tween.addEventListener('change',proxy(wave.coming,wave));
-
-			// start tween at advanced position
-			let perCent = 0.4;			
-			let position = this.config.series.speed * perCent * (this.config.series.length - i + 1) / this.config.series.length; // DO NOT TOUCH		
-			tween.setPosition(position);
-
+			let previLaunch = frequency * i;
+			let currentTime = speed * startAt;
+			let diff = previLaunch - currentTime;
+			
+			// if next wave should be already launched
+			if(diff <= 0) {
+				// add a wave at a advanced position
+				let position = diff * -1;
+				this.addInitialWave(position);
+				//console.log('add now at position', position);
+			}
+			else {
+				// launch wave at position zero with a bit of delay
+				let delay = diff;
+				setTimeout(proxy(this.addInitialWave,this),delay);
+				//console.log('add with delay', delay);
+			}
 		}
 
-		this.addNextSerie();
 	}
 
+	prototype.addInitialWave = function(position = 0) {
+
+		// create config
+		let config = this.config.waves;
+		config.spot = this;
+		config.x = (this.config.series.xshift/100 * STAGEWIDTH) + this.config.series.spread/2 - Math.random()*this.config.series.spread;
+		config.y = this.config.lines.horizon;
+
+		// create wave
+		let wave = new Wave(config);		
+
+		// set tween
+		let tween  = createjs.Tween.get(wave);					
+			tween.to({y: this.config.lines.beach + this.config.waves.height}, this.config.series.speed)
+			tween.call(proxy(this.removeWave,this,[wave]))
+			tween.addEventListener('change',proxy(wave.coming,wave));
+
+		// start tween at advanced position			
+		tween.setPosition(position);
+
+		// if this wave is starting at a position which is over the breaking line, skip this wave
+		if(wave.y >= this.config.lines.break) return;
+
+		// add to scene
+		this.sea_cont.addChildAt(wave);			
+
+		// add to array
+		this.waves.unshift(wave);
+	}
 
 	prototype.init = function() {
 
@@ -382,7 +412,7 @@
 						wave.addSurferBot(surfer);
 
 
-						bot.removeListeners();
+						bot.clearPaddler();
 						this.sea_cont.removeChild(bot);
 						this.paddlers.splice(this.paddlers.indexOf(bot),1);
 
@@ -446,7 +476,7 @@
 
 	prototype.removePaddler = function(paddler) {
 
-		paddler.removeListeners();
+		paddler.clearPaddler();
 		this.sea_cont.removeChild(paddler);
 		this.paddlers.splice(this.paddlers.indexOf(paddler),1);
 	}
@@ -529,6 +559,12 @@
 		this.title = null;
 
 		this.init();
+	}
+
+	prototype.removeAllOverlays = function() {
+
+		this.overlay_cont.removeAllChildren();
+
 	}
 
 	prototype.initSkillScreen = function(e) {
@@ -846,6 +882,12 @@
 		this.wave = wave;
 	}
 
+	prototype.setTimeScale = function(scale) {
+
+		this.time_scale = scale;
+		this.waves.map(w => w.setTimeScale(scale));
+	}
+
 	prototype.setWave = function(wave) {
 
 		this.wave = wave;
@@ -899,11 +941,24 @@
 
 	prototype.removeAllWaves = function() {
 		
-		this.sea_cont.removeAllChildren();
+		this.timers.map(t => t.clear());
+		this.waves.map(w => createjs.Tween.removeTweens(w));
+		this.waves.map(w => w.clearWave());
 		this.waves = [];
+		this.paddlers.map(p => p.clearPaddler());
 		this.paddlers = [];
+		this.sea_cont.removeAllChildren();
 
 		return this;
+	}
+
+	prototype.clearSpot = function() {
+
+		createjs.Tween.removeAllTweens();
+		this.timers.map(t => t.clear());
+		this.removeAllWaves();
+		this.removeAllPaddlers();
+		this.removeAllOverlays();
 	}
 
 	prototype.breakAllWaves = function() {
@@ -928,7 +983,7 @@
 	prototype.resume = function() {
 
 		for(var i=0; i < this.waves.length; ++i) {
-			this.waves[i].pause();
+			this.waves[i].resume();
 		}
 
 		for(var i=0; i < this.timers.length; ++i) {
@@ -975,6 +1030,10 @@
 
 		var line = new createjs.Shape();
 		line.graphics.beginStroke('yellow').setStrokeStyle(2).moveTo(0, this.config.lines.beach).lineTo(50,this.config.lines.beach);
+		this.debug_cont.addChild(line);
+
+		var line = new createjs.Shape();
+		line.graphics.beginStroke('purple').setStrokeStyle(2).moveTo(0, this.config.lines.obstacle).lineTo(50,this.config.lines.obstacle);
 		this.debug_cont.addChild(line);
 	}
 

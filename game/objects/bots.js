@@ -5,9 +5,10 @@
 (function() {
 
 	function SurferBot(config) {
-
+		
 		this.Surfer_constructor(config);
 		this.initBot(config);
+
 	}
 
 	var prototype = createjs.extend(SurferBot, Surfer);
@@ -16,8 +17,7 @@
 		//override and clear parent function
 
 		//on bot fall
-		this.on('fallen',function(event) {	
-			console.log('fallen '+ this.fall_reason);
+		this.on('fallen',function(event) {				
 			this.removeBot();
 		},this,true);
 
@@ -31,6 +31,15 @@
 
 		this.type = 'bot';
 		this.direction = config.direction;
+		this.skills = {
+			speed: 0.5, //0 to 1
+			aerial: 0.2, //0 to 1
+			agility: 1, //0 to 1
+			paddling: 0.1,
+			takeoff: 0,
+			force: 0
+		}
+
 	}
 
 	/**
@@ -50,7 +59,7 @@
 		this.vMouse.graphics.beginFill(createjs.Graphics.getHSL(Math.random()*360, 100, 50)).drawCircle(0,0,5);
 		this.vMouse.y = 0;
 
-		var xd = Math.random()*(STAGEWIDTH/4);
+		var xd = Math.random()*(STAGEWIDTH/2);
 		if(this.direction === LEFT) {
 			this.vMouse.x -= xd;
 			this.wave.shoulder_left.mouse_cont.addChild(this.vMouse);
@@ -69,8 +78,8 @@
 		
 		createjs.Tween.get(this.vMouse,{override:true})
 			.to({y: this.wave.params.height}, 1000)
-			.wait(1000)
-			.to({y : 0}, 500)
+			.wait(500)
+			.to({y: this.wave.params.height / 2}, 500)
 			.call(proxy(this.initMouseMove,this))
 			;
 	}
@@ -79,6 +88,12 @@
 
 		this.initMouseMoveX();
 		this.initMouseMoveY();
+		//this.initMouseNoMove();
+	}
+
+	prototype.initMouseNoMove = function() {
+
+		this.vMouse.y = this.wave.params.height;
 	}
 
 	prototype.initMouseMoveY = function() {
@@ -136,19 +151,6 @@
 			this.wave.shoulder_right.mouse_cont.removeChild(this.vMouse);
 		}
 		this.vMouse = null;
-	}
-
-	prototype.getSkill = function(comp) {
-
-		const skill = {
-			speed: 1, //0 to 1
-			aerial: 1, //0 to 1
-			agility: 1, //0 to 1
-			paddling: 0.1,
-			takeoff: 1
-		}
-
-		return skill[comp];
 	}
 
 	window.SurferBot = createjs.promote(SurferBot, 'Surfer');

@@ -17,6 +17,7 @@
 	//public static properties
 	prototype.gravity = new Victor(0,7);
 	prototype.hitbox_proportion = 25;
+	prototype.hitboard_proportion = 5;
 	prototype.origin_height = 80;
 	prototype.height = 80;
 
@@ -35,16 +36,18 @@
 		this.locations = [];
 		this.trailpoints = [];
 		this.spatterpoints = [];
+		this.collisions = [];
+		this.tweens = [];
 		this.trailsize = 1;
 		this.trailcoef = 3.2;
 		this.velocity = new Victor();
 		this.velocities = [];
 		this.pumped = [];
+		this.timer = null;
 		this.speed = 0;
 		this.angle;
 		this.angles = [];
-		this.status = 'wait';
-		this.hitbox_radius = null;
+		this.status = 'wait';		
 		this.tubing = false;
 		this.tubeTime = 0;
 		this.tubeMinimumTime = 1000;
@@ -59,19 +62,44 @@
 		this.color_spatter_num = 0;
 		this.fall_reason = null;
 		this.point_under = null;
-		this.aerial_start_point = null;
 		this.aerial_end_point = null;
+		this.aerial_start_point = null;
+		this.aerial_particles_emitter = null;
 		this.control_velocities = {x:1,y:1};
+		this.time_scale = (TIME_SCALE) ? TIME_SCALE : 1;
 
-		this.skill = USER.get().skill;
+		this.skills = USER.get().skills;
 
 		this.hitbox = new createjs.Shape();
-		this.hitbox.graphics.beginFill('red').drawCircle(0,0,1);
+		this.hitbox_radius = 1;
+		this.hitbox.graphics.beginFill('red').drawCircle(0,0,this.hitbox_radius);
+		this.hitbox.alpha = 0;
 		this.addChild(this.hitbox);
 
 		this.hitboard = new createjs.Shape();	
-		this.hitboard.graphics.beginFill('red').drawCircle(0,0,3);	
+		this.hitboard_radius = 1;
+		this.hitboard.graphics.beginFill('red').drawCircle(0,0,this.hitboard_radius);	
+		this.hitboard.alpha = 0;
 		this.addChild(this.hitboard);
+
+		const sprite_splash = new createjs.SpriteSheet({
+			images: [queue.getResult('surfer_splash')],
+			frames: {width:200, height:150, regX: 100, regY: 75},
+			framerate: 1,
+			animations: {
+				hide: 1,
+				splash: [1,12,false],
+			}
+		});
+		this.splash_anim = new createjs.Sprite(sprite_splash);
+		this.splash_anim.y = -20;
+		this.splash_anim.x = 0;
+		this.splash_anim.alpha = 0.4;	
+		this.splash_anim.gotoAndStop(0);	
+		this.addChild(this.splash_anim);
+
+		this.particles_cont = new createjs.Container();
+		this.addChild(this.particles_cont);
 
 		this.silhouette_cont = new createjs.Container();
 		this.addChild(this.silhouette_cont);
@@ -83,8 +111,14 @@
 		this.silhouette_height = this.silhouette.getChildAt(0).image.height;
 		this.silhouette.alpha = 0;
 
-		this.particles_cont = new createjs.Container();
-		this.addChild(this.particles_cont);
+		this.lifebar = new createjs.Shape();
+		this.lifebar.graphics.clear().beginStroke('grey').setStrokeStyle(3).moveTo(0,0).lineTo(50,0);
+		this.lifebar.alpha = 0;
+		this.lifebar_cont = new createjs.Container();
+		this.lifebar_cont.y = 25;
+		this.lifebar_cont.x = -25;
+		this.lifebar_cont.addChild(this.lifebar);
+		this.addChild(this.lifebar_cont);
 
 		this.debug_cont = new createjs.Container();
 		this.addChild(this.debug_cont);
@@ -102,7 +136,8 @@
 		this.spatter_cont.addChild(this.spatter_ramp_shape,this.spatter_shape_outer,this.spatter_shape_inner);
 		this.wave.spatters_cont.addChild(this.spatter_cont);
 
-		this.addEventListener('tick',proxy(this.tick,this));
+		//NO MORE USED
+		//this.addEventListener('tick',proxy(this.tick,this));
 		
 		this.initEventsListener();
 
@@ -113,15 +148,25 @@
 
 	//public methods
 
+
 	prototype.tick = function() {
 
-		if(PAUSED) return;
 		this.move();
 		this.stock();
-		this.testFall();
+		this.checkFall();
+		this.drawTrails();
+		this.drawDebug();
+	}
+
+	prototype.continuousMovement = function() {
+
+		this.move();
+		this.stock();
+		this.checkFall();
 		this.drawTrails();
 		this.drawDebug();
 
+		this.timer = new Timer(proxy(this.continuousMovement,this), this.wave.params.breaking.x_speed);
 	}
 
 
@@ -132,8 +177,7 @@
 			this.ollie();
 		},this);
 
-		//custom events
-		
+		//custom events		
 		this.on('take_off',function(event) {
 			var ev = new createjs.Event('surfer_take_off');
 			stage.dispatchEvent(ev);
@@ -206,6 +250,7 @@
 		},this);
 
 		this.on('photo_bonus_hitted', function(event) {
+			console.log('photo bonus');
 			stage.dispatchEvent('photo_bonus_hitted');
 		},this);
 
@@ -268,16 +313,19 @@
 			.set({ y: 1 })
 			.call(proxy(this.endTakeOff,this));
 
+		//init timer refresh
+		this.timer = new Timer(proxy(this.continuousMovement,this), this.wave.params.breaking.x_speed);
+
 		return this;
 	}
 
 	prototype.getSkill = function(comp) {
-
-		if(this.skill[comp] === undefined) {
+		
+		if(this.skills[comp] === undefined) {
 			console.error(comp + " is not a skill competence...");
 			return 1;
 		}
-		return this.skill[comp];
+		return this.skills[comp];
 	}
 
 	prototype.endTakeOff = function() {
@@ -295,6 +343,17 @@
 
 		this.wave = wave;
 		return this;
+	}
+
+	prototype.switchAutomove = function() {
+
+		this.automove = !this.automove;
+	}
+
+	prototype.setTimeScale = function(scale) {
+		this.time_scale = scale;
+		this.tweens.map(t => t.timeScale = scale);
+		if(this.aerial_particles_emitter) this.aerial_particles_emitter.setTimeScale(scale);
 	}
 
 	prototype.getSurferProportion = function() {
@@ -316,9 +375,10 @@
 		this.silhouette.x = (- this.silhouette_width/2) * this.scale;		
 		this.silhouette.y = (- this.silhouette_height/2) * this.scale;	
 		
-		this.hitbox.scaleX = this.hitbox.scaleY = this.hitbox_radius = this.scale * this.hitbox_proportion;	
+		this.hitbox.scaleX = this.hitbox.scaleY = this.hitbox_radius = this.scale * this.hitbox_proportion;
 		this.hitbox.x = 0;
 		this.hitbox.y = (- this.silhouette_height/6) * this.scale;
+		this.hitboard.scaleX = this.hitboard.scaleY = this.hitboard_radius = this.scale * this.hitboard_proportion;
 
 	}
 
@@ -387,9 +447,21 @@
 		return false;
 	}
 
-	prototype.move = function() {	
+	prototype.pause = function() {
 
-		if(this.automove === true) return;		
+		this.timer.pause();
+
+		this.particles_cont.children.map(p => p.pause());
+	}
+
+	prototype.resume = function() {
+
+		this.timer.resume();
+
+		this.particles_cont.children.map(p => p.resume());
+	}
+
+	prototype.move = function() {			
 
 		this.getAngle();
 
@@ -413,8 +485,12 @@
 		}	
 
 		//set this position
-		this.x = this.location.x;
-		this.y = this.location.y;		
+		if(this.time_scale === 1) {
+			this.x = this.location.x;
+			this.y = this.location.y;		
+		} else {
+			createjs.Tween.get(this).to({x: this.location.x, y: this.location.y}, this.wave.params.breaking.x_speed);
+		}
 		
 		//set silhouette
 		this.setSurferSilhouette();	
@@ -562,7 +638,7 @@
 		velocity.scale(distanceIdx);
 
 		// scale with user skill ( from x1 to x1.5)
-		const skill_idx = 1 + (this.skill.speed / 2); 
+		const skill_idx = 1 + (this.getSkill('speed') / 2); 
 		velocity.scale(skill_idx);
 
 		// surfer have more speed where on top of the segment ( from x1 to x2 )
@@ -676,7 +752,7 @@
 		// get gravity
 		const gravity = this.gravity.clone();
 		// calcul skill aerial
-		const antigrav = gravity.clone().scale(this.skill.aerial/2);
+		const antigrav = gravity.clone().scale(this.getSkill('aerial')/2);
 		// compensate gravity with user skill aerial
 		gravity.subtract(antigrav);
 		// apply gravity to location
@@ -742,8 +818,21 @@
 		// save aerial position
 		this.aerial_start_point = this.location.clone();
 		// fade out spatter ramp
-		createjs.Tween.get(this.spatter_ramp_shape).to({alpha: 0}, 1000, createjs.Ease.quartIn);
+		const tween = createjs.Tween.get(this.spatter_ramp_shape).to({alpha: 0}, 1000, createjs.Ease.quartIn);
+		// stock tween and remove it at the end
+		this.addTween(tween);
+		tween.call(proxy(this.removeTween, this, [tween]));
 
+	}
+
+	prototype.addTween = function(tween) {
+
+		this.tweens.push(tween);
+	}
+
+	prototype.removeTween = function(tween) {
+
+		this.tweens.splice(this.tweens.indexOf(tween),1);
 	}
 
 	prototype.initTricks = function() {
@@ -772,21 +861,26 @@
 	prototype.initBackflip = function() {
 
 		this.tricked = true;
-		createjs.Tween.get(this.silhouette_cont)
+		const tween = createjs.Tween.get(this.silhouette_cont)
 			.to({rotation:360 * this.wave.direction},1000)
 			.set({rotation: 0})
 			.call(proxy(this.tricksEnded,this))
 			;
+
+		this.addTween(tween);
+		tween.call(proxy(this.removeTween, this, [tween]));
 	}
 
 	prototype.initDoubleBackflip = function() {
 
 		this.tricked = true;
-		createjs.Tween.get(this.silhouette_cont)
+		const tween = createjs.Tween.get(this.silhouette_cont)
 			.to({rotation:720 * this.wave.direction},1500)
 			.set({rotation:0})
 			.call(proxy(this.tricksEnded,this))
 			;
+		this.addTween(tween);
+		tween.call(proxy(this.removeTween, this, [tween]));
 	}
 
 	prototype.tricksEnded = function() {
@@ -796,32 +890,33 @@
 
 	prototype.initAerialParticles = function() {
 
-		this.timeoutAerialParticles = window.setInterval(proxy(this.aerialParticles,this),50);
+		this.aerialParticles();
 	}
 
 	prototype.stopAerialParticles = function() {
 
-		if(this.timeoutAerialParticles) {
-			window.clearInterval(this.timeoutAerialParticles);
-			this.timeoutAerialParticles = null;
-		}
+		this.particles_cont.removeChild(this.aerial_particles_emitter);
+		this.aerial_particles_emitter.clear();
+		this.aerial_particles_emitter = null;
 	}
 
 	prototype.aerialParticles = function() {
-		
-		//emit particle
-		var emitter = new ParticleEmitter({
+
+		const surfer = this;
+		this.aerial_particles_emitter = new ParticleEmitter({
 			x: 0, // + this.wave.params.breaking_width*3*(-1*this.wave.direction),
 			y: 0,
-			density: 2,
+			density: 5,
+			duration: 0,
+			frequency: 50,
 			angle: this.angle_rad + Math.PI,
-			spread: Math.PI / 8,
+			spread: Math.PI / 10,
 			magnitude: this.speed,
 			magnitudemax: this.speed*2,
 			color: '#FFF',
-			size: 2,
-			sizemax: 5,
-			fader: 0.2,
+			size: 1,
+			sizemax: 2,
+			fader: 0.4,
 			fadermax: 0.5,
 			scaler: 0.1,
 			forces: [vec2.fromValues(this.gravity.x,this.gravity.y * 0.1)],
@@ -829,15 +924,10 @@
 				{shape:'circle',percentage:50,fill:'#FFF'},
 				{shape:'circle',percentage:50,stroke:1,strokeColor:'#FFF'},
 				],
-			callback: proxy(this.removeAerialParticles,this)
+			onEmit: function(emitter) { emitter.params.angle = surfer.angle_rad + Math.PI },
 		});
 		
-		this.particles_cont.addChild(emitter);
-	}
-
-	prototype.removeAerialParticles = function(emitter) {
-
-		this.wave.particles_cont.removeChild(emitter);
+		this.particles_cont.addChild(this.aerial_particles_emitter);
 	}
 
 	prototype.initRide = function() {
@@ -875,6 +965,9 @@
 			this.dispatchEvent('fall_tricks')
 		}
 
+		// set automove
+		this.switchAutomove();
+
 		//remove aerial particles
 		this.stopAerialParticles();
 
@@ -891,6 +984,7 @@
 		const tween = createjs.Tween.get(this.control_velocities)
 			.to({ x: 0.5, y: 0.5 }, time / 2)			
 			.to({ x: 1, y: 1 }, time / 2)			
+			.call(proxy(this.switchAutomove,this))
 			;	
 		
 
@@ -904,33 +998,6 @@
 					slope: 'up',
 					callback: proxy(this.resetTrailSize,this),
 				});
-	}
-
-	prototype.hit = function(x,y,radius) {
-				
-		var minDistance = radius + this.hitbox_radius;
-		var xDist = x - this.x - this.hitbox.x;
-		var yDist = y - this.y - this.hitbox.y;
-		var distance = Math.sqrt(xDist*xDist + yDist*yDist);
-
-		if (distance < minDistance) {
-			return true;
-		}
-		return false;
-	}
-
-	prototype.hitSurf = function(circle,radius) {
-
-		var pt = circle.localToLocal(0,0,this);
-		var minDistance = radius + this.hitboard.graphics.command.radius;
-		var xDist = pt.x - this.hitboard.x;
-		var yDist = pt.y - this.hitboard.y;
-		var distance = Math.sqrt(xDist*xDist + yDist*yDist);
-
-		if(distance < minDistance) {
-			return true;
-		}
-		return false;
 	}
 
 
@@ -950,46 +1017,42 @@
 		var e = new createjs.Event('fall');
 			e.surfer = this;
 			e.reason = reason;
-		this.dispatchEvent(e);
+			this.dispatchEvent(e);
 
-		this.showFallPlouf();
-		this.ploufinterval = window.setInterval(proxy(this.showFallPlouf,this),200);
+		//this.showFallPlouf();
+		//this.ploufinterval = window.setInterval(proxy(this.showFallPlouf,this),200);
 
 		createjs.Tween.get(this.silhouette_cont)
 		.to({rotation:360*this.wave.direction*-1,alpha:0,scaleX:0.4,scaleY:0.4},1000)
 		.to({rotation:0,alpha:1,scaleX:1,scaleY:1},0)
+		.wait(1000)
+		.call(proxy(this.fallFinished,this));
 		;
+
+		this.splash_anim.gotoAndPlay('splash');
 	
 	}
 
 	prototype.fallFinished = function() {
 
-		this.falling = false;
-
 		window.clearInterval(this.ploufinterval);
 
 		var e = new createjs.Event('fallen');
 			e.surfer = this;
-		this.dispatchEvent(e);
-
+			this.dispatchEvent(e);
 
 		if(!TEST) {
 			//remove surfer movement
 			this.removeAllEventListeners('tick');
-			
-		}
-
-		
+			this.timer.clear();			
+			this.timer = null;			
+		}	
 	}
 
 	prototype.fallWithInertia = function() 
 	{
-		this.velocity.scale(0.8);
-	
-		if( this.velocity.lengthSq() < 1) {
-			this.fallFinished();
-		}	
-		
+		this.velocity.scale(0.5);	
+				
 		this.location.add(this.velocity);
 	}
 
@@ -1043,7 +1106,7 @@
 		*/
 	}
 
-	prototype.testFall = function() {
+	prototype.checkFall = function() {
 
 		if(TEST === 1) return;
 
@@ -1090,9 +1153,10 @@
 		}
 
 		//does surfer hits obstacles
-		this.hitObstacles();
+		this.checkHitObstacles();
 
-
+		//does surfer hits other serfrs
+		this.checkHitSurfers();
 
 		//dispatch normal event
 		this.dispatchEvent('surfing');
@@ -1158,7 +1222,7 @@
 
 		var delta = Math.abs(this.angle - this.angles[5])%360;
 		var diff = (delta > 180)? 360 - delta : delta;
-		var allowed = 120 + 60*this.skill.agility;
+		var allowed = 120 + 60*this.getSkill('agility');
 			
 		if(diff > allowed) {
 			//init fall
@@ -1168,7 +1232,113 @@
 		}
 	}
 
-	prototype.hitObstacles = function() {
+	prototype.hit = function(x,y,radius) {
+				
+		const minDistance = radius + this.hitbox_radius;
+		const xDist = x - this.x - this.hitbox.x;
+		const yDist = y - this.y - this.hitbox.y;
+		const distance = Math.sqrt(xDist*xDist + yDist*yDist);
+
+		if (distance < minDistance) {
+			return true;
+		}
+		return false;
+	}
+
+	prototype.hitBoard = function(x,y,radius) {
+
+		const minDistance = radius + this.hitboard.graphics.command.radius;
+		const xDist = x - this.x - this.hitboard.x;
+		const yDist = y - this.y - this.hitboard.y;
+		const distance = Math.sqrt(xDist*xDist + yDist*yDist);
+
+		if(distance < minDistance) {
+			return true;
+		}
+		return false;
+	}
+
+	prototype.checkHitSurfers = function() {
+
+		const len = this.wave.surfers.length;
+
+		if(len <= 1) return;
+
+		for(let j=0; j<len; ++j) {
+
+			let surfer = this.wave.surfers[j];
+
+			if(this == surfer) continue;
+			if(surfer.isOllieing()) continue;
+
+			if(this.hitBoard(surfer.x,surfer.y,surfer.hitbox_radius)) {
+				
+				if( ! this.hasCollision(surfer)) {
+					this.hitSurfer(surfer);
+				}
+			}
+		}		
+	}
+
+	prototype.hitSurfer = function(surfer) {
+
+		this.addCollision(surfer);
+
+		// get force
+		let own = this.getSkill('force');
+		let his = surfer.getSkill('force');
+
+		// add velocities
+		let total = this.velocity.length() + surfer.velocity.length();
+		own += this.velocity.length() / total;
+		his += surfer.velocity.length() / total;
+
+		// take dammage if his total bigger than me
+		if(his > own) {
+			// calcul dammage
+			let dmg = his - own;
+			// update lifebar
+			this.updateLifebar(dmg);
+			// if lifebar <= zero , fall & dispatch event
+			let lifebarZero = this.lifebar.scaleX - dmg <= 0;
+			if(lifebarZero) {
+
+				this.fall('collision');
+
+				const ev = new createjs.Event('surfer_kill');
+					ev.player = this.spot.surfer;
+					ev.killer = surfer;
+					ev.killed = this;
+					stage.dispatchEvent(ev);
+			}
+		}
+
+	}
+
+	prototype.updateLifebar = function(q) {
+
+		this.lifebar.alpha = 1;
+		createjs.Tween.get(this.lifebar,{override: true}).to({scaleX: this.lifebar.scaleX - q}, 500).wait(600).to({alpha:0},300);
+
+	}
+
+	prototype.hasCollision = function(obj) {
+
+		return this.collisions.indexOf(obj) >= 0;
+	}
+
+	prototype.addCollision = function(obj) {
+
+		this.collisions.push(obj);
+		setTimeout(proxy(this.removeCollision,this,[obj]), 2000);
+	}
+
+	prototype.removeCollision = function(obj) {
+
+		this.collisions.splice(this.collisions.indexOf(obj),1);
+	}
+
+	prototype.checkHitObstacles = function() {
 
 		//no hit when surfer is ollying
 		if(this.isOllieing() === true) return;
@@ -1209,22 +1379,23 @@
 
 	prototype.drawTrail = function() {
 
-		var nb = this.trailpoints.length - 1;
-		var points = [];
-		var xs = [];
+		const nb = this.trailpoints.length - 1;
+		const points = [];
+		const xs = [];
 
 
 		//if(this.isBot()) continue;
+		const suction = this.wave.params.suction.clone();
 
 		//update points with the suction vector
-		for (var i = 0; i <= nb; ++i) {
+		for (let i = 0; i <= nb; ++i) {
 			//apply vector suction
-			var trail = this.trailpoints[i];
-			trail.location.add(this.wave.params.suction);
+			let trail = this.trailpoints[i];
+			trail.location.add(suction);
 			//create xy Point
-			var x = trail.location.x + 5;
-			var y = trail.location.y;
-			var point = new createjs.Point(x,y);
+			let x = trail.location.x + 5;
+			let y = trail.location.y;
+			let point = new createjs.Point(x,y);
 			point.size = trail.size;
 			point.angle = trail.angle_rad;
 			points.push(point);
@@ -1233,26 +1404,26 @@
 		}
 
 		//get minimum x and maximum x a the trail
-		var xmin = Math.min.apply(null,xs) - 100;
-		var xmax = Math.max.apply(null,xs) + 100;
+		const xmin = Math.min.apply(null,xs) - 100;
+		const xmax = Math.max.apply(null,xs) + 100;
 
 		this.trail_shape.graphics.clear();
 		this.trail_shape.graphics.beginFill("rgba(255,255,255,0.5)");
 		//this.trail_shape.graphics.beginRadialGradientFill(["rgba(255,255,255,1)","rgba(255,255,255,0)"], [0,1], this.x, this.y, 0, this.x, this.y, 600 );
 
-		for(var i=0; i<=nb; ++i) {
-			var point = points[i];
-			var size = i*points[i].size + this.trailcoef*points[i].size;
-			var x = size * Math.cos(point.angle + Math.PI/2) + point.x;
-			var y = size * Math.sin(point.angle + Math.PI/2) + point.y;
+		for(let i=0; i<=nb; ++i) {
+			let point = points[i];
+			let size = i*points[i].size + this.trailcoef*points[i].size;
+			let x = size * Math.cos(point.angle + Math.PI/2) + point.x;
+			let y = size * Math.sin(point.angle + Math.PI/2) + point.y;
 			this.trail_shape.graphics.lineTo(x,y);	
 
 		}
-		for(var i=nb; i>=0; --i) {
-			var point = points[i];
-			var size = i*points[i].size + this.trailcoef*points[i].size;
-			var x = size * Math.cos(point.angle + Math.PI + Math.PI/2) + point.x;
-			var y = size * Math.sin(point.angle + Math.PI + Math.PI/2) + point.y;
+		for(let i=nb; i>=0; --i) {
+			let point = points[i];
+			let size = i*points[i].size + this.trailcoef*points[i].size;
+			let x = size * Math.cos(point.angle + Math.PI + Math.PI/2) + point.x;
+			let y = size * Math.sin(point.angle + Math.PI + Math.PI/2) + point.y;
 			this.trail_shape.graphics.lineTo(x,y);
 		}	
 		this.trail_shape.graphics.closePath();	
