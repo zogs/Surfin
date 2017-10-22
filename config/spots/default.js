@@ -5,21 +5,21 @@ var conf = {
 	config: {
 		lines: {
 			horizon: 240,
-			break: 420,
-			peak: 500,
-			beach: 510,
-			obstacle: 600,
+			break: 500,
+			peak: 600,
+			beach: 700,
+			obstacle: 750,
 		},
 		colors: {
 			top: '#00354f',
 			bottom: '#166f99'
 		},
 		waves: {
-			height : 150,
+			height : 250,
 			width : 0,
 			real_height: 3,
 			breaking: {
-				width: 30,
+				width: 180,
 				y_speed: 1200,
 				x_speed: 50,
 				y_ease: 'quartIn',

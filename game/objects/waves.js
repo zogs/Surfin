@@ -89,6 +89,7 @@ prototype.init = function(params) {
 	this.direction = CENTER;
 	this.movingX = 0;
 	this.time_scale = (TIME_SCALE) ? TIME_SCALE : 1;
+	this.boundaries = {};
 
 	//initiale suction force with no x value, later suction will be defined when direction is setted
 	this.params.suction = new Victor(0, - this.config.suction_y);		
@@ -197,9 +198,7 @@ prototype.init = function(params) {
 		this.background.addChild(this.background_gradient,this.background_riddles);
 		this.background_cont.addChild(this.background,this.background_shadow);
 
-		this.background_riddle1 = new createjs.Bitmap(queue.getResult('wave_riddle'));
-		this.background_riddles.alpha = 0.1;
-		this.background_riddles.addChild(this.background_riddle1);
+		this.initAnimateBackground();
 
 
 
@@ -545,7 +544,7 @@ prototype.splashPointReached = function(point) {
 	const splash = this.splashs.find((splash) => splash.id === point.peak.id);
 
 	//it is possible that ONE point have no more corresponding splash after merging (dont know exactly why). Just return in that case
-	if(splash === undefined) return;
+	if(!splash) return;
 
 	//add point as splashed to peak
 	this.addPointToSplash(point,splash);
@@ -553,10 +552,13 @@ prototype.splashPointReached = function(point) {
 	//update splash boudaries
 	splash.boundaries[point.direction] = point.x;
 
+	//update wave boudaries
+	this.boundaries[point.direction] = point.x;
+
 	//set direction
 	if(this.direction===0) {
 		this.setDirection();
-		//this.startShaking();
+		this.startShaking();
 		
 
 		//init breaked intervals
@@ -792,11 +794,12 @@ prototype.initVariablePameters = function() {
 }
 
 prototype.playerTakeOff = function(surfer) {
-
+console.log('playerTak');
 	this.surfed = true;
 	this.played = true;
 
 	this.surfer = surfer;	
+	this.player = surfer;
 
 	this.addSurfer(surfer);
 
@@ -852,20 +855,20 @@ prototype.shake = function() {
 	if(this.surfer==null) return;
 
 	var dist = get2dDistance(this.surfer.x,this.surfer.y,this.getVanishPoint().x,this.getVanishPoint().y);
-	var amplitude = this.params.width/2/dist*this.shaking_force;
-	if(amplitude<1) amplitude = 0;
-	
+	var amplitude = (STAGEWIDTH*1/3)/dist*this.shaking_force;
+	if(amplitude < 1) amplitude = 0;
+
 	this.shake_x = Math.floor(Math.random()*amplitude*2 - amplitude);
 	this.shake_y = Math.floor(Math.random()*amplitude*2 - amplitude);
-	createjs.Tween.get(this.lip)
-		.to({x:this.lip_cont.x+this.shake_x,y:this.lip_cont.y+this.shake_y},50)
+	createjs.Tween.get(this)
+		.to({x:this.x+this.shake_x,y:this.y+this.shake_y},50)
 		.call(proxy(this.unshake,this));
 }
 
 prototype.unshake = function() {
 
-	createjs.Tween.get(this.lip)
-		.to({x:this.lip_cont.x-this.shake_x,y:this.lip_cont.y-this.shake_y},50)
+	createjs.Tween.get(this)
+		.to({x:this.x-this.shake_x,y:this.y-this.shake_y},50)
 		.call(proxy(this.shake,this));
 }
 
@@ -916,7 +919,7 @@ prototype.addTestSurferBot = function(surfer) {
 		direction: direction
 	});
 
-	bot.takeOff( takeX, 20);
+	bot.takeOff( takeX, 80);
 	this.surfers_cont.addChild(bot);
 	this.surfers.unshift(bot);
 	
@@ -948,6 +951,12 @@ prototype.resume = function() {
 	this.paused = false;
 	this.surfers.map(s => s.resume());
 	this.getTimers().map(t => t.resume());
+}
+
+prototype.remove = function() {
+
+	this.removeAllChildren();
+	this.removeAllEventListeners();
 }
 
 prototype.getTimers = function() {
@@ -1211,14 +1220,14 @@ prototype.moveWave = function() {
 	const surfer_pos = this.cont.localToGlobal(this.surfer.x,0);
 
 	// horizontal position the which the wave will be translate to a side of the screen
-	let delta = (STAGEWIDTH>>1) - surfer_pos.x;
+	let delta = (STAGEWIDTH>>1) - surfer_pos.x; + (STAGEWIDTH*2/3 * this.direction)
 
 	if(this.direction === LEFT) {
-		delta += STAGEWIDTH / 5;
+		delta += STAGEWIDTH / 3;
 		this.movingX = delta/this.params.breaking.left.width;
 	}
 	if(this.direction === RIGHT) {
-		delta += -STAGEWIDTH / 5;
+		delta += -STAGEWIDTH / 3;
 		this.movingX = delta/this.params.breaking.right.width;
 	}
 
@@ -1401,6 +1410,11 @@ prototype.addRandomObstacle = function() {
 
 prototype.addBomb = function() {
 	var obj = new BombObstacle({wave: this});
+	return this.addObstacle(obj);
+}
+
+prototype.addBeachTrooper = function() {
+	var obj = new BeachTrooper({wave: this});
 	return this.addObstacle(obj);
 }
 
@@ -1728,17 +1742,31 @@ prototype.drawBackground = function() {
 
 prototype.initAnimateBackground = function() {
 
-	this.background_riddle2 = new createjs.Bitmap(queue.getResult('wave_riddle'));
-	this.background_riddle2.x = 0;
-	this.background_riddle2.y = this.background_riddle1.image.height;
-	this.background_riddle3 = new createjs.Bitmap(queue.getResult('wave_riddle'));
-	this.background_riddle3.x = this.background_riddle1.image.width;
-	this.background_riddle3.y = 0;
-	this.background_riddle4 = new createjs.Bitmap(queue.getResult('wave_riddle'));
-	this.background_riddle4.x = this.background_riddle4.image.width;
-	this.background_riddle4.y = this.background_riddle4.image.height;
+	this.background_riddles.alpha = 0.1;
 
-	this.background_riddles.addChild(this.background_riddle2,this.background_riddle3,this.background_riddle4);
+	this.background_riddle1 = new createjs.Bitmap(queue.getResult('wave_riddle'));
+
+	var height = this.background_riddle1.image.height;
+	this.background_scale = this.params.height / height;
+
+	this.background_riddle1.scaleY = this.background_scale;
+
+	this.background_riddle2 = this.background_riddle1.clone();
+	this.background_riddle2.x = 0;
+	this.background_riddle2.scaleY = this.background_scale;
+	this.background_riddle2.y = this.background_riddle1.image.height * this.background_scale;
+	
+	this.background_riddle3 = this.background_riddle1.clone();
+	this.background_riddle3.x = this.background_riddle1.image.width;
+	this.background_riddle3.scaleY = this.background_scale;
+	this.background_riddle3.y = 0;
+	
+	this.background_riddle4 = this.background_riddle1.clone();
+	this.background_riddle4.x = this.background_riddle4.image.width;
+	this.background_riddle4.scaleY = this.background_scale;
+	this.background_riddle4.y = this.background_riddle4.image.height * this.background_scale;
+
+	this.background_riddles.addChild(this.background_riddle1, this.background_riddle2, this.background_riddle3, this.background_riddle4);
 }
 
 prototype.animateBackground = function() {
@@ -1755,7 +1783,7 @@ prototype.animateBackground = function() {
 	const riddle3 = this.background_riddle3;
 	const riddle4 = this.background_riddle4;
 	const width  = riddle1.image.width;
-	const height = riddle1.image.height;
+	const height = riddle1.image.height * this.background_scale;
 	const coef = this.getResizeCoef();
 
 	riddle1.y += this.params.suction.y * coef;
@@ -1763,10 +1791,10 @@ prototype.animateBackground = function() {
 	riddle3.y += this.params.suction.y * coef;
 	riddle4.y += this.params.suction.y * coef;
 
-	if(riddle1.y <= - riddle1.image.height) riddle1.y = riddle2.y + height;
-	if(riddle2.y <= - riddle2.image.height) riddle2.y = riddle1.y + height;
-	if(riddle3.y <= - riddle3.image.height) riddle3.y = riddle4.y + height;
-	if(riddle4.y <= - riddle4.image.height) riddle4.y = riddle3.y + height;
+	if(riddle1.y <= - height) riddle1.y = riddle2.y + height;
+	if(riddle2.y <= - height) riddle2.y = riddle1.y + height;
+	if(riddle3.y <= - height) riddle3.y = riddle4.y + height;
+	if(riddle4.y <= - height) riddle4.y = riddle3.y + height;
 
 	riddle1.x += this.movingX;
 	riddle2.x += this.movingX;
@@ -1860,13 +1888,13 @@ prototype.updateVanishPoints = function(pt) {
 
 	if(this.direction === LEFT) {
 		var point = this.vanish_left;
-		if(DEBUG) point.alpha = 0.2;
+		if(DEBUG) point.alpha = 1;
 		if( pt.x > point.x) return;
 		return point.x = pt.x;		
 	}
 	if(this.direction === RIGHT) {
 		var point = this.vanish_right;
-		if(DEBUG) point.alpha = 0.2;
+		if(DEBUG) point.alpha = 1
 		if( pt.x < point.x ) return;
 		return point.x = pt.x;		
 	}

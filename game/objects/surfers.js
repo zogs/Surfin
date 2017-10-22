@@ -56,7 +56,7 @@
 		this.falling = false;
 		this.surfing = false;
 		this.automove = false;
-		this.autoSilhouette = true;
+		this.auto_silhouette = true;
 		this.ollie_cooldown = 1000;
 		this.trailsize_origin = this.trailsize;
 		this.color_spatter_num = 0;
@@ -69,6 +69,8 @@
 		this.time_scale = (TIME_SCALE) ? TIME_SCALE : 1;
 
 		this.skills = USER.get().skills;
+		this.disturbance = 0;
+		this.disturbance_max = 20;
 
 		this.hitbox = new createjs.Shape();
 		this.hitbox_radius = 1;
@@ -136,6 +138,30 @@
 		this.spatter_cont.addChild(this.spatter_ramp_shape,this.spatter_shape_outer,this.spatter_shape_inner);
 		this.wave.spatters_cont.addChild(this.spatter_cont);
 
+		this.weapon_cont = new createjs.Container();
+		this.addChild(this.weapon_cont);
+		this.saber_length = 80;
+		this.saber_color = 'green';
+		this.saber_angle = 0;
+		this.saber_start = new createjs.Shape();
+		this.saber_start.graphics.beginStroke('white').drawCircle(0,0,20);
+		this.saber_start.x = -30;
+		this.saber_start.y = -15;
+		this.saber_middle = new createjs.Shape();
+		this.saber_middle.graphics.beginStroke('white').drawCircle(0,0,15);
+		this.saber_end = new createjs.Shape();
+		this.saber_end.graphics.beginStroke('white').drawCircle(0,0,10);
+		this.saber_trail = this.saber_end.clone();		
+		this.weapon_points = [this.saber_start,this.saber_middle,this.saber_end,this.saber_trail];
+		this.debug_cont.addChild(this.saber_start, this.saber_middle, this.saber_end, this.saber_trail);
+
+		this.virtualMouse = new createjs.Shape();
+		this.virtualMouse.graphics.beginFill('pink').drawCircle(0,0,3);
+		this.spot.debug_cont.addChild(this.virtualMouse);
+		this.virtualMouse.x = this.x + this.wave.x;
+		this.virtualMouse.y = this.wave.y - this.wave.params.height + this.y;
+		this.virtualMouse.alpha = 0;
+
 		//NO MORE USED
 		//this.addEventListener('tick',proxy(this.tick,this));
 		
@@ -155,6 +181,7 @@
 		this.stock();
 		this.checkFall();
 		this.drawTrails();
+		this.drawWeapon();
 		this.drawDebug();
 	}
 
@@ -164,6 +191,7 @@
 		this.stock();
 		this.checkFall();
 		this.drawTrails();
+		this.drawWeapon();
 		this.drawDebug();
 
 		this.timer = new Timer(proxy(this.continuousMovement,this), this.wave.params.breaking.x_speed);
@@ -174,7 +202,8 @@
 
 		//add new click event to jump ollie
 		stage.on('click',function(event) {
-			this.ollie();
+			//this.ollie();
+			this.lightSaberStrike();
 		},this);
 
 		//custom events		
@@ -277,7 +306,7 @@
 		this.location = new Victor(x,y);
 		this.locations.push(this.location);
 
-		this.autoSilhouette = false;
+		this.auto_silhouette = false;
 
 		const speed = 0.1 + this.getSkill('takeoff');
 		const takeoff = new createjs.SpriteSheet({
@@ -308,7 +337,7 @@
 		// tween it slowly to normal config
 		createjs.Tween.get(this.control_velocities)
 			.to({ y: 0.5 }, time / 2)
-			.call(proxy(function(){ this.autoSilhouette = true;},this))
+			.call(proxy(function(){ this.auto_silhouette = true;},this))
 			.to({ x: 1 }, time / 2)
 			.set({ y: 1 })
 			.call(proxy(this.endTakeOff,this));
@@ -330,7 +359,7 @@
 
 	prototype.endTakeOff = function() {
 
-		this.autoSilhouette = true;
+		this.auto_silhouette = true;
 		this.riding = true;
 
 		const ev = new createjs.Event("take_off_ended");
@@ -496,7 +525,6 @@
 		this.setSurferSilhouette();	
 	}
 
-
 	prototype.moveOnOllie = function() {
 
 		//add gravity to ollie initial vector
@@ -516,7 +544,7 @@
 
 		this.saveTrailSize();
 		this.trailsize = 0;
-		this.autoSilhouette = false;
+		this.auto_silhouette = false;
 	
 		window.setTimeout(proxy(this.endOllie,this),350);
 
@@ -525,7 +553,7 @@
 	prototype.endOllie = function() {
 
 		this.ollieing = false;
-		this.autoSilhouette = true;
+		this.auto_silhouette = true;
 
 		this.ollieParticles();
 
@@ -570,9 +598,12 @@
 
 	prototype.getMousePoint = function(n = 0) {
 
+		if(this.automove === true) {
+			return this.spot.debug_cont.localToLocal(this.virtualMouse.x, this.virtualMouse.y, this.wave.foreground_cont);
+		}
+
 		var mouse = window.getMousePoint(n);
-		mouse = this.wave.foreground_cont.globalToLocal(mouse.x,mouse.y);
-		return mouse;
+		return this.wave.foreground_cont.globalToLocal(mouse.x,mouse.y);
 	}
 
 	prototype.findWavePointUnder = function() {
@@ -760,6 +791,21 @@
 		// calcul new velocity
 		this.velocity = this.locations[0].clone().subtract(this.locations[1]);		
 
+		//if surfer jump above this line, follow him and move screen
+		const line = -this.wave.y * 1/4;
+		if(this.y < line) {			
+			const diff = -(this.y - line);
+			//make paralax effect
+			this.spot.frontground.y = diff * 1.5;
+			this.spot.sea_cont.y = diff;
+			this.spot.background.y = diff / 5;
+		} else {
+			this.spot.frontground.y = 0;
+			this.spot.sea_cont.y = 0;
+			this.spot.background.y = 0;
+		}
+
+
 	}
 
 	prototype.stock = function() {
@@ -813,6 +859,8 @@
 		this.trailsize = 0;
 		// particles
 		this.initAerialParticles();	
+
+		this.velocity.magnitude(0.5);
 		// tricks		
 		this.initTricks();
 		// save aerial position
@@ -839,7 +887,7 @@
 
 		var ev = new createjs.Event("aerial_start");
 
-		var impulse = 10; //this.velocity.length();
+		var impulse = this.velocity.magnitude();
 
 		if(impulse > 55) {
 
@@ -965,9 +1013,6 @@
 			this.dispatchEvent('fall_tricks')
 		}
 
-		// set automove
-		this.switchAutomove();
-
 		//remove aerial particles
 		this.stopAerialParticles();
 
@@ -983,8 +1028,7 @@
 		// tween it slowly to normal config
 		const tween = createjs.Tween.get(this.control_velocities)
 			.to({ x: 0.5, y: 0.5 }, time / 2)			
-			.to({ x: 1, y: 1 }, time / 2)			
-			.call(proxy(this.switchAutomove,this))
+			.to({ x: 1, y: 1 }, time / 2)						
 			;	
 		
 
@@ -1125,7 +1169,10 @@
 			var point = points[j];	
 			
 			//check all top fall points
-			if(point.topfallscale > 1 && this.hit(point.x, 0, point.topfallscale)) {
+			if(point.topfallscale > 1 && this.hitBody(point.x, 0, point.topfallscale)) {
+				this.disturbance ++;
+				this.spot.showOverlayVeil(this.disturbance/this.disturbance_max*100);
+				if(this.disturbance < this.disturbance_max) return;
 				this.fall('hit top lip');
 				this.dispatchEvent('fall_top');
 				return;
@@ -1133,14 +1180,21 @@
 
 			//check only splashed points
 			if(point.splashed) {
-				if(this.hit(point.x, point.splash_y, point.bottomfallscale)) {					
+				if(this.hitBody(point.x, point.splash_y, point.bottomfallscale)) {		
+					this.disturbance ++;
+					this.spot.showOverlayVeil(this.disturbance/this.disturbance_max*100);
+					if(this.disturbance < this.disturbance_max) return;			
 					this.fall('hit bottom splash');
 					this.dispatchEvent('fall_bottom');
 					return;
 				}
-			}
- 			
+			} 			
 		}
+
+		//reset disturbance
+		this.disturbance = 0;
+		this.spot.hideOverlayVeil();
+
 
 		//does surfer hits tube point
 		if(this.isTubing()) {
@@ -1152,11 +1206,14 @@
 			this.tubeOut(); 
 		}
 
+		//does surfer shots something
+		this.checkWeaponHits();
+
 		//does surfer hits obstacles
 		this.checkHitObstacles();
 
 		//does surfer hits other serfrs
-		this.checkHitSurfers();
+		this.checkHitSurfers();		
 
 		//dispatch normal event
 		this.dispatchEvent('surfing');
@@ -1171,7 +1228,7 @@
 		let i = points.length;
 		while(i--) {	
 			var point = points[i];		
-			if(point.splashed && this.hit(point.x, waveHeight>>1, point.tubescale)) {
+			if(point.splashed && this.hitBody(point.x, waveHeight>>1, point.tubescale)) {
 				//stock the current deep of the tube 			
 				this.tubeDepths.push(point.tubedeep);
 				//yes we are tubing !							
@@ -1232,7 +1289,16 @@
 		}
 	}
 
-	prototype.hit = function(x,y,radius) {
+	prototype.hit = function(zone, x, y, radius) {
+
+		if(zone == 'board') return this.hitBoard(x,y,radius);
+		if(zone == 'body') return this.hitBody(x,y,radius);
+		if(zone == 'weapon') return this.hitWeapon(x,y,radius);
+		if(zone == 'none') return null;
+		return console.error("La zone de hit n'existe pas");
+	}
+
+	prototype.hitBody = function(x,y,radius) {
 				
 		const minDistance = radius + this.hitbox_radius;
 		const xDist = x - this.x - this.hitbox.x;
@@ -1255,6 +1321,23 @@
 		if(distance < minDistance) {
 			return true;
 		}
+		return false;
+	}
+
+	prototype.hitWeapon = function(x,y,radius) {
+
+		for(let i=0,len=this.weapon_points.length-1; i<len; i++) {
+			const point = this.weapon_points[i];
+			const minDistance = radius + point.graphics.command.radius;
+			const xDist = x - this.x - point.x;
+			const yDist = y - this.y - point.y;
+			const distance = Math.sqrt(xDist*xDist + yDist*yDist);
+
+			if(distance < minDistance) {
+				return true;
+			}
+		}
+
 		return false;
 	}
 
@@ -1348,20 +1431,49 @@
 			var obstacle = this.wave.obstacles[i];
 
 			if(obstacle.hitBonus(this)) {
-				//launch obstacle method
-				obstacle.bonusHitted();
 				//launch event
 				var ev = new createjs.Event(obstacle.config.name+'_bonus_hitted');
 				ev.obj = obstacle;
 				this.dispatchEvent(ev);
 			}
+
 			if(obstacle.hitMalus(this)) {
-				//launch obstacle method
-				obstacle.malusHitted();
 				//launch event
 				var ev = new createjs.Event(obstacle.config.name+'_malus_hitted');
 				ev.obj = obstacle;
 				this.dispatchEvent(ev);
+			}
+		}
+	}
+
+	prototype.checkWeaponHits = function() {
+
+		for(let i=0,len = this.wave.obstacles.length; i<len; i++) {
+			let obstacle = this.wave.obstacles[i];
+
+			//destroy obstacle by shoting their body
+			if(obstacle.bodies.length !== 0) {
+				for(let i=0,len=obstacle.bodies.length-1; i<=len; i++) {
+					let body = obstacle.bodies[i];
+					if(this.hit('weapon', body.x, body.y, body.graphics.command.radius)) {
+						console.log('body shoted');
+					}
+				}
+			}
+			
+			//cancel malus by shoting at it
+			if(obstacle.maluses.length !== 0) {
+				for(let i=0,len=obstacle.maluses.length-1; i<=len; i++) {
+					let malus = obstacle.maluses[i];
+					let pt = malus.localToLocal(0,0,this.wave.foreground_cont);
+					if(malus.shotable) {
+						if(this.hit('weapon', pt.x, pt.y, malus.graphics.command.radius)) {
+							console.log('malus shoted');
+							malus.onShoted();
+							break;
+						}
+					}
+				}
 			}
 		}
 	}
@@ -1445,7 +1557,7 @@
 
 		this.trail_cont.mask = this.wave.shape_mask;
 		//this.trail_cont.cache(xmin,0,xmax-xmin,this.wave.params.height);
-		this.trail_cont.alpha = 0.4;
+		this.trail_cont.alpha = this.alpha * 0.4;
 
 	}
 
@@ -1564,11 +1676,68 @@
 		},this));
 	}
 
+	prototype.drawWeapon = function() {
+
+		if(!this.spot.isRun) return;
+		this.drawLightSaber();
+	}
+
+	prototype.drawLightSaber = function() {
+
+		this.weapon_cont.removeAllChildren();
+
+		let length = this.saber_length;
+		let angle = this.angle_rad + this.saber_angle;
+
+		this.saber_middle.x = this.saber_start.x + length/2 * Math.cos(angle);
+		this.saber_middle.y = this.saber_start.y + length/2 * Math.sin(angle);
+
+		this.saber_trail.x = this.saber_end.x;
+		this.saber_trail.y = this.saber_end.y;
+
+		this.saber_end.x = this.saber_start.x + length * Math.cos(angle);
+		this.saber_end.y = this.saber_start.y + length * Math.sin(angle);
+
+		let saber = new createjs.Shape();
+		saber.graphics.beginStroke(this.saber_color).setStrokeStyle(5)
+								.moveTo(this.saber_start.x,this.saber_start.y).lineTo(this.saber_end.x,this.saber_end.y)
+								.beginStroke('white').setStrokeStyle(2)
+								.moveTo(this.saber_start.x,this.saber_start.y).lineTo(this.saber_end.x,this.saber_end.y)
+								;		
+
+		var blurFilter = new createjs.BlurFilter(5, 5, 1);
+		saber.filters = [blurFilter];
+		var bounds = blurFilter.getBounds();
+		saber.cache(this.saber_start.x - length, this.saber_start.y - length, length*2, length*2);
+
+		let trail = new createjs.Shape();
+		trail.graphics.beginFill(this.saber_color)
+								.moveTo(this.saber_start.x, this.saber_start.y)
+								.lineTo(this.saber_end.x, this.saber_end.y)
+								.lineTo(this.saber_trail.x, this.saber_trail.y)
+								.closePath();
+		trail.alpha = 0.3;
+
+		this.weapon_cont.addChild(saber, trail);
+
+	}
+
+	prototype.lightSaberStrike = function() {
+
+		let amp = Math.PI/3;
+		let time = 300;
+		createjs.Tween.get(this).to({saber_angle: amp},time*2/5).to({saber_angle:-amp},time*2/5).to({saber_angle: 0},time*1/5);
+	}
+
 	prototype.drawDebug = function() {
 		
-		this.debug_cont.removeAllChildren();
 		this.hitboard.alpha = 0;	
 		this.hitbox.alpha = 0;
+		this.virtualMouse.alpha = 0;
+
+		this.debug_cont.alpha = 0;
+
+		
 
 		// for(let i=0, len=this.trailpoints.length; i < len ; ++i) {
 		// 	let point = this.trailpoints[i];
@@ -1580,10 +1749,12 @@
 		// 	this.wave.debug_cont.addChild(circle);
 		// }
 
-		if(!DEBUG) return;
+		if(DEBUG === 0) return;
 
 		this.hitbox.alpha = 0.2;		
 		this.hitboard.alpha = 0.8;	
+		this.virtualMouse.alpha = 0.5;
+		this.debug_cont.alpha = 1;
 
 	}
 
@@ -1598,7 +1769,7 @@
 
 	prototype.setSurferSilhouette = function() {	
 		
-		if(this.autoSilhouette === false) return;
+		if(this.auto_silhouette === false) return;
 
 		this.getAngle();
 		this.silhouette.removeChildAt(0);

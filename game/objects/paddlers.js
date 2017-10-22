@@ -64,6 +64,13 @@
 
 	}
 
+	prototype.remove = function() {
+	
+		this.removeAllChildren();
+		this.removeAllListeners();
+		this.removeAllEventListeners();
+	}
+
 	prototype.removeAllListeners = function() {
 
 		stage.off('click',this.click_listener);

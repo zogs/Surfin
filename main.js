@@ -51,6 +51,7 @@ window.loaded = function() {
 		{id:'photographer',src:'assets/img/object/photographer.png'},
 		{id:'wash_plouf',src:'assets/img/object/wash.svg'},
 		{id:'wash',src:'assets/img/object/wash.png'},
+		{id:'sprite_beachtrooper',src:'assets/img/object/beachtrooper.png'},
 		{id:'washed_text',src:'assets/img/washed.png'}
 
 		]);
@@ -81,11 +82,14 @@ window.initialize = function() {
 	USER = new UserManager();
 	USER.new();
 
+	//SCREEN
+	SCREENS = new ScreenManager();
+
 	//SPOT
 	const spot = SPOTSCONF.find(s => s.alias == 'default');
 	window.addSpot(spot,false);
 
-	const boom = new createjs.SpriteSheet({
+	/*const boom = new createjs.SpriteSheet({
 			images: [queue.getResult('bomb_boom')],
 			frames: {width:312, height:285},
 			framerate: 0.1,
@@ -100,7 +104,7 @@ window.initialize = function() {
 		animation.x = 300;
 		animation.gotoAndStop('floating');
 		stage.addChild(animation);
-
+	*/
 
 	//MENU
 	addMenu();
@@ -130,7 +134,7 @@ window.initialize = function() {
 window.tick = function() {
 
 	//console.log(createjs.Tween._tweens.length);
-	stage.update();
+	stage.update();	
 }
 
 window.loadSpot = function(event, name = 'default') {
@@ -164,6 +168,31 @@ window.addSpot = function(spot, launch = true) {
 	// add menu
 	window.addMenu();
 
+}
+
+window.removeSpot = function(spot) {
+
+	spot.remove();
+
+	//stage.removeAllEventListeners();
+	stage.removeChild(spot);
+
+	spot = null;
+	SPOT = null;
+}
+
+
+window.initRunnerMode = function(e) {
+
+	this.removeSpot(SPOT);
+
+	const conf = SPOTSCONF.find(s => s.alias == 'default');
+	SPOT = new Run(conf);
+	stage.addChild(SPOT);
+
+	SPOT.init();
+
+	window.addMenu();
 }
 
 window.addMenu = function() {
@@ -249,11 +278,13 @@ window.keyDownHandler = function(e)
     case 'z':  SPOT.addPaddlerBot(); break;
     case 'r':  SPOT.getWave().addTestSurferBot(); break;
     case 'o':  SPOT.getWave().addBomb(); break;
+    case '&':  SPOT.getWave().addBeachTrooper(); break;
     case 'i':  SPOT.getWave().addFlyingObstacle(); break;
     case 'k':  SPOT.getWave().getSurfer().updateLifebar(0.2); break;
     case 't':  switchTestMode(); break;
     case 'd':  switchDebugMode(); break;
     case 'w':  switchSlowMo(0.1,500); break;
+    case 'q':  initRunnerMode(); break;
     default: console.log('Key "'+e.key+'" have no handler.');
    } 
 }

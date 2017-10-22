@@ -24,6 +24,7 @@
 
 		this.on('take_off', function(event) {
 			this.initVirtualMouse();
+			this.initLightSaber();
 		},this,true);
 	}
 
@@ -31,6 +32,9 @@
 
 		this.type = 'bot';
 		this.direction = config.direction;
+		this.saber_color = 'red';
+		this.saber_length_default = this.saber_length;
+		this.saber_length = 0;
 		this.skills = {
 			speed: 0.5, //0 to 1
 			aerial: 0.2, //0 to 1
@@ -40,6 +44,11 @@
 			force: 0
 		}
 
+	}
+
+	prototype.initLightSaber = function() {
+
+		createjs.Tween.get(this).wait(1000).to({saber_length: this.saber_length_default}, 800);
 	}
 
 	/**
@@ -58,6 +67,8 @@
 		this.vMouse = new createjs.Shape();
 		this.vMouse.graphics.beginFill(createjs.Graphics.getHSL(Math.random()*360, 100, 50)).drawCircle(0,0,5);
 		this.vMouse.y = 0;
+		this.vMouse.alpha = 0;
+		if(DEBUG === true) this.vMouse.alpha = 1;
 
 		var xd = Math.random()*(STAGEWIDTH/2);
 		if(this.direction === LEFT) {
@@ -70,11 +81,12 @@
 		}
 		// this.wave.debug_cont.addChild(this.vMouse);
 
-		this.initMouseResting();		
-		this.initMouseJumping();
+		this.initMouseRest();		
+		this.initMouseJump();
+		this.initSaberStrike();
 	}
 
-	prototype.initMouseResting = function() {
+	prototype.initMouseRest = function() {
 		
 		createjs.Tween.get(this.vMouse,{override:true})
 			.to({y: this.wave.params.height}, 1000)
@@ -98,9 +110,9 @@
 
 	prototype.initMouseMoveY = function() {
 	
-		var time = 1500 + Math.random()*500;
+		var time = 250 + Math.random()*500;
 		createjs.Tween.get(this.vMouse)
-			.to({y: 0 }, time, createjs.Ease.sineInOut)
+			.to({y: Math.random()*this.wave.params.height }, time, createjs.Ease.sineInOut)
 			.to({y: this.wave.params.height }, time, createjs.Ease.sineInOut)
 			.call(proxy(this.initMouseMoveY,this))
 			;
@@ -110,7 +122,7 @@
 	
 		if(this.wave.direction === LEFT) var dx = Math.random()*(STAGEWIDTH/4);
 		if(this.wave.direction === RIGHT) var dx = -Math.random()*(STAGEWIDTH/4);
-		const time = 5000;
+		const time = 500 + Math.random()*5000;
 		createjs.Tween.get(this.vMouse)
 			.to({x: this.vMouse.x + dx}, time/2)
 			.to({x: this.vMouse.x}, time/2)
@@ -119,11 +131,39 @@
 
 	}
 
-	prototype.initMouseJumping = function(jump) {
+	prototype.initMouseJump = function(jump) {
 		
-		if(jump === true) createjs.Tween.get(this.vMouse,{override:true}).to({y: 0 - Math.random()*(STAGEHEIGHT/2)}, 500).call(proxy(this.initMouseResting,this));
+		//call next jump delay
+		this.jumpTimeout = window.setTimeout(proxy(this.initMouseJump,this,[true]),Math.random()*10000 + 5000);
+		
 
-		this.jumpTimeout = window.setTimeout(proxy(this.initMouseJumping,this,[true]),Math.random()*10000 + 5000);
+
+		if(jump === true) {
+			//cancel jump if surfer is too close of the tube
+			if( this.wave.direction === LEFT && this.x > this.wave.boundaries[LEFT] -150 ) return console.info('jump canceled');
+			if( this.wave.direction === RIGHT && this.x < this.wave.boundaries[RIGHT] + 150 ) return console.info('jump canceled');
+			//jump !
+			var height = - Math.random()*(STAGEHEIGHT/2);
+			console.log('jump',height);
+			createjs.Tween.get(this.vMouse,{override:true}).to({y: height}, 500).wait(500).call(proxy(this.initMouseRest,this));		
+		}
+
+	}
+
+	prototype.initSaberStrike = function() {
+
+		this.saberTimeout = window.setTimeout(proxy(this.initSaberStrike,this), 500 + Math.random()*2000);
+
+		//strike fi close to the player
+		var dist = get2dDistance(this.x,this.y,this.wave.player.x,this.wave.player.y);
+		if(dist < 100) {
+			this.lightSaberStrike();
+		}
+	}
+
+	prototype.removeSaberStrike = function() {
+
+		window.clearTimeout(this.saberTimeout);
 	}
 
 	prototype.removeJumping = function() {
@@ -137,6 +177,7 @@
 		//remove bot element
 		this.removeJumping();
 		this.removeVirtualMouse();
+		this.removeSaberStrike();
 		//remove bot from within the wave
 		this.wave.removeBot(this);
 	}
