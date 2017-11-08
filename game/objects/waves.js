@@ -442,10 +442,9 @@ prototype.createLipPoint = function(params) {
 	const x = params.x === undefined ? 0 : params.x;
 	const width = (this.direction === LEFT)? this.params.breaking.left.width : this.params.breaking.right.width;
 	const peak = params.peak === undefined ? null : params.peak;
-	const breaking_y = (this.params.breaking.splash_h_percent <= 100)? this.params.height * this.params.breaking.splash_h_percent/100 : this.params.height;
+	const breaking_y = (this.params.breaking.splash_h_percent < 100)? this.params.height * this.params.breaking.splash_h_percent/100 : this.params.height;
 	const bounce_y = (this.isPlayed())? breaking_y + Math.random() * breaking_y / 3 : breaking_y + Math.random() * breaking_y / 4;
 	const ease_y = (this.config.breaking.y_ease) ? this.config.breaking.y_ease : 'quartIn';
-
 
 	// lip point
 	const point = {
@@ -536,6 +535,9 @@ prototype.addPointToSplash = function(point,splash) {
 
 
 prototype.splashPointReached = function(point) {
+
+	//it is possible that point is reached but wave has been deleted. Just return in that case
+	if(!this.splashs) return;
 
 	//save splash height
 	point.splash_y = point.y;
@@ -929,7 +931,7 @@ prototype.removeBot = function(bot) {
 
 	this.surfers_cont.removeChild(bot);
 	this.surfers.splice(this.surfers.indexOf(bot),1);
-	console.log(this.surfers);
+	
 }
 
 prototype.getSurfer = function() {
@@ -1264,15 +1266,16 @@ prototype.oldmoveWave = function() {
 
 }
 
-prototype.clearWave = function() {
+prototype.selfRemove = function() {
 
-	this.removeAllEventListeners('tick');	
-	this.getTimers().map(t => t.clear());
+	this.surfers.map(s => s.selfRemove());
 	this.allpoints.map(p => createjs.Tween.removeTweens(p));
+	this.getTimers().map(t => t.clear());
+	this.removeAllEventListeners('tick');	
 	this.cont.removeAllChildren();
 	this.removeAllChildren();
-	this.cont = null;	
 	this.surfers = null;
+	this.cont = null;	
 	this.obstacles = null;
 	this.peaks = null;
 	this.splashs = null;

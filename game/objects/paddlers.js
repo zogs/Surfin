@@ -85,7 +85,7 @@
 
 	prototype.getSurferProportion = function() {
 
-		var c = (1.8 / this.spot.config.waves.real_height) * (this.spot.config.waves.height / ( this.pixel_height/2));
+		var c = (1.5 / this.spot.config.waves.real_height) * (this.spot.config.waves.height / ( this.pixel_height/2));
 		return c;
 	}
 
@@ -128,7 +128,8 @@
 		this.lifted = window.setTimeout(proxy(this.liftdown,this),50);
 	}
 
-	prototype.movePaddler = function(evt) {
+	prototype.movePaddler = function(evt) {		
+
 		var x = evt.stageX;
 		var y = evt.stageY;
 

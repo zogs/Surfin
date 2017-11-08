@@ -22,7 +22,7 @@ window.loaded = function() {
 		{id:'wave_riddle',src:'assets/img/waves/wave-riddle.png'},
 		{id:'spot_seariddle',src:'assets/img/spots/default/seariddles.png'},
 		{id:'spot_front',src:'assets/img/spots/default/front.png'},
-		{id:'spot_back',src:'assets/img/spots/default/back.png'},
+		{id:'spot_back',src:'assets/img/spots/default/bkg_night.jpg'},
 		{id:'bomb_boom',src:'assets/img/object/bomb_boom.png'},
 		{id:'surfer_splash',src:'assets/img/object/splash.gif'},
 		{id:'surfer_E',src:'assets/img/surfer/E.png'},
@@ -55,6 +55,10 @@ window.loaded = function() {
 		{id:'washed_text',src:'assets/img/washed.png'}
 
 		]);
+
+	createjs.Sound.alternateExtensions = ["mp3"];
+ 	createjs.Sound.registerSound("assets/sounds/yeah.mp3", "bravo");
+ 	
 
 
 	Justice.init();
@@ -127,6 +131,7 @@ window.initialize = function() {
 	initCustomizer();
 
 	window.resizeCanvas();
+
 
 }
 
@@ -363,13 +368,13 @@ window.pause = function() {
 
 	if(PAUSED === 1) {
 		PAUSED = 0;
-		createjs.Ticker.setPaused(false);	
+		createjs.Ticker.paused = false;	
 		SPOT.resume();	
 		console.log('PAUSE DESACTIVATED');
 	}
 	else {
 		PAUSED = 1;
-		createjs.Ticker.setPaused(true);		
+		createjs.Ticker.paused = true;		
 		SPOT.pause();
 		console.log('PAUSE ACTIVATED !');
 	}	

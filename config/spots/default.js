@@ -23,7 +23,7 @@ var conf = {
 				y_speed: 1200,
 				x_speed: 50,
 				y_ease: 'quartIn',
-				splash_h_percent: 90,
+				splash_h_percent: 100,
 				splash_h_ease: 0.4,
 				left: {
 					width: 20,
@@ -93,7 +93,7 @@ var conf = {
 			length :  3,
 			speed : 20000,
 			frequency : 4000,
-			interval : 25000,				
+			interval : 14000,				
 			spread : 200,	
 			xshift: 10,			
 		},	

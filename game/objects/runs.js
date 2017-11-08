@@ -28,6 +28,10 @@
     this.frontground = new createjs.Container();
     this.addChild(this.frontground);
 
+    this.overlay_veil = new createjs.Container();
+    this.addChild(this.overlay_veil);
+    this.drawOverlayVeil();
+
     this.overlay_cont = new createjs.Container();
     this.addChild(this.overlay_cont);
     
@@ -308,6 +312,28 @@
 
     if(DEBUG === 1) this.debug_cont.alpha = 1;
     else this.debug_cont.alpha = 0;
+  }
+
+  prototype.drawOverlayVeil = function() {
+
+    var veil = new createjs.Shape();
+    veil.graphics.beginFill('white').drawRect(0,0,STAGEWIDTH,STAGEHEIGHT);
+    this.overlay_veil.addChild(veil);
+    this.overlay_veil.alpha = 0;
+    this.overlay_veil.mouseEnabled = false;
+  }
+
+  prototype.showOverlayVeil = function(percent)
+  {
+    var max = 0.8;
+    this.overlay_veil.alpha = percent/100*max;
+  }
+
+  prototype.hideOverlayVeil = function() {
+
+    if(this.overlay_veil.alpha === 0) return;
+    var time = this.overlay_veil.alpha * 1000;
+    createjs.Tween.get(this.overlay_veil).to({alpha: 0}, time);
   }
 
   window.Run = createjs.promote(Run,'Container');

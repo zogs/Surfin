@@ -22,9 +22,7 @@
 	</body>
 	
 
-	<script src="lib/createjs/easeljs-0.8.1.min.js"></script>
-	<script src="lib/createjs/tweenjs-beta.js"></script>
-	<script src="lib/createjs/preloadjs-0.6.1.min.js"></script>
+	<script src="lib/createjs/easeljs-1.1.js"></script>
 	<script src="lib/justice.mapped.min.js"></script>
 	<script src="lib/gl-matrix-min.js"></script>
 	<script src="lib/victor/victor.min.js"></script>

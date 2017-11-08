@@ -54,6 +54,7 @@
 		this.background.addChild(defaultbkg);
 
 		const skyimage = new createjs.Bitmap(queue.getResult('spot_back'));
+		skyimage.y = - skyimage.image.height/2;
 		this.background.addChild(skyimage);
 
 		const seagradient = new createjs.Shape();
@@ -95,7 +96,6 @@
 	}
 	
 	prototype.addNextSerie = function() {
-		
 		// launch a new serie timer
 		const serie_timer = new Timer(proxy(this.addSerie,this),this.config.series.interval);
 		this.timers.push(serie_timer);
@@ -103,7 +103,7 @@
 	}
 
 	prototype.addSerie = function() {
-		
+
 		// launch first wave
 		this.addSwell(1);
 
@@ -143,6 +143,7 @@
 
 		// if last wave of serie, add next wave
 		if( nb === this.config.series.length) {		
+			console.log('addNextSerie');
 			// remove all timers
 			this.timers = [];
 			// call next serie
@@ -184,6 +185,9 @@
 			}
 		}
 
+		// add the next serie after interval
+		this.addNextSerie();
+
 	}
 
 	prototype.addInitialWave = function(position = 0) {
@@ -222,7 +226,6 @@
 		this.initEventsListeners();		
 		this.initScore();
 		this.resetScore();
-		this.drawDebug();		
 		//this.addWave(0.3);
 		this.addWave(1);
 
@@ -238,7 +241,6 @@
 		this.addInitialSerie();
 		//this.addSerie();
 		//this.addPaddler(STAGEWIDTH/2,370);
-		this.drawDebug();	
 	}
 
 	prototype.remove = function() {
@@ -290,6 +292,7 @@
 
 		this.managePaddlers();
 		this.paralaxWaves();
+		this.drawDebug();
 	}
 
 	prototype.managePaddlers = function() {
@@ -375,7 +378,12 @@
 	prototype.addPaddlerBot = function(x,y) {
 
 		var x = x || STAGEWIDTH/4 + Math.random()*(STAGEWIDTH/2);
-		var y = y || Math.random()*(this.config.lines.beach - this.config.lines.horizon) + this.config.lines.horizon;
+		var y = y || Math.random()*(this.config.lines.peak - this.config.lines.horizon - 100) + this.config.lines.horizon;
+
+
+		var x = MOUSE_X;
+		var y = MOUSE_Y;
+
 		var bot = new PaddlerBot({
 			spot: this,
 			x: x,
@@ -400,6 +408,7 @@
 
 	prototype.botPaddling = function(bot) {
 
+		if(this.runing === false) return;
 
 		var index = this.sea_cont.getChildIndex(bot) - 1;
 		while(index>=0) {
@@ -415,7 +424,7 @@
 						var x = ( bot.getX() - wave.getX() );
 						var y = ( wave.params.height - ( wave.getY() - bot.getY() ));
 						
-						var direction = (bot.getX() <= STAGEWIDTH/2)? 'left' : 'right';
+						var direction = (bot.getX() <= STAGEWIDTH/2)? 1 : -1;
 
 						var surfer = new SurferBot({
 							x: x,
@@ -611,6 +620,7 @@
 	{
 		var max = 0.8;
 		this.overlay_veil.alpha = percent/100*max;
+		console.log(this.overlay_veil.alpha);
 	}
 
 	prototype.hideOverlayVeil = function() {
@@ -710,9 +720,9 @@
 	}
 
 	prototype.removeWave = function(wave) {
-		console.log('removeWave');
+		
 		createjs.Tween.removeTweens(wave);
-		wave.clearWave();
+		wave.selfRemove();
 		this.sea_cont.removeChild(wave);
 		this.waves.splice(this.waves.indexOf(wave),1);
 		wave = null;
@@ -723,7 +733,7 @@
 		
 		this.timers.map(t => t.clear());
 		this.waves.map(w => createjs.Tween.removeTweens(w));
-		this.waves.map(w => w.clearWave());
+		this.waves.map(w => w.selfRemove());
 		this.waves = [];
 		this.paddlers.map(p => p.clearPaddler());
 		this.paddlers = [];
@@ -793,6 +803,8 @@
 	}
 
 	prototype.drawDebug = function() {
+
+		if(DEBUG == false) return;
 
 		this.debug_cont.removeAllChildren();
 
