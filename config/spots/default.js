@@ -103,6 +103,7 @@ var conf = {
 				x: 1,
 				y: 1
 			},
+			weapons: []
 		}		
 	}
 };

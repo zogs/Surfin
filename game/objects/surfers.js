@@ -26,7 +26,7 @@
 
 		this.wave = params.wave;
 		this.spot = params.spot;
-		this.config = cloneObject(this.spot.config.surfers);
+		this.config = params.config || this.spot.config.surfers;
 		this.x = params.x;
 		this.y = params.y;
 
@@ -53,6 +53,8 @@
 		this.tubeTime = 0;
 		this.tubeMinimumTime = 1000;
 		this.tubeDepths = [];
+		this.weapons = [];
+		this.weapon_points = [];
 		this.riding = false;
 		this.falling = false;
 		this.surfing = false;
@@ -144,20 +146,7 @@
 
 		this.weapon_cont = new createjs.Container();
 		this.addChild(this.weapon_cont);
-		this.saber_length = 80;
-		this.saber_color = 'green';
-		this.saber_angle = 0;
-		this.saber_start = new createjs.Shape();
-		this.saber_start.graphics.beginStroke('white').drawCircle(0,0,20);
-		this.saber_start.x = -30;
-		this.saber_start.y = -15;
-		this.saber_middle = new createjs.Shape();
-		this.saber_middle.graphics.beginStroke('white').drawCircle(0,0,15);
-		this.saber_end = new createjs.Shape();
-		this.saber_end.graphics.beginStroke('white').drawCircle(0,0,10);
-		this.saber_trail = this.saber_end.clone();		
-		this.weapon_points = [this.saber_start,this.saber_middle,this.saber_end,this.saber_trail];
-		this.debug_cont.addChild(this.saber_start, this.saber_middle, this.saber_end, this.saber_trail);
+			
 
 		this.virtualMouse = new createjs.Shape();
 		this.virtualMouse.graphics.beginFill('pink').drawCircle(0,0,3);
@@ -223,7 +212,7 @@
 
 		this.on('aerial_start',function(event) {
 			var ev = new createjs.Event('surfer_aerial_start');
-			ev.tricks = event.tricks;
+			ev.trick = event.trick;
 			stage.dispatchEvent(ev);
 		},this);
 
@@ -345,6 +334,9 @@
 			.to({ x: 1 }, time / 2)
 			.set({ y: 1 })
 			.call(proxy(this.endTakeOff,this));
+
+		// init weapon
+		this.initWeapon();	
 
 		//init timer refresh
 		this.timer = new Timer(proxy(this.continuousMovement,this), this.wave.params.breaking.x_speed);
@@ -882,8 +874,8 @@
 		this.trailsize = 0;
 		// particles
 		this.initAerialParticles();	
-		//test
-		this.initImagePersistance();
+		// persistance
+		//this.initImagePersistance(100);
 		// ???
 		this.velocity.magnitude(1);
 		// slow things down
@@ -930,23 +922,34 @@
 
 		var ev = new createjs.Event("aerial_start");
 
-		//var impulse = this.velocity.magnitude();
-		var impulse = 1;
+		var impulse = this.velocity.magnitude();
 
-		if(impulse > 55) {
+		if(impulse > 60) {
 
-			ev.tricks = 'Double Backflip';
+			ev.trick = {
+				name : 'Double Backflip',
+				score : 2000,
+			};
+
 			this.initDoubleBackflip();
 		}
-		else if(impulse > 40) {
+		else if(impulse > 50) {
 
-			ev.tricks = 'Backflip';
+			ev.trick = {
+				name : 'Backflip',
+				score: 1000,
+			}
+
 			this.initBackflip();
 		}
 		else {
 
-			ev.tricks = 'Aerial';
+			ev.trick = {
+				name : 'Aerial',
+				score: 500,
+			}
 		}
+
 		this.dispatchEvent(ev);
 	}
 
@@ -980,9 +983,9 @@
 		this.tricked = false;
 	}
 
-	prototype.initImagePersistance = function() {
+	prototype.initImagePersistance = function(frequency) {
 
-		this.imagePersistanceTimer = window.setInterval(proxy(this.drawPersistedImage,this), 200);
+			this.imagePersistanceTimer = window.setInterval(proxy(this.drawPersistedImage,this), frequency);		
 	}
 
 	prototype.stopImagePersistance = function() {
@@ -995,17 +998,28 @@
 
 	prototype.drawPersistedImage = function() {
 
-		this.silhouette_cont.cache(-100,-100,200,200);
+		let w = 100;
+		this.silhouette_cont.cache(-w,-w,w*2,w*2);
 		let image = new createjs.Bitmap(this.silhouette_cont.cacheCanvas);
+		image.filters = [ new createjs.ColorFilter(0,0,0,1, Math.random()*255,Math.random()*255,Math.random()*255,0) ];
+		image.cache(0,0,w*2,w*2);
 		image.scaleX = this.scale;
 		image.scaleY = this.scale;
-		image.x = this.x + (- this.silhouette_width) * this.scale;		
-		image.y = this.y + (- this.silhouette_height) * this.scale - 50;	
-		image.alpha = 0.5;
+		image.x = this.x;
+		image.y = this.y;
+		image.regX = w;
+		image.regY = w;
+		image.rotation = this.silhouette_cont.rotation;
+		image.alpha = 1;
 
-		this.wave.surfers_cont.addChild(image);
+		let index = this.wave.surfers_cont.getChildIndex(this);
+		this.wave.surfers_cont.addChildAt(image, index);
 
-		createjs.Tween.get(image).to({ alpha: 0}, 500).call(proxy(this.removePersistedImage,this,[image]));
+		let lifespan = 800;
+		image.scaleX = 0;
+		image.scaleY = 0;
+		createjs.Tween.get(image).to({ alpha: 0}, lifespan).call(proxy(this.removePersistedImage,this,[image]));
+		createjs.Tween.get(image).to({ scaleX: this.scale, scaleY: this.scale}, lifespan/2, createjs.Ease.backOut);
 	}
 
 	prototype.removePersistedImage = function(image) {
@@ -1578,6 +1592,7 @@
 			}
 
 			if(obstacle.hitMalus(this)) {
+				console.log('malus');
 				//launch event
 				var ev = new createjs.Event(obstacle.config.name+'_malus_hitted');
 				ev.obj = obstacle;
@@ -1808,10 +1823,41 @@
 		},this));
 	}
 
+	prototype.initWeapon = function() {
+
+		this.weapons = this.config.weapons || [];
+
+		if(this.weapons.indexOf('saberlight') != -1) {
+			this.initSaberlight();			
+		}
+	}
+
 	prototype.drawWeapon = function() {
 
-		if(!this.spot.isRun) return;
-		this.drawLightSaber();
+		if(this.weapons.indexOf('saberlight') != -1) {
+			this.drawLightSaber();
+		}
+	}
+
+
+	prototype.initSaberlight = function() {
+
+		this.saber_length = 0;
+		this.saber_color = (this.isBot())? 'red' : 'green';
+		this.saber_angle = 0;
+		this.saber_start = new createjs.Shape();
+		this.saber_start.graphics.beginStroke('white').drawCircle(0,0,20);
+		this.saber_start.x = -30;
+		this.saber_start.y = -15;
+		this.saber_middle = new createjs.Shape();
+		this.saber_middle.graphics.beginStroke('white').drawCircle(0,0,15);
+		this.saber_end = new createjs.Shape();
+		this.saber_end.graphics.beginStroke('white').drawCircle(0,0,10);
+		this.saber_trail = this.saber_end.clone();		
+		this.weapon_points.push(this.saber_start,this.saber_middle,this.saber_end,this.saber_trail);
+		this.debug_cont.addChild(this.saber_start, this.saber_middle, this.saber_end, this.saber_trail);
+
+		createjs.Tween.get(this).wait(1500).to({saber_length: 70}, 1000);
 	}
 
 	prototype.drawLightSaber = function() {
@@ -1856,7 +1902,7 @@
 
 	prototype.lightSaberStrike = function() {
 
-		let amp = Math.PI/3;
+		let amp = Math.PI/2;
 		let time = 300;
 		createjs.Tween.get(this).to({saber_angle: amp},time*2/5).to({saber_angle:-amp},time*2/5).to({saber_angle: 0},time*1/5);
 	}
@@ -1905,7 +1951,9 @@
 
 		this.getAngle();
 		this.silhouette.removeChildAt(0);
-		this.silhouette.addChild(this.getAngledSilhouette());			
+		let image = this.getAngledSilhouette();
+		this.silhouette.addChild(image);			
+
 
 	}
 

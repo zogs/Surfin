@@ -918,7 +918,7 @@ prototype.addTestSurferBot = function(surfer) {
 	var bot = new SurferBot({
 		wave:this,
 		spot:this.spot,
-		direction: direction
+		direction: direction,
 	});
 
 	bot.takeOff( takeX, 80);

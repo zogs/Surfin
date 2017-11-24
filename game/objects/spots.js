@@ -16,12 +16,13 @@
 		this.config = spot.config
 
 		//Score
-		this.score_cont = new createjs.Container();
-		this.addChild(this.score_cont);
 
 		this.background = new createjs.Container();
 		this.addChild(this.background);
 
+		this.score_cont = new createjs.Container();
+		this.addChild(this.score_cont);
+		
 		this.sea_cont = new createjs.Container();
 		this.addChild(this.sea_cont);
 
@@ -241,6 +242,41 @@
 		this.addInitialSerie();
 		//this.addSerie();
 		//this.addPaddler(STAGEWIDTH/2,370);
+	}
+
+	prototype.initRunMode = function() {
+
+		this.removeAllWaves();
+		this.initEventsListeners();
+		this.initScore();
+
+		// add weapon to config
+		this.config.surfers.weapons = ['saberlight'];
+
+		// add Wave
+		var wave = this.addWave();
+
+		// add Surfer and place it on the wave
+		var surfer = new Surfer({
+      x: STAGEWIDTH/2,
+      y: 10,
+      wave: wave,
+      spot: this,
+    });
+
+    surfer.automove = true;        
+    surfer.alpha = 0; //hide surfer temporaly
+    TEST = 1; // avoid auto surfer to fall  
+    wave.playerTakeOff(surfer);
+
+    createjs.Tween.get(surfer.virtualMouse).to({y: wave.y + surfer.y }, 2000).to({y: wave.y - wave.params.height*1/3 }, 500);
+    createjs.Tween.get(surfer.virtualMouse).to({x: wave.x + surfer.x - wave.params.breaking.width * 2}, 2000);    
+    createjs.Tween.get(surfer).wait(1000).to({alpha: 1}, 1000)
+      .call(function() { 
+        surfer.automove = false; 
+        TEST = 0; 
+      });
+
 	}
 
 	prototype.remove = function() {
@@ -530,6 +566,7 @@
 	}
 
 	prototype.showScore = function() {
+
 		this.score.alpha = 1;
 	}
 
@@ -717,6 +754,8 @@
 		var wave = new Wave(config);		
 		this.sea_cont.addChild(wave);
 		this.waves.push(wave);
+
+		return wave;
 	}
 
 	prototype.removeWave = function(wave) {

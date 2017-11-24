@@ -25,6 +25,7 @@ window.loaded = function() {
 		{id:'spot_back',src:'assets/img/spots/default/bkg_night.jpg'},
 		{id:'bomb_boom',src:'assets/img/object/bomb_boom.png'},
 		{id:'surfer_splash',src:'assets/img/object/splash.gif'},
+		{id:'surfer',src:'assets/img/surfer/surfer.png'},
 		{id:'surfer_E',src:'assets/img/surfer/E.png'},
 		{id:'surfer_EEEN',src:'assets/img/surfer/EEEN.png'},
 		{id:'surfer_EEES',src:'assets/img/surfer/EEES.png'},
@@ -189,15 +190,8 @@ window.removeSpot = function(spot) {
 
 window.initRunnerMode = function(e) {
 
-	this.removeSpot(SPOT);
+	SPOT.initRunMode();
 
-	const conf = SPOTSCONF.find(s => s.alias == 'default');
-	SPOT = new Run(conf);
-	stage.addChild(SPOT);
-
-	SPOT.init();
-
-	window.addMenu();
 }
 
 window.addMenu = function() {

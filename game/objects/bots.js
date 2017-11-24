@@ -19,7 +19,7 @@
 
 		//on bot fall
 		this.on('fallen',function(event) {				
-			this.removeBot();
+			this.selfRemove();
 		},this,true);
 
 
@@ -72,7 +72,7 @@
 		this.vMouse = new createjs.Shape();
 		this.vMouse.graphics.beginFill(createjs.Graphics.getHSL(Math.random()*360, 100, 50)).drawCircle(0,0,2);
 		this.vMouse.y = 0;
-		this.vMouse.alpha = (DEBUG == true)? 1 : 1;
+		this.vMouse.alpha = (DEBUG == true)? 1 : 0;
 		this.addChild(this.vMouse);
 
 

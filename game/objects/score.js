@@ -74,15 +74,15 @@
 	prototype.initEventsListeners = function() {
 
 		stage.on('surfer_take_off_ended',function(event) {
-			this.add(3500).say('Take Off !', 1000);
+			this.progress().say('Take Off !', 1000);
 		},this);
 
 		stage.on('surfer_aerial_start',function(event) {	
-			this.start(200).say(event.tricks +' !');
+			this.current_aerial = event.trick;
 		},this);
 
 		stage.on('surfer_aerial_end',function(event) {			
-			this.end().silence();
+			this.add(this.current_aerial.score).say(this.current_aerial.name + '!',800);
 		},this);
 
 		stage.on('surfer_fall_bottom',function(event) {
@@ -103,6 +103,10 @@
 
 		stage.on('surfer_fall_edge',function(event) {
 			this.failPhrase = this.getRandomPhrase('fall_edge');
+		},this);
+
+		stage.on('player_fall',function(event) {
+			this.stopProgress();
 		},this);
 
 		stage.on('player_fallen',function(event) {
@@ -211,62 +215,90 @@
 	
 		window.clearInterval(this.launch_timer);
 
-		//on-wave subscore
-		var pt = this.spot.wave.surfer.localToGlobal(0,0);
-		this.onwavescore.x = pt.x;
-		var y = this.spot.wave.y - this.spot.wave.params.height;
-		this.onwavescore.y = y;
-		this.onwavescore.alpha = 1;
-		var tx = (this.current_multiplier==0)? this.current_tricks_score : this.current_tricks_score+' x'+this.current_multiplier+''; 
-		this.onwavescore.text = tx;
+		var score = (this.current_multiplier != 0)? this.current_tricks_score * this.current_multiplier : this.current_tricks_score;
+		var text = (this.current_multiplier==0)? this.current_tricks_score : this.current_tricks_score+' x'+this.current_multiplier+''; 
 
-		createjs.Tween.get(this.onwavescore)	
-			.to({y: y-50, alpha:0},1000)		
-			;
+		// add score
+		this.current_tricks_score = score;
+		this.add(score);
 
+		// show score
+		this.showOnWaveScore(text);
+		this.showSubScore(text);
 
-		if(this.current_multiplier != 0) {
-			this.current_tricks_score = this.current_tricks_score * this.current_multiplier;
-		}
+		// reset multiplier
+		this.current_multiplier = 0;
 
-		this.add(this.current_tricks_score);
+		return this;
+	}
+
+	prototype.showSubScore = function(text) {
 
 		var b = this.subscore.getBounds();
 		this.subscore.x = this.subscore_pt.x + b.width/2;
 		this.subscore.y = this.subscore_pt.y + b.width/2;
 		this.subscore.regX = b.width/2;
 		this.subscore.regY = b.height/2;
+		this.subscore.alpha = 1;
+		this.subscore.text = text;
 
 		createjs.Tween.get(this.subscore)
 			.to({scaleX:4, scaleY:4 },200, createjs.Tween.elasticOut)	
 			.to({scaleX:0, scaleY:0, alpha:0 },400, createjs.Tween.elasticOut)		
 			;
-
-
-		this.current_multiplier = 0;
-
-		return this;
 	}
 
-	prototype.add = function(n) {
+	prototype.showOnWaveScore = function(text) {
 
-		this.current_score += n;
+		var pt = this.spot.wave.surfer.localToGlobal(0,0);
+		this.onwavescore.x = pt.x;
+		var y = this.spot.wave.y - this.spot.wave.params.height;
+		this.onwavescore.y = y;
+		this.onwavescore.alpha = 1;		
+		this.onwavescore.text = text;
+
+		createjs.Tween.get(this.onwavescore)	
+			.to({y: y-50, alpha:0},1000)		
+			;
+	}
+
+	prototype.add = function(amount) {
+
+		this.current_score += amount;
 		this.score.text = this.current_score;	
+		this.showOnWaveScore(amount);
+		this.showSubScore('+'+amount);
 		return this;
 	}
 
-	prototype.sub = function(n) {
-
+	prototype.sub = function(amount) {
 		
-		this.current_score -= n;
+		this.current_score -= amount;
 		if(this.current_score < 0) this.current_score = 0;	
 		this.score.text = this.current_score;
+		this.showOnWaveScore('-'+amount);
+		this.showSubScore('+'+amount);
 		return this;
 	}
 
-	prototype.advance = function() {
+	prototype.progress = function() {
 
-		this.score.text = this.current_score + parseInt(1);
+		let amount = 5;
+		let time = 250;
+		this.progress_timer = setInterval(proxy(this.advance,this,[amount]), time);
+		return this;
+	}
+
+	prototype.stopProgress = function() {
+
+		clearInterval(this.progress_timer);
+		return this;
+	}
+
+	prototype.advance = function(amount) {
+
+		this.current_score += parseInt(amount);
+		this.score.text = this.current_score;
 		return this;
 	}
 

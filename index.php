@@ -43,7 +43,6 @@
 	<script src="game/objects/paddlers.js" type="text/javascript"></script>
 	<script src="game/objects/bots.js" type="text/javascript"></script>
 	<script src="game/objects/screens.js" type="text/javascript"></script>
-	<script src="game/objects/runs.js" type="text/javascript"></script>
 	<script src="game/customizer.js" type="text/javascript"></script>
 	<script src="main.js" type="text/javascript"></script>
 
