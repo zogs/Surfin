@@ -42,6 +42,8 @@
 		this.drawBackground();
 		this.drawFrontground();
 
+		this.initScore();
+
 	}
 
 	var prototype = createjs.extend(Spot, createjs.Container);
@@ -225,7 +227,6 @@
 
 		this.removeAllWaves();
 		this.initEventsListeners();		
-		this.initScore();
 		this.resetScore();
 		//this.addWave(0.3);
 		this.addWave(1);
@@ -238,7 +239,6 @@
 		this.runing = true;
 		this.removeAllWaves();
 		this.initEventsListeners();
-		this.initScore();
 		this.addInitialSerie();
 		//this.addSerie();
 		//this.addPaddler(STAGEWIDTH/2,370);
@@ -248,7 +248,6 @@
 
 		this.removeAllWaves();
 		this.initEventsListeners();
-		this.initScore();
 
 		// add weapon to config
 		this.config.surfers.weapons = ['saberlight'];
@@ -551,8 +550,12 @@
 
 	prototype.initScore = function() {
 
+		if(this.score) {
+			this.score.selfRemove();
+			this.score_cont.removeAllChildren();			
+		}
+
 		//Score		
-		this.score_cont.removeAllChildren();
 		this.score = new Score();
 		this.score.alpha = 0;
 		this.score.setSpot(this);

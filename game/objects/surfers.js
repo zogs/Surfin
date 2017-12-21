@@ -18,8 +18,7 @@
 	prototype.gravity = new Victor(0,7);
 	prototype.hitbox_proportion = 25;
 	prototype.hitboard_proportion = 5;
-	prototype.origin_height = 80;
-	prototype.height = 80;
+	prototype.height = 300;
 
 	//init 
 	prototype.init = function(params) {
@@ -40,7 +39,7 @@
 		this.tweens = [];
 		this.trailsize = 1;
 		this.trailcoef = 3.2;
-		this.real_height = 1.5;
+		this.real_height = 1.5 * 1.6;
 		this.velocity = new Victor();
 		this.velocities = [];
 		this.pumped = [];
@@ -104,36 +103,9 @@
 		this.splash_anim.gotoAndStop(0);	
 		this.addChild(this.splash_anim);
 
-		this.particles_cont = new createjs.Container();
-		this.addChild(this.particles_cont);
-
-		this.silhouette_cont = new createjs.Container();
-		this.addChild(this.silhouette_cont);
-
-		this.silhouette = new createjs.Container();
-		this.silhouette.addChild(new createjs.Bitmap(queue.getResult('surfer_E')));
-		this.silhouette_cont.addChild(this.silhouette);
-		this.silhouette_width = this.silhouette.getChildAt(0).image.width;
-		this.silhouette_height = this.silhouette.getChildAt(0).image.height;
-		this.silhouette.alpha = 0;
-
-		this.lifebar = new createjs.Shape();
-		this.lifebar.graphics.clear().beginStroke('grey').setStrokeStyle(3).moveTo(0,0).lineTo(50,0);
-		this.lifebar.alpha = 0;
-		this.lifebar_cont = new createjs.Container();
-		this.lifebar_cont.y = 25;
-		this.lifebar_cont.x = -25;
-		this.lifebar_cont.addChild(this.lifebar);
-		this.addChild(this.lifebar_cont);
-
-		this.debug_cont = new createjs.Container();
-		this.debug_cont.alpha = 0;
-		this.addChild(this.debug_cont);
-
 		this.trail_shape = new createjs.Shape();
 		this.trail_splash = new createjs.Shape();
 		this.trail_cont = new createjs.Container();
-		this.trail_cont.y =  11; //align trail to board
 		this.trail_cont.addChild(this.trail_shape, this.trail_splash);
 		this.wave.trails_cont.addChild(this.trail_cont);
 
@@ -143,6 +115,27 @@
 		this.spatter_cont = new createjs.Container();
 		this.spatter_cont.addChild(this.spatter_ramp_shape,this.spatter_shape_outer,this.spatter_shape_inner);
 		this.wave.spatters_cont.addChild(this.spatter_cont);
+		
+		this.particles_cont = new createjs.Container();
+		this.addChild(this.particles_cont);
+
+		this.silhouette_cont = new createjs.Container();
+		this.addChild(this.silhouette_cont);
+		this.initSilhouette();
+
+		this.lifebar = new createjs.Shape();
+		this.lifebar.graphics.clear().beginStroke('white').setStrokeStyle(10).moveTo(0,0).lineTo(100,0);
+		this.lifebar.alpha = 0;
+		this.lifebar_cont = new createjs.Container();
+		this.lifebar_cont.x = -50;
+		this.lifebar_cont.y = 80;
+		this.lifebar_cont.addChild(this.lifebar);
+		this.addChild(this.lifebar_cont);
+
+		this.debug_cont = new createjs.Container();
+		this.debug_cont.alpha = 0;
+		this.addChild(this.debug_cont);
+
 
 		this.weapon_cont = new createjs.Container();
 		this.addChild(this.weapon_cont);
@@ -304,16 +297,16 @@
 		const speed = 0.1 + this.getSkill('takeoff');
 		const takeoff = new createjs.SpriteSheet({
 			images: [queue.getResult('surfer_takeoff')],
-			frames: {width:80, height:80},
+			frames: {width:300, height:300},
 			animations: {
 				takeoff: [0,4,false,speed],
 			}
 		});
 
 		const animation = new createjs.Sprite(takeoff,'takeoff');
-		this.silhouette.removeAllChildren();
-		this.silhouette.addChild(animation);
-		this.silhouette.alpha = 1;
+		this.silhouette_cont.removeAllChildren();
+		this.silhouette_cont.addChild(animation);
+		this.silhouette_cont.alpha = 1;
 
 
 		const event = new createjs.Event("take_off");
@@ -330,7 +323,11 @@
 		// tween it slowly to normal config
 		createjs.Tween.get(this.control_velocities)
 			.to({ y: 0.5 }, time / 2)
-			.call(proxy(function(){ this.auto_silhouette = true;},this))
+			.call(proxy(function(){ 
+				this.auto_silhouette = true;
+				this.silhouette_cont.removeAllChildren();
+				this.silhouette_cont.addChild(this.silhouette);
+			},this))
 			.to({ x: 1 }, time / 2)
 			.set({ y: 1 })
 			.call(proxy(this.endTakeOff,this));
@@ -353,7 +350,7 @@
 		return this.skills[comp];
 	}
 
-	prototype.endTakeOff = function() {
+	prototype.endTakeOff = function() {		
 
 		this.auto_silhouette = true;
 		this.riding = true;
@@ -383,7 +380,7 @@
 
 	prototype.getSurferProportion = function() {
 
-		var c = (this.real_height / this.wave.params.real_height) * (this.wave.params.height / (this.silhouette_height));
+		var c = (this.real_height / this.wave.params.real_height) * this.wave.getResizeCoef();
 		return c;
 	}
 
@@ -392,12 +389,16 @@
 		var y_persperctive = this.wave.getResizeCoef();
 
 		this.scale = y_persperctive * this.getSurferProportion();
-		this.height = this.origin_height*this.scale;
+		this.height = this.silhouette_height*this.scale;
 
-		this.silhouette.scaleX = this.scale;
-		this.silhouette.scaleY = this.scale;
-		this.silhouette.x = (- this.silhouette_width/2) * this.scale;		
-		this.silhouette.y = (- this.silhouette_height/2) * this.scale;	
+		console.log(this.scale);
+
+		this.silhouette_cont.scaleX = this.scale;
+		this.silhouette_cont.scaleY = this.scale;
+		this.silhouette_cont.regX = this.silhouette_width/2;
+		this.silhouette_cont.regY = this.silhouette_height/2;
+		//this.silhouette_cont.x = (- this.silhouette_width/2) * this.scale;		
+		//this.silhouette_cont.y = (- this.silhouette_height/2) * this.scale;	
 		
 		this.hitbox.scaleX = this.hitbox.scaleY = this.hitbox_radius = this.scale * this.hitbox_proportion;
 		this.hitbox.x = 0;
@@ -1537,25 +1538,55 @@
 			// update lifebar
 			this.updateLifebar(dmg);
 			// if lifebar <= zero , fall & dispatch event
-			let lifebarZero = this.lifebar.scaleX - dmg <= 0;
-			if(lifebarZero) {
+			let lifeAtZero = this.lifebar.scaleX - dmg <= 0;			
+			if(lifeAtZero) {
 
 				this.fall('collision');
 
+				console.log('send event');
 				const ev = new createjs.Event('surfer_kill');
 					ev.player = this.spot.surfer;
 					ev.killer = surfer;
 					ev.killed = this;
 					stage.dispatchEvent(ev);
 			}
+		} 
+
+	}
+
+	prototype.shotSurfer = function(surfer) {
+
+		this.addCollision(surfer);
+
+		//let force = this.getSkill('force');
+		let force = 1; //force of (1) make instant kill !
+		let dmg = force;
+
+		surfer.updateLifebar(dmg);
+
+		let surferAtZero = surfer.lifebar.scaleX - dmg <= 0;
+		if(surferAtZero) {
+
+			surfer.fall('shoted');
+
+			console.log('send event');
+
+			const ev = new createjs.Event('surfer_kill');
+			ev.player = this.spot.surfer;
+			ev.killer = this;
+			ev.killed = surfer;
+			stage.dispatchEvent(ev);
 		}
 
 	}
 
 	prototype.updateLifebar = function(q) {
 
+		let scaleX = this.lifebar.scaleX - q;
+		if(scaleX < 0) scaleX = 0;
+
 		this.lifebar.alpha = 1;
-		createjs.Tween.get(this.lifebar,{override: true}).to({scaleX: this.lifebar.scaleX - q}, 500).wait(600).to({alpha:0},300);
+		createjs.Tween.get(this.lifebar,{override: true}).to({scaleX: scaleX}, 500).wait(600).to({alpha:0},300);
 
 	}
 
@@ -1567,7 +1598,7 @@
 	prototype.addCollision = function(obj) {
 
 		this.collisions.push(obj);
-		setTimeout(proxy(this.removeCollision,this,[obj]), 2000);
+		setTimeout(proxy(this.removeCollision,this,[obj]), 250);
 	}
 
 	prototype.removeCollision = function(obj) {
@@ -1603,6 +1634,7 @@
 
 	prototype.checkWeaponHits = function() {
 
+		// destroy obstacles
 		for(let i=0,len = this.wave.obstacles.length; i<len; i++) {
 			let obstacle = this.wave.obstacles[i];
 
@@ -1611,7 +1643,7 @@
 				for(let i=0,len=obstacle.bodies.length-1; i<=len; i++) {
 					let body = obstacle.bodies[i];
 					if(this.hit('weapon', body.x, body.y, body.graphics.command.radius)) {
-						console.log('body shoted');
+						console.log('body shot');
 					}
 				}
 			}
@@ -1623,7 +1655,7 @@
 					let pt = malus.localToLocal(0,0,this.wave.foreground_cont);
 					if(malus.shotable) {
 						if(this.hit('weapon', pt.x, pt.y, malus.graphics.command.radius)) {
-							console.log('malus shoted');
+							console.log('malus shot');
 							malus.onShoted();
 							break;
 						}
@@ -1631,6 +1663,18 @@
 				}
 			}
 		}
+
+		// hit others surfers
+		for(let j=0; j<this.wave.surfers.length; ++j) {
+			let surfer = this.wave.surfers[j];
+			if(this == surfer) continue;
+			if(this.hit('weapon', surfer.x, surfer.y, surfer.hitbox_radius)) {
+				if( ! this.hasCollision(surfer)) {
+					console.log('surfer shot');
+					this.shotSurfer(surfer);
+				}
+			}
+		}		
 	}
 
 
@@ -1705,6 +1749,10 @@
 		this.trail_cont.mask = this.wave.shape_mask;
 		//this.trail_cont.cache(xmin,0,xmax-xmin,this.wave.params.height);
 		this.trail_cont.alpha = this.alpha;
+
+
+		// align trail with the board contact with the water
+		this.trail_cont.y = 50;	
 
 	}
 
@@ -1857,7 +1905,7 @@
 		this.weapon_points.push(this.saber_start,this.saber_middle,this.saber_end,this.saber_trail);
 		this.debug_cont.addChild(this.saber_start, this.saber_middle, this.saber_end, this.saber_trail);
 
-		createjs.Tween.get(this).wait(1500).to({saber_length: 70}, 1000);
+		createjs.Tween.get(this).wait(1500).to({saber_length: 120}, 1000);
 	}
 
 	prototype.drawLightSaber = function() {
@@ -1877,9 +1925,9 @@
 		this.saber_end.y = this.saber_start.y + length * Math.sin(angle);
 
 		let saber = new createjs.Shape();
-		saber.graphics.beginStroke(this.saber_color).setStrokeStyle(5)
+		saber.graphics.beginStroke(this.saber_color).setStrokeStyle(8)
 								.moveTo(this.saber_start.x,this.saber_start.y).lineTo(this.saber_end.x,this.saber_end.y)
-								.beginStroke('white').setStrokeStyle(2)
+								.beginStroke('white').setStrokeStyle(4)
 								.moveTo(this.saber_start.x,this.saber_start.y).lineTo(this.saber_end.x,this.saber_end.y)
 								;		
 
@@ -1945,46 +1993,80 @@
 		return this.angle;
 	}
 
+	prototype.initSilhouette = function() {
+
+		let surfer_sprite = new createjs.SpriteSheet({
+			images: [queue.getResult('surfer')],
+			frames: {width: 300, height: 300},
+			animations: {
+				S: 0,
+				SE: 1,
+				SEE: 2,
+				SEEE: 3,
+				SEEEE: 4,
+				E: 5,
+				EN: 6,
+				ENN: 7,
+				ENNN: 8,
+				ENNNN: 9,
+				N: 10,
+				NW: 11,
+				NWW: 12,
+				NWWW: 13,
+				NWWWW: 14,
+				W: 15,
+				WS: 16,
+				WSS: 17,
+				WSSS: 18,
+				WSSSS: 19
+			}
+		});
+
+		this.silhouette = new createjs.Sprite(surfer_sprite,'S');
+		this.silhouette_width = 300;
+		this.silhouette_height = 300;
+
+	}
+
 	prototype.setSurferSilhouette = function() {	
 		
 		if(this.auto_silhouette === false) return;
 
+		if(this.locations[0] === undefined || this.locations[1] === undefined) return new this.silhouette.gotoAndStop('S');	
+		
 		this.getAngle();
-		this.silhouette.removeChildAt(0);
-		let image = this.getAngledSilhouette();
-		this.silhouette.addChild(image);			
+		var rad = Math.atan2(this.locations[1].x-this.locations[0].x,this.locations[1].y-this.locations[0].y);
+		var deg = -1*Math.degrees(rad);
 
+		var bearing = this.getSurferBearing(deg);
+		return this.silhouette.gotoAndStop(bearing);		
 
 	}
 
-	prototype.getAngledSilhouette = function() {
-		//dont touch
-		//unless you want to rewrite all bitmap condition......
-		if(this.locations[0] === undefined || this.locations[1] === undefined) return new createjs.Bitmap(queue.getResult('surfer_S'));		
-		var rad = Math.atan2(this.locations[1].x-this.locations[0].x,this.locations[1].y-this.locations[0].y);
-		var deg = -1*Math.degrees(rad);
-		if(deg>170) return new createjs.Bitmap(queue.getResult('surfer_S'));
-		if(deg>160) return new createjs.Bitmap(queue.getResult('surfer_SE'));
-		if(deg>140) return new createjs.Bitmap(queue.getResult('surfer_ES'));
-		if(deg>120) return new createjs.Bitmap(queue.getResult('surfer_EES'));
-		if(deg>100) return new createjs.Bitmap(queue.getResult('surfer_EEES'));
-		if(deg>75) return new createjs.Bitmap(queue.getResult('surfer_E'));
-		if(deg>60) return new createjs.Bitmap(queue.getResult('surfer_EEEN'));
-		if(deg>40) return new createjs.Bitmap(queue.getResult('surfer_EEN'));
-		if(deg>20) return new createjs.Bitmap(queue.getResult('surfer_EN'));
-		if(deg>10) return new createjs.Bitmap(queue.getResult('surfer_NE'));
-		if(deg>-10) return new createjs.Bitmap(queue.getResult('surfer_N'));
-		if(deg>-20) return new createjs.Bitmap(queue.getResult('surfer_NW'));
-		if(deg>-40) return new createjs.Bitmap(queue.getResult('surfer_NWW'));
-		if(deg>-60) return new createjs.Bitmap(queue.getResult('surfer_WNN'));
-		if(deg>-75) return new createjs.Bitmap(queue.getResult('surfer_WN'));
-		if(deg>-100) return new createjs.Bitmap(queue.getResult('surfer_W'));
-		if(deg>-120) return new createjs.Bitmap(queue.getResult('surfer_WS'));
-		if(deg>-140) return new createjs.Bitmap(queue.getResult('surfer_WSS'));
-		if(deg>-160) return new createjs.Bitmap(queue.getResult('surfer_SW'));
-		if(deg>-170) return new createjs.Bitmap(queue.getResult('surfer_SSW'));
-		if(deg<=-170) return new createjs.Bitmap(queue.getResult('surfer_S'));
-		if(deg<10) return new createjs.Bitmap(queue.getResult('surfer_N'));
+	prototype.getSurferBearing = function(degree) {
+
+		if(degree>170) return 'S';
+		if(degree>160) return 'SE';
+		if(degree>140) return 'SEE';
+		if(degree>120) return 'SEEE';
+		if(degree>100) return 'SEEEE';
+		if(degree>75) return 'E';
+		if(degree>60) return 'EN';
+		if(degree>40) return 'ENN';
+		if(degree>20) return 'ENNN';
+		if(degree>10) return 'ENNNN';
+		if(degree>-10) return 'N';
+		if(degree>-20) return 'NW';
+		if(degree>-40) return 'NWW';
+		if(degree>-60) return 'NWWW';
+		if(degree>-75) return 'NWWWW';
+		if(degree>-100) return 'W';
+		if(degree>-120) return 'WS';
+		if(degree>-140) return 'WSS';
+		if(degree>-160) return 'WSSS';
+		if(degree>-170) return 'WSSSS';
+		if(degree<=-170) return 'S';
+		if(degree<10) return 'N';	
 
 	}
 

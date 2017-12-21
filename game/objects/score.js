@@ -139,15 +139,28 @@
 		},this);
 
 		stage.on('surfer_kill',function(event) {
-			if(event.player === event.killed) this.say("Boum...", 1000);
+			console.log('shoted');
+			if(event.player === event.killed) this.say("Paf...", 1000);
 			if(event.player === event.killer) {
 				this.kill_count++;
-				if(this.kill_count === 1) this.add(100).say("Killer !", 500);
+				if(this.kill_count === 1) this.add(100).say("Kill !", 500);
 				if(this.kill_count === 2) this.add(500).say("Double kill !", 500);
 				if(this.kill_count === 3) this.add(1000).say("Triple kill !", 500);
-				if(this.kill_count > 3) this.add(1000).say("Multi kill !", 500);
+				if(this.kill_count > 3) this.add(1000).say("Multii kill !", 500);
 			}
+
+			//reset kill count to 0 after 2s
+			clearTimeout(this.kill_reset);
+			this.kill_reset = setTimeout(proxy(function(){ this.kill_count = 0;},this), 2000);
 		},this);
+	}
+
+	prototype.selfRemove = function() {
+
+		this.removeEventListener("tick", this.tick);
+		this.removeAllEventListeners();
+		this.removeAllChildren();
+
 	}
 
 

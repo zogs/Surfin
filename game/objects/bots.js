@@ -8,8 +8,7 @@
 		
 		this.Surfer_constructor(config);
 		this.initBot(config);
-
-		console.log('surfer bot init');
+		
 	}
 
 	var prototype = createjs.extend(SurferBot, Surfer);
