@@ -52,7 +52,7 @@ function Wave(params) {
 	};
 	var params = extend(defaults,params);	
 
-	this.init(params);
+	this.init(params.spot, params.config);
 }
 
 //extend it
@@ -66,16 +66,15 @@ prototype.surfer = undefined;
 
 
 //public methods
-prototype.init = function(params) {
+prototype.init = function(spot, config) {
 
 	//set spot
-	this.spot = params.spot;
-	params.spot = null; //remove it to avoid recursive object
+	this.spot = spot;
 	//set config
-	this.config = params;
-	this.params = cloneObject(params); //clone object
+	this.config = config;
+	this.params = cloneObject(config); //clone object
 	//set properties
-	this.y = params.y;	
+	this.y = config.y;	
 	this.origin_height = this.config.height;
 	this.origin_width = this.config.width;
 	this.surfers = [];
@@ -92,8 +91,7 @@ prototype.init = function(params) {
 	this.boundaries = {};
 
 	//initiale suction force with no x value, later suction will be defined when direction is setted
-	this.params.suction = new Victor(0, - this.config.suction_y);		
-	this.config.suction = new Victor(0, - this.config.suction_y);		
+	this.suction = this.getSuction();
 	
 	this.breaked = false;
 	this.played = false;
@@ -101,6 +99,7 @@ prototype.init = function(params) {
 	this.status = '';
 	this.paused = false;
 	this.cleaned = false;
+	this.automove = false;
 
 	//timers
 	this.breaking_timer = false;
@@ -114,16 +113,26 @@ prototype.init = function(params) {
 	//on-wave static score container
 	this.score_cont = new createjs.Container();
 	this.addChild(this.score_cont);
-		//text cont
+		//score text cont
 		this.score_text_cont = new createjs.Container();
 		this.score_cont.addChild(this.score_text_cont);
+
+		//create a mask
+		this.score_text_cont_mask = new createjs.Shape();
+		this.score_text_cont_mask.graphics.beginFill('red').drawRect(0,0,STAGEWIDTH,STAGEHEIGHT);
+		this.score_text_cont_mask.x = 0;
+		this.score_text_cont_mask.y = - this.params.height - STAGEHEIGHT;
+
+		//apply mask
+		this.score_text_cont.mask = this.score_text_cont_mask;
+
 		//particles cont
 		this.score_particles_cont = new createjs.Container();
 		this.score_cont.addChild(this.score_particles_cont);	
 
 	//wave cont
 	this.cont = new createjs.Container();
-	this.cont.x = params.x;
+	this.cont.x = config.x;
 	this.addChild(this.cont);	
 
 	//spatter cont
@@ -321,7 +330,7 @@ prototype.initContinuousBreaking = function() {
 }
 
 prototype.continuousBreaking = function() {
-
+//console.log(this.params.breaking.left.width.toString());
 	// cancel if wave is paused or not breaked yet
 	//if(this.paused === true || this.breaked === false) return;
 
@@ -355,8 +364,7 @@ prototype.continuousBreaking = function() {
 	this.mergeCollidingPeaks();
 
 	//init continuous breaking	
-	this.breaking_timer = new Timer(proxy(this.continuousBreaking,this), this.params.breaking.x_speed);
-	
+	this.breaking_timer = new Timer(proxy(this.continuousBreaking,this), parseInt(this.params.breaking.x_speed));
 }
 
 prototype.addPeak = function(center, width) {
@@ -454,7 +462,7 @@ prototype.createLipPoint = function(params) {
 		peak : peak,
 		direction : direction,
 		breaking : false,
-		breaking_width : width,
+		breaking_width : parseInt(width),
 		breaking_idx : 0,
 		topfallscale : 0,
 		topfallscaleMax : (this.params.top_fall_scale * this.params.height),
@@ -609,6 +617,7 @@ prototype.addScore = function(score) {
 
 prototype.coming = function() {
 
+	// fade out slowly the wave when it pass the beach line
 	if(this.y > this.spot.config.lines.beach ) {
 		//if wave is played, send event to freeze the spot
 		if(this.played === true) {
@@ -629,6 +638,7 @@ prototype.coming = function() {
 		return;
 	}
 
+	// break the wave when it reach the break line
 	if(this.y > this.spot.config.lines.break) {
 
 		if(this.breaked === false) {
@@ -636,11 +646,13 @@ prototype.coming = function() {
 		}	
 	}	
 
+	// stop resizing wave when peak line is reached
 	if(this.y >= this.spot.config.lines.peak) {
 
 		return;
 	}
 
+	// resize it 
 	this.resize();
 
 }
@@ -747,6 +759,16 @@ prototype.initBreak = function(center) {
 	this.initVariablePameters();
 }
 
+prototype.breakAndFollow = function(direction = LEFT) {
+
+	this.initBreak(STAGEWIDTH/2);
+
+	this.direction = direction;
+
+	this.automove = direction;
+
+}
+
 prototype.initBreakedIntervals = function() {
 
 	//Breaking block interval
@@ -763,7 +785,7 @@ prototype.initBreakedIntervals = function() {
 prototype.initPlayedIntervals = function() {
 
 	//Obstacles interval
-	if(this.config.obstacles_interval !== 0) {
+	if(this.config.obstacles.interval !== 0) {
 		
 		this.initObstaclesInterval();
 	}
@@ -771,7 +793,7 @@ prototype.initPlayedIntervals = function() {
 
 prototype.initVariablePameters = function() {
 
-	if(this.config.breaking.left.width_max !=0) {
+	if(this.config.breaking.left.width_interval !=0) {
 		this.params.breaking.left.width = new Variation({
 			min: this.config.breaking.left.width,
 			max: this.config.breaking.left.width_max,
@@ -782,7 +804,7 @@ prototype.initVariablePameters = function() {
 			ease: createjs.Tween.cubicInOut,
 		})
 	}
-	if(this.config.breaking.right.width_max !=0) {
+	if(this.config.breaking.right.width_interval !=0) {
 		this.params.breaking.right.width = new Variation({
 			min: this.config.breaking.right.width,
 			max: this.config.breaking.right.width_max,
@@ -793,10 +815,21 @@ prototype.initVariablePameters = function() {
 			ease: createjs.Tween.cubicInOut,
 		})
 	}
+
+	if(this.params.breaking.x_speed_interval !=0 ) {
+		this.params.breaking.x_speed = new Variation({
+			min: this.params.breaking.x_speed,
+			max: this.params.breaking.x_speed_max,
+			time: this.params.breaking.x_speed_interval,
+			pause: this.params.breaking.x_speed_pause,
+			slope: 'both',
+			loops: true,
+			ease: createjs.Tween.cubicInOut,
+		})		
+	}
 }
 
 prototype.playerTakeOff = function(surfer) {
-console.log('playerTak');
 	this.surfed = true;
 	this.played = true;
 
@@ -862,6 +895,7 @@ prototype.shake = function() {
 
 	this.shake_x = Math.floor(Math.random()*amplitude*2 - amplitude);
 	this.shake_y = Math.floor(Math.random()*amplitude*2 - amplitude);
+
 	createjs.Tween.get(this)
 		.to({x:this.x+this.shake_x,y:this.y+this.shake_y},50)
 		.call(proxy(this.unshake,this));
@@ -939,6 +973,11 @@ prototype.getSurfer = function() {
 	return this.surfer;
 }
 
+prototype.getSurfers = function() {
+
+	return this.surfers;
+}
+
 prototype.pause = function() {
 
 	this.status = 'paused';
@@ -948,7 +987,6 @@ prototype.pause = function() {
 }
 
 prototype.resume = function() {
-
 	this.status = 'run';
 	this.paused = false;
 	this.surfers.map(s => s.resume());
@@ -1033,6 +1071,7 @@ prototype.initBlockBreaking = function(width) {
 }
 
 prototype.initBlockBreakingLeft = function(width) {
+	
 	if(this.breaked === false) return;
 
 	var peak = this.findTheLeftPeak();
@@ -1205,18 +1244,24 @@ prototype.setDirection = function() {
 		}
 	}
 
-	//invert suction direction for left waves
-	if(this.direction === LEFT) this.params.suction = new Victor(this.params.suction_x*-1,- this.params.suction_y);	
-	if(this.direction === RIGHT) this.params.suction = new Victor(this.params.suction_x,- this.params.suction_y);	
-	
+	// recalcul suction either LEFT or RIGHT
+	this.suction = this.getSuction();
+
+}
+
+prototype.getSuction = function() {
+	if(this.direction === 0) return new Victor(0, - this.config.suction.y);
+	if(this.direction === LEFT) return new Victor(this.params.suction.x*-1,- this.params.suction.y);	
+	if(this.direction === RIGHT) return new Victor(this.params.suction.x,- this.params.suction.y);	
 }
 
 prototype.moveWave = function() {
 
-	if(this.surfer === undefined) return;
 	if(this.breaked === false) return;
-	if(this.surfer.riding === false) return;
+	if(this.automove !== false) return this.moveWaveAuto();
 	if(this.direction === CENTER) return;
+	if(this.surfer === undefined) return;
+	if(this.surfer.riding === false) return;
 
 	// get absolute surfer x position on the screen
 	const surfer_pos = this.cont.localToGlobal(this.surfer.x,0);
@@ -1236,6 +1281,19 @@ prototype.moveWave = function() {
 	this.movingX *= this.time_scale;
 
 	this.cont.x += this.movingX;	
+}
+
+prototype.moveWaveAuto = function() {
+
+	let direction = this.automove;
+
+	if(typeof this.boundaries[direction] === 'undefined') return;
+
+	let boundarie = this.boundaries[direction];
+
+	let x = -(boundarie - STAGEWIDTH*2/3);
+
+	createjs.Tween.get(this.cont).to({x: x}, 100);
 }
 
 prototype.oldmoveWave = function() {
@@ -1274,6 +1332,7 @@ prototype.selfRemove = function() {
 	this.removeAllEventListeners('tick');	
 	this.cont.removeAllChildren();
 	this.removeAllChildren();
+	this.stopShaking();
 	this.surfers = null;
 	this.cont = null;	
 	this.obstacles = null;
@@ -1382,14 +1441,14 @@ prototype.cleanOffscreenPoints = function() {
 
 prototype.initObstaclesInterval = function() {
 
-	var t = this.config.obstacles_interval + Math.random()*(this.config.obstacles_interval_max - this.config.obstacles_interval);
+	var t = this.config.obstacles.interval + Math.random()*(this.config.obstacles.interval_max - this.config.obstacles.interval);
 
 	this.obstacle_timer = new Timer(proxy(this.continueObstaclesInterval,this),t);
 }
 
 prototype.continueObstaclesInterval = function() {
 
-	var t = this.config.obstacles_interval + Math.random()*(this.config.obstacles_interval_max - this.config.obstacles_interval);
+	var t = this.config.obstacles.interval + Math.random()*(this.config.obstacles.interval_max - this.config.obstacles.interval);
 
 	this.addRandomObstacle();
 
@@ -1399,12 +1458,13 @@ prototype.continueObstaclesInterval = function() {
 prototype.addRandomObstacle = function() {
 	if(this.breaked === false) return;
 	var rand = Math.ceil(Math.random()*100);
-	var pc = 0;
-	for(var obs in this.config.obstacles) {
-		var pc = pc + this.config.obstacles[obs].percentage;
-		if(rand <= pc) {
+	var perc = 0;
+	for(var obs in this.config.obstacles.type) {
+		var perc = perc + this.config.obstacles.type[obs].percentage;
+		if(rand <= perc) {			
 			if(obs === 'paddler') this.addPaddler();
-			else if(obs === 'photograph') this.addPhotograph();
+			else if(obs === 'photographer') this.addPhotographer();
+			else if(obs === 'bomb') this.addBomb();
 			else this.addPaddler();
 			return;
 		}
@@ -1412,37 +1472,55 @@ prototype.addRandomObstacle = function() {
 }
 
 prototype.addBomb = function() {
-	var obj = new BombObstacle({wave: this});
+	var obj = new BombObstacle({wave: this, spot: this.spot});
 	return this.addObstacle(obj);
 }
 
 prototype.addBeachTrooper = function() {
-	var obj = new BeachTrooper({wave: this});
+	var obj = new BeachTrooper({wave: this, spot: this.spot});
 	return this.addObstacle(obj);
 }
 
 prototype.addPaddler = function() {
-	var obs = new Obstacle({wave:this});
+	var obs = new Obstacle({wave:this, spot: this.spot});
 	return this.addObstacle(obs);
 }
 
-prototype.addPhotograph = function() {
-	var obs = new Photograf({wave:this});
+prototype.addPhotographer = function() {
+	var obs = new Photografer({wave:this, spot: this.spot});
 	return this.addObstacle(obs);
 }
 
 prototype.addObstacle = function(obs) {
-	if(this.breaked === false) return;
-	if(obs === undefined) var obs = new Obstacle({wave: this});	
+	if(typeof obs === undefined) var obs = new Obstacle({wave: this, spot: this.spot});	
 	this.obstacles.push(obs);
 	this.obstacle_cont.addChild(obs);
 }
 
-prototype.addFlyingObstacle = function() {
-	if(this.breaked === false) return;
-	var obs = new FlyingMultiplier({wave: this, multiplier: Math.ceil(Math.random()*5)})
+prototype.addFlyingObstacle = function(obs) {
+	if(typeof obs === undefined) var obs = new FlyingMultiplier({wave: this, spot: this.spot, multiplier: Math.ceil(Math.random()*5)});
 	this.obstacles.push(obs);
 	this.obstacle_cont.addChild(obs);
+}
+
+prototype.addFlyingMultiplier = function() {
+	var obs = new FlyingMultiplier({wave: this, spot: this.spot, multiplier: Math.ceil(Math.random()*5)});
+	this.addFlyingObstacle(obs);
+}
+
+prototype.addFlyingPrize = function() {
+	var obs = new FlyingPrize({wave: this, spot: this.spot, value: 1000*Math.ceil(Math.random()*5)});
+	this.addFlyingObstacle(obs);
+}
+
+prototype.addCigogne = function() {
+	var obs = new Cigogne({wave: this, spot: this.spot});
+	this.addFlyingObstacle(obs);
+}
+
+prototype.addDrone = function() {
+	var obs = new Drone({wave: this, spot: this.spot});
+	this.addFlyingObstacle(obs);
 }
 
 prototype.removeObstacle = function(obs) {
@@ -1458,10 +1536,10 @@ prototype.drawLip = function() {
 	if(this.breaked === false) return;
 
 	//shape.alpha = 0.5;
-	this.lip_thickness.graphics.clear().beginFill(hexToRgbA(this.params.lip.color,0.5));
+	this.lip_thickness.graphics.clear().beginFill(hexToRgbA('#FFF',0.5));
 	this.lip_shadow.graphics.clear().beginLinearGradientFill(["rgba(0,0,0,0.1)","rgba(0,0,0,0)"], [0, 1], 0, 0, 0, this.params.height);
-	this.lip_cap.graphics.clear().beginFill(hexToRgbA(this.params.lip.color,0.5));
-	this.lip_surface.graphics.clear().beginLinearGradientFill([this.params.colors[0][0],'rgba(81,231,255,0.1'],[0,0.8], 0, this.params.height / 10, 0, this.params.height);
+	this.lip_cap.graphics.clear().beginFill(hexToRgbA('#FFF',0.5));
+	this.lip_surface.graphics.clear().beginLinearGradientFill([this.params.lip.colors.top,this.params.lip.colors.bottom],[0,1], 0, this.params.height / 10, 0, this.params.height);
 
 
 	//for each peak
@@ -1560,7 +1638,7 @@ prototype.drawSplash = function () {
 		if(points.length === 0) continue;
 
 		//var color = createjs.Graphics.getHSL(Math.random()*360,100,50);
-		this.splash_gfx.beginFill('#FFF').beginStroke('rgba(0,0,0,0.2').setStrokeStyle(1);
+		this.splash_gfx.beginLinearGradientFill([this.params.splash.colors.top,this.params.splash.colors.bottom],[0,1], 0, this.params.height / 10, 0, this.params.height).beginStroke('rgba(0,0,0,0.2').setStrokeStyle(1);
 		this.splash_gfx.moveTo(points[0].x, points[0].splash_y);
 		//this.splash_gfx.moveTo(points[0].x - this.params.breaking.left.width, points[0].splash_y);
 		//this.splash_gfx.lineTo(points[0].x,points[0].splash_y);
@@ -1789,10 +1867,10 @@ prototype.animateBackground = function() {
 	const height = riddle1.image.height * this.background_scale;
 	const coef = this.getResizeCoef();
 
-	riddle1.y += this.params.suction.y * coef;
-	riddle2.y += this.params.suction.y * coef;
-	riddle3.y += this.params.suction.y * coef;
-	riddle4.y += this.params.suction.y * coef;
+	riddle1.y += this.suction.y * coef;
+	riddle2.y += this.suction.y * coef;
+	riddle3.y += this.suction.y * coef;
+	riddle4.y += this.suction.y * coef;
 
 	if(riddle1.y <= - height) riddle1.y = riddle2.y + height;
 	if(riddle2.y <= - height) riddle2.y = riddle1.y + height;
@@ -1931,9 +2009,18 @@ prototype.isCENTER = function() {
 prototype.setTimeScale = function(scale) {
 	this.time_scale = scale;
 	this.params.breaking.x_speed = this.config.breaking.x_speed / scale;
-	this.params.suction = this.config.suction.clone().scale(scale);
+	this.suction = this.suction.clone().scale(scale);
 	this.allpoints.map(p => p.tweens.map(t => t.timeScale = scale));
 	this.surfers.map(s => s.setTimeScale(scale));
+}
+prototype.setConfig = function(config) {
+
+	this.config = config;
+	this.params = config;
+
+	//recalcul suction
+	this.suction = this.getSuction();
+
 }
 
 

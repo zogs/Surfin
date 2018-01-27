@@ -2,29 +2,35 @@
 
 	var Custom = function() {
 
+		CONFIG = SPOT.config;
+
 		this.Horizon = SPOT.config.lines.horizon;
 		this.Break = SPOT.config.lines.break;
 		this.Peak = SPOT.config.lines.peak;
 		this.Beach = SPOT.config.lines.beach;
 		this.XShift = SPOT.config.series.xshift;
-		this.SeaColorTop = SPOT.config.colors.top;
-		this.SeaColorBottom = SPOT.config.colors.bottom;
+		this.SeaTop = SPOT.config.colors.top;
+		this.SeaBottom = SPOT.config.colors.bottom;
 
 		this.Width        = SPOT.config.waves.width;
 		this.Height       = SPOT.config.waves.height;
 		this.Meters       = SPOT.config.waves.real_height;
 		this.BreakWidth   = SPOT.config.waves.breaking.width;
+		this.XSpeed       = SPOT.config.waves.breaking.x_speed;
+		this.XSpeedMax    = SPOT.config.waves.breaking.x_speed_max;
+		this.XSpeedInterval = SPOT.config.waves.breaking.x_speed_interval;
+		this.XSpeedPause  = SPOT.config.waves.breaking.x_speed_pause;
 		this.BreakSpeed   = SPOT.config.waves.breaking.y_speed;
 		this.BreakEase    = SPOT.config.waves.breaking.y_ease;
 		this.SplashPerCent = SPOT.config.waves.breaking.splash_h_percent;
 		this.SplashEase = SPOT.config.waves.breaking.splash_h_ease;
-		this.ColorTop     = SPOT.config.waves.colors[0][0];
-		this.ColorMiddle  = SPOT.config.waves.colors[1][0];
-		this.ColorBottom  = SPOT.config.waves.colors[2][0];
+		this.WaveTop     = SPOT.config.waves.colors[0][0];
+		this.WaveMiddle  = SPOT.config.waves.colors[1][0];
+		this.WaveBottom  = SPOT.config.waves.colors[2][0];
 
 
-		this.SuctionX = SPOT.config.waves.suction_x;
-		this.SuctionY = SPOT.config.waves.suction_y;
+		this.SuctionX = SPOT.config.waves.suction.x;
+		this.SuctionY = SPOT.config.waves.suction.y;
 		this.LShoulderWidth = SPOT.config.waves.shoulder.left.width;
 		this.LShoulderInner = SPOT.config.waves.shoulder.left.inner;
 		this.LShoulderOuter = SPOT.config.waves.shoulder.left.outer;
@@ -38,6 +44,10 @@
 		this.CapLifetime = SPOT.config.waves.lip.cap.lifetime;
 		this.CapHeight = SPOT.config.waves.lip.cap.height;
 		this.CapWidth = SPOT.config.waves.lip.cap.width;
+		this.LipTop     = SPOT.config.waves.lip.colors.top;
+		this.LipBottom  = SPOT.config.waves.lip.colors.bottom;
+		this.SplashTop     = SPOT.config.waves.splash.colors.top;
+		this.SplashBottom  = SPOT.config.waves.splash.colors.bottom;
 		
 		this.LBreakWidth = SPOT.config.waves.breaking.left.width;
 		this.LBreakWidthMax = SPOT.config.waves.breaking.left.width_max;
@@ -72,10 +82,10 @@
 		this.fallAtBottom = SPOT.config.waves.bottom_fall_scale;
 		this.fallAtTop = SPOT.config.waves.top_fall_scale;
 		
-		this.obstaclesInterval = SPOT.config.waves.obstacles_interval;
-		this.obstaclesIntervalMax = SPOT.config.waves.obstacles_interval_max;
-		this.paddlerPercentage = SPOT.config.waves.obstacles['paddler'].percentage;
-		this.photographPercentage = SPOT.config.waves.obstacles['photograph'].percentage;
+		this.obstaclesInterval = SPOT.config.waves.obstacles.interval;
+		this.obstaclesIntervalMax = SPOT.config.waves.obstacles.interval_max;
+		this.paddlerPercentage = SPOT.config.waves.obstacles.type['paddler'].percentage;
+		this.photographPercentage = SPOT.config.waves.obstacles.type['photographer'].percentage;
 
 		this.performance = window.PERF;
 
@@ -125,8 +135,22 @@
 			window.pause();
 		}
 
+		this.PrintConfig = function() {
+
+			var popup=window.open('','config','height=600,width=400,location=no,resizable=yes,scrollbar=yes');
+			popup.document.write("<pre id='config'>"+JSON.stringify(CONFIG,undefined, 2)+"<pre>");
+			var range = popup.document.createRange();
+			range.selectNode(popup.document.getElementById('config'));
+			popup.getSelection().addRange(range);
+		}
+
 	};
 
+	applyConfig = function() {
+
+		SPOT.setConfig(CONFIG);
+
+	}
 
 	initCustomizer = function() {
 
@@ -144,95 +168,111 @@
 		gui.add(custom, 'TestWave');
 
 		var waves = gui.addFolder('Waves');
-		waves.add(custom, 'Width', 100, 5000).step(100).onChange(function(value) { SPOT.config.waves.width = value; });
-		waves.add(custom, 'Height', 10, 400).onChange(function(value) { SPOT.config.waves.height = value; });
-		waves.add(custom, 'Meters', 1, 10).onChange(function(value) { SPOT.config.waves.real_height = value; });
-		waves.add(custom, 'BreakWidth',1,1500).step(10).onChange(function(value) { SPOT.config.waves.breaking.width = value; });
-		waves.add(custom, 'BreakSpeed',0,5000).step(50).onChange(function(value) { SPOT.config.waves.breaking.y_speed = value; });
-		waves.add(custom, 'BreakEase',['quartIn','cubicIn','circIn']).onChange(function(value) { SPOT.config.waves.breaking.y_ease = value; });
-		waves.add(custom, 'SplashPerCent',0,100).step(1).onChange(function(value) { SPOT.config.waves.breaking.splash_h_percent = value; });
-		waves.add(custom, 'SplashEase',0,1).step(0.1).onChange(function(value) { SPOT.config.waves.breaking.splash_h_ease = value; });
-		waves.addColor(custom, 'ColorTop').onChange(function(value) { SPOT.config.waves.colors[0][0] = value; SPOT.getWaves().map(w => w.drawBackground()); });
-		waves.addColor(custom, 'ColorMiddle').onChange(function(value) { SPOT.config.waves.colors[1][0] = value; SPOT.getWaves().map(w => w.drawBackground()); });
-		waves.addColor(custom, 'ColorBottom').onChange(function(value) { SPOT.config.waves.colors[2][0] = value; SPOT.getWaves().map(w => w.drawBackground()); });
+
+		var widths = waves.addFolder('Horizontal');
+		widths.add(custom, 'Width', 100, 5000).step(100).onChange(function(value) { CONFIG.waves.width = value; applyConfig(); });
+		widths.add(custom, 'BreakWidth',1,1500).step(10).onChange(function(value) { CONFIG.waves.breaking.width = value; applyConfig(); });
+		widths.add(custom, 'XSpeed',10,100).step(2).onChange(function(value) { CONFIG.waves.breaking.x_speed = value; applyConfig(); });
+		widths.add(custom, 'XSpeedMax',10,100).step(2).onChange(function(value) { CONFIG.waves.breaking.x_speed_max = value; applyConfig(); });
+		widths.add(custom, 'XSpeedInterval',1,1500).step(10).onChange(function(value) { CONFIG.waves.breaking.x_speed_interval = value; applyConfig(); });
+		widths.add(custom, 'XSpeedPause',1,1500).step(10).onChange(function(value) { CONFIG.waves.breaking.x_speed_pause = value; applyConfig(); });
+		var heights = waves.addFolder('Vertical');
+		heights.add(custom, 'Height', 10, 400).onChange(function(value) { CONFIG.waves.height = value; applyConfig(); });
+		heights.add(custom, 'Meters', 1, 10).onChange(function(value) { CONFIG.waves.real_height = value; applyConfig(); });
+		heights.add(custom, 'BreakSpeed',0,5000).step(50).onChange(function(value) { CONFIG.waves.breaking.y_speed = value; applyConfig(); });
+		heights.add(custom, 'BreakEase',['quartIn','cubicIn','circIn']).onChange(function(value) { CONFIG.waves.breaking.y_ease = value; applyConfig(); });
+		heights.add(custom, 'SplashPerCent',0,100).step(1).onChange(function(value) { CONFIG.waves.breaking.splash_h_percent = value; applyConfig(); });
+		heights.add(custom, 'SplashEase',0,1).step(0.1).onChange(function(value) { CONFIG.waves.breaking.splash_h_ease = value; applyConfig(); });
+
 
 		var lip = gui.addFolder('Lip');
-		lip.add(custom, 'Thickness', 0, 50).onChange(function(value) { SPOT.config.waves.lip.thickness = value; })
-		lip.add(custom, 'CapLifetime', 0, 5000).onChange(function(value) { SPOT.config.waves.lip.cap.lifetime = value; });
-		lip.add(custom, 'CapHeight', 0, 25).onChange(function(value) { SPOT.config.waves.lip.cap.height = value; });
-		lip.add(custom, 'CapWidth', 0, 3000).onChange(function(value) { SPOT.config.waves.lip.cap.width = value; });
+		lip.add(custom, 'Thickness', 0, 50).onChange(function(value) { CONFIG.waves.lip.thickness = value;applyConfig();  })
+		lip.add(custom, 'CapLifetime', 0, 5000).onChange(function(value) { CONFIG.waves.lip.cap.lifetime = value; applyConfig(); });
+		lip.add(custom, 'CapHeight', 0, 25).onChange(function(value) { CONFIG.waves.lip.cap.height = value; applyConfig(); });
+		lip.add(custom, 'CapWidth', 0, 3000).onChange(function(value) { CONFIG.waves.lip.cap.width = value; applyConfig(); });
 
 		var shoulders = gui.addFolder('Shoulders');
-		shoulders.add(custom, 'LShoulderWidth',0, 1000).step(10).onChange(function(value) { SPOT.config.waves.shoulder.left.width = value; });
-		shoulders.add(custom, 'LShoulderInner',0, 1000).step(10).onChange(function(value) { SPOT.config.waves.shoulder.left.inner = value; });
-		shoulders.add(custom, 'LShoulderOuter',0, 1000).step(10).onChange(function(value) { SPOT.config.waves.shoulder.left.outer = value; });
-		shoulders.add(custom, 'LShoulderMarge',0, 1000).step(10).onChange(function(value) { SPOT.config.waves.shoulder.left.marge = value; });
-		shoulders.add(custom, 'RShoulderWidth',0, 1000).step(10).onChange(function(value) { SPOT.config.waves.shoulder.right.width = value; });
-		shoulders.add(custom, 'RShoulderInner',0, 1000).step(10).onChange(function(value) { SPOT.config.waves.shoulder.right.inner = value; });
-		shoulders.add(custom, 'RShoulderOuter',0, 1000).step(10).onChange(function(value) { SPOT.config.waves.shoulder.right.outer = value; });
-		shoulders.add(custom, 'RShoulderMarge',0, 1000).step(10).onChange(function(value) { SPOT.config.waves.shoulder.right.marge = value; });
+		shoulders.add(custom, 'LShoulderWidth',0, 1000).step(10).onChange(function(value) { CONFIG.waves.shoulder.left.width = value; applyConfig(); });
+		shoulders.add(custom, 'LShoulderInner',0, 1000).step(10).onChange(function(value) { CONFIG.waves.shoulder.left.inner = value; applyConfig(); });
+		shoulders.add(custom, 'LShoulderOuter',0, 1000).step(10).onChange(function(value) { CONFIG.waves.shoulder.left.outer = value; applyConfig(); });
+		shoulders.add(custom, 'LShoulderMarge',0, 1000).step(10).onChange(function(value) { CONFIG.waves.shoulder.left.marge = value; applyConfig(); });
+		shoulders.add(custom, 'RShoulderWidth',0, 1000).step(10).onChange(function(value) { CONFIG.waves.shoulder.right.width = value; applyConfig(); });
+		shoulders.add(custom, 'RShoulderInner',0, 1000).step(10).onChange(function(value) { CONFIG.waves.shoulder.right.inner = value; applyConfig(); });
+		shoulders.add(custom, 'RShoulderOuter',0, 1000).step(10).onChange(function(value) { CONFIG.waves.shoulder.right.outer = value; applyConfig(); });
+		shoulders.add(custom, 'RShoulderMarge',0, 1000).step(10).onChange(function(value) { CONFIG.waves.shoulder.right.marge = value; applyConfig(); });
 
 		var breaking = gui.addFolder('Breaking Left');
-		breaking.add(custom, 'LBreakWidth',1,50).onChange(function(value) { SPOT.config.waves.breaking.left.width = value; });
-		breaking.add(custom, 'LBreakWidthMax',1,50).onChange(function(value) { SPOT.config.waves.breaking.left.width_max = value; });
-		breaking.add(custom, 'LBreakWidthInt',0,10000).step(100).onChange(function(value) { SPOT.config.waves.breaking.left.width_interval = value; });
-		breaking.add(custom, 'LBreakWidthPause',0,10000).step(100).onChange(function(value) { SPOT.config.waves.breaking.left.width_pause = value; });
-		breaking.add(custom, 'LBreakBlockInt',0,10000).step(100).onChange(function(value) { SPOT.config.waves.breaking.left.block_interval = value; });	
-		breaking.add(custom, 'LBreakBlockIntMax',0,10000).step(100).onChange(function(value) { SPOT.config.waves.breaking.left.block_interval_max = value; });	
-		breaking.add(custom, 'LBreakBlockWidth',0,10000).step(100).onChange(function(value) { SPOT.config.waves.breaking.left.block_width = value; });	
-		breaking.add(custom, 'LBreakBlockWidthMax',0,10000).step(100).onChange(function(value) { SPOT.config.waves.breaking.left.block_width_max = value; });
+		breaking.add(custom, 'LBreakWidth',1,50).onChange(function(value) { CONFIG.waves.breaking.left.width = value; applyConfig(); });
+		breaking.add(custom, 'LBreakWidthMax',1,50).onChange(function(value) { CONFIG.waves.breaking.left.width_max = value; applyConfig(); });
+		breaking.add(custom, 'LBreakWidthInt',0,10000).step(100).onChange(function(value) { CONFIG.waves.breaking.left.width_interval = value; applyConfig(); });
+		breaking.add(custom, 'LBreakWidthPause',0,10000).step(100).onChange(function(value) { CONFIG.waves.breaking.left.width_pause = value; applyConfig(); });
+		breaking.add(custom, 'LBreakBlockInt',0,10000).step(100).onChange(function(value) { CONFIG.waves.breaking.left.block_interval = value; applyConfig(); });	
+		breaking.add(custom, 'LBreakBlockIntMax',0,10000).step(100).onChange(function(value) { CONFIG.waves.breaking.left.block_interval_max = value; applyConfig(); });	
+		breaking.add(custom, 'LBreakBlockWidth',0,10000).step(100).onChange(function(value) { CONFIG.waves.breaking.left.block_width = value; applyConfig(); });	
+		breaking.add(custom, 'LBreakBlockWidthMax',0,10000).step(100).onChange(function(value) { CONFIG.waves.breaking.left.block_width_max = value; applyConfig(); });
 
 		var breaking = gui.addFolder('Breaking Right');
-		breaking.add(custom, 'RBreakWidth',1,50).onChange(function(value) { SPOT.config.waves.breaking.right.width = value; });	
-		breaking.add(custom, 'RBreakWidthMax',1,50).onChange(function(value) { SPOT.config.waves.breaking.right.width_max = value; });	
-		breaking.add(custom, 'RBreakWidthInt',0,10000).step(100).onChange(function(value) { SPOT.config.waves.breaking.right.width_interval = value; });	
-		breaking.add(custom, 'RBreakWidthPause',0,10000).step(100).onChange(function(value) { SPOT.config.waves.breaking.right.width_pause = value; });	
-		breaking.add(custom, 'RBreakBlockInt',0,10000).step(100).onChange(function(value) { SPOT.config.waves.breaking.right.block_interval = value; });	
-		breaking.add(custom, 'RBreakBlockIntMax',0,10000).step(100).onChange(function(value) { SPOT.config.waves.breaking.right.block_interval_max = value; });	
-		breaking.add(custom, 'RBreakBlockWidth',0,10000).step(100).onChange(function(value) { SPOT.config.waves.breaking.right.block_width = value; });	
-		breaking.add(custom, 'RBreakBlockWidthMax',0,10000).step(100).onChange(function(value) { SPOT.config.waves.breaking.right.block_width_max = value; });	
+		breaking.add(custom, 'RBreakWidth',1,50).onChange(function(value) { CONFIG.waves.breaking.right.width = value; applyConfig(); });	
+		breaking.add(custom, 'RBreakWidthMax',1,50).onChange(function(value) { CONFIG.waves.breaking.right.width_max = value; applyConfig(); });	
+		breaking.add(custom, 'RBreakWidthInt',0,10000).step(100).onChange(function(value) { CONFIG.waves.breaking.right.width_interval = value; applyConfig(); });	
+		breaking.add(custom, 'RBreakWidthPause',0,10000).step(100).onChange(function(value) { CONFIG.waves.breaking.right.width_pause = value; applyConfig(); });	
+		breaking.add(custom, 'RBreakBlockInt',0,10000).step(100).onChange(function(value) { CONFIG.waves.breaking.right.block_interval = value; applyConfig(); });	
+		breaking.add(custom, 'RBreakBlockIntMax',0,10000).step(100).onChange(function(value) { CONFIG.waves.breaking.right.block_interval_max = value; applyConfig(); });	
+		breaking.add(custom, 'RBreakBlockWidth',0,10000).step(100).onChange(function(value) { CONFIG.waves.breaking.right.block_width = value; applyConfig(); });	
+		breaking.add(custom, 'RBreakBlockWidthMax',0,10000).step(100).onChange(function(value) { CONFIG.waves.breaking.right.block_width_max = value; applyConfig(); });	
 
 		var spot = gui.addFolder('Spot');
 		spot.add(custom, 'Horizon', 0, STAGEHEIGHT)
-			.onChange(function(value) { SPOT.config.lines.horizon = value; SPOT.drawDebug(); SPOT.drawBackground(); SPOT.getWaves().map(w => w.resize()); });
+			.onChange(function(value) { CONFIG.lines.horizon = value; SPOT.drawDebug(); SPOT.drawBackground(); SPOT.getWaves().map(w => w.resize()); applyConfig(); });
 		spot.add(custom, 'Break', 0, STAGEHEIGHT)
-			.onChange(function(value) { SPOT.config.lines.break = value; SPOT.drawDebug(); SPOT.drawBackground(); SPOT.getWaves().map(w => w.resize()); });
+			.onChange(function(value) { CONFIG.lines.break = value; SPOT.drawDebug(); SPOT.drawBackground(); SPOT.getWaves().map(w => w.resize()); applyConfig(); });
 		spot.add(custom, 'Peak', 0, STAGEHEIGHT)
-			.onChange(function(value) { SPOT.config.lines.peak = value; SPOT.drawDebug(); SPOT.drawBackground(); SPOT.getWaves().map(w => w.resize()); });
+			.onChange(function(value) { CONFIG.lines.peak = value; SPOT.drawDebug(); SPOT.drawBackground(); SPOT.getWaves().map(w => w.resize()); applyConfig(); });
 		spot.add(custom, 'Beach', 0, STAGEHEIGHT)
-			.onChange(function(value) { SPOT.config.lines.beach = value; SPOT.drawDebug(); SPOT.drawBackground(); SPOT.getWaves().map(w => w.resize()); });
-		spot.add(custom, 'XShift', -100, 100).onChange(function(value) { SPOT.config.series.xshift = value; });
-		spot.addColor(custom, 'SeaColorTop').onChange(function(value) { SPOT.config.colors.top = value; SPOT.drawBackground(); });
-		spot.addColor(custom, 'SeaColorBottom').onChange(function(value) { SPOT.config.colors.bottom = value; SPOT.drawBackground(); });
+			.onChange(function(value) { CONFIG.lines.beach = value; SPOT.drawDebug(); SPOT.drawBackground(); SPOT.getWaves().map(w => w.resize()); applyConfig(); });
+		spot.add(custom, 'XShift', -100, 100).onChange(function(value) { CONFIG.series.xshift = value; applyConfig(); });
+
+		var colors = gui.addFolder('Colors');
+		colors.addColor(custom, 'WaveTop').onChange(function(value) { CONFIG.waves.colors[0][0] = value; SPOT.getWaves().map(w => w.drawBackground()); applyConfig(); });
+		colors.addColor(custom, 'WaveMiddle').onChange(function(value) { CONFIG.waves.colors[1][0] = value; SPOT.getWaves().map(w => w.drawBackground()); applyConfig(); });
+		colors.addColor(custom, 'WaveBottom').onChange(function(value) { CONFIG.waves.colors[2][0] = value; SPOT.getWaves().map(w => w.drawBackground()); applyConfig(); });
+		colors.addColor(custom, 'LipTop').onChange(function(value) { CONFIG.waves.lip.colors.top = value; applyConfig(); });
+		colors.addColor(custom, 'LipBottom').onChange(function(value) { CONFIG.waves.lip.colors.bottom = value; applyConfig(); });
+		colors.addColor(custom, 'SplashTop').onChange(function(value) { CONFIG.waves.splash.colors.top = value; applyConfig(); });
+		colors.addColor(custom, 'SplashBottom').onChange(function(value) { CONFIG.waves.splash.colors.bottom = value; applyConfig(); });
+		colors.addColor(custom, 'SeaTop').onChange(function(value) { CONFIG.colors.top = value; SPOT.drawBackground(); applyConfig(); });
+		colors.addColor(custom, 'SeaBottom').onChange(function(value) { CONFIG.colors.bottom = value; SPOT.drawBackground(); applyConfig(); });
 
 		var series = gui.addFolder('Series');
-		series.add(custom, 'NbWaves', 1, 10).onChange(function(value) { SPOT.config.series.length = value; });
-		series.add(custom, 'WaveFrequency',0).min(0).step(100).onChange(function(value) { SPOT.config.series.frequency = value; });
-		series.add(custom, 'WaveSpeed',0).min(5000).step(100).onChange(function(value) { SPOT.config.series.speed = value; });
-		series.add(custom, 'Etalement',0).step(10).onChange(function(value) { SPOT.config.series.spread = value; });
-		series.add(custom, 'IntervalBetweenSerie').min(0).step(100).onChange(function(value) { SPOT.config.series.interval = value; });
+		series.add(custom, 'NbWaves', 1, 10).onChange(function(value) { CONFIG.series.length = value; applyConfig(); });
+		series.add(custom, 'WaveFrequency',0).min(0).step(100).onChange(function(value) { CONFIG.series.frequency = value; applyConfig(); });
+		series.add(custom, 'WaveSpeed',0).min(5000).step(100).onChange(function(value) { CONFIG.series.speed = value; applyConfig(); });
+		series.add(custom, 'Etalement',0).step(10).onChange(function(value) { CONFIG.series.spread = value; applyConfig(); });
+		series.add(custom, 'IntervalBetweenSerie').min(0).step(100).onChange(function(value) { CONFIG.series.interval = value; applyConfig(); });
 
 		var surfers = gui.addFolder('Surfers');
-		surfers.add(custom, 'surfersSize', 0, 3).onChange(function(value) { SPOT.config.surfers.proportion = value; })
-		surfers.add(custom, 'surfersVX', 0, 1).step(0.01).onChange(function(value) { SPOT.config.surfers.velocities.x = value; })
-		surfers.add(custom, 'surfersVY', 0, 1).step(0.01).onChange(function(value) { SPOT.config.surfers.velocities.x = value; })
+		surfers.add(custom, 'surfersSize', 0, 3).onChange(function(value) { CONFIG.surfers.proportion = value;applyConfig();  })
+		surfers.add(custom, 'surfersVX', 0, 1).step(0.01).onChange(function(value) { CONFIG.surfers.velocities.x = value;applyConfig();  })
+		surfers.add(custom, 'surfersVY', 0, 1).step(0.01).onChange(function(value) { CONFIG.surfers.velocities.x = value;applyConfig();  })
 
 
 		var diff = gui.addFolder('Difficulty');
-		diff.add(custom, 'fallAtBottom', 0, 1).step(0.1).onChange(function(value) { SPOT.config.waves.bottom_fall_scale = value; });
-		diff.add(custom, 'fallAtTop', 0, 1).step(0.1).onChange(function(value) { SPOT.config.waves.top_fall_scale = value; });
-		diff.add(custom, 'wavePaddlingEffort',0).onChange(function(value) { SPOT.config.waves.paddling_effort = value; });
+		diff.add(custom, 'fallAtBottom', 0, 1).step(0.1).onChange(function(value) { CONFIG.waves.bottom_fall_scale = value; applyConfig(); });
+		diff.add(custom, 'fallAtTop', 0, 1).step(0.1).onChange(function(value) { CONFIG.waves.top_fall_scale = value; applyConfig(); });
+		diff.add(custom, 'wavePaddlingEffort',0).onChange(function(value) { CONFIG.waves.paddling_effort = value; applyConfig(); });
 
 		var obstacles = gui.addFolder('Obstacles');
-		obstacles.add(custom, 'obstaclesInterval',0,10000).step(100).onChange(function(value) { SPOT.config.waves.obstacles_interval = value; });
-		obstacles.add(custom, 'obstaclesIntervalMax',0,10000).step(100).onChange(function(value) { SPOT.config.waves.obstacles_interval_max = value; });
-		obstacles.add(custom, 'paddlerPercentage',0,100).onChange(function(value) { SPOT.config.waves.obstacles['paddler'].percentage = value; });
-		obstacles.add(custom, 'photographPercentage',0,100).onChange(function(value) { SPOT.config.waves.obstacles['photograph'].percentage = value; });
+		obstacles.add(custom, 'obstaclesInterval',0,10000).step(100).onChange(function(value) { CONFIG.waves.obstacles.interval = value; applyConfig(); });
+		obstacles.add(custom, 'obstaclesIntervalMax',0,10000).step(100).onChange(function(value) { CONFIG.waves.obstacles.interval_max = value; applyConfig(); });
+		obstacles.add(custom, 'paddlerPercentage',0,100).onChange(function(value) { CONFIG.waves.obstacles.type['paddler'].percentage = value; applyConfig(); });
+		obstacles.add(custom, 'photographPercentage',0,100).onChange(function(value) { CONFIG.waves.obstacles.type['photograph'].percentage = value; applyConfig(); });
 
 		gui.add(custom, 'performance',{ Minimum: 0, Normal:2, High: 3}).onChange(function(value) { window.PERF = value; });
 		gui.add(custom, 'SwitchDebugMode');
 		gui.add(custom, 'SwitchTestMode');
 		gui.add(custom, 'Pause');
+
+		gui.add(custom, 'PrintConfig');
 
 
 

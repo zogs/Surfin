@@ -28,8 +28,9 @@ window.loaded = function() {
 		{id:'surfer',src:'assets/img/surfer/surfer_stormtrooper.png'},	
 		{id:'surfer_takeoff',src:'assets/img/surfer/takeoff.png'},
 		{id:'paddler',src:'assets/img/surfer/paddler.png'},
-		{id:'surfer_paddle',src:'assets/img/surfer/P.png'},
 		{id:'photographer',src:'assets/img/object/photographer.png'},
+		{id:'cigogne',src:'assets/img/object/cigogne.png'},
+		{id:'drone',src:'assets/img/object/drone.png'},
 		{id:'wash_plouf',src:'assets/img/object/wash.svg'},
 		{id:'wash',src:'assets/img/object/wash.png'},
 		{id:'sprite_beachtrooper',src:'assets/img/object/beachtrooper.png'},
@@ -62,17 +63,19 @@ window.initialize = function() {
 	PERF = 3;
 	TIME_SCALE = 1;
 	SLOW_MOTION = false;
+	SPOT = null;
 
 	//USER
-	USER = new UserManager();
-	USER.new();
+	USER = new User();
+	USER.load();
 
 	//SCREEN
 	SCREENS = new ScreenManager();
 
 	//SPOT
-	const spot = SPOTSCONF.find(s => s.alias == 'default');
-	window.addSpot(spot,false);
+	const config = SPOTSCONF.find(s => s.alias == 'default');
+	window.addSpot(config,false);
+
 
 	/*const boom = new createjs.SpriteSheet({
 			images: [queue.getResult('bomb_boom')],
@@ -113,7 +116,6 @@ window.initialize = function() {
 
 	window.resizeCanvas();
 
-
 }
 
 
@@ -129,7 +131,7 @@ window.loadSpot = function(event, name = 'default') {
 
 	const spot = SPOTSCONF.find(s => s.name === name || s.alias === name);
 
-	if(spot === undefined) {
+	if(typeof spot === 'undefined') {
 		console.error(name+ " spot can't be found...");
 	}
 
@@ -140,12 +142,14 @@ window.loadSpot = function(event, name = 'default') {
 	window.addSpot(spot);
 }
 
-window.addSpot = function(spot, launch = true) {
+window.addSpot = function(config, launch = true) {
 
 	//clear stage
 	stage.removeAllChildren();
+	//clear previous spot
+	window.removeSpot(SPOT);
 	//create spot with new config
-	SPOT = new Spot(spot);
+	SPOT = new Spot(config);
 	//add it
 	stage.addChild(SPOT);
 	//launch initial set
@@ -158,12 +162,11 @@ window.addSpot = function(spot, launch = true) {
 
 window.removeSpot = function(spot) {
 
-	spot.remove();
+	if(SPOT === null) return;
 
-	//stage.removeAllEventListeners();
+	spot.remove();
 	stage.removeChild(spot);
 
-	spot = null;
 	SPOT = null;
 }
 
@@ -178,14 +181,14 @@ window.addMenu = function() {
 
 	const cont = new createjs.Container();
 	const bkg = new createjs.Shape();
-	const txt = new createjs.Text('Menu','16px Helvetica');
+	const txt = new createjs.Text('MENU','24px Helvetica');
 	const bound = txt.getBounds();
-	const pad = {x: 10, y: 5};
+	const pad = {x: 40, y: 15};
 
 	bkg.graphics.beginFill('#FFF').drawRoundRect(-bound.x/2 - pad.x, -bound.y - pad.y, bound.width + pad.x*2, bound.height + pad.y*2, 5);
 
-	cont.x = 20;
-	cont.y = 10;
+	cont.x = 50;
+	cont.y = 30;
 	cont.addChild(bkg,txt);
 	stage.addChild(cont);
 
@@ -195,9 +198,13 @@ window.addMenu = function() {
 window.showMenu = function(e) {
 
 	e.stopPropagation();
-	console.log('menu');
 
+	//remove spot if exist
+	if(typeof SPOT !== 'undefined') window.removeSpot(SPOT);
+
+	//clear stage
 	stage.removeAllChildren();
+
 
 	const spots = SPOTSCONF;
 
@@ -256,14 +263,23 @@ window.keyDownHandler = function(e)
     case 'f':  SPOT.getWave().getSurfer().fall(); break;
     case 'z':  SPOT.addPaddlerBot(); break;
     case 'r':  SPOT.getWave().addTestSurferBot(); break;
-    case 'o':  SPOT.getWave().addBomb(); break;
-    case '&':  SPOT.getWave().addBeachTrooper(); break;
-    case 'i':  SPOT.getWave().addFlyingObstacle(); break;
+    case 'u':  console.log(USER); break;
+    case 'o':  SPOT.getWave().addRandomObstacle(); break;
+    case '&':  SPOT.getWave().addPaddler(); break;
+    case 'é':  SPOT.getWave().addPhotographer(); break;
+    case '"':  SPOT.getWave().addBomb(); break;
+    case '\'':  SPOT.getWave().addBeachTrooper(); break;
+    case '1':  SPOT.getWave().addFlyingMultiplier(); break;
+    case '2':  SPOT.getWave().addFlyingPrize(); break;
+    case '3':  SPOT.getWave().addCigogne(); break;
+    case '4':  SPOT.getWave().addDrone(); break;
     case 'k':  SPOT.getWave().getSurfer().updateLifebar(0.2); break;
     case 't':  switchTestMode(); break;
     case 'd':  switchDebugMode(); break;
     case 'w':  switchSlowMo(0.1,500); break;
     case 'q':  initRunnerMode(); break;
+    case 'g':  SPOT.removeAllPaddlers().getWave().breakAndFollow(); break;
+    case '+':  SPOT.score.add(1000); break;
     default: console.log('Key "'+e.key+'" have no handler.');
    } 
 }
@@ -335,7 +351,7 @@ window.switchSlowMo = function(scale,time) {
 
 window.updateTimeScale = function() {
 
-	SPOT.setTimeScale(TIME_SCALE);
+	if(SPOT) SPOT.setTimeScale(TIME_SCALE);
 }
 
 window.pause = function() {
@@ -381,7 +397,7 @@ window.resizeCanvas = function() {
 		currentHeight = currentWidth / RATIO;
 	}
 
-	if (USER.get().device.android || USER.get().device.ios) { //if android or ios
+	if (USER.device.android || USER.device.ios) { //if android or ios
 		//hide address bar
         document.body.style.height = (windowHeight + 50) + 'px';
         //enable Touch event

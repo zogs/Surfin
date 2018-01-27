@@ -2,14 +2,14 @@
 
 		this.level = 1;
 		this.xp = 0;
-		this.skill_pts = 10;
+		this.skill_pts = 0;
 		this.skills = {
-			speed: 0.5, //0 to 1
-			aerial: 0.2, //0 to 1
-			agility: 1, //0 to 1
+			speed: 0.1, //0 to 1
+			aerial: 0.1, //0 to 1
+			agility: 0.1, //0 to 1
 			paddling: 0.1,
 			takeoff: 0,
-			force: 0.7
+			force: 0.1
 		}
 
 		this.device = {};
@@ -17,6 +17,34 @@
 		var ua = navigator.userAgent.toLowerCase();
 		this.device.android = ua.indexOf('android') > -1 ? true : false;
 		this.device.ios = ( ua.indexOf('iphone') > -1 || ua.indexOf('ipad') > -1  ) ? true : false;
+
+		this.levelUp = function() {
+			this.level++;
+			return this;
+		}
+
+		this.setXp = function(xp) {
+			this.xp = xp;
+			return this;
+		}
+
+		this.addSkillPoint = function(nb =1) {
+			this.skill_pts += nb;
+			return this;
+		}
+
+		this.save = function() {
+			let json = JSON.stringify(this);
+			localStorage.setItem("user", json);
+			return this;
+		}
+
+		this.load = function() {
+			let json = localStorage.getItem('user');
+			let user = JSON.parse(json);
+			Object.assign(this, user);
+			return this;
+		}
 
 	}
 

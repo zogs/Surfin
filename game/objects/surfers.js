@@ -16,8 +16,8 @@
 	createjs.EventDispatcher.initialize(prototype);
 	//public static properties
 	prototype.gravity = new Victor(0,7);
-	prototype.hitbox_proportion = 25;
-	prototype.hitboard_proportion = 5;
+	prototype.hitbox_proportion = 70;
+	prototype.hitboard_proportion = 15;
 	prototype.height = 300;
 
 	//init 
@@ -45,7 +45,7 @@
 		this.pumped = [];
 		this.timer = null;
 		this.speed = 0;
-		this.angle;
+		this.angle = 90;
 		this.angles = [];
 		this.status = 'wait';		
 		this.tubing = false;
@@ -71,21 +71,9 @@
 		this.control_velocities = {x:1,y:1};
 		this.time_scale = (TIME_SCALE) ? TIME_SCALE : 1;
 
-		this.skills = USER.get().skills;
+		this.skills = USER.skills;
 		this.disturbance = 0;
 		this.disturbance_max = 20;
-
-		this.hitbox = new createjs.Shape();
-		this.hitbox_radius = 1;
-		this.hitbox.graphics.beginFill('red').drawCircle(0,0,this.hitbox_radius);
-		this.hitbox.alpha = 0;
-		this.addChild(this.hitbox);
-
-		this.hitboard = new createjs.Shape();	
-		this.hitboard_radius = 1;
-		this.hitboard.graphics.beginFill('red').drawCircle(0,0,this.hitboard_radius);	
-		this.hitboard.alpha = 0;
-		this.addChild(this.hitboard);
 
 		const sprite_splash = new createjs.SpriteSheet({
 			images: [queue.getResult('surfer_splash')],
@@ -123,6 +111,18 @@
 		this.addChild(this.silhouette_cont);
 		this.initSilhouette();
 
+		this.hitbox = new createjs.Shape();
+		this.hitbox.graphics.beginFill('orange').drawCircle(0,0,1);
+		this.hitbox.alpha = 0;
+		this.hitbox_radius = 1;
+		this.addChild(this.hitbox);
+
+		this.hitboard = new createjs.Shape();	
+		this.hitboard.graphics.beginFill('pink').drawCircle(0,0,1);	
+		this.hitboard.alpha = 0;
+		this.hitboard_radius = 1;
+		this.addChild(this.hitboard);
+
 		this.lifebar = new createjs.Shape();
 		this.lifebar.graphics.clear().beginStroke('white').setStrokeStyle(10).moveTo(0,0).lineTo(100,0);
 		this.lifebar.alpha = 0;
@@ -136,11 +136,9 @@
 		this.debug_cont.alpha = 0;
 		this.addChild(this.debug_cont);
 
-
 		this.weapon_cont = new createjs.Container();
 		this.addChild(this.weapon_cont);
 			
-
 		this.virtualMouse = new createjs.Shape();
 		this.virtualMouse.graphics.beginFill('pink').drawCircle(0,0,3);
 		this.spot.debug_cont.addChild(this.virtualMouse);
@@ -155,7 +153,6 @@
 
 		this.resize();
 
-
 	}
 
 	//public methods
@@ -168,7 +165,7 @@
 		this.checkFall();
 		this.drawTrails();
 		this.drawWeapon();
-		this.drawDebug();
+		if(DEBUG === true) this.drawDebug();
 	}
 
 	prototype.continuousMovement = function() {
@@ -178,7 +175,7 @@
 		this.checkFall();
 		this.drawTrails();
 		this.drawWeapon();
-		this.drawDebug();
+		if(DEBUG === true) this.drawDebug();
 
 		this.timer = new Timer(proxy(this.continuousMovement,this), this.wave.params.breaking.x_speed);
 	}
@@ -215,36 +212,16 @@
 		},this);
 
 		this.on('fall',function(event) {
-			if(this.isPlayer()) stage.dispatchEvent('player_fall');
-		},this,true);
+			if(this.isPlayer()) {
+				var ev = new createjs.Event('player_fall');
+				ev.reason = event.reason;
+				ev.surfer = event.surfer;
+				stage.dispatchEvent(ev);
+			}
+		},this);
 
 		this.on('fallen',function(event) {	
 			if(this.isPlayer()) stage.dispatchEvent('player_fallen');
-		},this,true);
-
-		this.on('fall_bottom',function(event) {	
-			stage.dispatchEvent('surfer_fall_bottom');
-			window.setTimeout(proxy(this.initEventsListener,this),2000);
-		},this,true);
-
-		this.on('fall_top',function(event) {	
-			stage.dispatchEvent('surfer_fall_top');
-			window.setTimeout(proxy(this.initEventsListener,this),2000);
-		},this,true);
-
-		this.on('fall_edge',function(event) {
-			stage.dispatchEvent('surfer_fall_edge');
-			window.setTimeout(proxy(this.initEventsListener,this),2000);
-		},this,true);
-
-		this.on('fall_obstacle',function(event) {
-			stage.dispatchEvent('surfer_fall_obstacle');
-			window.setTimeout(proxy(this.initEventsListener,this),2000);
-		},this,true);
-
-		this.on('fall_tricks',function(event) {	
-			stage.dispatchEvent('fall_tricks');
-			window.setTimeout(proxy(this.initEventsListener,this),2000);
 		},this,true);
 
 		this.on('tube_in',function(event) {
@@ -255,32 +232,19 @@
 			stage.dispatchEvent('surfer_tube_out');
 		});
 
-		this.on('paddler_bonus_hitted', function(event) {
-			stage.dispatchEvent('paddler_malus_hitted');
-		},this);
-
 		this.on('paddler_malus_hitted', function(event) {
-			//init fall
-			this.fall('hit obstacle');
-		},this);
-
-		this.on('photo_bonus_hitted', function(event) {
-			console.log('photo bonus');
-			stage.dispatchEvent('photo_bonus_hitted');
+			this.fall('hit paddler');
 		},this);
 
 		this.on('photo_malus_hitted', function(event) {
-			stage.dispatchEvent('photo_malus_hitted');
+			this.fall('hit photographer');
 		},this);
 
-		this.on('multiplier_bonus_hitted', function(event) {			
-			var ev = new createjs.Event('multiplier_bonus_hitted');
-			ev.multiplier = event.obj.multiplier;
-			stage.dispatchEvent(ev);
+		this.on('bomb_malus_hitted', function(event) {
+			this.fall('hit bomb');
 		},this);
 
 		this.on('surfing',function(event) {
-
 			stage.dispatchEvent('surfer_surfing');
 		});
 	}
@@ -367,6 +331,11 @@
 		return this;
 	}
 
+	prototype.setConfig = function(config) {
+
+		this.config = config;
+	}
+
 	prototype.switchAutomove = function() {
 
 		this.automove = !this.automove;
@@ -391,8 +360,6 @@
 		this.scale = y_persperctive * this.getSurferProportion();
 		this.height = this.silhouette_height*this.scale;
 
-		console.log(this.scale);
-
 		this.silhouette_cont.scaleX = this.scale;
 		this.silhouette_cont.scaleY = this.scale;
 		this.silhouette_cont.regX = this.silhouette_width/2;
@@ -400,11 +367,9 @@
 		//this.silhouette_cont.x = (- this.silhouette_width/2) * this.scale;		
 		//this.silhouette_cont.y = (- this.silhouette_height/2) * this.scale;	
 		
-		this.hitbox.scaleX = this.hitbox.scaleY = this.hitbox_radius = this.scale * this.hitbox_proportion;
-		this.hitbox.x = 0;
-		this.hitbox.y = (- this.silhouette_height/6) * this.scale;
-		this.hitboard.scaleX = this.hitboard.scaleY = this.hitboard_radius = this.scale * this.hitboard_proportion;
-
+		this.hitbox.scale = this.hitbox_radius = this.scale * this.hitbox_proportion;
+		this.hitboard.scale = this.hitboard_radius = this.scale * this.hitboard_proportion;
+		this.hitboard.y = this.silhouette_height/4 * this.scale;
 	}
 
 	prototype.getVanishPoint = function() {
@@ -610,7 +575,8 @@
 		//find point where surfer is bellow
 		for(let i=0,len=this.wave.allpoints.length; i<len; ++i) {
 			let point = this.wave.allpoints[i];
-			if( get2dDistance(this.x,0,point.x,0) <= point.breaking_width >> 1) {
+			//console.log(get2dDistance(this.x,0,point.x,0), point.breaking_width*2);
+			if( get2dDistance(this.x,0,point.x,0) <= point.breaking_width*2) {
 				return this.point_under = point;
 			}
 		}
@@ -625,7 +591,7 @@
 			const i = peak.points.length-1;
 		}
 
-		if(typeof(peak) == 'undefined') {
+		if(typeof peak == 'undefined') {			
 			return null;
 		}
 		
@@ -1101,8 +1067,6 @@
 		if(this.tricked === true) {
 			//init fall
 			this.fall('bad landing aerial');
-			//throw event			
-			this.dispatchEvent('fall_tricks')
 		}
 
 		//remove aerial particles
@@ -1209,8 +1173,6 @@
 
 		createjs.Tween.get(this.silhouette_cont)
 		.to({rotation:360*this.wave.direction*-1,alpha:0,scaleX:0.4,scaleY:0.4},1000)
-		.to({rotation:0,alpha:1,scaleX:1,scaleY:1},0)
-		.wait(1000)
 		.call(proxy(this.fallFinished,this));
 		;
 
@@ -1226,12 +1188,6 @@
 			e.surfer = this;
 			this.dispatchEvent(e);
 
-		if(!TEST) {
-			//remove surfer movement
-			this.removeAllEventListeners('tick');
-			this.timer.clear();			
-			this.timer = null;			
-		}	
 	}
 
 	prototype.fallWithInertia = function() 
@@ -1435,31 +1391,28 @@
 		var delta = Math.abs(this.angle - this.angles[5])%360;
 		var diff = (delta > 180)? 360 - delta : delta;
 		var allowed = 120 + 60*this.getSkill('agility');
-			
+
 		if(diff > allowed) {
 			//init fall
 			this.fall('bad trajectory');
-			//throw event			
-			this.dispatchEvent('fall_edge')
 		}
 	}
 
 	prototype.hit = function(zone, x, y, radius) {
 
-		if(zone == 'board') return this.hitBoard(x,y,radius);
-		if(zone == 'body') return this.hitBody(x,y,radius);
-		if(zone == 'weapon') return this.hitWeapon(x,y,radius);
-		if(zone == 'none') return null;
+		if(zone === 'board') return this.hitBoard(x,y,radius);
+		if(zone === 'body') return this.hitBody(x,y,radius);
+		if(zone === 'weapon') return this.hitWeapon(x,y,radius);
+		if(zone === 'none') return null;
 		return console.error("La zone de hit n'existe pas");
 	}
 
 	prototype.hitBody = function(x,y,radius) {
 				
 		const minDistance = radius + this.hitbox_radius;
-		const xDist = x - this.x - this.hitbox.x;
-		const yDist = y - this.y - this.hitbox.y;
-		const distance = Math.sqrt(xDist*xDist + yDist*yDist);
-
+		const xDist = x - (this.x + this.hitbox.x);
+		const yDist = y - (this.y + this.hitbox.y);
+		const distance = Math.sqrt(xDist*xDist + yDist*yDist);		
 		if (distance < minDistance) {
 			return true;
 		}
@@ -1472,7 +1425,6 @@
 		const xDist = x - this.x - this.hitboard.x;
 		const yDist = y - this.y - this.hitboard.y;
 		const distance = Math.sqrt(xDist*xDist + yDist*yDist);
-
 		if(distance < minDistance) {
 			return true;
 		}
@@ -1487,7 +1439,6 @@
 			const xDist = x - this.x - point.x;
 			const yDist = y - this.y - point.y;
 			const distance = Math.sqrt(xDist*xDist + yDist*yDist);
-
 			if(distance < minDistance) {
 				return true;
 			}
@@ -1618,16 +1569,21 @@
 			if(obstacle.hitBonus(this)) {
 				//launch event
 				var ev = new createjs.Event(obstacle.config.name+'_bonus_hitted');
-				ev.obj = obstacle;
+				ev.obstacle = obstacle;
 				this.dispatchEvent(ev);
+				var ev = new createjs.Event(obstacle.config.name+'_bonus_hitted'); // we need to recreate event as we re-dispatch it
+				ev.obstacle = obstacle;
+				stage.dispatchEvent(ev);
 			}
 
 			if(obstacle.hitMalus(this)) {
-				console.log('malus');
 				//launch event
 				var ev = new createjs.Event(obstacle.config.name+'_malus_hitted');
-				ev.obj = obstacle;
+				ev.obstacle = obstacle;
 				this.dispatchEvent(ev);
+				var ev = new createjs.Event(obstacle.config.name+'_malus_hitted'); // we need to recreate event as we re-dispatch it
+				ev.obstacle = obstacle;
+				stage.dispatchEvent(ev);
 			}
 		}
 	}
@@ -1693,7 +1649,7 @@
 
 
 		//if(this.isBot()) continue;
-		const suction = this.wave.params.suction.clone();
+		const suction = this.wave.suction.clone();
 
 		//update points with the suction vector
 		for (let i = 0; i <= nb; ++i) {
@@ -1956,14 +1912,6 @@
 	}
 
 	prototype.drawDebug = function() {
-		
-		this.hitboard.alpha = 0;	
-		this.hitbox.alpha = 0;
-		this.virtualMouse.alpha = 0;
-
-		this.debug_cont.alpha = 0;
-
-		
 
 		// for(let i=0, len=this.trailpoints.length; i < len ; ++i) {
 		// 	let point = this.trailpoints[i];
@@ -1975,10 +1923,8 @@
 		// 	this.wave.debug_cont.addChild(circle);
 		// }
 
-		if(DEBUG === 0) return;
-
-		this.hitbox.alpha = 0.2;		
-		this.hitboard.alpha = 0.8;	
+		this.hitbox.alpha = 0.5;		
+		this.hitboard.alpha = 0.5;	
 		this.virtualMouse.alpha = 0.5;
 		this.debug_cont.alpha = 1;
 
@@ -1986,7 +1932,7 @@
 
 	prototype.getAngle = function() {
 
-		if(this.locations[1] === undefined) return this.angle = 270;
+		if(this.locations[1] === undefined) return this.angle = 90;
 		this.angle_rad = Math.atan2(this.locations[0].y - this.locations[1].y,this.locations[0].x - this.locations[1].x);
 		this.angle = Math.degrees(this.angle_rad);	
 		

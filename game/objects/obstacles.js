@@ -12,10 +12,10 @@
 
 	//init 
 	prototype.init = function(config) {
-		
 		this.config = config || {};
 		this.wave = this.config.wave;
-		this.img = this.config.img != undefined ? this.config.img : 'surfer_paddle';
+		this.spot = this.config.spot;
+		this.img = this.config.img != undefined ? this.config.img : 'paddler';
 		this.config.name = config.name || 'paddler';
 
 		this.location = new Victor();
@@ -25,6 +25,8 @@
 		this.bonuses = [];
 		this.maluses = [];
 		this.duck_y = this.wave.params.height / 5;
+		this.speedX = this.config.speedX || 0.5;
+		this.speedY = this.config.speedY || 0.5;
 
 		this.image_cont = new createjs.Container();
 		this.addChild(this.image_cont);
@@ -36,13 +38,9 @@
 		this.drawMalus();
 		this.drawBonus();
 
-			this.center = new createjs.Shape();
-			this.center.graphics.beginFill('red').drawCircle(0,0,2);
-			this.addChild(this.center);		
-		if(DEBUG) {
-
-			this.debug_cont.alpha = 0.3;
-		}
+		this.center = new createjs.Shape();
+		this.center.graphics.beginFill('black').drawCircle(0,0,2);
+		this.debug_cont.addChild(this.center);		
 
 		this.initialPosition();
 
@@ -65,10 +63,10 @@
 		let y = this.wave.spot.config.lines.obstacle - this.wave.y + this.wave.params.height;
 
 		if(this.wave.direction === RIGHT) {
-			x = this.wave.shoulder_right.x + Math.random() * (this.wave.params.shoulder.right.width);
+			x = this.wave.shoulder_right.x + Math.random() * (this.wave.params.shoulder.right.width*2);
 		}
 		if(this.wave.direction === LEFT) {
-			x = this.wave.shoulder_left.x - Math.random() * (this.wave.params.shoulder.left.width);
+			x = this.wave.shoulder_left.x - Math.random() * (this.wave.params.shoulder.left.width*2);
 		}
 
 		this.x = x;
@@ -82,21 +80,79 @@
 		this.move();
 		this.checkRemove();
 		this.onEnterFrame();
+		this.drawDebug();
+	}
+
+	prototype.move = function() {
+
+		const move = new Victor(0, this.wave.getSuction().y);
+		this.location.add(move);
+		this.x = this.location.x;
+		this.y = this.location.y;
+	}
+
+	prototype.drawImage = function() {
+		
+		var sheet = new createjs.SpriteSheet({
+		    images: [queue.getResult('paddler')],
+		    frames: {width:80, height:80, count:11},
+		    animations: {
+	        up: {
+	        	frames: [9,10,9,10,9,10],
+	        	next: "up",
+	        	speed: 0.3
+	        },	        
+		    }
+		});		
+
+		this.sprite = new createjs.Sprite(sheet);
+		this.sprite.scale = 2;
+		this.sprite.x = 80;
+		this.sprite.y = -80;
+		this.sprite.scaleX *= this.wave.direction === LEFT ? -1 : 1;
+		this.sprite.gotoAndPlay('up');	
+		this.image_cont.addChild(this.sprite);
+	}
+
+	prototype.drawBonus = function() {
+
+		var bonus = new createjs.Shape();
+			bonus.graphics.beginFill('green').drawCircle(0,0,20);
+			bonus.y = 30;
+			bonus.alpha = 0.5;
+			this.debug_cont.addChild(bonus);
+			this.bonuses.push(bonus);
+	}
+
+	prototype.drawMalus = function() {
+
+		var malus = new createjs.Shape();
+			malus.graphics.beginFill('red').drawCircle(0,0,20);
+			malus.alpha = 0.5;
+			this.debug_cont.addChild(malus);
+			this.maluses.push(malus);
+	}
+
+	prototype.drawDebug = function() {		
+		this.debug_cont.alpha = (DEBUG===1)? 1 : 0;
 	}
 
 	prototype.hitBonus = function(surfer) {
 
-		if(this.hitted == true) return;
+		if(this.disabled === true) return;
+		if(this.bonusDisabled === true) return;
 		let j = this.bonuses.length;
 		while(j--) {
 			const bonus = this.bonuses[j];
 			const radius = bonus.graphics.command.radius;
 			const zone = typeof bonus.hitzone == 'undefined' ? 'board' : bonus.hitzone;
-			const x = this.x + (bonus.x * -1*this.wave.direction);
+			const x = this.x + bonus.x;
 			const y = this.y + bonus.y;
 
+			if(bonus.hitted === true) continue;
+
 			if(surfer.hit(zone,x,y,radius)) {
-				this.hitted = true;
+				bonus.hitted = true;
 				this.bonusHitted(bonus);
 				return true;
 			}
@@ -106,17 +162,20 @@
 
 	prototype.hitMalus = function(surfer) {
 
-		if(this.hitted == true) return;
+		if(this.disabled === true) return;
+		if(this.malusDisabled === true) return;
 		let i = this.maluses.length;
 		while(i--) {
 			const malus = this.maluses[i];
 			const radius = malus.graphics.command.radius;
 			const zone = typeof malus.hitzone == 'undefined' ? 'board' : malus.hitzone;
-			const x = this.x + (malus.x * -1*this.wave.direction);
+			const x = this.x + malus.x;
 			const y = this.y + malus.y;
 
+			if(malus.hitted === true) continue;
+
 			if(surfer.hit(zone,x,y,radius)) {
-				this.hitted = true;
+				malus.hitted = true;
 				this.malusHitted(malus);
 				return true;
 			}
@@ -124,40 +183,6 @@
 		return false;
 	}
 
-	prototype.drawImage = function() {
-		
-		var img = new createjs.Bitmap(queue.getResult(this.img));
-		this.image_cont.x = - img.image.width / 2;
-		this.image_cont.y = - img.image.height / 2;
-		this.image_cont.addChild(img);
-
-	}
-
-	prototype.drawBonus = function() {
-
-		var bonus = new createjs.Shape();
-			bonus.graphics.beginFill('green').drawCircle(0,0,20);
-			bonus.y = 30;
-			this.debug_cont.addChild(bonus);
-			this.bonuses.push(bonus);
-	}
-
-	prototype.drawMalus = function() {
-
-		var malus = new createjs.Shape();
-			malus.graphics.beginFill('red').drawCircle(0,0,20);
-			this.debug_cont.addChild(malus);
-			this.maluses.push(malus);
-	}
-
-	prototype.move = function() {
-
-		const moving = new Victor(0, this.wave.params.suction.y);
-
-		this.location.add(moving);
-		this.x = this.location.x;
-		this.y = this.location.y;
-	}
 
 	/*
 	prototype.resize = function() {
@@ -179,8 +204,14 @@
 			this.ducking = true;
 			createjs.Tween.get(this)
 				.to({ alpha: 0}, 300)
-				.call(proxy(this.wave.removeObstacle,this.wave,[this]));
+				.call(proxy(this.selfRemove(),this));
 		}
+	}
+
+	prototype.selfRemove = function() {
+
+		this.removeListeners();
+		this.wave.removeObstacle(this);
 	}
 
 	prototype.onEnterFrame = function() {
@@ -190,12 +221,12 @@
 
 	prototype.bonusHitted = function() {
 
-		//nothing
+		this.disable = true;
 	}
 
 	prototype.malusHitted = function() {
 
-		//nothing
+		this.disable = true;
 	}
 
 	//assign Obstacle to window's scope & promote
@@ -237,15 +268,22 @@
 
 		BombObstacle.prototype.drawBonus = function() {
 
-			/* no bonus */
+			var bonus = new createjs.Shape();
+				bonus.graphics.beginFill('green').drawCircle(0,0,100);
+				bonus.y = 0;
+				bonus.x = 5;
+				bonus.alpha = 0.5;
+				this.debug_cont.addChild(bonus);
+				this.bonuses.push(bonus);
 		}
 
 		BombObstacle.prototype.drawMalus = function() {
 
 			var malus = new createjs.Shape();
-				malus.graphics.beginFill('red').drawCircle(0,0,30);
+				malus.graphics.beginFill('red').drawCircle(0,0,50);
 				malus.y = 0;
 				malus.x = 5;
+				malus.alpha = 0.5;
 				malus.shotable = true;
 				malus.onShoted = proxy(this.cancelMalus,this,[malus]);
 				this.debug_cont.addChild(malus);
@@ -259,15 +297,14 @@
 		}
 
 		BombObstacle.prototype.bonusHitted = function() {
-
-			/* no bonus */
+			// bomb explose at distance (bonus), but if surfer is too close (malus) he will fall...
+			this.sprite.gotoAndPlay('explode');	
 
 		}
 
 		BombObstacle.prototype.malusHitted = function() {
 
-			this.sprite.gotoAndPlay('explode');	
-
+			//
 		}
 
 }());
@@ -317,6 +354,7 @@
 				bonus.graphics.beginFill('green').drawCircle(0,0,50);
 				bonus.y = -35;
 				bonus.x = 25;
+				bonus.alpha = 0.5;
 				this.debug_cont.addChild(bonus);
 				this.bonuses.push(bonus);
 		}
@@ -329,7 +367,7 @@
 		BeachTrooper.prototype.bonusHitted = function() {
 
 			SCORE.add(200).say('Stromtrooper kill !', 500);
-			createjs.Tween.get(this).to({alpha:0}, 300).call(proxy(this.wave.removeObstacle,this.wave,[this]));
+			createjs.Tween.get(this).to({alpha:0}, 300);
 		}
 
 		BeachTrooper.prototype.malusHitted = function() {			
@@ -427,7 +465,7 @@
 
 (function() {
 
-		function Photograf(config) {
+		function Photografer(config) {
 
 			config.img = 'photographer';
 			config.name = 'photo';
@@ -435,15 +473,15 @@
 			this.Obstacle_constructor(config);		    
 
 		}
-		Photograf.prototype = Object.create(Obstacle.prototype);
-		Photograf.prototype.constructor = Photograf;
-		window.Photograf = createjs.promote(Photograf, "Obstacle");
+		Photografer.prototype = Object.create(Obstacle.prototype);
+		Photografer.prototype.constructor = Photografer;
+		window.Photografer = createjs.promote(Photografer, "Obstacle");
 
-		Photograf.prototype.drawImage = function() {			
+		Photografer.prototype.drawImage = function() {			
 
 			var sheet = new createjs.SpriteSheet({
 			    images: [queue.getResult(this.img)],
-			    frames: {width:100, height:80, regX:30, regY:50},
+			    frames: {width:100, height:80, regX:50, regY:40},
 			    framerate: 1,
 			    animations: {	        
 			        swim: 0,
@@ -451,39 +489,135 @@
 			    }
 			});
 
-			this.sprite = new createjs.Sprite(sheet);;	
+			this.sprite = new createjs.Sprite(sheet);
+			this.sprite.scale = 1.8;
+			this.sprite.scaleX *= this.wave.direction === LEFT ? 1 : -1;
 			this.image_cont.addChild(this.sprite);
 			
 		}
 
-		Photograf.prototype.drawBonus = function() {
+		Photografer.prototype.drawBonus = function() {
 
 			var bonus = new createjs.Shape();
-			bonus.graphics.beginFill('green').drawCircle(0,0,30);
-			bonus.y = -30;
-			if(this.wave.direction == -1) bonus.x = -60;
-			if(this.wave.direction == 1) bonus.x = 60;
+			bonus.graphics.beginFill('green').drawCircle(0,0,60);
+			bonus.y = -50;
+			bonus.x = this.wave.direction === LEFT ? 60 : -60;
+			bonus.alpha = 0.5;
 			this.debug_cont.addChild(bonus);
 			this.bonuses.push(bonus);
 		}
 
-		Photograf.prototype.drawMalus = function() {
+		Photografer.prototype.drawMalus = function() {
 
 			var malus = new createjs.Shape();
-				malus.graphics.beginFill('red').drawCircle(0,0,10);		
+				malus.graphics.beginFill('red').drawCircle(0,0,20);		
+				malus.x = this.wave.direction === LEFT ? -40 : 40;
+				malus.y = 40;
+				malus.alpha = 0.5;
 				this.debug_cont.addChild(malus);
 				this.maluses.push(malus);
 		}
 
-		Photograf.prototype.bonusHitted = function() {
+		Photografer.prototype.bonusHitted = function() {
 
 			this.sprite.gotoAndPlay('flash');
 		}
 
-		Photograf.prototype.malusHitted = function() {
+		Photografer.prototype.malusHitted = function() {
 
-			//no malus action
+			console.log('photographer malus');
 		}
+
+}());
+
+(function() {
+
+		function FlyObstacle(config) {
+
+			this.speed = config.speed || 10;
+			this.amp = config.amp || 0;
+			this.high_min = config.high_min || 50;
+			this.high_max = config.high_max || Math.random() * STAGEHEIGHT*1/3;
+			this.high = this.high_min + Math.random() * (this.high_max - this.high_min);
+			this.time = 0;
+			this.phase = Math.random() * 1000;
+			this.reverse = config.reverse || false;
+
+			this.Obstacle_constructor(config);
+		}
+		
+		FlyObstacle.prototype = Object.create(Obstacle.prototype);
+		FlyObstacle.prototype.constructor = FlyObstacle;
+		window.FlyObstacle = createjs.promote(FlyObstacle, "Obstacle");
+
+		FlyObstacle.prototype.move = function() {
+
+			//compense la vitesse de la vague
+			let x = (- this.wave.movingX);
+
+			//vitesse reelle
+			let speed = this.speed;
+
+			//ajout direction de la vague
+			speed *= (this.wave.isLEFT())? 1 : -1;
+
+			//reverse direction if needed
+			if(this.reverse) speed *= -1;
+
+			//vitesse horizontale
+			x += speed;
+
+			// sinusoide verticale
+			this.time += .1;
+			let y = (this.amp === 0)? 0 : this.amp * Math.sin(this.time + this.phase);
+
+			const moving = new Victor(x,y);
+			this.location.add(moving);
+			this.x = this.location.x;
+			this.y = this.location.y;
+
+		}
+
+		FlyObstacle.prototype.initialPosition = function() {
+
+			let x = this.wave.params.breaking_center + (200 - Math.random() * 400);
+			let y = this.spot.config.lines.break - this.wave.params.height - this.wave.params.height - this.high;
+		
+			if(this.wave.isLEFT()) {
+				if(this.reverse) x = this.wave.shoulder_left.x + STAGEWIDTH*2;
+				else x = this.wave.shoulder_left.x - STAGEWIDTH/2;										
+			}
+			if(this.wave.isRIGHT()) {
+				if(this.reverse) x = this.wave.shoulder_right.x - STAGEWIDTH*2;
+				else x = this.wave.shoulder_right.x + STAGEWIDTH/2;
+			}				
+
+			let direction = (this.speed < 0)? -1 : 1;
+			x *= direction;
+
+			this.x = x;
+			this.y = y;
+			this.location = new Victor(x,y);
+		}
+
+		FlyObstacle.prototype.checkRemove = function() {
+
+			let remove = false;
+			if(this.wave.isLEFT()) {
+				if(this.reverse && this.x < this.wave.shoulder_left.x - STAGEWIDTH) remove = true;
+				else if(this.x > this.wave.shoulder_left.x + STAGEWIDTH * 2) remove = true;
+			}
+
+			if(this.wave.isRIGHT()) {
+				if(this.reverse && this.x > this.wave.shoulder_right.x + STAGEWIDTH) remove = true;
+				else if(this.x < this.wave.shoulder_right.x - STAGEWIDTH * 2) remove = true;
+			}
+
+			if(remove === true) {
+				this.selfRemove();
+			}
+		}
+
 
 }());
 
@@ -493,62 +627,33 @@
 		function FlyingMultiplier(config) {
 
 			config.name = 'multiplier';
+			config.amp = 10;
+			config.time = 0;
+			config.phase = Math.random() * 1000;
+			
 			this.multiplier = config.multiplier || 2;	
 
-			this.Obstacle_constructor(config);
+			this.FlyObstacle_constructor(config);
 
 		}
 		
-		var prototype = createjs.extend(FlyingMultiplier, Obstacle);
+		FlyingMultiplier.prototype = Object.create(FlyObstacle.prototype);
+		FlyingMultiplier.prototype.constructor = FlyingMultiplier;
+		window.FlyingMultiplier = createjs.promote(FlyingMultiplier, "FlyObstacle");
 
-		prototype.move = function() {
-
-			const moving = new Victor(0,0);
-			this.location.add(moving);
-			this.x = this.location[0];
-			this.y = this.location[1];
-		}
-
-		prototype.initialPosition = function() {
-
-			if(this.wave.direction == -1) {
-				var x = this.wave.shoulder_right.x + STAGEWIDTH * 2/3
-				var y = - Math.random()*200
-			}
-			if(this.wave.direction == 1) {
-				var x =  this.wave.shoulder_left.x - STAGEWIDTH * 2/3
-				var y = - Math.random()*200
-			}
-
-			this.x = x;
-			this.y = y;
-			this.location = new Victor(x,y);
-
-		}
-
-		prototype.checkRemove = function() {
-
-			if(this.wave.direction==1 && this.x > this.wave.shoulder_left.x + STAGEWIDTH
-				||
-				this.wave.direction==-1 && this.x < this.wave.shoulder_right.x - STAGEWIDTH
-			) {	
-				this.wave.removeObstacle(this);
-			}			
-		}
-
-		prototype.drawImage = function() {			
+		FlyingMultiplier.prototype.drawImage = function() {			
 
 			var graphics = new createjs.Graphics()
 					.setStrokeStyle(5)
 					.beginStroke('rgba(255,255,255,0.5)')
 					.beginFill('rgba(255,255,255,1)')
-					.drawCircle(0, 0, 15)
+					.drawCircle(0, 0, 30)
 					;	 
 		
 			var circle = new createjs.Shape(graphics)
 			this.image_cont.addChild(circle);
 			
-			var text = new createjs.Text('','normal 20px BubblegumSansRegular','#000')
+			var text = new createjs.Text('','bold 26px Helvetica','#000')
 			text.text = 'x'+this.config.multiplier;
 			var b = text.getBounds()
 			text.x = - b.width / 2
@@ -557,23 +662,203 @@
 			this.image_cont.addChild(text)
 		}
 
-		prototype.drawBonus = function() {
+		FlyingMultiplier.prototype.drawBonus = function() {
 
 			var bonus = new createjs.Shape();
 			bonus.graphics.beginFill('green').drawCircle(0,0,30);
-			bonus.alpha = 0.1
+			bonus.alpha = 0.5;
 			this.debug_cont.addChild(bonus);
 			this.bonuses.push(bonus);
 		}
 
-		prototype.drawMalus = function() {
+		FlyingMultiplier.prototype.drawMalus = function() {
 			//no malus
 		}
 
-		prototype.bonusHitted = function() {
+		FlyingMultiplier.prototype.bonusHitted = function() {
 			createjs.Tween.get(this).to({scaleX:4,scaleY:4,alpha:0},300);
 		}
 
-		window.FlyingMultiplier = createjs.promote(FlyingMultiplier, "Obstacle");
+
+}());
+
+(function() {
+
+		function FlyingPrize(config) {
+
+			config.name = 'prize';
+			config.amp = 20;
+			config.time = 0;
+			config.speed = 15;
+			config.phase = Math.random() * 1000;
+
+			this.value = config.value || 1000;	
+			if(this.value === 1000) this.color = 'green';
+			if(this.value === 2000) this.color = 'yellow';
+			if(this.value === 3000) this.color = 'orange';
+			if(this.value === 4000) this.color = 'red';
+			if(this.value === 5000) this.color = 'gold';
+
+			this.FlyObstacle_constructor(config);
+
+		}
+		
+		FlyingPrize.prototype = Object.create(FlyObstacle.prototype);
+		FlyingPrize.prototype.constructor = FlyingPrize;
+		window.FlyingPrize = createjs.promote(FlyingPrize, "FlyObstacle");
+
+		FlyingPrize.prototype.drawImage = function() {			
+
+			var graphics = new createjs.Graphics()
+					.setStrokeStyle(5)
+					.beginStroke('rgba(255,255,255,0.5)')
+					.beginFill(this.color)
+					.drawCircle(0, 0, 30)
+					;	 
+		
+			var circle = new createjs.Shape(graphics)
+			this.image_cont.addChild(circle);
+
+			var text = new createjs.Text(this.value,'bold 20px Helvetica','#000')
+			var b = text.getBounds()
+			text.x = - b.width / 2
+			text.y = - b.height / 2
+
+			this.image_cont.addChild(text)
+		}
+
+		FlyingPrize.prototype.drawBonus = function() {
+
+			var bonus = new createjs.Shape();
+			bonus.graphics.beginFill('green').drawCircle(0,0,30);
+			bonus.alpha = 0.5;
+			bonus.hitzone = 'body';
+			this.debug_cont.addChild(bonus);
+			this.bonuses.push(bonus);
+		}
+
+		FlyingPrize.prototype.drawMalus = function() {
+			//no malus
+		}
+
+		FlyingPrize.prototype.bonusHitted = function() {
+			createjs.Tween.get(this).to({scaleX:3,scaleY:3,alpha:0},300);
+		}
+
+
+}());
+
+
+
+(function() {
+
+		function Cigogne(config) {
+
+			config.name = 'cigogne';
+			config.img = 'cigogne';
+			config.high_min = 200;
+			config.high_max = 400;
+			config.speed = 20;
+			config.reverse = true;
+
+			this.FlyObstacle_constructor(config);
+		}
+		
+		Cigogne.prototype = Object.create(FlyObstacle.prototype);
+		Cigogne.prototype.constructor = Cigogne;
+		window.Cigogne = createjs.promote(Cigogne, "FlyObstacle");
+
+		Cigogne.prototype.drawImage = function() {			
+
+			var sheet = new createjs.SpriteSheet({
+			    images: [queue.getResult(this.img)],
+			    frames: {width:256, height:256, regX:128, regY:128},
+			    framerate: 1,
+			    animations: {	        
+			        fly: [0,5,'fly'],
+			    }
+			});
+
+			this.sprite = new createjs.Sprite(sheet);
+			this.sprite.scaleX *= this.wave.isLEFT()? -1 : 1;
+			this.sprite.gotoAndPlay('fly');
+			this.image_cont.addChild(this.sprite);
+
+		}
+
+		Cigogne.prototype.drawBonus = function() {
+
+		}
+
+		Cigogne.prototype.drawMalus = function() {
+			//no malus
+		}
+
+		Cigogne.prototype.bonusHitted = function() {
+			
+		}
+
+
+}());
+
+(function() {
+
+		function Drone(config) {
+
+			config.name = 'drone';
+			config.img = 'drone';
+			config.amp = Math.random() * 2;
+			config.high_min = 100;
+			config.high_max = 300;
+			config.speed = 5;
+
+			this.FlyObstacle_constructor(config);
+
+		}
+		
+		Drone.prototype = Object.create(FlyObstacle.prototype);
+		Drone.prototype.constructor = Drone;
+		window.Drone = createjs.promote(Drone, "FlyObstacle");
+
+		Drone.prototype.drawImage = function() {			
+
+			var sheet = new createjs.SpriteSheet({
+			    images: [queue.getResult('drone')],
+			    frames: {width:256, height:256, regX:128, regY:128},
+			    framerate: 1,
+			    animations: {	        
+			        fly: [0,2,'fly'],
+			        flash: [3,6,'fly']
+			    }
+			});
+
+			this.sprite = new createjs.Sprite(sheet);
+			this.sprite.scaleX *= this.wave.direction === LEFT ? 1 : -1;
+			this.sprite.gotoAndPlay('fly');
+			this.sprite.scale = 0.5;
+			this.image_cont.addChild(this.sprite);
+
+		}
+
+		Drone.prototype.drawBonus = function() {
+			var bonus = new createjs.Shape();
+			bonus.graphics.beginFill('green').drawCircle(0,0,75);
+			bonus.alpha = 0.2;
+			bonus.hitzone = 'body';
+			bonus.y = 75;
+			this.debug_cont.addChild(bonus);
+			this.bonuses.push(bonus);
+		}
+
+		Drone.prototype.drawMalus = function() {
+			//no malus
+		}
+
+		Drone.prototype.bonusHitted = function() {
+			
+			this.sprite.gotoAndPlay('flash');
+			
+		}
+
 
 }());

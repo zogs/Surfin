@@ -20,15 +20,18 @@ var conf = {
 			real_height: 3,
 			breaking: {
 				width: 180,
-				y_speed: 1200,
 				x_speed: 50,
+				x_speed_max: 50,
+				x_speed_interval: 0,
+				x_speed_pause: 200,
+				y_speed: 1200,
 				y_ease: 'quartIn',
 				splash_h_percent: 100,
 				splash_h_ease: 0.4,
 				left: {
 					width: 20,
-					width_max: 0,				
-					width_interval: 0,
+					width_max: 30,				
+					width_interval: 1000,
 					width_pause: 0,
 					block_interval: 0,
 					block_interval_max: 0,
@@ -38,7 +41,7 @@ var conf = {
 				right: {
 					width: 20,
 					width_max: 0,
-					width_interval: 3000,
+					width_interval: 0,
 					width_pause: 1000,
 					block_interval: 2000,
 					block_interval_max: 600,
@@ -48,12 +51,21 @@ var conf = {
 			},
 			lip: {
 				thickness: 10,
-				color: '#FFF',
+				colors: {
+					top: '#093950',
+					bottom: 'rgba(255,255,255,0.2)',
+				},
 				cap: {
 					width: 700,
 					height: 10,
 					lifetime: 800,
-				},
+				},				
+			},
+			splash: {
+				colors: {
+					top: '#FFF',
+					bottom: '#FFF',
+				}
 			},
 			paddling_effort: 1,
 			bottom_fall_scale: 0.8,
@@ -66,11 +78,14 @@ var conf = {
 				['#146389',0,50],
 				['#0f597d',0,100]
 			],
-			obstacles_interval: 0,
-			obstacles_interval_max: 0, 
 			obstacles: {
-				'paddler' : {percentage: 50},
-				'photograph' : {percentage: 50},
+				'interval': 0,
+				'interval_max': 1000,
+				'type' : {
+					'paddler' : {percentage: 30},
+					'photographer' : {percentage: 30},
+					'bomb': {percentage: 40},					
+				},
 			},
 			shoulder : {
 				left : {

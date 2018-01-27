@@ -119,7 +119,7 @@ function cloneObject(obj) {
 function Timer(callback, delay) {
     var args = arguments,
         self = this,
-        timer, start;
+        timer, start, ended = false;
 
     this.log = function() {
       console.log(timer);
@@ -134,9 +134,52 @@ function Timer(callback, delay) {
         delay -= new Date() - start;
     };
 
+    this.start = function () {
+        start = new Date();        
+        timer = setTimeout(function () {
+            callback.apply(self, Array.prototype.slice.call(args, 2, args.length));
+            ended = true;
+        }, delay);
+    };
+
+    this.resume = function () {
+        if(ended == true) return;
+        start = new Date();  
+        timer = setTimeout(function () {
+            callback.apply(self, Array.prototype.slice.call(args, 2, args.length));
+            ended = true;
+        }, delay);
+    };
+
+    this.isEnded = function() {
+      return ended;
+    }
+
+    this.start();
+}
+
+// Create a interval with a pause method
+// usage : new Interval(Function, Number, arg1, arg2, arg3...)
+function Interval(callback, delay) {
+    var args = arguments,
+        self = this,
+        timer, start;
+
+    this.log = function() {
+      console.log(timer);
+    }
+
+    this.clear = function () {
+        clearInterval(timer);
+    };
+
+    this.pause = function () {
+        this.clear();
+    };
+
     this.resume = function () {
         start = new Date();
-        timer = setTimeout(function () {
+        timer = setInterval(function () {
             callback.apply(self, Array.prototype.slice.call(args, 2, args.length));
         }, delay);
     };
