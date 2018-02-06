@@ -54,7 +54,7 @@ function loadJsDir($dir) {
 	while(($file = readdir($handle))!==false) {
 		if($file == '.' || $file == '..') continue;
 		$file = $dir.$file;
-		echo '<script src="'.$file.'" type="text/javascript"></script>';
+		echo '<script src="'.$file.'" type="text/javascript"></script>';		
 	}
 	closedir($handle);
 }

@@ -4,18 +4,18 @@
 
 		this.Container_constructor();
 
-		this.waves = [];
-		this.paddlers = [];
-
-		this.runing = false;
-		this.timers = [];
-		this.time_scale = (TIME_SCALE) ? TIME_SCALE : 1;
-
 		this.id = spot.id;
 		this.name = spot.name;
-		this.config = spot.config
+		this.config = spot.config;
+		this.randid = Math.floor(Math.random()*10000);
 
-		//Score
+		this.waves = [];
+		this.surfers = [];
+		this.paddlers = [];
+		this.timers = [];
+
+		this.runing = false;
+		this.time_scale = (TIME_SCALE) ? TIME_SCALE : 1;
 
 		this.background = new createjs.Container();
 		this.addChild(this.background);
@@ -95,7 +95,7 @@
 
 		const frontimage = new createjs.Bitmap(queue.getResult('spot_front'));
 		frontimage.alpha = 0.4;
-		//this.frontground.addChild(frontimage);
+		this.frontground.addChild(frontimage);
 	}
 	
 	prototype.addNextSerie = function() {
@@ -159,6 +159,7 @@ console.log('addSwell');
 		tween.to({y: this.config.lines.beach + this.config.waves.height}, this.config.series.speed)
 		tween.call(proxy(this.removeWave,this,[wave]))
 		tween.addEventListener('change',proxy(wave.coming,wave));
+		wave.coming_tween = tween;
 
 		// if last wave of serie, add next wave
 		if( nb === this.config.series.length) {		
@@ -223,6 +224,7 @@ console.log('addSwell');
 			tween.to({y: this.config.lines.beach + this.config.waves.height}, this.config.series.speed)
 			tween.call(proxy(this.removeWave,this,[wave]))
 			tween.addEventListener('change',proxy(wave.coming,wave));
+			wave.coming_tween = tween;
 
 		// start tween at advanced position			
 		tween.setPosition(position);
@@ -294,7 +296,8 @@ console.log('addSwell');
 
 	prototype.remove = function() {
 
-		this.waves.map(function(wave) { wave.selfRemove(); });
+		this.timers.map(function(timer) { timer.clear() });
+		this.waves.map(function(wave) { createjs.Tween.removeTweens(wave); wave.selfRemove(); });
 		this.paddlers.map(function(paddler) { paddler.remove() });
 		this.score.selfRemove();
 
@@ -308,30 +311,29 @@ console.log('addSwell');
 
 		this.addEventListener('tick',proxy(this.tick,this));
 
-		stage.on('player_take_off',function(event) {
+		this.on('player_take_off',function(event) {
 			this.playerTakeOff(event.surfer,event.wave);
 			event.remove();
 		},this);
 
-		stage.on('played_wave_on_spot',function(event) {
+		this.on('played_wave',function(event) {
+			console.log('played_wave');
 			this.stopPlayedWave(event.wave);
-			event.remove();
 		},this);
 
-		stage.on('non_played_wave_on_spot',function(event) {
+		this.on('non_played_wave',function(event) {			
 			this.fadeNonPlayedWave(event.wave);
-			event.remove();
 		},this);
 
-		stage.on('paddler_paddling',function(event) {
+		this.on('paddler_paddling',function(event) {
 			this.paddlerPaddling(event);
 		},this);
 
-		stage.on('player_fallen',function(event) {	
+		this.on('player_fallen',function(event) {	
 			this.playerFalling(event);
 		},this,true);
 
-		stage.on('level_up',function(event) {	
+		this.on('level_up',function(event) {	
 			this.levelUp(event.level, event.points);
 		},this,true);
 	}
@@ -349,6 +351,9 @@ console.log('addSwell');
 
 		// cancel if spot is not currently runing
 		if(this.runing === false) return;
+
+		// cancel if on pause
+		if(PAUSED === true) return;
 
 		// manage relative position for each paddler
 		for(var i=0,len=this.paddlers.length;i<len;++i) {
@@ -385,30 +390,31 @@ console.log('addSwell');
 	}
 
 	prototype.fadeNonPlayedWave = function(wave) {
-
-		//var tween  = createjs.Tween.get(wave, {override:false}).wait(2000).to({alpha: 0}, 1000);
+		
+		var tween  = createjs.Tween.get(wave, {override:false})
+			.to({alpha: 0}, 1000)
+			.call(proxy(this.removeWave,this,[wave]))
+			;
 	}
 
 	prototype.stopPlayedWave = function(wave) {
-
+		console.log('stopPlayedWave');
 		//stop this wave and all the next ones
 		var i = this.waves.indexOf(wave) + 1;
 		while(i--) {
-			//this.waves[i].ytween.setPaused(true);
-			createjs.Tween.removeTweens(this.waves[i]);
+			this.waves[i].coming_tween.paused = true;
+			//createjs.Tween.removeTweens(this.waves[i]);
 		}
 
 		//stop serie incoming
-		clearTimeout(this.series_interval);
-		clearTimeout(this.waves_interval);
+		this.timers.map(t => t.clear());
 
 	}
 
 	prototype.playerTakeOff = function(surfer,wave) {
-		this.isPlayed = true;
+		
 		this.wave = wave;
 		this.surfer = surfer;
-
 		//stop spot timers
 		this.timers.map(t => t.clear());
 	}
@@ -511,7 +517,6 @@ console.log('addSwell');
 	}
 
 	prototype.isPaddlerOnWave = function(paddler,wave) {
-
 		if(paddler.getY() < wave.getY() && paddler.getY() > (wave.getY() - wave.params.height)) return true;
 		return false;
 	}
@@ -553,6 +558,7 @@ console.log('addSwell');
 		paddler.clearPaddler();
 		this.sea_cont.removeChild(paddler);
 		this.paddlers.splice(this.paddlers.indexOf(paddler),1);
+		return this;
 	}
 
 	prototype.removeAllPaddlers = function() {
@@ -561,7 +567,6 @@ console.log('addSwell');
 			let paddler = this.paddlers[i];
 			this.removePaddler(paddler);
 		}
-
 		return this;
 	}
 
@@ -615,7 +620,7 @@ console.log('addSwell');
 		if(TEST) return;
 
 		//stop useless interval
-		window.clearInterval(this.wave.clearnerInterval);
+		this.wave.cleaning_timer.clear();
 		//freaze the wave after 6s
 		this.stopWaveTimeout = setTimeout(proxy(this.stopWaveAfterFall,this), 6000);		
 		//launch fall screen
@@ -729,7 +734,8 @@ console.log('addSwell');
 		this.overlay_veil.alpha = 0;
 		
 		//reset this spot
-		this.init();
+		//this.init();
+		this.launch();
 
 		//reset score
 		this.score.reset();
@@ -753,8 +759,8 @@ console.log('addSwell');
 
 		this.config = config;
 		this.getWaves().map(function(w) {
-			w.setConfig(config.waves);
-			w.getSurfers().map(s => s.setConfig(config.surfers));
+			w.updateConfig(config.waves);
+			w.getSurfers().map(s => s.updateConfig(config.surfers));
 		});
 	}
 
@@ -784,7 +790,7 @@ console.log('addSwell');
 	}
 
 	prototype.removeWave = function(wave) {
-		
+		console.log('removeWave');
 		createjs.Tween.removeTweens(wave);
 		wave.selfRemove();
 		this.sea_cont.removeChild(wave);
@@ -793,7 +799,6 @@ console.log('addSwell');
 	}
 
 	prototype.removeAllWaves = function() {
-		
 		this.timers.map(t => t.clear());
 		this.waves.map(w => createjs.Tween.removeTweens(w));
 		this.waves.map(w => w.selfRemove());
@@ -805,19 +810,9 @@ console.log('addSwell');
 		return this;
 	}
 
-	prototype.clearSpot = function() {
-
-		createjs.Tween.removeAllTweens();
-		this.timers.map(t => t.clear());
-		this.removeAllWaves();
-		this.removeAllPaddlers();
-		this.removeAllOverlays();
-	}
-
 	prototype.breakAllWaves = function() {
 
 		for(var i=0; i < this.waves.length; ++i) {
-
 			this.waves[i].initBreak(700);
 		}
 	}
@@ -841,32 +836,10 @@ console.log('addSwell');
 		}
 
 		for(var i=0; i < this.timers.length; ++i) {
-		console.log(this.timers[i].isEnded());
 			this.timers[i].resume();
 		}
 
 		this.score.resume();
-	}
-
-	prototype.stopOtherWaves = function() {
-
-		for(var i=0; i < this.waves.length; ++i) {
-
-			//except the riding wave
-			if(this.waves[i] == this.wave) continue;
-
-			//remove tween only for non-breaked waves
-			if(this.waves[i].y <= this.peak_point) createjs.Tween.removeTweens(this.waves[i]);
-		}
-
-		window.clearInterval(this.swell_timer);
-	}
-
-	prototype.stopNextWaves = function() {
-
-		createjs.Tween.removeTweens(this.waves[3]);
-
-		window.clearInterval(this.swell_timer);
 	}
 
 	prototype.drawDebug = function() {

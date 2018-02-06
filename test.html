@@ -1,223 +1,75 @@
+<!DOCTYPE html>
 <html>
 <head>
-	<style>
-	section {
-		width:100%;
-		float:left;
-		overflow: hidden;
-	}
-	section#pickup {
-		position: relative;
-		margin-top: -30px;
-	}
-	section#form {
-		position: relative;
-		margin-top: 200px;
-		margin-left: 200px;
-	}
-	div {
-	  float: left;
-	  width: 150px;
-	  height: 150px;
-	  border: solid 2px black;
-	  margin: 2px;
-	  padding: 5px;
-	  font-weight: bold;
-	  color: white;
-	}
-	</style>
-</head>
-<body>
-	<section id="colorbar"></section>
-	<section id="pickups"></section>
-	<section id="form">
+	<title>EaselJS demo: bubbling events</title>
+	<link href="../_shared/demo.css" rel="stylesheet" type="text/css">
+	<script src="https://code.createjs.com/easeljs-0.8.2.min.js"></script>
+	<script>
+		var stage, output, lastPhase;
 		
-		<form action="">
-			<label for="">Enter une couleur au format hexa</label>
-			<input type="text" onchange="addNewPickup(this.value);">
-			<br>
-			<label for="">Tester une nouvelle couleur</label>
-			<input type="color" onchange="addNewPickup(this.value);">
-		</form>
-	</section>
-</body>
-
-<script type="text/javascript">
-
-
-var colorbar = [
-            {v:10, r:255, g:132, b:32, a:255},
-            {v:20, r:255, g:180, b:75, a:255},
-            {v:40, r:255, g:231, b:108, a:255},
-            {v:60, r:223, g:255, b:106, a:255},
-            {v:100, r:161, g:255, b:74, a:255},
-            {v:200, r:105, g:255, b:180, a:255},
-            {v:300, r:90, g:220, b:255, a:255},
-            {v:400, r:85, g:134, b:241, a:255},
-            {v:500, r:49, g:84, b:212, a:255},
-            {v:1000000, r:33, g:0, b:151, a:255},
-];
-
-var pickups = [
-	{id:1, r:137,g:246,b:140},
-	{id:2, r:101,g:136,b:204},
-	{id:3, r:254,g:187,b:100},
-	{id:4, r:55, g:92,b:165},
-];
-
-var canvas = document.createElement('canvas');
-var context = canvas.getContext('2d');
-var currentColor;
-document.body.appendChild(canvas);
-var image = new Image();
-image.src = 'cumul_user_1.png';
-image.onload = function(ev) {
-	var width = ev.path[0].width;
-	var height = ev.path[0].height;
-	
-	canvas.width = width;
-	canvas.height = height;
-	context.drawImage(image,0,0);
-}
-console.log(image);
-
-canvas.onmousemove = function(e) {
-
-	var x = e.offsetX;
-	var y = e.offsetY;
-	var color = findPixelColor(x,y);
-	currentColor = color;
-}
-
-canvas.onclick = function(e) {
-
-	computePickup(currentColor);
-}
-
-
-
-
-
-for(var i=0,len=colorbar.length; i<len; i++) {
-	var color = colorbar[i];
-	var div = document.createElement('div');
-	div.innerHTML = color.v;
-	div.id = 'range'+i;
-	div.style.backgroundColor = 'rgb('+color.r+','+color.g+','+color.b+')';
-	document.getElementById('colorbar').appendChild(div);
-}
-
-for(var i=0, len=pickups.length; i<len; i++) {
-
-	let pickup = pickups[i];
-	computePickup(pickup);
-}
-
-function computePickup(pickup) {
-
-	let range = findClosestRange(pickup);
-	let value = findColorCumulValue(pickup,range.bottom,range.upper);
-	showPickup(pickup,range);
-}
-
-function showPickup(pickup,range) {
-
-	var div = document.createElement('div');
-	div.id = 'pickup'+pickup.id;
-	div.innerHTML = pickup.v.toFixed(2);
-	div.style.position = 'absolute';
-	div.style.backgroundColor = 'rgb('+pickup.r+','+pickup.g+','+pickup.b+')';
-
-	var pa = document.getElementById('range'+range.index);
-	var pos = pa.getBoundingClientRect();
-	
-	div.style.left = pos.left+'px';
-
-	var margin = ((pickup.v - range.bottom.v) / (range.upper.v - range.bottom.v)) * pos.width;
-	div.style.marginLeft = margin;
-
-	document.getElementById('pickups').appendChild(div);
-	
-}
-
-function addNewPickup(hex) {
-
-	var rgb = hexToRGB(hex);
-
-	var pick = {
-		id : pickups.length,
-		r : parseInt(hex.slice(1, 3), 16),
-		g : parseInt(hex.slice(3, 5), 16),
-		b : parseInt(hex.slice(5, 7), 16),
-	}
-
-	pickups.push(pick);
-
-	computePickup(pick);
-}
-
-function findClosestRange(color) {
-
-	var diffs = [];
-	for(let i=0,len=colorbar.length-1; i<len; ++i) {
-		// get color bar ranges
-		let range = {
-			bottom: colorbar[i],
-			upper: colorbar[i+1]
+		function init() {
+			stage = new createjs.Stage("demoCanvas");
+			stage.name = "stage";
+			
+			output = new createjs.Text("try clicking on the background vs the label text\n\nthe background & label are both inside of a Container named 'button'", "13px courier");
+			output.lineWidth = 280;
+			output.lineHeight = 13;
+			output.x = 190;
+			output.y = 10;
+			
+			
+			var background = new createjs.Shape();
+			background.name = "background";
+			background.graphics.beginFill("red").drawRoundRect(0, 0, 150, 60, 10);
+			
+			var label = new createjs.Text("click me!", "bold 24px Arial", "#FFFFFF");
+			label.name = "label";
+			label.textAlign = "center";
+			label.textBaseline = "middle";
+			label.x = 150/2;
+			label.y = 60/2;
+			
+			var button = new createjs.Container();
+			button.name = "button";
+			button.x = 20;
+			button.y = 20;
+			button.addChild(background, label);
+			// setting mouseChildren to false will cause events to be dispatched directly from the button instead of its children.
+			// button.mouseChildren = false;
+			
+			stage.addChild(button, output);
+			
+			// set up listeners for all display objects, for both the non-capture (bubble / target) and capture phases:
+			var targets = [stage,button,label,background];
+			for (var i=0; i<targets.length; i++) {
+				var target = targets[i];
+				target.on("click", handleClick, null, false, null, false);
+				target.on("click", handleClick, null, false, null, true);
+				//target.addEventListener("click", handleClick, false);
+				//target.addEventListener("click", handleClick, true);
+			}
+			
+			stage.update();
 		}
-		// calcul the middle color
-		var middle = findMiddleColor(range.bottom,range.upper);
-		// calcul the sum diffenrece from pickup color to the MIDDLE color
-		let diff = colorDifference(color,middle);
-		// add it to array
-		diffs.push({bottom: range.bottom, upper: range.upper, diff: diff, index:i});
-	}
-	// the range with the less difference IS the range the color is included
-	var closest = diffs.reduce((a,b) => b.diff < a.diff ? b : a);
-
-	return closest;
-}
-
-function colorDifference(c1,c2) {
-
-	return Math.pow(c1.r-c2.r,2)+Math.pow(c1.g-c2.g,2)+Math.pow(c1.b-c2.b,2);
-}
-
-function findColorCumulValue(c,v1,v2) {
-
-	var d = colorDifference(v1,v2);
-	var d1 = colorDifference(c,v1);
-	var d2 = colorDifference(c,v2);
-	var pc = d1 / d;
-	return c.v = v1.v + (v2.v - v1.v) * pc;
-
-}
-
-function findMiddleColor(c1,c2) {
-
-	if(c1 === undefined) return c2;
-	if(c2 === undefined) return c1;
-
-	var r = Math.floor((c1.r + c2.r) / 2);
-	var g = Math.floor((c1.g + c2.g) / 2);
-	var b = Math.floor((c1.b + c2.b) / 2);
-	var v = Math.floor((c1.v + c2.v) / 2);
-
-	return {r:r, g:g, b:b, v:v};
-}
-
-function hexToRGB(hex, alpha) {
-    var r = parseInt(hex.slice(1, 3), 16),
-        g = parseInt(hex.slice(3, 5), 16),
-        b = parseInt(hex.slice(5, 7), 16);
-
-    if (alpha) {
-        return "rgba(" + r + ", " + g + ", " + b + ", " + alpha + ")";
-    } else {
-        return "rgb(" + r + ", " + g + ", " + b + ")";
-    }
-}
-
-</script>
-
+		
+		function handleClick(evt) {
+			if (evt.currentTarget == stage && evt.eventPhase == 1) {
+				// this is the first dispatch in the event life cycle, clear the output.
+				output.text = "target : eventPhase : currentTarget\n";
+			}
+			
+			output.text += evt.target.name+" : "+evt.eventPhase+" : "+evt.currentTarget.name+"\n";
+			
+			if (evt.currentTarget == stage && evt.eventPhase == 3) {
+				// this is the last dispatch in the event life cycle, render the stage.
+				stage.update();
+			}
+		}
+	</script>
+</head>
+<body onload="init();">
+	<canvas id="demoCanvas" width="500" height="100">
+		alternate content
+	</canvas>
+</body>
 </html>

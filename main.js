@@ -144,10 +144,13 @@ window.loadSpot = function(event, name = 'default') {
 
 window.addSpot = function(config, launch = true) {
 
+	//clear previous spot
+	if(SPOT) {
+		SPOT.remove();
+		window.removeSpot(SPOT);
+	}
 	//clear stage
 	stage.removeAllChildren();
-	//clear previous spot
-	window.removeSpot(SPOT);
 	//create spot with new config
 	SPOT = new Spot(config);
 	//add it
@@ -207,6 +210,8 @@ window.showMenu = function(e) {
 
 
 	const spots = SPOTSCONF;
+	spots.sort(function(a,b) { return a.id - b.id });
+
 
 	const background = new createjs.Bitmap(queue.getResult('bg_paradize'));
 	stage.addChild(background);

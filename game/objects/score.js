@@ -11,6 +11,7 @@
 		this.talking = false;
 		this.kill_count = 0;
 		this.timers = [];
+		this.enabled = false;
 
 		this.phrases = {
 			'hit top lip' : ['Open your mouth for a free teethbrush','This wave is too big for you'],
@@ -69,62 +70,72 @@
 
 	prototype.initEventsListeners = function() {
 
-		stage.on('surfer_take_off_ended',function(event) {
-			this.progress().say('Take Off !', 1000);
+		this.spot.on('surfer_take_off',function(event) {
+			this.enable();
+			this.progress();
 		},this);
 
-		stage.on('surfer_aerial_start',function(event) {	
+		this.spot.on('surfer_take_off_ended',function(event) {
+			console.log(event.quality);
+			if(event.quality >= 50) this.say('Super takeOff !!!', 1000, 2000);
+			else if(event.quality >= 20) this.say('Good takeOff !', 1000, 1000);
+			else this.say('Bad takeOff...', 1000);
+			
+		},this);
+
+		this.spot.on('surfer_aerial_start',function(event) {	
 			this.say(event.trick.name, null, event.trick.score,10);
 		},this);
 
-		stage.on('surfer_aerial_end',function(event) {			
-			this.silence();
+		this.spot.on('surfer_aerial_end',function(event) {			
+			this.shut();
 		},this);
 
-		stage.on('surfer_tube_in',function(event) {
+		this.spot.on('surfer_tube_in',function(event) {
 			this.say('Tuuube !', null, 1000, 50);
 		},this);
 
-		stage.on('surfer_tube_out',function(event) {
-			this.silence();
+		this.spot.on('surfer_tube_out',function(event) {
+			console.log('tube out');
+			this.shut();
 		},this);
 
-		stage.on('player_fall',function(event) {
+		this.spot.on('player_fall',function(event) {
 			this.stopProgress();
+			this.disable();
+			console.log('fall');
 			this.failPhrase = this.getRandomPhrase(event.reason);
 		},this);
 
-		stage.on('player_fallen',function(event) {
-			this.end().silence();
+		this.spot.on('player_fallen',function(event) {
+			this.end().shut();
 		},this);
 
-		stage.on('paddler_bonus_hitted',function(event) {
+		this.spot.on('paddler_bonus_hitted',function(event) {
 			this.say('hey buddy !',300,100);
 		},this);
 
-		stage.on('photo_bonus_hitted',function(event) {
+		this.spot.on('photo_bonus_hitted',function(event) {
 			this.say("Nice pic !",500,200);
 		},this);
 
-		stage.on('drone_bonus_hitted',function(event) {
-			this.say("Nice pic !",500,1000);
+		this.spot.on('drone_bonus_hitted',function(event) {
+			this.say("Great pic !",500,1000);
 		},this);
 
-		stage.on('multiplier_bonus_hitted',function(event) {
+		this.spot.on('multiplier_bonus_hitted',function(event) {
 			this.current_multiplier = this.current_multiplier * event.obstacle.multiplier;
 		},this);
 
-		stage.on('prize_bonus_hitted', function(event) {
-			console.log(event);
-			this.say('+'+event.obstacle.value+' points !',500);
+		this.spot.on('prize_bonus_hitted', function(event) {
+			this.say('+'+event.obstacle.value+' !',500);
 		},this);
 
-		stage.on('level_up',function(event) {
+		this.spot.on('level_up',function(event) {
 			this.levelUp(event.level);
 		},this);
 
-		stage.on('surfer_kill',function(event) {
-			console.log('shoted');
+		this.spot.on('surfer_kill',function(event) {
 			if(event.player === event.killed) this.say("Paf...", 1000);
 			if(event.player === event.killer) {
 				this.kill_count++;
@@ -178,6 +189,16 @@
 	prototype.setScore = function(sc) {
 		this.current_score = sc;
 		this.score.text = sc;
+		return this;
+	}
+
+	prototype.enable = function() {
+		this.enabled = true;
+		return this;
+	}
+
+	prototype.disable = function() {
+		this.enabled = false;
 		return this;
 	}
 
@@ -289,12 +310,16 @@
 	}
 
 	prototype.say = function(tx, time = null, score = null, growth = null) {
+
+		if(this.enable === false) return;
+
 		var pos = SPOT.wave.surfer.localToGlobal(0,0);
 
 		this.onWaveDisplay = new createjs.Container();
 		this.onWaveDisplay.sliding = false;
 
 		this.onWaveDisplay.y = -SPOT.wave.params.height - 150;
+		this.onWaveDisplay.y += (SPOT.wave.surfer.y >=0)? 0 : SPOT.wave.surfer.y;
 		this.onWaveDisplay.x = (SPOT.wave.isCENTER())? this.onWaveDisplay.x = pos.x : this.onWaveDisplay.x = pos.x ;
 
 		let circle = new createjs.Shape();
@@ -304,7 +329,7 @@
 		circle.scale = 0;
 		createjs.Tween.get(circle).to({scale: 1}, 700, createjs.Ease.bounceOut).wait(300).to({alpha: 0},1000, createjs.Ease.quartOut);
 
-		let text = new createjs.Text('','bold 80px BubblegumSansRegular','#FFF'); //BubblegumSansRegular BoogalooRegular albaregular
+		let text = new createjs.Text('','bold 70px BubblegumSansRegular','#FFF'); //BubblegumSansRegular BoogalooRegular albaregular
 		text.text = tx;
 	  text.alpha = 0.8;
 	  let b = text.getBounds();
@@ -318,7 +343,7 @@
 		createjs.Tween.get(text).to({y: 0, alpha: 1, scale: 1}, 800, createjs.Ease.elasticOut);
 
 		if(time !== null) {
-			createjs.Tween.get(this.onWaveDisplay).wait(time).call(proxy(this.silence,this));			
+			createjs.Tween.get(this.onWaveDisplay).wait(time).call(proxy(this.shut,this));			
 		}
 
 		if(score !== null) {
@@ -388,7 +413,7 @@
 		SPOT.wave.score_particles_cont.removeChild(emitter);
 	}
 
-	prototype.silence = function() {
+	prototype.shut = function() {		
 
 		//for all text childs
 		for (var i = SPOT.wave.score_text_cont.numChildren - 1; i >= 0; i--) {
@@ -404,6 +429,16 @@
 				cont.growth = null;
 			}
 
+			//if sufer have fallen, hide score and return
+			if(SPOT.wave.surfer.falling === true) {
+				createjs.Tween.get(cont).to({alpha: 0}, 1500, createjs.Ease.quartIn);
+				if(cont.score instanceof createjs.Text) {
+					createjs.Tween.get(cont.score).set({color: 'red'}).to({scale:1.2},200).to({scale: 0.5, alpha: 0}, 800, createjs.Ease.quartIn);					
+				}
+				continue;
+			}
+
+			//scale up sub-score and add to glocal score
 			if(cont.score instanceof createjs.Text) {
 				createjs.Tween.get(cont.score).to({scale: 2}, 400, createjs.Ease.bounceOut);
 
@@ -520,7 +555,7 @@
 			var event = new createjs.Event('level_up');
 			event.level = new_level;
 			event.points = this.skill_per_level;
-			stage.dispatchEvent(event);
+			this.spot.dispatchEvent(event);
 
 			//new progress bar
 			this.startXpBar(0,excedent_xp,new_level);

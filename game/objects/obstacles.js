@@ -204,7 +204,7 @@
 			this.ducking = true;
 			createjs.Tween.get(this)
 				.to({ alpha: 0}, 300)
-				.call(proxy(this.selfRemove(),this));
+				.call(proxy(this.selfRemove,this));
 		}
 	}
 

@@ -14,10 +14,9 @@
 	//init 
 	prototype.init = function(params) {
 
-		this.spot = params.spot;
-
 		this.x = params.x;
 		this.y = params.y;
+		this.spot = params.spot;
 
 		this.paddling_force = 0;
 		this.paddling_progress = 0;
@@ -163,7 +162,7 @@
 		//throw event
 		var e = new createjs.Event("paddler_paddling");
 			e.paddler = this;
-			stage.dispatchEvent(e);
+			this.spot.dispatchEvent(e);
 	}
 
 	prototype.endMoving = function() {

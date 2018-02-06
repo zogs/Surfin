@@ -192,23 +192,28 @@
 		//custom events		
 		this.on('take_off',function(event) {
 			var ev = new createjs.Event('surfer_take_off');
-			stage.dispatchEvent(ev);
+			ev.surfer = event.surfer;
+			ev.wave = event.wave;
+			this.spot.dispatchEvent(ev);
 		},this);
 
 		this.on('take_off_ended',function(event) {
 			var ev = new createjs.Event('surfer_take_off_ended');
-			stage.dispatchEvent(ev);
+			ev.surfer = event.surfer;
+			ev.wave = event.wave;
+			ev.quality = event.quality;
+			this.spot.dispatchEvent(ev);
 		},this);
 
 		this.on('aerial_start',function(event) {
 			var ev = new createjs.Event('surfer_aerial_start');
 			ev.trick = event.trick;
-			stage.dispatchEvent(ev);
+			this.spot.dispatchEvent(ev);
 		},this);
 
 		this.on('aerial_end',function(event) {
 			var ev = new createjs.Event('surfer_aerial_end');
-			stage.dispatchEvent(ev);
+			this.spot.dispatchEvent(ev);
 		},this);
 
 		this.on('fall',function(event) {
@@ -216,20 +221,24 @@
 				var ev = new createjs.Event('player_fall');
 				ev.reason = event.reason;
 				ev.surfer = event.surfer;
-				stage.dispatchEvent(ev);
+				this.spot.dispatchEvent(ev);
 			}
 		},this);
 
 		this.on('fallen',function(event) {	
-			if(this.isPlayer()) stage.dispatchEvent('player_fallen');
+			if(this.isPlayer()) this.spot.dispatchEvent('player_fallen');
 		},this,true);
 
 		this.on('tube_in',function(event) {
-			stage.dispatchEvent('surfer_tube_in');
+			this.spot.dispatchEvent('surfer_tube_in');
+		});
+
+		this.on('surfer_kill',function(event) {
+			this.spot.dispatchEvent('surfer_kill');
 		});
 
 		this.on('tube_out',function(event) {
-			stage.dispatchEvent('surfer_tube_out');
+			this.spot.dispatchEvent('surfer_tube_out');
 		});
 
 		this.on('paddler_malus_hitted', function(event) {
@@ -245,7 +254,7 @@
 		},this);
 
 		this.on('surfing',function(event) {
-			stage.dispatchEvent('surfer_surfing');
+			this.spot.dispatchEvent('surfer_surfing');
 		});
 	}
 
@@ -319,9 +328,13 @@
 		this.auto_silhouette = true;
 		this.riding = true;
 
+		const point = this.findLipPointUnder();
+		const quality = (point === null)? 0 : point.breaking_percent;
+
 		const ev = new createjs.Event("take_off_ended");
 		ev.wave = this.wave;
 		ev.surfer = this;
+		ev.quality = quality;
 		this.dispatchEvent(ev);
 	}
 
@@ -332,8 +345,13 @@
 	}
 
 	prototype.setConfig = function(config) {
-
 		this.config = config;
+		return this;
+	}
+
+	prototype.updateConfig = function(config) {
+		this.config = config;
+		return this;
 	}
 
 	prototype.switchAutomove = function() {
@@ -613,16 +631,16 @@
 		const point_under = this.findLipPointUnder();		
 
 		let breaking_width = 5;
-		let breaking_idx = 0;
+		let breaking_percent = 0;
 		let distance_idx = 0;
 		if(point_under) {
 			breaking_width = point_under.breaking_width;
-			breaking_idx = point_under.breaking_idx;
+			breaking_percent = point_under.breaking_percent;
 			distance_idx = 1 - (get2dDistance(this.x, 0, point_under.x, 0) / 500);
 		}
 
 		// get horizontal velocity from lip position
-		let vX = breaking_width * ( 0.5 + breaking_idx ) * distance_idx;
+		let vX = breaking_width * ( 0.5 + breaking_percent/100 ) * distance_idx;
 
 		// get mouse position
 		const mouse = this.getMousePoint(0);
@@ -846,7 +864,7 @@
 		// ???
 		this.velocity.magnitude(1);
 		// slow things down
-		window.switchSlowMo(0.8,1000);
+		//window.switchSlowMo(0.8,1000);
 		// tricks		
 		this.initTricks();
 		// save aerial position
@@ -1499,7 +1517,7 @@
 					ev.player = this.spot.surfer;
 					ev.killer = surfer;
 					ev.killed = this;
-					stage.dispatchEvent(ev);
+					this.dispatchEvent(ev);
 			}
 		} 
 
@@ -1526,7 +1544,7 @@
 			ev.player = this.spot.surfer;
 			ev.killer = this;
 			ev.killed = surfer;
-			stage.dispatchEvent(ev);
+			this.dispatchEvent(ev);
 		}
 
 	}
@@ -1573,7 +1591,7 @@
 				this.dispatchEvent(ev);
 				var ev = new createjs.Event(obstacle.config.name+'_bonus_hitted'); // we need to recreate event as we re-dispatch it
 				ev.obstacle = obstacle;
-				stage.dispatchEvent(ev);
+				this.spot.dispatchEvent(ev);
 			}
 
 			if(obstacle.hitMalus(this)) {
@@ -1583,7 +1601,7 @@
 				this.dispatchEvent(ev);
 				var ev = new createjs.Event(obstacle.config.name+'_malus_hitted'); // we need to recreate event as we re-dispatch it
 				ev.obstacle = obstacle;
-				stage.dispatchEvent(ev);
+				this.spot.dispatchEvent(ev);
 			}
 		}
 	}

@@ -49,6 +49,11 @@ Variation.prototype.restartVariation = function() {
 	
 }
 
+Variation.prototype.destroy = function() {
+
+	createjs.Tween.removeTweens(this);
+}
+
 
 Variation.prototype.applyOnce = function (obj,prop,config) {
 
