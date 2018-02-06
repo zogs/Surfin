@@ -3,6 +3,10 @@ var conf = {
 	name: 'moyen',
 	alias: 'default',
 	config: {
+		colors: {
+			top: '#00354f',
+			bottom: '#166f99'
+		},
 		lines: {
 			horizon: 240,
 			break: 500,
@@ -10,9 +14,21 @@ var conf = {
 			beach: 700,
 			obstacle: 750,
 		},
-		colors: {
-			top: '#00354f',
-			bottom: '#166f99'
+		series: {
+			length :  2,
+			speed : 20000,
+			frequency : 5000,
+			interval : 14000,				
+			spread : 200,	
+			xshift: 10,			
+		},	
+		surfers: {
+			proportion: 1.5,
+			velocities: {
+				x: 1,
+				y: 1
+			},
+			weapons: []
 		},
 		waves: {
 			height : 250,
@@ -79,13 +95,25 @@ var conf = {
 				['#0f597d',0,100]
 			],
 			obstacles: {
-				'interval': 0,
-				'interval_max': 1000,
-				'type' : {
-					'paddler' : {percentage: 30},
-					'photographer' : {percentage: 30},
-					'bomb': {percentage: 40},					
+				'float': {
+					'interval': 0,
+					'interval_max': 1000,
+					'objects' : {
+						'paddler' : {percentage: 30},
+						'photographer' : {percentage: 30},
+						'bomb': {percentage: 40},	
+						'trooper': {percentage: 0},				
+					},									
 				},
+				'fly': {
+					'interval': 0,
+					'interval_max': 1000,
+					'objects' : {
+						'prize' : {percentage: 30},
+						'cigogne' : {percentage: 30},
+						'drone': {percentage: 40},					
+					},									
+				}
 			},
 			shoulder : {
 				left : {
@@ -103,23 +131,7 @@ var conf = {
 					slope: 0
 				}
 			}
-		},
-		series: {
-			length :  3,
-			speed : 20000,
-			frequency : 4000,
-			interval : 14000,				
-			spread : 200,	
-			xshift: 10,			
-		},	
-		surfers: {
-			proportion: 1.5,
-			velocities: {
-				x: 1,
-				y: 1
-			},
-			weapons: []
-		}		
+		},		
 	}
 };
 
