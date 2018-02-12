@@ -36,7 +36,7 @@
 	<?php loadJsDir('config/spots/'); ?>
 	<script src="game/objects/user.js" type="text/javascript"></script>
 	<script src="game/objects/obstacles.js" type="text/javascript"></script>
-	<script src="game/objects/score.js" type="text/javascript"></script>
+	<script src="game/objects/scoreboard.js" type="text/javascript"></script>
 	<script src="game/objects/spots.js" type="text/javascript"></script>
 	<script src="game/objects/waves.js" type="text/javascript"></script>
 	<script src="game/objects/surfers.js" type="text/javascript"></script>

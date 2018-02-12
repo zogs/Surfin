@@ -64,6 +64,9 @@
 		this.color_spatter_num = 0;
 		this.fall_reason = null;
 		this.point_under = null;
+		this.aerial_takeoff_limit = 5;
+		this.aerial_quality_takeoff = 0;
+		this.aerial_quality_landing = 0;
 		this.aerial_start_point = null;
 		this.aerial_end_point = null;
 		this.aerial_end_point_width = null;
@@ -213,6 +216,8 @@
 
 		this.on('aerial_end',function(event) {
 			var ev = new createjs.Event('surfer_aerial_end');
+			ev.landing_angle = event.landing_angle;
+			ev.quality_takeoff = event.quality_takeoff;
 			this.spot.dispatchEvent(ev);
 		},this);
 
@@ -228,18 +233,6 @@
 		this.on('fallen',function(event) {	
 			if(this.isPlayer()) this.spot.dispatchEvent('player_fallen');
 		},this,true);
-
-		this.on('tube_in',function(event) {
-			this.spot.dispatchEvent('surfer_tube_in');
-		});
-
-		this.on('surfer_kill',function(event) {
-			this.spot.dispatchEvent('surfer_kill');
-		});
-
-		this.on('tube_out',function(event) {
-			this.spot.dispatchEvent('surfer_tube_out');
-		});
 
 		this.on('paddler_malus_hitted', function(event) {
 			this.fall('hit paddler');
@@ -473,6 +466,25 @@
 
 		this.getAngle();
 
+		if(this.isFalling()) {
+
+			this.slowUntilStop();
+		}
+		else if(this.isOllieing()) {
+
+			this.moveOnOllie();
+		}
+		else if(this.isOnAir()) {
+
+			this.initAerial();
+			this.moveOnAir();
+		}
+		else {
+			this.initRide();
+			this.moveOnWave();
+		}
+
+		/*
 		if( this.isOnAir() ) {	
 
 			this.initAerial();
@@ -491,6 +503,7 @@
 			this.initRide();
 			this.moveOnWave();		
 		}	
+		*/
 
 		//set this position
 		if(this.time_scale === 1) {
@@ -502,6 +515,16 @@
 		
 		//set silhouette
 		this.setSurferSilhouette();	
+	}
+
+	prototype.initRide = function() {
+
+		//end of an Aerial
+		if(this.status === 'aerial') {
+			this.endAerial();		
+		}
+		//set status
+		this.status = 'ride';
 	}
 
 	prototype.moveOnOllie = function() {
@@ -852,6 +875,17 @@
 
 		// cancel if already on air
 		if(this.status=='aerial') return;
+
+		// fall if done too soon	
+		var point = this.findLipPointUnder();
+		if(point.breaking_percent === null || point.breaking_percent < 0) {
+			return this.fall('aerial too late');
+		}
+		if(point.breaking_percent > this.aerial_takeoff_limit) {
+			return this.fall('aerial too soon');
+		}
+		this.aerial_quality_takeoff = point.breaking_percent / this.aerial_takeoff_limit;
+
 		// set current status
 		this.status = 'aerial';
 		// hide trail
@@ -1054,19 +1088,6 @@
 		this.particles_cont.addChild(this.aerial_particles_emitter);
 	}
 
-	prototype.initRide = function() {
-
-		//end of an Aerial
-		if(this.status === 'aerial') {
-
-			this.endAerial();		
-			this.dispatchEvent('aerial_end');
-		}
-
-		//set status
-		this.status = 'ride';
-
-	}
 
 	prototype.saveTrailSize = function() {
 		if(this.trailsize instanceof Variation) return;
@@ -1086,6 +1107,11 @@
 			//init fall
 			this.fall('bad landing aerial');
 		}
+
+		var event = new createjs.Event("aerial_end");
+		event.landing_angle = this.angle;
+		event.quality_takeoff = this.aerial_quality_takeoff;
+		this.dispatchEvent(event);
 
 		//remove aerial particles
 		this.stopAerialParticles();
@@ -1118,7 +1144,6 @@
 			.to({ x: 1, y: 1 }, time / 2)						
 			;	
 		
-
 		//handle trail size
 		this.resetTrailSize();	
 		this.trailpoints[0].location.y = -120;
@@ -1190,7 +1215,7 @@
 		//this.ploufinterval = window.setInterval(proxy(this.showFallPlouf,this),200);
 
 		createjs.Tween.get(this.silhouette_cont)
-		.to({rotation:360*this.wave.direction*-1,alpha:0,scaleX:0.4,scaleY:0.4},1000)
+		.to({rotation:360*this.wave.direction*-1,alpha:0.8,scale:0.5},1000)
 		.call(proxy(this.fallFinished,this));
 		;
 
@@ -1202,16 +1227,20 @@
 
 		window.clearInterval(this.ploufinterval);
 
+		//send fall event
 		var e = new createjs.Event('fallen');
 			e.surfer = this;
 			this.dispatchEvent(e);
 
+		//stop movement timer
+		this.timer.clear();
+
 	}
 
-	prototype.fallWithInertia = function() 
+	prototype.slowUntilStop = function() 
 	{
-		this.velocity.scale(0.5);	
-				
+		console.log('slowUntilStop');
+		this.velocity.scale(0.5);				
 		this.location.add(this.velocity);
 	}
 
@@ -1369,14 +1398,14 @@
 
 	prototype.tubeIn = function() {
 
+		this.tubeTime += createjs.Ticker.interval;
 		if(this.tubing === false) {
 
-			this.tubeTime += createjs.Ticker.interval;
 			//the surfer must stay a minimum time in the tube to dispatch event
 			if(this.tubeTime < this.tubeMinimumTime) return;
 
 			this.tubing = true;
-			this.dispatchEvent('tube_in');	
+			this.spot.dispatchEvent('surfer_tube_in');	
 		}
 	}
 
@@ -1387,17 +1416,20 @@
 			return;
 		}
 
-		//get the deep of the tube
-		this.lastTubeDeep = this.tubeDepths.reduce((max,deep) => {
+		//get the deepest of the tube
+		this.tubeDeep = this.tubeDepths.reduce((max,deep) => {
 			return (deep > max) ?  deep : max;
 		},0);
 
-		console.log('tube deep = ', this.lastTubeDeep);
+
+		//dispath event
+		let event = new createjs.Event('surfer_tube_out');
+		event.tubeTime = this.tubeTime;
+		event.tubeDeep = this.tubeDeep;
+		this.spot.dispatchEvent(event);
 
 		//empty the tube
 		this.tubeDepths = [];
-
-		this.dispatchEvent('tube_out');
 		this.tubing = false;
 		this.tubeTime = 0;
 	}
@@ -1512,12 +1544,11 @@
 
 				this.fall('collision');
 
-				console.log('send event');
 				const ev = new createjs.Event('surfer_kill');
 					ev.player = this.spot.surfer;
 					ev.killer = surfer;
 					ev.killed = this;
-					this.dispatchEvent(ev);
+					this.spot.dispatchEvent(ev);
 			}
 		} 
 
@@ -1538,13 +1569,11 @@
 
 			surfer.fall('shoted');
 
-			console.log('send event');
-
 			const ev = new createjs.Event('surfer_kill');
 			ev.player = this.spot.surfer;
 			ev.killer = this;
 			ev.killed = surfer;
-			this.dispatchEvent(ev);
+			this.spot.dispatchEvent(ev);
 		}
 
 	}

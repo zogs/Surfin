@@ -2,14 +2,15 @@
 
 		this.level = 1;
 		this.xp = 0;
-		this.skill_pts = 0;
+		this.points = 0;
+		this.temp = {}; //temporary data
 		this.skills = {
 			speed: 0.1, //0 to 1
 			aerial: 0.1, //0 to 1
 			agility: 0.1, //0 to 1
 			paddling: 0.1,
 			takeoff: 0,
-			force: 0.1
+			force: 0.8
 		}
 
 		this.device = {};
@@ -18,8 +19,8 @@
 		this.device.android = ua.indexOf('android') > -1 ? true : false;
 		this.device.ios = ( ua.indexOf('iphone') > -1 || ua.indexOf('ipad') > -1  ) ? true : false;
 
-		this.levelUp = function() {
-			this.level++;
+		this.setLevel = function(level) {
+			this.level = level;
 			return this;
 		}
 
@@ -28,8 +29,27 @@
 			return this;
 		}
 
+		this.setSkillPoints = function(points) {
+			this.points = points;
+			return this;
+		}
+
+		this.levelUp = function() {
+			this.level++;
+			return this;
+		}
+
 		this.addSkillPoint = function(nb =1) {
-			this.skill_pts += nb;
+			this.points += nb;
+			return this;
+		}
+
+		this.updateTemp = function() {
+			this.temp = {
+				level: this.level,
+				xp: this.xp,
+				points: this.points
+			}
 			return this;
 		}
 
@@ -46,6 +66,8 @@
 			return this;
 		}
 
+		
+		this.updateTemp();
 	}
 
 	function UserManager() {

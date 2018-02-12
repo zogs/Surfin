@@ -15,7 +15,7 @@ var conf = {
 			obstacle: 750,
 		},
 		series: {
-			length :  2,
+			length :  1,
 			speed : 20000,
 			frequency : 5000,
 			interval : 14000,				

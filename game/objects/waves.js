@@ -77,6 +77,7 @@ prototype.init = function(spot, config) {
 	this.y = config.y;	
 	this.origin_height = this.config.height;
 	this.origin_width = this.config.width;
+	this.surfer = null;
 	this.surfers = [];
 	this.obstacles = [];
 	this.peaks = [];
@@ -845,7 +846,6 @@ prototype.playerTakeOff = function(surfer) {
 
 	this.surfed = true;
 	this.played = true;
-
 	this.surfer = surfer;	
 	this.player = surfer;
 
@@ -1776,8 +1776,9 @@ prototype.drawDebug = function() {
 		//DRAW LIP POINTS
 		const lip = new createjs.Shape();
 		let color = 'black';
+		if(point.breaking_percent <= 5) color = 'green';
 		if(this.surfer && this.surfer.point_under && this.surfer.point_under.x === point.x) color = 'red';
-		lip.graphics.beginFill(color).drawCircle(0,0,3);
+		lip.graphics.beginFill(color).drawCircle(0,0,4);
 		lip.alpha = 0.8;
 		lip.x = point.x;
 		lip.y = point.y;
@@ -1785,7 +1786,7 @@ prototype.drawDebug = function() {
 
 		//DRAW CAP POINTS
 		const cap = new createjs.Shape();
-		cap.graphics.beginFill('black').drawCircle(0,0,2);
+		cap.graphics.beginFill('grey').drawCircle(0,0,2);
 		cap.alpha = 1;
 		cap.x = point.x;
 		cap.y = point.cap.y;

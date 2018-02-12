@@ -67,7 +67,7 @@ window.initialize = function() {
 
 	//USER
 	USER = new User();
-	USER.load();
+	//USER.load();
 
 	//SCREEN
 	SCREENS = new ScreenManager();
@@ -115,6 +115,14 @@ window.initialize = function() {
 	initCustomizer();
 
 	window.resizeCanvas();
+
+	/*let bar = new XpBar({width: 500, height: 30, dispatcher: stage});
+	bar.x = STAGEWIDTH/2;
+	bar.y = STAGEHEIGHT/2;
+	stage.addChild(bar);
+
+	bar.start(0, 13000, 1);
+*/
 
 }
 
@@ -285,6 +293,7 @@ window.keyDownHandler = function(e)
     case 'q':  initRunnerMode(); break;
     case 'g':  SPOT.removeAllPaddlers().getWave().breakAndFollow(); break;
     case '+':  SPOT.score.add(1000); break;
+    case '*':  SPOT.score.testScore();
     default: console.log('Key "'+e.key+'" have no handler.');
    } 
 }

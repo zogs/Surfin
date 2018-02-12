@@ -333,9 +333,9 @@ console.log('addSwell');
 			this.playerFalling(event);
 		},this,true);
 
-		this.on('level_up',function(event) {	
-			this.levelUp(event.level, event.points);
-		},this,true);
+		this.on('xpbar.level_up',function(event) {	
+			//
+		},this);
 	}
 
 	prototype.tick = function() {
@@ -543,13 +543,13 @@ console.log('addSwell');
 			spot: this,
 		});
 
+		this.wave = wave;
 		wave.playerTakeOff(surfer);
 		this.removePaddler(paddler);
 
 		//score
 		this.showScore();
 
-		this.wave = wave;
 
 	}
 
@@ -571,7 +571,7 @@ console.log('addSwell');
 	}
 
 	prototype.initScore = function() {
-		this.score = new Score({spot: this});
+		this.score = new Scoreboard({spot: this});
 		this.score.alpha = 1;
 		this.score_cont.addChild(this.score);
 		SCORE = this.score;
@@ -659,7 +659,10 @@ console.log('addSwell');
 
 		this.overlay_cont.removeAllChildren();
 
-		this.overlay_cont.addChild(SCREENS.getFallScreen(this));
+		let delay = new Timer(proxy(function() {
+			this.overlay_cont.addChild(SCREENS.getFallScreen(this));
+		},this),2000);
+
 
 	}
 
@@ -683,43 +686,6 @@ console.log('addSwell');
 		if(this.overlay_veil.alpha === 0) return;
 		var time = this.overlay_veil.alpha * 1000;
 		createjs.Tween.get(this.overlay_veil).to({alpha: 0}, time);
-	}
-
-	prototype.levelUp = function(level, points) {
-
-		var cont = new createjs.Container();
-
-		var part = new createjs.Container();
-		part.x = STAGEWIDTH*1/2 + 500;
-		part.y = STAGEHEIGHT*1/2 - 100;
-		var star = new createjs.Shape();
-		star.graphics.beginFill('red').drawPolyStar(0,0,100,10,0.3);	
-		star.alpha = 0.6;
-		var text = new createjs.Text("Level Up !","26px Arial", "#FFF");
-		text.x = - text.getBounds().width/2;
-		text.y = - text.getBounds().height/2;
-		part.scaleX = part.scaleY = 0;
-		part.y -= 200;
-		createjs.Tween.get(part).to({scaleX:1,scaleY:1,y:part.y+200},1000,createjs.Ease.bounceOut);
-		createjs.Tween.get(star, {loop:-1}).to({rotation:360},10000);
-		part.addChild(star,text);
-		cont.addChild(part);
-
-		var part = new createjs.Container();
-		var skill = new createjs.Shape();
-    skill.graphics.beginFill('yellow').drawPolyStar(0,0,30,5,0.5); 
-    skill.rotation = 55;
-    var text = new createjs.Text("+" + points, "20px Helvetica", "#c3c32a");
-    text.x = skill.x - text.getMeasuredWidth()/2;
-    text.y = skill.y - text.getMeasuredHeight()/2;
-    part.addChild(skill, text);
-    part.x = STAGEWIDTH*2/3 - 50;
-    part.y = STAGEHEIGHT*1/2 - 20;
-    createjs.Tween.get(part, {loop: -1, bounce: true}).to({scale: 1.2}, 500);
-    cont.addChild(part);
-
-
-		this.overlay_cont.addChild(cont);
 	}
 
 	prototype.fallRetry = function(e) {
