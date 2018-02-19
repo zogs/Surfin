@@ -1776,8 +1776,14 @@ prototype.drawDebug = function() {
 		//DRAW LIP POINTS
 		const lip = new createjs.Shape();
 		let color = 'black';
-		if(point.breaking_percent <= 5) color = 'green';
-		if(this.surfer && this.surfer.point_under && this.surfer.point_under.x === point.x) color = 'red';
+		if(this.surfer) {
+			if(point.breaking_percent / this.surfer.aerial_takeoff_limit > 1) color = 'black';
+			else if(point.breaking_percent / this.surfer.aerial_takeoff_limit >= 0.50) color = 'darkgreen';
+			else if(point.breaking_percent / this.surfer.aerial_takeoff_limit >= 0.10) color = 'lightgreen';
+			else color = 'darkgreen';
+			if(this.surfer.point_under && this.surfer.point_under.x === point.x) color = 'red';
+			
+		}
 		lip.graphics.beginFill(color).drawCircle(0,0,4);
 		lip.alpha = 0.8;
 		lip.x = point.x;

@@ -58,13 +58,15 @@
 		this.falling = false;
 		this.surfing = false;
 		this.automove = false;
-		this.auto_silhouette = true;
 		this.ollie_cooldown = 1000;
+		this.auto_silhouette = true;
+		this.distanceMinToMouse = 50;
+		this.distanceMaxToMouse = 300;
 		this.trailsize_origin = this.trailsize;
 		this.color_spatter_num = 0;
 		this.fall_reason = null;
 		this.point_under = null;
-		this.aerial_takeoff_limit = 5;
+		this.aerial_takeoff_limit = 10;
 		this.aerial_quality_takeoff = 0;
 		this.aerial_quality_landing = 0;
 		this.aerial_start_point = null;
@@ -168,7 +170,7 @@
 		this.checkFall();
 		this.drawTrails();
 		this.drawWeapon();
-		if(DEBUG === true) this.drawDebug();
+		if(DEBUG === 1) this.drawDebug();
 	}
 
 	prototype.continuousMovement = function() {
@@ -178,7 +180,7 @@
 		this.checkFall();
 		this.drawTrails();
 		this.drawWeapon();
-		if(DEBUG === true) this.drawDebug();
+		if(DEBUG === 1) this.drawDebug();		
 
 		this.timer = new Timer(proxy(this.continuousMovement,this), this.wave.params.breaking.x_speed);
 	}
@@ -680,8 +682,8 @@
 
 		// calcul distance between surfer and mouse
 		let distance = this.location.absDistanceX(mouse);
-		const distanceMax = 400;
-		const distanceMin = 20;
+		const distanceMax = this.distanceMaxToMouse; 
+		const distanceMin = this.distanceMinToMouse; 
 		if(distance >= distanceMax) distance = distanceMax;
 		if(distance <= distanceMin) distance = distanceMin;
 		const distanceIdx = ( distance ) / ( distanceMax - distanceMin );
@@ -1111,6 +1113,7 @@
 		var event = new createjs.Event("aerial_end");
 		event.landing_angle = this.angle;
 		event.quality_takeoff = this.aerial_quality_takeoff;
+		console.log(event.quality_takeoff);
 		this.dispatchEvent(event);
 
 		//remove aerial particles
@@ -1160,9 +1163,13 @@
 
 		//for player only
 		if(this.isPlayer() === true) {
-			//play sound
-			let sound = createjs.Sound.play("bravo");  // play using id.  Could also use full sourcepath or event.src.     
-			sound.volume = 0.1;			
+
+			if(this.aerial_quality_takeoff > 50) {
+				//play sound
+				let sound = createjs.Sound.play("bravo");  // play using id.  Could also use full sourcepath or event.src.     
+				sound.volume = 0.1;			
+				
+			}
 		}
 	}
 
@@ -1215,17 +1222,17 @@
 		//this.ploufinterval = window.setInterval(proxy(this.showFallPlouf,this),200);
 
 		createjs.Tween.get(this.silhouette_cont)
-		.to({rotation:360*this.wave.direction*-1,alpha:0.8,scale:0.5},1000)
-		.call(proxy(this.fallFinished,this));
+		.to({rotation:360*this.wave.direction*-1,alpha:0,scale:0.5},1500)
 		;
 
 		this.splash_anim.gotoAndPlay('splash');
 	
+		this.on('stop',proxy(this.fallFinished, this), this, true);
 	}
 
 	prototype.fallFinished = function() {
-
-		window.clearInterval(this.ploufinterval);
+		
+		//window.clearInterval(this.ploufinterval);
 
 		//send fall event
 		var e = new createjs.Event('fallen');
@@ -1239,9 +1246,16 @@
 
 	prototype.slowUntilStop = function() 
 	{
-		console.log('slowUntilStop');
-		this.velocity.scale(0.5);				
-		this.location.add(this.velocity);
+			this.velocity.scale(0.8);				
+			this.location.add(this.velocity);
+
+			if(this.y < 0) {
+				this.location.add(this.gravity.clone());
+			}
+
+			if(this.velocity.lengthSq() < 1) {
+				this.dispatchEvent('stop');
+			}
 	}
 
 	prototype.showFallPlouf = function() {
