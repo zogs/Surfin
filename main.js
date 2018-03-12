@@ -22,7 +22,7 @@ window.loaded = function() {
 		{id:'wave_riddle',src:'assets/img/waves/wave-riddle.png'},
 		{id:'spot_seariddle',src:'assets/img/spots/default/seariddles.png'},
 		{id:'spot_front',src:'assets/img/spots/default/front.png'},
-		{id:'spot_back',src:'assets/img/spots/default/bkg_night.jpg'},
+		{id:'spot_back',src:'assets/img/spots/default/bkg.jpg'},
 		{id:'bomb_boom',src:'assets/img/object/bomb_boom.png'},
 		{id:'surfer_splash',src:'assets/img/object/splash.gif'},
 		{id:'surfer',src:'assets/img/surfer/surfer_stormtrooper.png'},	
@@ -192,7 +192,7 @@ window.addMenu = function() {
 
 	const cont = new createjs.Container();
 	const bkg = new createjs.Shape();
-	const txt = new createjs.Text('MENU','24px Helvetica');
+	const txt = new createjs.Text('MENU','50px Helvetica');
 	const bound = txt.getBounds();
 	const pad = {x: 40, y: 15};
 
@@ -228,18 +228,18 @@ window.showMenu = function(e) {
 	cont.x = STAGEWIDTH/10;
 	stage.addChild(cont);
 
-	let rowx = 200;
-	let rowy = 100;
+	let rowx = 400;
+	let rowy = 150;
 	let posx = 0;
 	let posy = 0;
 	for(let i=0,len=spots.length; i< len; ++i) {
 
 		let spot = spots[i];
 		let button = new createjs.Container();
-		let txt = new createjs.Text(spot.name,'26px Helvetica');
+		let txt = new createjs.Text(spot.name,'50px Helvetica');
 		let bkg = new createjs.Shape();
 		let bound = txt.getBounds();
-		let pad = {x: 30, y: 15};
+		let pad = {x: 50, y: 30};
 
 		bkg.graphics.beginFill('#EEE').drawRoundRect(-bound.x/2 - pad.x, -bound.y - pad.y, bound.width + pad.x*2, bound.height + pad.y*2, 5);
 

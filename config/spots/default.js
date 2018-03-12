@@ -4,8 +4,8 @@ var conf = {
 	alias: 'default',
 	config: {
 		colors: {
-			top: '#00354f',
-			bottom: '#166f99'
+			top: '#00557f',
+			bottom: '#57c9ff'
 		},
 		lines: {
 			horizon: 240,
@@ -47,7 +47,7 @@ var conf = {
 				left: {
 					width: 20,
 					width_max: 30,				
-					width_interval: 1000,
+					width_interval: 0,
 					width_pause: 0,
 					block_interval: 0,
 					block_interval_max: 0,
@@ -68,7 +68,7 @@ var conf = {
 			lip: {
 				thickness: 10,
 				colors: {
-					top: '#093950',
+					top: '#216587',
 					bottom: 'rgba(255,255,255,0.2)',
 				},
 				cap: {
@@ -90,9 +90,9 @@ var conf = {
 			tube_difficulty_max	: 10,	
 			suction: {x: 5, y: 4},
 			colors: [
-				['#093950',0,0],
-				['#146389',0,50],
-				['#0f597d',0,100]
+				['#04567d',0,0],
+				['#2ea8e3',0,50],
+				['#36aee8',0,100]
 			],
 			obstacles: {
 				'float': {

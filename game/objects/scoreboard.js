@@ -7,6 +7,7 @@
     this.x = 0;
     this.y = 0;
     this.spot = params.spot;
+    that = this;
 
     this.disabled = false;
     this.talking = false;
@@ -20,6 +21,17 @@
       'hit paddler' : ['Outch, this man is hurt...',"Try to avoid your fellow surfers"],
       'hit photographer' : ['Damn it, you will pay for this camera !'],
     }
+
+    this.goals = [
+      { type: 'timed', value: 20, name: 'Survivre 20 secondes ({n}s)' },
+      { type: 'score', value: 2000, name: 'Faire un score de 2000 points' },
+      { type: 'trick', value: 'Backflip', count: 2, name: 'Faire 2 backflip ({n})' },
+      { type: 'catch', value: 'prize', count: 3, name: 'Attraper 3 prix ({n})' }
+    ];
+
+    this.goalsFilled = false;
+    this.goalsFilledColor = 'lightgreen';
+    this.goalsTimers = [];
 
     this.levels = {
       1: 10000,
@@ -45,13 +57,13 @@
 
     //display
     this.total = new createjs.Text('0','50px Arial','#FFFFFF');
-    this.score_pt = new createjs.Point(200,20);
+    this.score_pt = new createjs.Point(300,20);
     this.total.x = this.score_pt.x;
     this.total.y = this.score_pt.y;
     
     this.subscore = new createjs.Text('+0','italic 14px Arial','#FFFFFF');  
     this.subscore.alpha = 0;
-    this.subscore_pt = new createjs.Point(200,5);
+    this.subscore_pt = new createjs.Point(300,5);
 
     this.score_cont.addChild(this.total);
     this.score_cont.addChild(this.subscore);
@@ -61,12 +73,132 @@
     //Listeners
     this.initEventsListeners(); 
 
+    this.showGoals();
+    this.initGoalsListeners();
+
   }
 
   var prototype = createjs.extend(Scoreboard, createjs.Container);
 
   //add EventDispatcher
   createjs.EventDispatcher.initialize(prototype);
+
+  prototype.showGoals = function() {
+
+    let pt = new createjs.Point(300,80);
+
+    for(let i=0,ln=this.goals.length-1;i<=ln;i++) {
+
+      let goal = this.goals[i];
+      let name = this.goalsNameFormatter(goal, 0);
+      let text = new createjs.Text(name, '12px Arial', '#FFF');
+      text.x = pt.x;
+      text.y = pt.y;
+      this.score_cont.addChild(text);
+      goal.text = text;
+      pt.y += 20;
+    }
+
+    console.log(this.goals);
+  }
+
+  prototype.initGoalsListeners = function() {
+
+    for(let i=0,ln=this.goals.length-1;i<=ln;i++) {
+      let goal = this.goals[i];
+      if(goal.type === 'timed') {
+        this.goalsTimers.push(new Interval(proxy(this.updateGoalTime,this), 100));
+      }
+      if(goal.type === 'score') {
+        this.goalsTimers.push(new Interval(proxy(this.updateGoalScore,this), 100));
+      }
+      if(goal.type === 'trick') {
+        goal.current = 0;
+        this.spot.on('surfer_aerial_end', this.updateGoalTricks );
+      }
+      if(goal.type === 'catch') {
+        goal.current = 0;
+        this.spot.on('bonus_hitted', this.updateGoalCatch );
+      }
+    }
+  }
+
+  prototype.goalsCheck = function() {
+
+    let total = this.goals.length;
+    let count = 0;
+    for(let i=0,ln=this.goals.length-1;i<=ln;i++) {
+      if(this.goals[i].filled === true) count++;
+    }
+
+    if(count == total) {
+      this.goalsFilled = true;
+    }
+  }
+
+
+  prototype.setGoalFilled = function(goal) {
+
+    goal.text.color = this.goalsFilledColor;
+    goal.filled = true;
+    this.goalsCheck();
+  }
+
+  prototype.goalsNameFormatter = function(goal, n) {
+
+    return goal.name.replace(/{n}/,n);
+  }
+
+  prototype.updateGoalTime = function() {
+
+    if(SPOT.wave === null || SPOT.wave.surfer === null || SPOT.wave.surfer.time === 0) return;
+
+    let goal = this.goals.find(g => g.type === 'timed');
+    let time = SPOT.wave.surfer.time;
+    let seconds = Math.ceil(time/1000);
+    goal.text.text = this.goalsNameFormatter(goal, seconds);
+
+    if(seconds > goal.value) {
+      this.setGoalFilled(goal);
+    }    
+  }
+
+  prototype.updateGoalScore = function() {
+
+    let goal = this.goals.find(g => g.type === 'score');
+    let score = this.current_score;
+    goal.text.text = this.goalsNameFormatter(goal, score);
+
+    if(score >= goal.value) {
+      this.setGoalFilled(goal);
+    }  
+  }
+
+  prototype.updateGoalTricks = function(e) {
+
+    let trick = e.trick;
+    let goal = that.goals.find(g => g.type === 'trick' && g.value == trick.name);
+    if(typeof goal === 'undefined') return;
+    goal.current += 1;
+    goal.text.text = that.goalsNameFormatter(goal, goal.current);
+
+    if(goal.current >= goal.count) {
+      that.setGoalFilled(goal);
+    }
+  }
+
+  prototype.updateGoalCatch = function(e) {
+    let bonus = e.bonus;
+    let goal = that.goals.find(g => g.type === 'catch' && g.value == bonus);
+    if(typeof goal === 'undefined') return;
+    goal.current += 1;
+    goal.text.text = that.goalsNameFormatter(goal, goal.current);
+
+    if(goal.current >= goal.count) {
+      that.setGoalFilled(goal);
+    }
+  }
+
 
   prototype.initEventsListeners = function() {
 
@@ -89,8 +221,8 @@
     },this);
 
     this.spot.on('surfer_aerial_end',function(event) {
-      if(event.quality_takeoff >= 0.75) this.aerial.grade('Super').end();
-      else if(event.quality_takeoff >= 0.25) this.aerial.grade('Good').end();
+      if(event.trick.quality_takeoff >= 0.75) this.aerial.grade('Super').end();
+      else if(event.trick.quality_takeoff >= 0.25) this.aerial.grade('Good').end();
       else this.aerial.grade('Bad').end();
       this.addScore(this.aerial);
     },this);
@@ -121,27 +253,24 @@
       //
     },this);
 
-    this.spot.on('paddler_bonus_hitted',function(event) {
-      // no bonus
-    },this);
-
-    this.spot.on('photo_bonus_hitted',function(event) {
-      let score = this.newScore("Nice pic !").add(500).end();
-      this.addScore(score);
-    },this);
-
-    this.spot.on('drone_bonus_hitted',function(event) {
-      let score = this.newScore("Great pic !").add(1000).end();
-      this.addScore(score);
-    },this);
-
-    this.spot.on('multiplier_bonus_hitted',function(event) {
-      //this.current_multiplier = this.current_multiplier * event.obstacle.multiplier;
-    },this);
-
-    this.spot.on('prize_bonus_hitted', function(event) {
-      let score = this.newScore("Bonus !").add(event.obstacle.value).end();
-      this.addScore(score);
+    this.spot.on('bonus_hitted',function(event) {
+      let bonus = event.bonus;
+      if(bonus == 'photo') {
+        let score = this.newScore("Nice pic !").add(500).end();
+        this.addScore(score);        
+      }
+      if(bonus == 'drone') {
+        let score = this.newScore("Great pic !").add(1000).end();
+        this.addScore(score);        
+      }
+      if(bonus == 'multiplier') {
+        let score = this.newScore("[TO DO...]").add(0).end();
+        this.addScore(score);   
+      }
+      if(bonus == 'prize') {
+        let score = this.newScore("Bonus !").add(event.obstacle.value).end();
+        this.addScore(score);        
+      }
     },this);
 
     this.spot.on('surfer_kill',function(event) {
@@ -161,13 +290,6 @@
       clearTimeout(this.kill_reset);
       this.kill_reset = setTimeout(proxy(function(){ this.kill_count = 0;},this), 2000);
     },this);
-  }
-
-  prototype.selfRemove = function() {
-
-    this.removeEventListener("tick", this.tick);
-    this.removeAllEventListeners();
-    this.removeAllChildren();
   }
 
   prototype.newScore = function(text) {
@@ -358,14 +480,28 @@
     return array;
   }
 
+  prototype.selfRemove = function() {
+
+    this.getTimers().map(t => t !== null? t.clear() : null);
+    this.getScores().map(s => s.clear());
+    this.goalsTimers.map(t => t.clear());
+    this.timers = [];
+    this.goalsTimers = [];
+    this.removeEventListener("tick", this.tick);
+    this.removeAllEventListeners();
+    this.removeAllChildren();
+  }
+
   prototype.pause = function() {
     this.getTimers().map(t => t !== null? t.pause() : null);
     this.getScores().map(s => s.pause());
+    this.goalsTimers.map(t => t.pause());
   }
 
   prototype.resume = function() {
     this.getTimers().map(t => t !== null? t.resume() : null);
     this.getScores().map(s => s.resume());
+    this.goalsTimers.map(t => t.resume());
   }
 
   window.Scoreboard = createjs.promote(Scoreboard,'Container');
@@ -608,6 +744,10 @@
 
     prototype.resume = function() {
       this.timers.map(t=> t.resume());
+    }
+
+    prototype.clear = function() {
+      this.timers.map(t=> t.clear());
     }
 
     prototype.growth = function(amount, frequency = 50) {

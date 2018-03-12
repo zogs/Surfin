@@ -14,6 +14,7 @@
 		this.paddlers = [];
 		this.timers = [];
 
+		this.wave = null;
 		this.runing = false;
 		this.time_scale = (TIME_SCALE) ? TIME_SCALE : 1;
 

@@ -43,6 +43,7 @@
 		this.velocity = new Victor();
 		this.velocities = [];
 		this.pumped = [];
+		this.time = 0;
 		this.timer = null;
 		this.speed = 0;
 		this.angle = 90;
@@ -60,8 +61,9 @@
 		this.automove = false;
 		this.ollie_cooldown = 1000;
 		this.auto_silhouette = true;
-		this.distanceMinToMouse = 50;
-		this.distanceMaxToMouse = 300;
+		this.distanceMinToMouse = 400;
+		this.distanceMoyToMouse = 450;
+		this.distanceMaxToMouse = 500;
 		this.trailsize_origin = this.trailsize;
 		this.color_spatter_num = 0;
 		this.fall_reason = null;
@@ -170,7 +172,7 @@
 		this.checkFall();
 		this.drawTrails();
 		this.drawWeapon();
-		if(DEBUG === 1) this.drawDebug();
+		this.drawDebug();
 	}
 
 	prototype.continuousMovement = function() {
@@ -180,11 +182,12 @@
 		this.checkFall();
 		this.drawTrails();
 		this.drawWeapon();
-		if(DEBUG === 1) this.drawDebug();		
+		this.drawDebug();		
 
 		this.timer = new Timer(proxy(this.continuousMovement,this), this.wave.params.breaking.x_speed);
-	}
+		this.time += this.wave.params.breaking.x_speed;
 
+		}
 
 	prototype.initEventsListener = function() {
 
@@ -218,8 +221,7 @@
 
 		this.on('aerial_end',function(event) {
 			var ev = new createjs.Event('surfer_aerial_end');
-			ev.landing_angle = event.landing_angle;
-			ev.quality_takeoff = event.quality_takeoff;
+			ev.trick = event.trick;
 			this.spot.dispatchEvent(ev);
 		},this);
 
@@ -684,20 +686,20 @@
 		let distance = this.location.absDistanceX(mouse);
 		const distanceMax = this.distanceMaxToMouse; 
 		const distanceMin = this.distanceMinToMouse; 
+		const distanceMoy = this.distanceMoyToMouse; 
 		if(distance >= distanceMax) distance = distanceMax;
-		if(distance <= distanceMin) distance = distanceMin;
-		const distanceIdx = ( distance ) / ( distanceMax - distanceMin );
+		const distanceIdx = (distance / distanceMoy) * (distance / distanceMin);
 
 		// scale with mouse distance
 		velocity.scale(distanceIdx);
 
-		// scale with user skill ( from x1 to x1.5)
-		const skill_idx = 1 + (this.getSkill('speed') / 2); 
+		// scale with user skill ( from x1 to x2)
+		const skill_idx = 1 + (this.getSkill('speed')); 
 		velocity.scale(skill_idx);
 
 		// surfer have more speed where on top of the segment ( from x1 to x2 )
-		const y_coef = 1 + 1 - ( this.y / this.wave.config.height );
-		velocity.scale(y_coef);
+		//const y_coef = 1 + 1 - ( this.y / this.wave.config.height );
+		//velocity.scale(y_coef);
 
 		// surfer get more speed when angled to the bottom ( from x1 to x1.5)
 		let angle_coef = (this.angle_rad > 0 )? 1 + (this.angle_rad / Math.PI/2)/2 : 1;
@@ -945,7 +947,9 @@
 
 		var impulse = this.velocity.magnitude();
 
-		if(impulse > 60) {
+		console.log(impulse);
+
+		if(impulse > 70) {
 
 			ev.trick = {
 				name : 'Double Backflip',
@@ -972,6 +976,8 @@
 		}
 
 		this.dispatchEvent(ev);
+
+		this.lastTrick = ev.trick;
 	}
 
 	prototype.initBackflip = function() {
@@ -1111,9 +1117,10 @@
 		}
 
 		var event = new createjs.Event("aerial_end");
-		event.landing_angle = this.angle;
-		event.quality_takeoff = this.aerial_quality_takeoff;
-		console.log(event.quality_takeoff);
+		let trick = this.lastTrick;
+		trick.landing_angle = this.angle;
+		trick.quality_takeoff = this.aerial_quality_takeoff;
+		event.trick = trick;
 		this.dispatchEvent(event);
 
 		//remove aerial particles
@@ -1629,11 +1636,13 @@
 
 			if(obstacle.hitBonus(this)) {
 				//launch event
-				var ev = new createjs.Event(obstacle.config.name+'_bonus_hitted');
+				var ev = new createjs.Event('bonus_hitted');
 				ev.obstacle = obstacle;
+				ev.bonus = obstacle.config.name;
 				this.dispatchEvent(ev);
-				var ev = new createjs.Event(obstacle.config.name+'_bonus_hitted'); // we need to recreate event as we re-dispatch it
+				var ev = new createjs.Event('bonus_hitted'); // we need to recreate event as we re-dispatch it
 				ev.obstacle = obstacle;
+				ev.bonus = obstacle.config.name;
 				this.spot.dispatchEvent(ev);
 			}
 
@@ -1919,8 +1928,7 @@
 		this.saber_end = new createjs.Shape();
 		this.saber_end.graphics.beginStroke('white').drawCircle(0,0,10);
 		this.saber_trail = this.saber_end.clone();		
-		this.weapon_points.push(this.saber_start,this.saber_middle,this.saber_end,this.saber_trail);
-		this.debug_cont.addChild(this.saber_start, this.saber_middle, this.saber_end, this.saber_trail);
+		this.weapon_points.push(this.saber_start,this.saber_middle,this.saber_end,this.saber_trail);		
 
 		createjs.Tween.get(this).wait(1500).to({saber_length: 120}, 1000);
 	}
@@ -1974,20 +1982,65 @@
 
 	prototype.drawDebug = function() {
 
-		// for(let i=0, len=this.trailpoints.length; i < len ; ++i) {
-		// 	let point = this.trailpoints[i];
-		// 	let circle = new createjs.Shape();
-		// 	circle.graphics.beginFill('black').drawCircle(0,0,5);
-		// 	circle.x = point.location.x;
-		// 	circle.y = point.location.y;
+		// hide if no debug
+		if(DEBUG === 0) {
+			this.hitbox.alpha = 0;		
+			this.hitboard.alpha = 0;	
+			this.virtualMouse.alpha = 0;
+			this.debug_cont.alpha = 0;
+			return;
+		}
 
-		// 	this.wave.debug_cont.addChild(circle);
-		// }
-
+		//apply opacity
 		this.hitbox.alpha = 0.5;		
 		this.hitboard.alpha = 0.5;	
 		this.virtualMouse.alpha = 0.5;
 		this.debug_cont.alpha = 1;
+
+		// clear all debug
+		this.debug_cont.removeAllChildren();
+
+		//add saber debug
+		this.debug_cont.addChild(this.saber_start, this.saber_middle, this.saber_end, this.saber_trail);
+
+
+		//add move debug
+		let line = new createjs.Shape();
+		let mouse = this.getMousePoint(0);
+		let distance = this.location.absDistanceX(mouse);
+		let end = new createjs.Point(mouse.x - this.x, mouse.y - this.y);
+
+		let moy = new createjs.Shape();
+		moy.graphics.beginFill('lightblue').drawCircle(0,0,5);
+		let angle = calculAngle(0,0, end.x, end.y);
+		let pt = findPointFromAngle(0,0,angle,this.distanceMoyToMouse);
+		moy.x = pt.x;
+		moy.y = pt.y;
+		this.debug_cont.addChild(moy);
+
+		let max = new createjs.Shape();
+		max.graphics.beginFill('lightgreen').drawCircle(0,0,5);
+		angle = calculAngle(0,0, end.x, end.y);
+		pt = findPointFromAngle(0,0,angle,this.distanceMaxToMouse);
+		max.x = pt.x;
+		max.y = pt.y;
+		this.debug_cont.addChild(max);
+
+		let min = new createjs.Shape();
+		min.graphics.beginFill('green').drawCircle(0,0,5);
+		angle = calculAngle(0,0, end.x, end.y);
+		pt = findPointFromAngle(0,0,angle,this.distanceMinToMouse);
+		min.x = pt.x;
+		min.y = pt.y;
+		this.debug_cont.addChild(min);
+
+		let color = 'green';
+		if(distance <= this.distanceMaxToMouse) color = 'green';
+		if(distance <= this.distanceMoyToMouse) color = 'orange';
+		if(distance <= this.distanceMinToMouse) color = 'red';
+
+		line.graphics.beginStroke(color).setStrokeStyle(1).moveTo(0,0).lineTo(end.x, end.y);
+		this.debug_cont.addChild(line);
 
 	}
 
