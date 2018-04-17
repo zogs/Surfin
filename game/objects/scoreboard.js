@@ -26,7 +26,8 @@
       { type: 'timed', value: 20, name: 'Survivre 20 secondes ({n}s)' },
       { type: 'score', value: 2000, name: 'Faire un score de 2000 points' },
       { type: 'trick', value: 'Backflip', count: 2, name: 'Faire 2 backflip ({n})' },
-      { type: 'catch', value: 'prize', count: 3, name: 'Attraper 3 prix ({n})' }
+      { type: 'catch', value: 'prize', count: 3, name: 'Attraper 3 prix ({n})' },
+      { type: 'kill', value: 'surfer', count: 10, name: 'Défoncer 10 surfers ({n})' },
     ];
 
     this.goalsFilled = false;
@@ -120,6 +121,10 @@
         goal.current = 0;
         this.spot.on('bonus_hitted', this.updateGoalCatch );
       }
+      if(goal.type === 'kill') {
+        goal.current = 0;
+        this.spot.on('kill', this.updateGoalKill );
+      }
     }
   }
 
@@ -190,6 +195,20 @@
   prototype.updateGoalCatch = function(e) {
     let bonus = e.bonus;
     let goal = that.goals.find(g => g.type === 'catch' && g.value == bonus);
+    if(typeof goal === 'undefined') return;
+    goal.current += 1;
+    goal.text.text = that.goalsNameFormatter(goal, goal.current);
+
+    if(goal.current >= goal.count) {
+      that.setGoalFilled(goal);
+    }
+  }
+
+  prototype.updateGoalKill = function(e) {
+
+    let type = e.type;
+    let goal = that.goals.find(g => g.type === 'kill' && g.value === 'surfer');
+    console.log(goal);
     if(typeof goal === 'undefined') return;
     goal.current += 1;
     goal.text.text = that.goalsNameFormatter(goal, goal.current);
@@ -273,17 +292,18 @@
       }
     },this);
 
-    this.spot.on('surfer_kill',function(event) {
+    this.spot.on('kill',function(event) {
       let score;
-      if(event.player === event.killed) score = this.newScore("Paf...").end();
-      if(event.player === event.killer) {
-        this.kill_count++;
-        if(this.kill_count === 1) score = this.newScore('Kill!').add(100).end();
-        if(this.kill_count === 2) score = this.newScore('Kill!').add(500).end();
-        if(this.kill_count === 3) score = this.newScore('Kill!').add(1000).end();
-        if(this.kill_count > 3) score = this.newScore('Kill!').add(1000).end();
+      if(event.type === 'surfer') {
+        if(event.player === event.killed) score = this.newScore("Paf...").end();
+        if(event.player === event.killer) {
+          this.kill_count++;
+          if(this.kill_count === 1) score = this.newScore('Kill!').add(100).end();
+          if(this.kill_count === 2) score = this.newScore('Kill!').add(500).end();
+          if(this.kill_count === 3) score = this.newScore('Kill!').add(1000).end();
+          if(this.kill_count > 3) score = this.newScore('Kill!').add(1000).end();
+        }        
       }
-
       this.addScore(score); 
 
       //reset kill count to 0 after 2s

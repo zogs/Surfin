@@ -45,9 +45,6 @@
 			force: 0
 		}
 		
-
-		console.log(this.direction);
-
 	}
 
 	prototype.initLightSaber = function() {

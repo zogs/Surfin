@@ -1565,7 +1565,7 @@
 
 				this.fall('collision');
 
-				const ev = new createjs.Event('surfer_kill');
+				const ev = new createjs.Event('kill');
 					ev.player = this.spot.surfer;
 					ev.killer = surfer;
 					ev.killed = this;
@@ -1590,7 +1590,7 @@
 
 			surfer.fall('shoted');
 
-			const ev = new createjs.Event('surfer_kill');
+			const ev = new createjs.Event('kill');
 			ev.player = this.spot.surfer;
 			ev.killer = this;
 			ev.killed = surfer;
