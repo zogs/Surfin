@@ -17,7 +17,7 @@ function Wave(params) {
 			y_speed: 1200,
 			left: {
 				width: 20,
-				width_max: 30,				
+				width_max: 30,
 				width_interval: 3000,
 				width_pause: 1000,
 			},
@@ -50,7 +50,7 @@ function Wave(params) {
 			}
 		},
 	};
-	var params = extend(defaults,params);	
+	var params = extend(defaults,params);
 
 	this.init(params.spot, params.config);
 }
@@ -74,7 +74,7 @@ prototype.init = function(spot, config) {
 	this.config = config;
 	this.params = cloneObject(config); //clone object
 	//set properties
-	this.y = config.y;	
+	this.y = config.y;
 	this.origin_height = this.config.height;
 	this.origin_width = this.config.width;
 	this.surfer = null;
@@ -93,7 +93,7 @@ prototype.init = function(spot, config) {
 
 	//initiale suction force with no x value, later suction will be defined when direction is setted
 	this.suction = this.getSuction();
-	
+
 	this.breaked = false;
 	this.played = false;
 	this.surfed = false;
@@ -130,16 +130,16 @@ prototype.init = function(spot, config) {
 
 		//particles cont
 		this.score_particles_cont = new createjs.Container();
-		this.score_cont.addChild(this.score_particles_cont);	
+		this.score_cont.addChild(this.score_particles_cont);
 
 	//wave cont
 	this.cont = new createjs.Container();
 	this.cont.x = config.x;
-	this.addChild(this.cont);	
+	this.addChild(this.cont);
 
 	//spatter cont
 	this.spatters_cont = new createjs.Container();
-	this.cont.addChild(this.spatters_cont);	
+	this.cont.addChild(this.spatters_cont);
 
 	//wave background
 	this.background_cont = new createjs.Container();
@@ -148,13 +148,13 @@ prototype.init = function(spot, config) {
 
 	this.foreground_cont = new createjs.Container();
 	this.cont.addChild(this.foreground_cont);
-	
+
 		//particule cont
 		this.particles_cont = new createjs.Container();
 		this.foreground_cont.addChild(this.particles_cont);
 		//surfer trails cont
 		this.trails_cont = new createjs.Container();
-		this.foreground_cont.addChild(this.trails_cont);	
+		this.foreground_cont.addChild(this.trails_cont);
 		//lipback cont
 		this.lipcap_cont = new createjs.Container();
 		this.foreground_cont.addChild(this.lipcap_cont);
@@ -218,10 +218,10 @@ prototype.init = function(spot, config) {
 		this.shape_mask = new createjs.Shape();
 
 		//Ticker
-		this.addEventListener('tick',proxy(this.tick,this));		
+		this.addEventListener('tick',proxy(this.tick,this));
 
 		this.initWave(STAGEWIDTH/2);
-		
+
 		this.resize();
 
 }
@@ -240,7 +240,7 @@ prototype.getAllPeaksPoints = function() {
 
 
 prototype.tick = function(ev) {
-	if(this.paused) return;	
+	if(this.paused) return;
 
 	if(this.breaked) {
 
@@ -250,15 +250,15 @@ prototype.tick = function(ev) {
 		this.drawLip();
 		this.drawSplash();
 		this.moveWave();
-		this.drawMask();	
+		this.drawMask();
 	}
 
 	this.animateBackground();
 
 	if(DEBUG) {
-		this.drawDebug();		
+		this.drawDebug();
 	}
-		
+
 }
 
 
@@ -289,7 +289,7 @@ prototype.mergeCollidingPeaks = function() {
 			//delete merged peak
 			this.peaks.splice(this.peaks.indexOf(dump),1);
 		}
-		
+
 	}
 
 	//merge splash
@@ -313,19 +313,19 @@ prototype.mergeCollidingPeaks = function() {
 			main.points = merged;
 			dump.points = [];
 			//delete merged splash
-			this.splashs.splice(this.splashs.indexOf(dump),1);			
+			this.splashs.splice(this.splashs.indexOf(dump),1);
 		}
-		
+
 	}
 
-	
+
 
 }
 
 prototype.initContinuousBreaking = function() {
 
 	this.breaking_timer = new Timer(proxy(this.continuousBreaking,this), this.params.breaking.x_speed);
-	
+
 }
 
 prototype.continuousBreaking = function() {
@@ -340,7 +340,7 @@ prototype.continuousBreaking = function() {
 
 		//do NOT add points if there is no point to start
 		if(peak.points.length === 0) continue;
-		
+
 		// add left point
 		let lx = peak.points[0].x - this.params.breaking.left.width;
 		const left = this.createLipPoint({x:lx, direction: LEFT, peak: peak});
@@ -362,7 +362,7 @@ prototype.continuousBreaking = function() {
 	// merge colliding peaks
 	this.mergeCollidingPeaks();
 
-	//init continuous breaking	
+	//init continuous breaking
 	this.breaking_timer = new Timer(proxy(this.continuousBreaking,this), parseInt(this.params.breaking.x_speed));
 }
 
@@ -394,23 +394,23 @@ prototype.addPeak = function(center, width) {
 
 	//if there is no peak yet, simply add it to the list and return
 	if(this.peaks.length === 0) {
-		this.peaks.push(peak); 
+		this.peaks.push(peak);
 		this.splashs.push(splash);
 	}
 	else {
 		//if peak is on the left side of the wave, prepend it
 		if(center <= this.peaks[0].center) {
-			this.peaks.unshift(peak); 
+			this.peaks.unshift(peak);
 			this.splashs.unshift(splash);
 		}
 		else {
-			this.peaks.push(peak);		
+			this.peaks.push(peak);
 			this.splashs.push(splash);
 		}
 	}
 
-	
-	
+
+
 }
 
 prototype.createPeakPoints = function(peak) {
@@ -506,7 +506,7 @@ prototype.createLipPoint = function(params) {
 		.to({bounce_y: breaking_y - bounce_y/2},2500,createjs.Ease.bounceOut)
 	;
 
-	const t2 = createjs.Tween.get(cap, { timeScale: this.time_scale })	
+	const t2 = createjs.Tween.get(cap, { timeScale: this.time_scale })
 		.to({y: - this.config.lip.cap.height + Math.random()*5}, this.config.lip.cap.lifetime + this.config.lip.cap.width/2, createjs.Ease.sineIn)
 		.to({y:0},this.config.lip.cap.width/2,createjs.Ease.quartInOut)
 		;
@@ -578,13 +578,13 @@ prototype.splashPointReached = function(point) {
 	if(this.direction===0) {
 		this.setDirection();
 		this.startShaking();
-		
+
 
 		//init obstacles intervals
 		if(this.isPlayed) {
 			this.initObstaclesInterval();
 		}
-	} 
+	}
 
 	//add particle
 	if(PERF > 10) {
@@ -609,7 +609,7 @@ prototype.splashPointReached = function(point) {
 					{shape:'circle',percentage:50,stroke:1,strokeColor:'#FFF'}
 				]
 		});
-		point.addChild(emitter);		
+		point.addChild(emitter);
 	}
 
 }
@@ -634,28 +634,28 @@ prototype.coming = function() {
 		if(this.played === false) {
 			var e = new createjs.Event("non_played_wave");
 			e.wave = this;
-			this.spot.dispatchEvent(e);		
+			this.spot.dispatchEvent(e);
 		}
 		return;
 	}
 
 	// break the wave when it reach the break line
 	if(this.breaked === false && this.y > this.spot.config.lines.break) {
-			this.initBreak(STAGEWIDTH/2);			
-	}	
+			this.initBreak(STAGEWIDTH/2);
+	}
 
 	// stop resizing wave when peak line is reached
 	if(this.y >= this.spot.config.lines.peak) {
 		//if wave is played, send event to freeze the spot
-		if(this.played === true) {			
+		if(this.played === true) {
 			console.log('dispatch played_wave');
 			var e = new createjs.Event("played_wave");
 			e.wave = this;
-			this.spot.dispatchEvent(e);			
+			this.spot.dispatchEvent(e);
 		}
 	}
 
-	// resize it 
+	// resize it
 	this.resize();
 
 }
@@ -667,10 +667,10 @@ prototype.getResizeCoef = function() {
 
 prototype.resize = function() {
 
-	//calcul the proportion	
+	//calcul the proportion
 	const coef = this.getResizeCoef();
 
-	//calcul wave height	
+	//calcul wave height
 	let h = this.config.height * coef;
 	if(h > this.config.height) {
 		h = this.config.height;
@@ -696,7 +696,7 @@ prototype.resize = function() {
 		this.params.shoulder.right.width = this.config.shoulder.right.width * coef;
 		this.params.shoulder.right.inner = this.config.shoulder.right.inner * coef;
 		this.params.shoulder.right.outer = this.config.shoulder.right.outer * coef;
-		this.params.shoulder.right.marge = this.config.shoulder.right.marge * coef;		
+		this.params.shoulder.right.marge = this.config.shoulder.right.marge * coef;
 	}
 
 	//resize surfer
@@ -710,7 +710,7 @@ prototype.resize = function() {
 			if(this.peakpoints[0][i].splashed != undefined) {
 				this.peakpoints[0][i].y = this.params.height;
 			}
-		}		
+		}
 	}*/
 
 	//draw background
@@ -721,7 +721,7 @@ prototype.resize = function() {
 	this.background_shadow.alpha = 1 - coef;
 
 	//resize background
-	this.resizeBackground(h);	
+	this.resizeBackground(h);
 
 	//draw shpa
 	this.drawMask();
@@ -741,7 +741,7 @@ prototype.initWave = function(center) {
 
 }
 
-prototype.initBreak = function(center) {		
+prototype.initBreak = function(center) {
 
 	if(this.breaked === true) return;
 
@@ -754,7 +754,7 @@ prototype.initBreak = function(center) {
 
 	this.addPeak(center,this.config.breaking.width);
 
-	//init continuous breaking	
+	//init continuous breaking
 	this.initContinuousBreaking();
 
 	//init points cleaner
@@ -790,7 +790,7 @@ prototype.initBreakingIntervals = function() {
 prototype.initObstaclesInterval = function() {
 
 	//float obstacles
-	if(this.config.obstacles.float.interval !== 0) {		
+	if(this.config.obstacles.float.interval !== 0) {
 		this.initFloatObstaclesInterval();
 	}
 
@@ -838,7 +838,7 @@ prototype.initVariablePameters = function() {
 			slope: 'both',
 			loops: true,
 			ease: createjs.Tween.cubicInOut,
-		})		
+		})
 	}
 }
 
@@ -846,7 +846,7 @@ prototype.playerTakeOff = function(surfer) {
 
 	this.surfed = true;
 	this.played = true;
-	this.surfer = surfer;	
+	this.surfer = surfer;
 	this.player = surfer;
 
 	this.addSurfer(surfer);
@@ -858,7 +858,10 @@ prototype.playerTakeOff = function(surfer) {
 		e.wave = this;
 		e.surfer = this.surfer;
 		this.spot.dispatchEvent(e);
-}
+
+		console.log(USER.skills);
+
+	}
 
 prototype.startShaking = function() {
 
@@ -897,8 +900,8 @@ prototype.unshake = function() {
 }
 
 prototype.resizeBackground = function() {
-					
-	this.background_cont.scaleY = this.params.height / this.origin_height;		
+
+	this.background_cont.scaleY = this.params.height / this.origin_height;
 }
 
 
@@ -946,14 +949,14 @@ prototype.addTestSurferBot = function(surfer) {
 	bot.takeOff( takeX, 80);
 	this.surfers_cont.addChild(bot);
 	this.surfers.unshift(bot);
-	
+
 }
 
 prototype.removeBot = function(bot) {
 
 	this.surfers_cont.removeChild(bot);
 	this.surfers.splice(this.surfers.indexOf(bot),1);
-	
+
 }
 
 prototype.breakAndFollow = function(direction = LEFT) {
@@ -978,7 +981,7 @@ prototype.getSurfers = function() {
 prototype.pause = function() {
 
 	this.status = 'paused';
-	this.paused = true;	
+	this.paused = true;
 	this.surfers.map(s => s.pause());
 	this.getTimers().map(t => t.pause());
 }
@@ -1060,7 +1063,7 @@ prototype.initBlockBreaking = function(width) {
 }
 
 prototype.initBlockBreakingLeft = function(width) {
-	
+
 	if(this.breaked === false) return;
 
 	var peak = this.findTheLeftPeak();
@@ -1069,7 +1072,7 @@ prototype.initBlockBreakingLeft = function(width) {
 		var point = this.createLipPoint({x:x, direction: LEFT, peak: peak});
 		peak.points.unshift(point);
 		width = width - this.params.breaking.left.width;
-	}		
+	}
 }
 
 prototype.initBlockBreakingRight = function(width) {
@@ -1077,7 +1080,7 @@ prototype.initBlockBreakingRight = function(width) {
 
 	var peak = this.findTheRightPeak();
 	while( width > 0) {
-		var x = peak.points[peak.points.length-1].x + this.params.breaking.right.width;	
+		var x = peak.points[peak.points.length-1].x + this.params.breaking.right.width;
 		var point = this.createLipPoint({x:x, direction: RIGHT, peak: peak});
 		peak.points.push(point);
 		width = width - this.params.breaking.right.width;
@@ -1114,7 +1117,7 @@ prototype.initBreakingPeakRightInterval = function() {
 	var w = this.config.breaking.right.peak_width + Math.random()*(this.config.breaking.right.peak_width_max - this.config.breaking.right.peak_width);
 
 	this.breaking_peak_right_timer = new Timer(proxy(this.continueBreakingPeakRightInterval,this),t);
-	
+
 }
 
 prototype.continueBreakingPeakRightInterval = function() {
@@ -1133,7 +1136,7 @@ prototype.initBreakingPeakLeftInterval = function() {
 	var w = this.config.breaking.left.peak_width + Math.random()*(this.config.breaking.left.peak_width_max - this.config.breaking.left.peak_width);
 
 	this.breaking_peak_left_timer = new Timer(proxy(this.continueBreakingPeakLeftInterval,this),t);
-	
+
 }
 
 prototype.continueBreakingPeakLeftInterval = function() {
@@ -1148,7 +1151,7 @@ prototype.continueBreakingPeakLeftInterval = function() {
 
 
 prototype.addBreakingPeak = function(width,distance) {
-	
+
 	//this.addBreakingPeakWarning();
 
 	//window.setTimeout(proxy(this.addBreakingPeakToLip,this,[width,distance]),2000);
@@ -1200,7 +1203,7 @@ prototype.addBreakingPeakToLip = function(width,distance) {
 	}
 	if(this.direction === RIGHT) {
 		var peak = this.findTheRightPeak();
-		var x = peak.points[peak.points.length-1].x + distance;	
+		var x = peak.points[peak.points.length-1].x + distance;
 		this.addPeak(x, width);
 	}
 }
@@ -1213,9 +1216,9 @@ prototype.setDirection = function() {
 	//else set direction
 	if(this.surfer) {
 		if(this.surfer.x > this.params.breaking_center) {
-			this.direction = RIGHT;	
+			this.direction = RIGHT;
 			//console.log('Wave is a right !');
-		} 
+		}
 		else {
 			this.direction = LEFT;
 			//console.log('Wave is a left !');
@@ -1224,9 +1227,9 @@ prototype.setDirection = function() {
 	else {
 		var surfer = this.surfers[0];
 		if(surfer.x > this.params.breaking_center) {
-			this.direction = RIGHT;	
+			this.direction = RIGHT;
 			//console.log('Wave is a right !');
-		} 
+		}
 		else {
 			this.direction = LEFT;
 			//console.log('Wave is a left !');
@@ -1240,8 +1243,8 @@ prototype.setDirection = function() {
 
 prototype.getSuction = function() {
 	if(this.direction === 0) return new Victor(0, - this.config.suction.y);
-	if(this.direction === LEFT) return new Victor(this.params.suction.x*-1,- this.params.suction.y);	
-	if(this.direction === RIGHT) return new Victor(this.params.suction.x,- this.params.suction.y);	
+	if(this.direction === LEFT) return new Victor(this.params.suction.x*-1,- this.params.suction.y);
+	if(this.direction === RIGHT) return new Victor(this.params.suction.x,- this.params.suction.y);
 }
 
 prototype.moveWave = function() {
@@ -1259,17 +1262,17 @@ prototype.moveWave = function() {
 	let delta = (STAGEWIDTH>>1) - surfer_pos.x; + (STAGEWIDTH*2/3 * this.direction)
 
 	if(this.direction === LEFT) {
-		delta += STAGEWIDTH / 3;
+		delta += STAGEWIDTH / 2.5;
 		this.movingX = delta/this.params.breaking.left.width;
 	}
 	if(this.direction === RIGHT) {
-		delta += -STAGEWIDTH / 3;
+		delta += -STAGEWIDTH / 2.5;
 		this.movingX = delta/this.params.breaking.right.width;
 	}
 
 	this.movingX *= this.time_scale;
 
-	this.cont.x += this.movingX;	
+	this.cont.x += this.movingX;
 }
 
 prototype.moveWaveAuto = function() {
@@ -1308,7 +1311,7 @@ prototype.oldmoveWave = function() {
 		//move wave normally when well positioned
 		if(pt.x <= 100) this.cont.x -= xwidth;
 		//else move quicker
-		else this.cont.x -= xwidth*2;			
+		else this.cont.x -= xwidth*2;
 	}
 
 }
@@ -1318,12 +1321,12 @@ prototype.selfRemove = function() {
 	this.surfers.map(s => s.selfRemove());
 	this.allpoints.map(p => createjs.Tween.removeTweens(p));
 	this.getTimers().map(t => t.clear());
-	this.removeAllEventListeners('tick');	
+	this.removeAllEventListeners('tick');
 	this.cont.removeAllChildren();
 	this.removeAllChildren();
 	this.stopShaking();
 	this.surfers = null;
-	this.cont = null;	
+	this.cont = null;
 	this.obstacles = null;
 	this.peaks = null;
 	this.splashs = null;
@@ -1387,13 +1390,13 @@ prototype.getLEFTOnOffScreenPoints = function(points) {
 		let point = points[i];
 		// calcul global position of the point
 		let x = this.lip_cont.localToGlobal(point.x,point.y).x;
-		// if point is onscreen, stock it 
+		// if point is onscreen, stock it
 		if( x < STAGEWIDTH + offset) {
 			onscreens.push(point);
 		} else {
 			offscreens.push(point);
 		}
-	} 
+	}
 
 	return { onscreen : onscreens, offscreen: offscreens }
 }
@@ -1406,14 +1409,14 @@ prototype.getRIGHTOnOffScreenPoints = function(points) {
 		let point = points[i];
 		// calcul global position of the point
 		let x = this.lip_cont.localToGlobal(point.x,point.y).x;
-		// if point is onscreen, stock it 
+		// if point is onscreen, stock it
 		if( x > - offset) {
 			onscreens.push(point);
 		} else {
 			offscreens.push(point);
 		}
-	} 
-	
+	}
+
 	return { onscreen : onscreens, offscreen: offscreens };
 }
 
@@ -1422,7 +1425,7 @@ prototype.deleteOffscreenPoints = function(points) {
 	let i = points.length;
 	while(i>=0) {
 		const index = this.allpoints.indexOf(points[i]);
-		if(index !== -1) this.allpoints.splice(index,1);			
+		if(index !== -1) this.allpoints.splice(index,1);
 		--i;
 	}
 }
@@ -1446,7 +1449,7 @@ prototype.addRandomFloatObstacle = function() {
 	var perc = 0;
 	for(var obs in this.config.obstacles.float.objects) {
 		var perc = perc + this.config.obstacles.float.objects[obs].percentage;
-		if(rand <= perc) {			
+		if(rand <= perc) {
 			if(obs === 'paddler') this.addPaddler();
 			else if(obs === 'photographer') this.addPhotographer();
 			else if(obs === 'bomb') this.addBomb();
@@ -1475,7 +1478,7 @@ prototype.addRandomFlyObstacle = function() {
 	var perc = 0;
 	for(var obs in this.config.obstacles.fly.objects) {
 		var perc = perc + this.config.obstacles.fly.objects[obs].percentage;
-		if(rand <= perc) {			
+		if(rand <= perc) {
 			if(obs === 'prize') this.addFlyingPrize();
 			else if(obs === 'cigogne') this.addCigogne();
 			else if(obs === 'drone') this.addDrone();
@@ -1505,7 +1508,7 @@ prototype.addPhotographer = function() {
 }
 
 prototype.addObstacle = function(obs) {
-	if(typeof obs === undefined) var obs = new Obstacle({wave: this, spot: this.spot});	
+	if(typeof obs === undefined) var obs = new Obstacle({wave: this, spot: this.spot});
 	this.obstacles.push(obs);
 	this.obstacle_cont.addChild(obs);
 }
@@ -1557,14 +1560,14 @@ prototype.drawLip = function() {
 
 
 	//for each peak
-	for(let j=0, ln=this.peaks.length; j<ln; j++) {		
+	for(let j=0, ln=this.peaks.length; j<ln; j++) {
 
 		let points = this.peaks[j].points;
 
 		//do NOT draw when there are no lip points
 		if(points.length === 0) continue;
 
-		//draw from the first point of the lip	
+		//draw from the first point of the lip
 		this.lip_thickness.graphics.moveTo(points[0].x,0);
 		this.lip_surface.graphics.moveTo(points[0].x,0);
 		this.lip_shadow.graphics.moveTo(points[0].x,0);
@@ -1581,7 +1584,7 @@ prototype.drawLip = function() {
 					x = pt.x,
 					y = (pt.splashed)? this.params.height : pt.y,
 					thk = this.params.lip.thickness,
-					yt = (pt.y - thk < 0)? 0 : pt.y - thk;			
+					yt = (pt.y - thk < 0)? 0 : pt.y - thk;
 
 				//draw shape line through all points of the lip
 				this.lip_thickness.graphics.lineTo(x,y);
@@ -1596,7 +1599,7 @@ prototype.drawLip = function() {
 			}
 		}
 		//HIGH PERF
-		else {		
+		else {
 			for(var i=1,len=points.length; i<len-2; ++i){
 
 				//Draw lip
@@ -1615,7 +1618,7 @@ prototype.drawLip = function() {
 					//yct = (yc >= this.params.height - thk)? this.params.height : yct
 
 					;
-				
+
 				this.lip_thickness.graphics.quadraticCurveTo(x1,y1,xc,yc);
 				this.lip_surface.graphics.quadraticCurveTo(x1,y1t,xc,yct);
 				this.lip_shadow.graphics.quadraticCurveTo(x1,y1*10,xc,yc*10);
@@ -1629,21 +1632,21 @@ prototype.drawLip = function() {
 			}
 		}
 		//faire passer par l'avant dernier point
-		this.lip_thickness.graphics.quadraticCurveTo(points[i].x,points[i].y,points[i+1].x,points[i+1].y);	
-		this.lip_surface.graphics.quadraticCurveTo(points[i].x,points[i].y,points[i+1].x,points[i+1].y);	
-		this.lip_shadow.graphics.quadraticCurveTo(points[i].x,points[i].y,points[i+1].x,points[i+1].y);	
-		if(points[i].cap) this.lip_cap.graphics.lineTo(points[i].x,points[i].cap.y);	
+		this.lip_thickness.graphics.quadraticCurveTo(points[i].x,points[i].y,points[i+1].x,points[i+1].y);
+		this.lip_surface.graphics.quadraticCurveTo(points[i].x,points[i].y,points[i+1].x,points[i+1].y);
+		this.lip_shadow.graphics.quadraticCurveTo(points[i].x,points[i].y,points[i+1].x,points[i+1].y);
+		if(points[i].cap) this.lip_cap.graphics.lineTo(points[i].x,points[i].cap.y);
 
 		//le dernier point
 		this.lip_thickness.graphics.lineTo(points[len-1].x,0);
-		this.lip_surface.graphics.lineTo(points[len-1].x,0);	
-		this.lip_shadow.graphics.lineTo(points[len-1].x,0);	
+		this.lip_surface.graphics.lineTo(points[len-1].x,0);
+		this.lip_shadow.graphics.lineTo(points[len-1].x,0);
 		if(points[len-1].cap) this.lip_cap.graphics.lineTo(points[len-1].x,0);
-		
+
 	}
 
 	// parse the point backward
-	for(let j=this.peaks.length-1, ln=0; j>=ln; j--) {		
+	for(let j=this.peaks.length-1, ln=0; j>=ln; j--) {
 
 		let points = this.peaks[j].points;
 
@@ -1661,12 +1664,12 @@ prototype.drawLip = function() {
 			}
 		}
 		//HIGH PERF
-		else {		
+		else {
 			for(var i=points.length-1,len=0; i>=len; --i){
 
 				//Draw lip
 				var p1 = points[i];
-				
+
 				//draw spray
 				if(p1.spray) this.lip_spray.graphics.lineTo(p1.x, p1.y);
 
@@ -1679,7 +1682,7 @@ prototype.drawLip = function() {
 
 
 prototype.drawSplash = function () {
-	
+
 	if(this.breaked === false) return;
 
 	this.splash_gfx.clear();
@@ -1704,8 +1707,8 @@ prototype.drawSplash = function () {
 				if(points[i].splash_y < this.params.height - 1) {
 					points[i].splash_y += (this.params.height - points[i].splash_y) * 0.1;
 				}
-				this.splash_gfx.lineTo(points[i].x,points[i].splash_y);		
-			}					
+				this.splash_gfx.lineTo(points[i].x,points[i].splash_y);
+			}
 		}
 		else {
 
@@ -1724,14 +1727,14 @@ prototype.drawSplash = function () {
 				}
 				let xc = (points[i].x + points[i-1].x) >> 1;
 				let yc = (points[i].splash_y + points[i-1].splash_y) >> 1;
-				this.splash_gfx.quadraticCurveTo(points[i].x,points[i].splash_y,xc,yc);			
-			}						
-		}		
+				this.splash_gfx.quadraticCurveTo(points[i].x,points[i].splash_y,xc,yc);
+			}
+		}
 
 		this.splash_gfx.closePath();
 
 	}
-	
+
 
 }
 
@@ -1741,7 +1744,7 @@ prototype.drawMask = function() {
 	//get shoulders positions
 	const left = this.shoulder_left;
 	const right = this.shoulder_right;
-	
+
 	//minor shoulder variations
 	//if(this.breaked === true && this.params.shoulder.left.slope === null) this.params.shoulder.left.slope = new Variation({min:-50,max:50});
 	//if(this.breaked === true && this.params.shoulder.right.slope === null) this.params.shoulder.right.slope = new Variation({min:-50,max:50});
@@ -1753,7 +1756,7 @@ prototype.drawMask = function() {
 		.moveTo(left.x - this.params.shoulder.left.width - this.params.shoulder.left.marge, this.params.height)
 		.bezierCurveTo(left.x - this.params.shoulder.left.width + this.params.shoulder.left.outer - this.params.shoulder.left.marge, this.params.height + this.params.shoulder.left.slope,left.x - this.params.shoulder.left.inner - this.params.shoulder.left.marge,0,left.x - this.params.shoulder.left.marge,0)
 		.lineTo(right.x + this.params.shoulder.right.marge,0)
-		.bezierCurveTo(right.x + this.params.shoulder.right.inner + this.params.shoulder.right.marge,0,right.x + this.params.shoulder.right.width + this.params.shoulder.right.marge - this.params.shoulder.right.outer,this.params.height + this.params.shoulder.right.slope,right.x + this.params.shoulder.right.width + this.params.shoulder.right.marge ,this.params.height)		
+		.bezierCurveTo(right.x + this.params.shoulder.right.inner + this.params.shoulder.right.marge,0,right.x + this.params.shoulder.right.width + this.params.shoulder.right.marge - this.params.shoulder.right.outer,this.params.height + this.params.shoulder.right.slope,right.x + this.params.shoulder.right.width + this.params.shoulder.right.marge ,this.params.height)
 		.closePath()
 		;
 
@@ -1761,16 +1764,16 @@ prototype.drawMask = function() {
 	this.background_cont.x = - this.cont.x;
 		//use the shape to mask the background image
 	this.background_cont.mask = this.shape_mask;
-		
+
 }
 
 prototype.drawDebug = function() {
 
 	this.debug_points_cont.removeAllChildren();
-	
+
 	var points = this.getAllPeaksPoints();
 	for(let j=0, ln=points.length; j<ln; j++) {
-			
+
 		let point = points[j];
 
 		//DRAW LIP POINTS
@@ -1782,7 +1785,7 @@ prototype.drawDebug = function() {
 			else if(point.breaking_percent / this.surfer.aerial_takeoff_limit >= 0.10) color = 'lightgreen';
 			else color = 'darkgreen';
 			if(this.surfer.point_under && this.surfer.point_under.x === point.x) color = 'red';
-			
+
 		}
 		lip.graphics.beginFill(color).drawCircle(0,0,4);
 		lip.alpha = 0.8;
@@ -1796,7 +1799,7 @@ prototype.drawDebug = function() {
 		cap.alpha = 1;
 		cap.x = point.x;
 		cap.y = point.cap.y;
-		this.debug_points_cont.addChild(cap);		
+		this.debug_points_cont.addChild(cap);
 
 		//DRAW TOP FALL POINTS
 		const top = new createjs.Shape();
@@ -1805,9 +1808,9 @@ prototype.drawDebug = function() {
 		top.x = point.x;
 		top.y = 0;
 		top.scaleX = top.scaleY = point.topfallscale;
-		this.debug_points_cont.addChild(top);	
-		
-		//DRAW BOTTOM FALL POINTS	
+		this.debug_points_cont.addChild(top);
+
+		//DRAW BOTTOM FALL POINTS
 		if(point.splashed === true) {
 
 			const spla = new createjs.Shape();
@@ -1823,14 +1826,14 @@ prototype.drawDebug = function() {
 			spla.x = point.x;
 			spla.y = point.bounce_y;
 			this.debug_points_cont.addChild(spla);
-			
+
 			const bot = new createjs.Shape();
 			bot.graphics.beginFill('red').drawCircle(0,0,1);
 			bot.alpha = 0.1;
 			bot.x = point.x;
 			bot.y = point.splash_y;
 			bot.scaleX = bot.scaleY = point.bottomfallscale;
-			this.debug_points_cont.addChild(bot);	
+			this.debug_points_cont.addChild(bot);
 
 			const tube = new createjs.Shape();
 			tube.graphics.beginFill('green').drawCircle(0,0,1);
@@ -1838,7 +1841,7 @@ prototype.drawDebug = function() {
 			tube.x = point.x;
 			tube.y = this.params.height/2;
 			tube.scaleX = tube.scaleY = point.tubescale;
-			this.debug_points_cont.addChild(tube);	
+			this.debug_points_cont.addChild(tube);
 		}
 
 	}
@@ -1877,16 +1880,16 @@ prototype.drawBackground = function() {
 	this.background_gradient.graphics.clear();
 	for(let i=0,ln=colors.length-1;i<ln;++i) {
 		if(colors[i+1] === undefined) break;
-		let color1 = colors[i];		
-		let color2 = colors[i+1];		
+		let color1 = colors[i];
+		let color2 = colors[i+1];
 		let y1 = this.params.height * color1[2] / 100;
 		let y2 = this.params.height * color2[2] / 100;
 
 		this.background_gradient.graphics
 			.beginLinearGradientFill([color1[0],color2[0]],[0+color1[1],1-color2[1]],0,y1,0,y2)
-			.drawRect(0,y1,STAGEWIDTH*2,y2);	
+			.drawRect(0,y1,STAGEWIDTH*2,y2);
 	}
-	
+
 	//shadow gradient background
 	this.background_shadow.graphics.clear()
 		.beginLinearGradientFill(['rgba(0,0,0,0.4)','rgba(0,0,0,0)'],[0,1],0,0,0,this.params.height)
@@ -1908,12 +1911,12 @@ prototype.initAnimateBackground = function() {
 	this.background_riddle2.x = 0;
 	this.background_riddle2.scaleY = this.background_scale;
 	this.background_riddle2.y = this.background_riddle1.image.height * this.background_scale;
-	
+
 	this.background_riddle3 = this.background_riddle1.clone();
 	this.background_riddle3.x = this.background_riddle1.image.width;
 	this.background_riddle3.scaleY = this.background_scale;
 	this.background_riddle3.y = 0;
-	
+
 	this.background_riddle4 = this.background_riddle1.clone();
 	this.background_riddle4.x = this.background_riddle4.image.width;
 	this.background_riddle4.scaleY = this.background_scale;
@@ -1927,7 +1930,7 @@ prototype.animateBackground = function() {
 	if(PERF <= 1) return;
 
 	if(SPOT.runing === false && this.isPlayed() === false) return;
-	
+
 	//create all sub riddles if not created yet
 	if(this.background_riddles.numChildren < 4) this.initAnimateBackground();
 
@@ -2028,17 +2031,17 @@ prototype.initVanishPoints = function(x) {
 	this.vanish_right = vanish;
 
 }
-prototype.updateVanishPoints = function(pt) {	
+prototype.updateVanishPoints = function(pt) {
 
 	if(this.direction === LEFT) {
 		var point = this.vanish_left;
 		if( pt.x > point.x) return;
-		return point.x = pt.x;		
+		return point.x = pt.x;
 	}
 	if(this.direction === RIGHT) {
 		var point = this.vanish_right;
 		if( pt.x < point.x ) return;
-		return point.x = pt.x;		
+		return point.x = pt.x;
 	}
 }
 prototype.getLeftVanishPoint = function() {

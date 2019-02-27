@@ -5,10 +5,10 @@
 (function() {
 
 	function SurferBot(config) {
-		
+
 		this.Surfer_constructor(config);
 		this.initBot(config);
-		
+
 	}
 
 	var prototype = createjs.extend(SurferBot, Surfer);
@@ -17,7 +17,7 @@
 		//override and clear parent function
 
 		//on bot fall
-		this.on('fallen',function(event) {				
+		this.on('fallen',function(event) {
 			this.selfRemove();
 		},this,true);
 
@@ -44,7 +44,7 @@
 			takeoff: 0,
 			force: 0
 		}
-		
+
 	}
 
 	prototype.initLightSaber = function() {
@@ -54,14 +54,14 @@
 
 	/**
 	 * Replace parent method returning a VIRTUAL mouse point
-	 * @return {createjs.Point} 
+	 * @return {createjs.Point}
 	 */
 	prototype.getMousePoint = function() {
 
 		var mouse = this.vMouse.localToLocal(0,0,this.wave.cont);
 		return mouse;
 	}
-	
+
 
 	prototype.initVirtualMouse = function() {
 
@@ -72,7 +72,7 @@
 		this.addChild(this.vMouse);
 
 
-		this.initMouseRest();		
+		this.initMouseRest();
 		//this.initMouseMoveX();
 		//this.initMouseJump();
 		this.initSaberStrike();
@@ -91,7 +91,7 @@
 			;
 		this.addTween(this.tweenMoveRest);
 	}
-	
+
 	prototype.initMouseMove = function() {
 
 		this.initMouseMoveX();
@@ -105,7 +105,7 @@
 	}
 
 	prototype.initMouseMoveY = function() {
-	
+
 		var time = 500 + Math.random()*1000;
 		this.removeTween(this.tweenMoveY);
 		this.tweenMoveY = createjs.Tween.get(this.vMouse)
@@ -118,7 +118,7 @@
 	}
 
 	prototype.initMouseMoveX = function() {
-	
+
 		let dx = Math.random()*STAGEWIDTH/4 * -this.direction;
 		const time = 1000 + Math.random()*5000;
 		this.removeTween(this.tweenMoveX);
@@ -133,10 +133,10 @@
 	}
 
 	prototype.initMouseJump = function(jump) {
-		
+
 		//call next jump delay
 		this.jumpTimeout = window.setTimeout(proxy(this.initMouseJump,this,[true]),Math.random()*10000 + 5000);
-		
+
 
 
 		if(jump === true) {
@@ -150,7 +150,7 @@
 				.to({y: - height}, 800)
 				.wait(500)
 				.to({y: 0}, 200)
-				.call(proxy(this.initMouseRest,this));		
+				.call(proxy(this.initMouseRest,this));
 		}
 
 	}
@@ -195,7 +195,7 @@
 	}
 
 	prototype.removeVirtualMouse = function() {
-	
+
 		createjs.Tween.removeTweens(this.vMouse);
 		this.removeChild(this.vMouse);
 		this.vMouse = null;

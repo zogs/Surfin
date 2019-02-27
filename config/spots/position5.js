@@ -1,11 +1,14 @@
-var conf = {  
+var conf = {
   id: 10,
   name: 'Position 5',
   alias: 'Position 5',
   config: {
+    init: {
+      type: 'static',
+    },
     colors: {
-      top: '#00354f',
-      bottom: '#166f99'
+      top: '#00557f',
+      bottom: '#57c9ff'
     },
     lines: {
       horizon: 220,
@@ -18,10 +21,10 @@ var conf = {
       length :  2,
       speed : 20000,
       frequency : 5000,
-      interval : 14000,       
-      spread : 200, 
-      xshift: 10,     
-    },  
+      interval : 14000,
+      spread : 200,
+      xshift: 10,
+    },
     surfers: {
       proportion: 1.5,
       velocities: {
@@ -46,14 +49,14 @@ var conf = {
         splash_h_ease: 0.4,
         left: {
           width: 20,
-          width_max: 30,        
+          width_max: 30,
           width_interval: 1000,
           width_pause: 0,
           block_interval: 1000,
           block_interval_max: 2000,
           block_width: 5,
           block_width_max: 50,
-        },          
+        },
         right: {
           width: 20,
           width_max: 30,
@@ -75,7 +78,7 @@ var conf = {
           width: 700,
           height: 10,
           lifetime: 800,
-        },        
+        },
       },
       splash: {
         colors: {
@@ -85,14 +88,14 @@ var conf = {
       },
       paddling_effort: 1,
       bottom_fall_scale: 0.8,
-      top_fall_scale: 0.15, 
-      tube_difficulty_min : 1,  
-      tube_difficulty_max : 10, 
+      top_fall_scale: 0.15,
+      tube_difficulty_min : 1,
+      tube_difficulty_max : 10,
       suction: {x: 5, y: 4},
       colors: [
-        ['#093950',0,0],
-        ['#146389',0,50],
-        ['#0f597d',0,100]
+        ['#04567d',0,0],
+        ['#2ea8e3',0,50],
+        ['#36aee8',0,100]
       ],
       obstacles: {
         'float': {
@@ -101,9 +104,9 @@ var conf = {
           'objects' : {
             'paddler' : {percentage: 0},
             'photographer' : {percentage: 100},
-            'bomb': {percentage: 0}, 
+            'bomb': {percentage: 0},
             'trooper': {percentage: 0},
-          },                  
+          },
         },
         'fly': {
           'interval': 0,
@@ -111,8 +114,8 @@ var conf = {
           'objects' : {
             'prize' : {percentage: 80},
             'cigogne' : {percentage: 20},
-            'drone': {percentage: 0},          
-          },                  
+            'drone': {percentage: 0},
+          },
         }
       },
       shoulder : {
@@ -131,7 +134,7 @@ var conf = {
           slope: 0
         }
       }
-    },    
+    },
   }
 };
 

@@ -1,9 +1,9 @@
 
-// define usefull const 
+// define usefull const
 var stage;
 
 
-// define global usefull constant 
+// define global usefull constant
 // (NB: use positive numeric for perf reason)
 const LEFT = 1;
 const CENTER = 0;
@@ -11,23 +11,23 @@ const RIGHT = 2;
 
 window.loaded = function() {
 
-	stage = new createjs.Stage('canvas');	
+	stage = new createjs.Stage('canvas');
 	stage.enableMouseOver(10);
 
 	queue = new createjs.LoadQueue();
 	queue.addEventListener('complete',initialize);
 	queue.loadManifest([
-		{id:'bg_paradize',src:'assets/img/bkg/sea.jpg'},
+		{id:'bg_paradize',src:'assets/img/spots/default/full.jpg'},
 		{id:'wave',src:'assets/img/waves/wave1.jpg'},
 		{id:'wave_riddle',src:'assets/img/waves/wave-riddle.png'},
 		{id:'spot_seariddle',src:'assets/img/spots/default/seariddles.png'},
 		{id:'spot_front',src:'assets/img/spots/default/front.png'},
-		{id:'spot_back',src:'assets/img/spots/default/bkg.jpg'},
+		{id:'spot_back',src:'assets/img/spots/zegema_beach/back.jpg'},
 		{id:'bomb_boom',src:'assets/img/object/bomb_boom.png'},
 		{id:'surfer_splash',src:'assets/img/object/splash.gif'},
-		{id:'surfer',src:'assets/img/surfer/surfer_stormtrooper.png'},	
-		{id:'surfer_takeoff',src:'assets/img/surfer/takeoff.png'},
-		{id:'paddler',src:'assets/img/surfer/paddler.png'},
+		{id:'surfer',src:'assets/img/surfer/astrosurfer_moves.png'},
+		{id:'surfer_takeoff',src:'assets/img/surfer/astrosurfer_takeoff.png'},
+		{id:'paddler',src:'assets/img/surfer/astropaddler.png'},
 		{id:'photographer',src:'assets/img/object/photographer.png'},
 		{id:'cigogne',src:'assets/img/object/cigogne.png'},
 		{id:'drone',src:'assets/img/object/drone.png'},
@@ -40,14 +40,14 @@ window.loaded = function() {
 
 	createjs.Sound.alternateExtensions = ["mp3"];
  	createjs.Sound.registerSound("assets/sounds/yeah.mp3", "bravo");
- 	
+
 
 
 	Justice.init();
 
 }
 
-window.initialize = function() {	
+window.initialize = function() {
 
 	//Globals
 	STAGEWIDTH = stage.canvas.width;
@@ -101,7 +101,7 @@ window.initialize = function() {
 	createjs.Ticker.timingMode = createjs.Ticker.TIMEOUT;
 	createjs.Ticker.addEventListener('tick',tick);
 
-	//init Mouse move 
+	//init Mouse move
 	stage.addEventListener('stagemousemove',onMouseMove);
 
 	 //keyboard handlers
@@ -130,7 +130,7 @@ window.initialize = function() {
 window.tick = function() {
 
 	//console.log(createjs.Tween._tweens.length);
-	stage.update();	
+	stage.update();
 }
 
 window.loadSpot = function(event, name = 'default') {
@@ -163,9 +163,8 @@ window.addSpot = function(config, launch = true) {
 	SPOT = new Spot(config);
 	//add it
 	stage.addChild(SPOT);
-	//launch initial set
-	if(launch)  SPOT.launch();
-	else SPOT.init();
+	//init spot
+  SPOT.init();
 	// add menu
 	window.addMenu();
 
@@ -226,22 +225,24 @@ window.showMenu = function(e) {
 
 	const cont = new createjs.Container();
 	cont.x = STAGEWIDTH/10;
+	cont.cursor = 'pointer';
 	stage.addChild(cont);
 
-	let rowx = 400;
-	let rowy = 150;
+	let rowx = 200;
+	let rowy = 100;
 	let posx = 0;
 	let posy = 0;
 	for(let i=0,len=spots.length; i< len; ++i) {
 
 		let spot = spots[i];
 		let button = new createjs.Container();
-		let txt = new createjs.Text(spot.name,'50px Helvetica');
+		let txt = new createjs.Text(spot.name,'24px Helvetica');
 		let bkg = new createjs.Shape();
 		let bound = txt.getBounds();
-		let pad = {x: 50, y: 30};
+		let pad = {x: 25, y: 15};
 
 		bkg.graphics.beginFill('#EEE').drawRoundRect(-bound.x/2 - pad.x, -bound.y - pad.y, bound.width + pad.x*2, bound.height + pad.y*2, 5);
+		bkg.alpha = 0.8;
 
 		posy += rowy;
 
@@ -295,12 +296,12 @@ window.keyDownHandler = function(e)
     case '+':  SPOT.score.add(1000); break;
     case '*':  SPOT.score.testScore();
     default: console.log('Key "'+e.key+'" have no handler.');
-   } 
+   }
 }
 
 window.keyUpHandler = function(e)
 {
-   
+
 }
 
 window.onMouseMove= function(e) {
@@ -325,7 +326,7 @@ window.getMouseVector = function(n) {
 }
 
 window.switchDebugMode = function() {
-	
+
 	if(DEBUG === 1) {
 		DEBUG = 0;
 		console.log('DEBUG DESACTIVED');
@@ -337,7 +338,7 @@ window.switchDebugMode = function() {
 }
 
 window.switchTestMode = function() {
-	
+
 	if(TEST === 1) {
 		TEST = 0;
 		console.log('TEST DESACTIVATED');
@@ -349,7 +350,7 @@ window.switchTestMode = function() {
 }
 
 window.switchSlowMo = function(scale,time) {
-	
+
 	if(SLOW_MOTION === false) {
 		SLOW_MOTION = true;
 		const tween = createjs.Tween.get(window).to({TIME_SCALE: scale}, time);
@@ -372,21 +373,21 @@ window.pause = function() {
 
 	if(PAUSED === 1) {
 		PAUSED = 0;
-		createjs.Ticker.paused = false;	
-		SPOT.resume();	
+		createjs.Ticker.paused = false;
+		SPOT.resume();
 		console.log('PAUSE DESACTIVATED');
 	}
 	else {
 		PAUSED = 1;
-		createjs.Ticker.paused = true;		
+		createjs.Ticker.paused = true;
 		SPOT.pause();
 		console.log('PAUSE ACTIVATED !');
-	}	
+	}
 }
 
 
 window.browserResize = function() {
-	if(window.browserResizeTimeout) window.clearTimeout(window.browserResizeTimeout);	
+	if(window.browserResizeTimeout) window.clearTimeout(window.browserResizeTimeout);
 	window.browserResizeTimeout = window.setTimeout(window.browserResizeEnded,500);
 }
 
@@ -398,7 +399,7 @@ window.browserResizeEnded = function() {
 window.resizeCanvas = function() {
 
 	var windowWidth = window.innerWidth || document.documentElement.clientWidth || document.body.clientWidth;
-	var windowHeight = window.innerHeight || document.documentElement.clientHeight || document.body.clientHeight;	
+	var windowHeight = window.innerHeight || document.documentElement.clientHeight || document.body.clientHeight;
 
 	var currentHeight = stage.canvas.height;
 	var currentWidth = stage.canvas.width;

@@ -1,5 +1,5 @@
-(function() {
-	
+	(function() {
+
 	function Paddler(params) {
 
 		this.Container_constructor();
@@ -11,7 +11,7 @@
 	createjs.EventDispatcher.initialize(prototype);
 	//public static properties
 
-	//init 
+	//init
 	prototype.init = function(params) {
 
 		this.x = params.x;
@@ -20,7 +20,8 @@
 
 		this.paddling_force = 0;
 		this.paddling_progress = 0;
-		this.pixel_height = 80;
+		this.height = 300;
+		this.heightInMeter = 2;
 		this.lifttotal = 0;
 		this.isPlayer = true;
 		this.isPaddling = false;
@@ -59,12 +60,12 @@
 
 	prototype.initListeners = function() {
 
-		this.click_listener = stage.on('click',proxy(this.movePaddler,this),this);			
+		this.click_listener = stage.on('click',proxy(this.movePaddler,this),this);
 
 	}
 
 	prototype.remove = function() {
-	
+
 		this.removeAllChildren();
 		this.removeAllListeners();
 		this.removeAllEventListeners();
@@ -78,26 +79,28 @@
 	prototype.drawDebug = function() {
 
 		var center = new createjs.Shape();
-		center.graphics.beginFill('red').drawCircle(0,0,3);		
+		center.graphics.beginFill('red').drawCircle(0,0,3);
 		this.debug_cont.addChild(center);
 	}
 
-	prototype.getSurferProportion = function() {
+	prototype.getScaleByPosition = function() {
 
-		var c = (1.5 / this.spot.config.waves.real_height) * (this.spot.config.waves.height / ( this.pixel_height/2));
-		return c;
+		return (this.y - this.spot.config.lines.horizon) / (this.spot.config.lines.peak - this.spot.config.lines.horizon);
+	}
+
+	prototype.getScaleByWaveSize = function() {
+
+		return (this.spot.config.waves.height / this.height) * (this.spot.config.waves.real_height / this.heightInMeter)
 	}
 
 	prototype.resize = function() {
 
-		var scale = (this.y - this.spot.config.lines.horizon) / (this.spot.config.lines.beach - this.spot.config.lines.horizon);
-
-		this.scale = scale * this.getSurferProportion();
+		this.scale = this.getScaleByPosition() * this.getScaleByWaveSize();
 
 		this.silhouette.scaleX = this.scale;
 		this.silhouette.scaleY = this.scale;
 		this.silhouette.x = (- this.silhouette.spriteSheet._frameWidth/2) * this.scale;
-		this.silhouette.y = (- this.silhouette.spriteSheet._frameHeight/2) * this.scale;		
+		this.silhouette.y = (- this.silhouette.spriteSheet._frameHeight/2) * this.scale;
 
 	}
 
@@ -127,7 +130,7 @@
 		this.lifted = window.setTimeout(proxy(this.liftdown,this),50);
 	}
 
-	prototype.movePaddler = function(evt) {		
+	prototype.movePaddler = function(evt) {
 
 		var x = evt.stageX;
 		var y = evt.stageY;
@@ -141,7 +144,7 @@
 		//perspective ajustment
 		if(this.paddling == 'up') power = power/2;
 		if(this.paddling == 'down') power = power/3;
-		//calcul the arrival point 
+		//calcul the arrival point
 		var point = findPointFromAngle(this.x, this.y, angle, power);
 
 		//if a previous paddling is 50% progressed, add a extra power
@@ -149,7 +152,7 @@
 			this.paddling_force = this.paddling_force + this.skill.paddling + this.paddling_force*10/this.paddling_progress ;
 		}
 		else {
-			this.paddling_force = this.paddling_force + this.skill.paddling;			
+			this.paddling_force = this.paddling_force + this.skill.paddling;
 		}
 		this.paddling_progress = 0;
 		//move the paddler
@@ -157,7 +160,7 @@
 			tween.to({ y:point.y, x:point.x, paddling_progress:100 },1000, createjs.Tween.quartOut).call(proxy(this.endMoving,this));
 			tween.addEventListener('change',proxy(this.paddlingProgress,this));
 
-			;		
+			;
 
 		//throw event
 		var e = new createjs.Event("paddler_paddling");
@@ -179,7 +182,7 @@
 
 		if(this.paddling_progress === 100) {
 			this.paddling_force = 0;
-			this.paddling_progress = 0;			
+			this.paddling_progress = 0;
 		}
 	}
 
@@ -209,11 +212,11 @@
 
 		var paddler_sheet = new createjs.SpriteSheet({
 		    images: [queue.getResult('paddler')],
-		    frames: {width:80, height:80, count:11},
+		    frames: {width:300, height:300, count:11},
 		    animations: {
 		    	wait: 0,
 		    	waitright: 1,
-		    	waitleft: 6,	        
+		    	waitleft: 6,
 		        left: {
 		            frames: [7,8,7,8,7,8],
 		            next: "waitleft",
@@ -233,12 +236,12 @@
 		        	frames: [4,5,4,5,4,5],
 		        	next: "wait",
 		        	speed: 0.3
-		        }	        
+		        }
 		    }
 		});
 
 		this.silhouette = new createjs.Sprite(paddler_sheet, "waitright");
-		this.silhouette_cont.addChild(this.silhouette);		
+		this.silhouette_cont.addChild(this.silhouette);
 	}
 
 	prototype.clearPaddler = function() {
@@ -312,13 +315,13 @@
 	}
 
 	prototype.takeOffPaddling = function(e) {
-		
+
 		this.movePaddler({stageX: this.x, stageY: STAGEHEIGHT});
 
-		this.paddling_attempt++;		
+		this.paddling_attempt++;
 
 		if(this.isOnWave == false) {
-						
+
 			window.clearInterval(this.paddling_interval);
 			this.paddling_interval = null;
 			this.paddling_attempt = 0;

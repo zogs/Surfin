@@ -1,5 +1,5 @@
 (function() {
-	
+
 	// define usefull constant (NB: use positive numeric for perf reason)
 	const LEFT = 1;
 	const CENTER = 0;
@@ -20,7 +20,7 @@
 	prototype.hitboard_proportion = 15;
 	prototype.height = 300;
 
-	//init 
+	//init
 	prototype.init = function(params) {
 
 		this.wave = params.wave;
@@ -46,9 +46,10 @@
 		this.time = 0;
 		this.timer = null;
 		this.speed = 0;
+		this.boost = false;
 		this.angle = 90;
 		this.angles = [];
-		this.status = 'wait';		
+		this.status = 'wait';
 		this.tubing = false;
 		this.tubeTime = 0;
 		this.tubeMinimumTime = 1000;
@@ -57,6 +58,7 @@
 		this.weapon_points = [];
 		this.riding = false;
 		this.falling = false;
+		this.fallen = false;
 		this.surfing = false;
 		this.automove = false;
 		this.ollie_cooldown = 1000;
@@ -94,8 +96,8 @@
 		this.splash_anim = new createjs.Sprite(sprite_splash);
 		this.splash_anim.y = -20;
 		this.splash_anim.x = 0;
-		this.splash_anim.alpha = 0.4;	
-		this.splash_anim.gotoAndStop(0);	
+		this.splash_anim.alpha = 0.4;
+		this.splash_anim.gotoAndStop(0);
 		this.addChild(this.splash_anim);
 
 		this.trail_shape = new createjs.Shape();
@@ -110,7 +112,7 @@
 		this.spatter_cont = new createjs.Container();
 		this.spatter_cont.addChild(this.spatter_ramp_shape,this.spatter_shape_outer,this.spatter_shape_inner);
 		this.wave.spatters_cont.addChild(this.spatter_cont);
-		
+
 		this.particles_cont = new createjs.Container();
 		this.addChild(this.particles_cont);
 
@@ -124,8 +126,8 @@
 		this.hitbox_radius = 1;
 		this.addChild(this.hitbox);
 
-		this.hitboard = new createjs.Shape();	
-		this.hitboard.graphics.beginFill('pink').drawCircle(0,0,1);	
+		this.hitboard = new createjs.Shape();
+		this.hitboard.graphics.beginFill('pink').drawCircle(0,0,1);
 		this.hitboard.alpha = 0;
 		this.hitboard_radius = 1;
 		this.addChild(this.hitboard);
@@ -145,7 +147,7 @@
 
 		this.weapon_cont = new createjs.Container();
 		this.addChild(this.weapon_cont);
-			
+
 		this.virtualMouse = new createjs.Shape();
 		this.virtualMouse.graphics.beginFill('pink').drawCircle(0,0,3);
 		this.spot.debug_cont.addChild(this.virtualMouse);
@@ -155,7 +157,7 @@
 
 		//NO MORE USED
 		//this.addEventListener('tick',proxy(this.tick,this));
-		
+
 		this.initEventsListener();
 
 		this.resize();
@@ -182,7 +184,7 @@
 		this.checkFall();
 		this.drawTrails();
 		this.drawWeapon();
-		this.drawDebug();		
+		this.drawDebug();
 
 		this.timer = new Timer(proxy(this.continuousMovement,this), this.wave.params.breaking.x_speed);
 		this.time += this.wave.params.breaking.x_speed;
@@ -197,7 +199,7 @@
 			this.lightSaberStrike();
 		},this);
 
-		//custom events		
+		//custom events
 		this.on('take_off',function(event) {
 			var ev = new createjs.Event('surfer_take_off');
 			ev.surfer = event.surfer;
@@ -234,7 +236,7 @@
 			}
 		},this);
 
-		this.on('fallen',function(event) {	
+		this.on('fallen',function(event) {
 			if(this.isPlayer()) this.spot.dispatchEvent('player_fallen');
 		},this,true);
 
@@ -264,12 +266,12 @@
 
 		this.auto_silhouette = false;
 
-		const speed = 0.1 + this.getSkill('takeoff');
+		const speed = 0.2 + this.getSkill('takeoff');
 		const takeoff = new createjs.SpriteSheet({
 			images: [queue.getResult('surfer_takeoff')],
 			frames: {width:300, height:300},
 			animations: {
-				takeoff: [0,4,false,speed],
+				takeoff: [0,3,false,speed],
 			}
 		});
 
@@ -293,7 +295,7 @@
 		// tween it slowly to normal config
 		createjs.Tween.get(this.control_velocities)
 			.to({ y: 0.5 }, time / 2)
-			.call(proxy(function(){ 
+			.call(proxy(function(){
 				this.auto_silhouette = true;
 				this.silhouette_cont.removeAllChildren();
 				this.silhouette_cont.addChild(this.silhouette);
@@ -303,7 +305,7 @@
 			.call(proxy(this.endTakeOff,this));
 
 		// init weapon
-		this.initWeapon();	
+		this.initWeapon();
 
 		//init timer refresh
 		this.timer = new Timer(proxy(this.continuousMovement,this), this.wave.params.breaking.x_speed);
@@ -312,7 +314,7 @@
 	}
 
 	prototype.getSkill = function(comp) {
-		
+
 		if(this.skills[comp] === undefined) {
 			console.error(comp + " is not a skill competence...");
 			return 1;
@@ -320,7 +322,7 @@
 		return this.skills[comp];
 	}
 
-	prototype.endTakeOff = function() {		
+	prototype.endTakeOff = function() {
 
 		this.auto_silhouette = true;
 		this.riding = true;
@@ -333,6 +335,17 @@
 		ev.surfer = this;
 		ev.quality = quality;
 		this.dispatchEvent(ev);
+
+		stage.addEventListener('stagemousedown', proxy(this.onBoost, this));
+		stage.addEventListener('stagemouseup', proxy(this.offBoost,this));
+	}
+
+	prototype.onBoost = function() {
+		this.boost = true;
+	}
+
+	prototype.offBoost = function() {
+		this.boost = false;
 	}
 
 	prototype.setWave = function(wave) {
@@ -379,9 +392,9 @@
 		this.silhouette_cont.scaleY = this.scale;
 		this.silhouette_cont.regX = this.silhouette_width/2;
 		this.silhouette_cont.regY = this.silhouette_height/2;
-		//this.silhouette_cont.x = (- this.silhouette_width/2) * this.scale;		
-		//this.silhouette_cont.y = (- this.silhouette_height/2) * this.scale;	
-		
+		//this.silhouette_cont.x = (- this.silhouette_width/2) * this.scale;
+		//this.silhouette_cont.y = (- this.silhouette_height/2) * this.scale;
+
 		this.hitbox.scale = this.hitbox_radius = this.scale * this.hitbox_proportion;
 		this.hitboard.scale = this.hitboard_radius = this.scale * this.hitboard_proportion;
 		this.hitboard.y = this.silhouette_height/4 * this.scale;
@@ -417,7 +430,7 @@
 
 		if(this.y < 0) return true;
 
-		//check near left shoulder 
+		//check near left shoulder
 		if(this.x < this.wave.shoulder_left.x) {
 			const x1 = this.wave.shoulder_left.x;
 			const y1 = this.wave.shoulder_left.y;
@@ -430,7 +443,7 @@
 			}
 		}
 
-		//check near right shoulder 
+		//check near right shoulder
 		if(this.x > this.wave.shoulder_right.x) {
 			const x1 = this.wave.shoulder_right.x;
 			const y1 = this.wave.shoulder_right.y;
@@ -466,11 +479,14 @@
 		this.particles_cont.children.map(p => p.resume());
 	}
 
-	prototype.move = function() {			
+	prototype.move = function() {
 
 		this.getAngle();
 
-		if(this.isFalling()) {
+		if(this.isFallen()) {
+			//do nothing
+		}
+		else if(this.isFalling()) {
 
 			this.slowUntilStop();
 		}
@@ -489,7 +505,7 @@
 		}
 
 		/*
-		if( this.isOnAir() ) {	
+		if( this.isOnAir() ) {
 
 			this.initAerial();
 			this.moveOnAir();
@@ -505,27 +521,27 @@
 		else {
 
 			this.initRide();
-			this.moveOnWave();		
-		}	
+			this.moveOnWave();
+		}
 		*/
 
 		//set this position
 		if(this.time_scale === 1) {
 			this.x = this.location.x;
-			this.y = this.location.y;		
+			this.y = this.location.y;
 		} else {
 			createjs.Tween.get(this).to({x: this.location.x, y: this.location.y}, this.wave.params.breaking.x_speed);
 		}
-		
+
 		//set silhouette
-		this.setSurferSilhouette();	
+		this.setSurferSilhouette();
 	}
 
 	prototype.initRide = function() {
 
 		//end of an Aerial
 		if(this.status === 'aerial') {
-			this.endAerial();		
+			this.endAerial();
 		}
 		//set status
 		this.status = 'ride';
@@ -535,23 +551,23 @@
 
 		//add gravity to ollie initial vector
 		this.ollie_vector.add(this.gravity);
-		//add initial 
-		this.location.add(this.ollie_vector);		
+		//add initial
+		this.location.add(this.ollie_vector);
 	}
 
 	prototype.ollie = function() {
 
 		//check cooldown
 		if(this.ollieing === true) return;
-		this.ollieing = true;		
-		
+		this.ollieing = true;
+
 		this.ollie_impluse = new Victor(0,-30);
-		this.ollie_vector = this.velocity.clone().add(this.ollie_impluse);		
+		this.ollie_vector = this.velocity.clone().add(this.ollie_impluse);
 
 		this.saveTrailSize();
 		this.trailsize = 0;
 		this.auto_silhouette = false;
-	
+
 		window.setTimeout(proxy(this.endOllie,this),350);
 
 	}
@@ -564,7 +580,7 @@
 		this.ollieParticles();
 
 		this.resetTrailSize();
-		this.saveTrailSize();		
+		this.saveTrailSize();
 		if(this.trailsize_variated === true) return;
 		this.trailsize_variated = true;
 		this.trailsize = new Variation({
@@ -636,10 +652,10 @@
 			const i = peak.points.length-1;
 		}
 
-		if(typeof peak == 'undefined') {			
+		if(typeof peak == 'undefined') {
 			return null;
 		}
-		
+
 		return peak.points[i];
 	}
 
@@ -653,9 +669,9 @@
 	}
 
 	prototype.moveFromVelocities = function() {
-		
+
 		// get which lip point surfer is under
-		const point_under = this.findLipPointUnder();		
+		const point_under = this.findLipPointUnder();
 
 		let breaking_width = 5;
 		let breaking_percent = 0;
@@ -678,15 +694,15 @@
 		// adapt horizontal velocity to mouse direction
 		const direction = ( this.x - mouse.x < 0)? 1 : -1;
 		vX = vX * direction;
-		
+
 		// set initial velocity
 		let velocity = new Victor(vX,vY);
 
 		// calcul distance between surfer and mouse
 		let distance = this.location.absDistanceX(mouse);
-		const distanceMax = this.distanceMaxToMouse; 
-		const distanceMin = this.distanceMinToMouse; 
-		const distanceMoy = this.distanceMoyToMouse; 
+		const distanceMax = this.distanceMaxToMouse;
+		const distanceMin = this.distanceMinToMouse;
+		const distanceMoy = this.distanceMoyToMouse;
 		if(distance >= distanceMax) distance = distanceMax;
 		const distanceIdx = (distance / distanceMoy) * (distance / distanceMin);
 
@@ -694,7 +710,7 @@
 		velocity.scale(distanceIdx);
 
 		// scale with user skill ( from x1 to x2)
-		const skill_idx = 1 + (this.getSkill('speed')); 
+		const skill_idx = 1 + (this.getSkill('speed'));
 		velocity.scale(skill_idx);
 
 		// surfer have more speed where on top of the segment ( from x1 to x2 )
@@ -715,7 +731,14 @@
 
 		// add pump-pump to velocity
 		velocity = this.addPumpedInertia(velocity);
-		
+
+		console.log(this.boost);
+		// add boost
+		if(this.boost) {
+			velocity.scaleX(2);
+			velocity.scaleY(2);
+		}
+
 		// set global velocity
 		this.velocity = velocity.clone();
 
@@ -726,14 +749,14 @@
 		//this.addMoveZigZag();
 
 		//surfer can't go bellow the wave
-		if( this.location.y > this.wave.params.height) {
-			this.location.y = this.wave.params.height;
+		if( this.location.y > this.wave.params.height - this.height/4) {
+			this.location.y = this.wave.params.height - this.height/4;
 		}
 
 	}
 
 	prototype.isGoingHorizontal = function(angle) {
-		
+
 		const del = 20; // 20° tolerance
 		if( this.direction === LEFT && ( angle > 180 - del/2 || angle < - 180 + del/2 )) return true;
 		if( this.direction === RIGHT && ( angle < del/2 && angle > - del/2 )) return true;
@@ -741,8 +764,8 @@
 	}
 
 	prototype.addPumpedInertia = function(velocity) {
-		
-		
+
+
 		// if going horizontal for 15 frame , reset pumped stock
 		if( this.isGoingHorizontal(this.angle) ) {
 			let countHorizontal = 0;
@@ -754,8 +777,8 @@
 				this.pumped = [];
 			}
 			return velocity;
-		}		
-		
+		}
+
 		// if angle toward bottom, stock inertia in array
 		if(this.angle_rad > 0) {
 			this.pumped.push(velocity.clone());
@@ -774,7 +797,7 @@
 	}
 
 	/** NOT IN USE  */
-	prototype.moveFromLerp = function() {		
+	prototype.moveFromLerp = function() {
 
 		//interpolation to mouse
 		var mouse = this.getMousePoint(0);
@@ -814,12 +837,12 @@
 		// apply gravity to location
 		this.location.add(gravity);
 		// calcul new velocity
-		this.velocity = this.locations[0].clone().subtract(this.locations[1]);		
+		this.velocity = this.locations[0].clone().subtract(this.locations[1]);
 
 		//if surfer jump above this line, follow him and move screen
 		if(this.isPlayer()) {
 			const line = -this.wave.y * 1/4;
-			if(this.y < line) {			
+			if(this.y < line) {
 				const diff = -(this.y - line);
 				//make paralax effect
 				this.spot.frontground.y = diff * 1.5;
@@ -829,7 +852,7 @@
 				this.spot.frontground.y = 0;
 				this.spot.sea_cont.y = 0;
 				this.spot.background.y = 0;
-			}			
+			}
 		}
 
 
@@ -837,16 +860,16 @@
 
 	prototype.stock = function() {
 
-		// stock locations		
+		// stock locations
 		this.locations.unshift(this.location.clone());
 		this.locations = this.locations.slice(0,60);
-		
+
 		// create point object
 		var point = {
 			location: this.location.clone(),
 			size: this.trailsize,
 			angle : this.angle,
-			angle_rad : this.angle_rad	
+			angle_rad : this.angle_rad
 		}
 
 		// add point to trails array
@@ -880,7 +903,7 @@
 		// cancel if already on air
 		if(this.status=='aerial') return;
 
-		// fall if done too soon	
+		// fall if done too soon
 		var point = this.findLipPointUnder();
 		if(point.breaking_percent === null || point.breaking_percent < 0) {
 			return this.fall('aerial too late');
@@ -896,14 +919,14 @@
 		this.saveTrailSize();
 		this.trailsize = 0;
 		// particles
-		this.initAerialParticles();	
+		this.initAerialParticles();
 		// persistance
 		//this.initImagePersistance(100);
 		// ???
 		this.velocity.magnitude(1);
 		// slow things down
 		//window.switchSlowMo(0.8,1000);
-		// tricks		
+		// tricks
 		this.initTricks();
 		// save aerial position
 		this.aerial_start_point = this.location.clone();
@@ -946,8 +969,6 @@
 		var ev = new createjs.Event("aerial_start");
 
 		var impulse = this.velocity.magnitude();
-
-		console.log(impulse);
 
 		if(impulse > 70) {
 
@@ -1012,7 +1033,7 @@
 
 	prototype.initImagePersistance = function(frequency) {
 
-			this.imagePersistanceTimer = window.setInterval(proxy(this.drawPersistedImage,this), frequency);		
+			this.imagePersistanceTimer = window.setInterval(proxy(this.drawPersistedImage,this), frequency);
 	}
 
 	prototype.stopImagePersistance = function() {
@@ -1092,7 +1113,7 @@
 				],
 			onEmit: function(emitter) { emitter.params.angle = surfer.angle_rad + Math.PI },
 		});
-		
+
 		this.particles_cont.addChild(this.aerial_particles_emitter);
 	}
 
@@ -1131,7 +1152,7 @@
 
 		this.stopImagePersistance();
 
-		// remove spatter 
+		// remove spatter
 		this.clearSpatter();
 
 		// remove slow motion
@@ -1146,16 +1167,17 @@
 		createjs.Tween.get(this.trail_splash).to({ _width: this.trail_splash._width/2}, 700, createjs.Ease.quartIn).to({ alpha: 0, y: -20}, 1000);
 
 		// landiing slowly
-		const default_time = 2000;
+		/*const default_time = 2000;
 		const time = default_time * (1 - this.getSkill('aerial'));
 		// tween it slowly to normal config
 		const tween = createjs.Tween.get(this.control_velocities)
-			.to({ x: 0.1, y: 0.1 }, time / 2)			
-			.to({ x: 1, y: 1 }, time / 2)						
-			;	
-		
+			.to({ x: 0.1, y: 0.1 }, time / 2)
+			.to({ x: 1, y: 1 }, time / 2)
+			;
+		*/
+
 		//handle trail size
-		this.resetTrailSize();	
+		this.resetTrailSize();
 		this.trailpoints[0].location.y = -120;
 		this.trailpoints[0].size = this.trailsize*10;
 		Variation.prototype.applyOnce(this,'trailsize',{
@@ -1173,9 +1195,9 @@
 
 			if(this.aerial_quality_takeoff > 50) {
 				//play sound
-				let sound = createjs.Sound.play("bravo");  // play using id.  Could also use full sourcepath or event.src.     
-				sound.volume = 0.1;			
-				
+				let sound = createjs.Sound.play("bravo");  // play using id.  Could also use full sourcepath or event.src.
+				sound.volume = 0.1;
+
 			}
 		}
 	}
@@ -1186,7 +1208,7 @@
 		this.aerial_particles_emitter = new ParticleEmitter({
 			x: 0,
 			y: 0,
-			density: 30,		
+			density: 30,
 			angle: - Math.PI / 2,
 			spread: Math.PI / 2,
 			magnitude: this.speed,
@@ -1202,7 +1224,7 @@
 				{shape:'circle',percentage:50,fill:'#FFF'},
 				],
 		});
-		
+
 		this.particles_cont.addChild(this.aerial_particles_emitter);
 	}
 
@@ -1212,13 +1234,18 @@
 		if(this.falling === true) return true;
 	}
 
+	prototype.isFallen = function() {
+		if(this.fallen === true) return true;
+	}
+
 	prototype.fall = function(reason) {
 
 		if(this.falling === true) return;
 		this.falling = true;
 
 		this.fall_reason = reason;
-		console.log('fall because: ', reason);
+
+		if(DEBUG) console.log('fall because: ', reason);
 
 		var e = new createjs.Event('fall');
 			e.surfer = this;
@@ -1233,13 +1260,13 @@
 		;
 
 		this.splash_anim.gotoAndPlay('splash');
-	
+
 		this.on('stop',proxy(this.fallFinished, this), this, true);
 	}
 
 	prototype.fallFinished = function() {
-		
-		//window.clearInterval(this.ploufinterval);
+
+		this.fallen = true;
 
 		//send fall event
 		var e = new createjs.Event('fallen');
@@ -1249,11 +1276,14 @@
 		//stop movement timer
 		this.timer.clear();
 
+		//window.clearInterval(this.ploufinterval);
+		stage.removeAllEventListeners('stagemousedown');
+		stage.removeAllEventListeners('stagemouseup');
 	}
 
-	prototype.slowUntilStop = function() 
+	prototype.slowUntilStop = function()
 	{
-			this.velocity.scale(0.8);				
+			this.velocity.scale(0.8);
 			this.location.add(this.velocity);
 
 			if(this.y < 0) {
@@ -1263,6 +1293,7 @@
 			if(this.velocity.lengthSq() < 1) {
 				this.dispatchEvent('stop');
 			}
+
 	}
 
 	prototype.showFallPlouf = function() {
@@ -1330,9 +1361,9 @@
 		var points = this.wave.getAllPeaksPoints();
 
 		var j = points.length;
-		while(j--) {		
-			var point = points[j];	
-			
+		while(j--) {
+			var point = points[j];
+
 			//check all top fall points
 			if(point.topfallscale > 1 && this.hitBody(point.x, 0, point.topfallscale)) {
 				this.disturbance ++;
@@ -1345,15 +1376,15 @@
 
 			//check only splashed points
 			if(point.splashed) {
-				if(this.hitBody(point.x, point.splash_y, point.bottomfallscale)) {		
+				if(this.hitBody(point.x, point.splash_y, point.bottomfallscale)) {
 					this.disturbance ++;
 					this.showFallVeil(this.disturbance/this.disturbance_max*100);
-					if(this.disturbance < this.disturbance_max) return;			
+					if(this.disturbance < this.disturbance_max) return;
 					this.fall('hit bottom splash');
 					this.dispatchEvent('fall_bottom');
 					return;
 				}
-			} 			
+			}
 		}
 
 		//reset disturbance
@@ -1364,11 +1395,11 @@
 		//does surfer hits tube point
 		if(this.isTubing()) {
 			//surfer is in da tube
-			this.tubeIn(); 		
+			this.tubeIn();
 		}
 		else {
 			//surfer is out da tube
-			this.tubeOut(); 
+			this.tubeOut();
 		}
 
 		//does surfer shots something
@@ -1378,7 +1409,7 @@
 		this.checkHitObstacles();
 
 		//does surfer hits other serfrs
-		this.checkHitSurfers();		
+		this.checkHitSurfers();
 
 		//dispatch normal event
 		this.dispatchEvent('surfing');
@@ -1405,14 +1436,14 @@
 		const waveHeight = this.wave.params.height;
 		const tubePoints = [];
 		let i = points.length;
-		while(i--) {	
-			var point = points[i];		
+		while(i--) {
+			var point = points[i];
 			if(point.splashed && this.hitBody(point.x, waveHeight>>1, point.tubescale)) {
-				//stock the current deep of the tube 			
+				//stock the current deep of the tube
 				this.tubeDepths.push(point.tubedeep);
-				//yes we are tubing !							
+				//yes we are tubing !
 				return true;
-			} 		
+			}
 		}
 		return false;
 	}
@@ -1426,7 +1457,7 @@
 			if(this.tubeTime < this.tubeMinimumTime) return;
 
 			this.tubing = true;
-			this.spot.dispatchEvent('surfer_tube_in');	
+			this.spot.dispatchEvent('surfer_tube_in');
 		}
 	}
 
@@ -1479,11 +1510,11 @@
 	}
 
 	prototype.hitBody = function(x,y,radius) {
-				
+
 		const minDistance = radius + this.hitbox_radius;
 		const xDist = x - (this.x + this.hitbox.x);
 		const yDist = y - (this.y + this.hitbox.y);
-		const distance = Math.sqrt(xDist*xDist + yDist*yDist);		
+		const distance = Math.sqrt(xDist*xDist + yDist*yDist);
 		if (distance < minDistance) {
 			return true;
 		}
@@ -1532,12 +1563,12 @@
 			if(surfer.isOllieing()) continue;
 
 			if(this.hitBoard(surfer.x,surfer.y,surfer.hitbox_radius)) {
-				
+
 				if( ! this.hasCollision(surfer)) {
 					this.hitSurfer(surfer);
 				}
 			}
-		}		
+		}
 	}
 
 	prototype.hitSurfer = function(surfer) {
@@ -1560,7 +1591,7 @@
 			// update lifebar
 			this.updateLifebar(dmg);
 			// if lifebar <= zero , fall & dispatch event
-			let lifeAtZero = this.lifebar.scaleX - dmg <= 0;			
+			let lifeAtZero = this.lifebar.scaleX - dmg <= 0;
 			if(lifeAtZero) {
 
 				this.fall('collision');
@@ -1569,9 +1600,11 @@
 					ev.player = this.spot.surfer;
 					ev.killer = surfer;
 					ev.killed = this;
+					ev.target = 'surfer';
+					ev.weapon = 'body';
 					this.spot.dispatchEvent(ev);
 			}
-		} 
+		}
 
 	}
 
@@ -1594,6 +1627,8 @@
 			ev.player = this.spot.surfer;
 			ev.killer = this;
 			ev.killed = surfer;
+			ev.target = 'surfer';
+			ev.weapon = 'saber';
 			this.spot.dispatchEvent(ev);
 		}
 
@@ -1673,7 +1708,7 @@
 					}
 				}
 			}
-			
+
 			//cancel malus by shoting at it
 			if(obstacle.maluses.length !== 0) {
 				for(let i=0,len=obstacle.maluses.length-1; i<=len; i++) {
@@ -1700,7 +1735,7 @@
 					this.shotSurfer(surfer);
 				}
 			}
-		}		
+		}
 	}
 
 
@@ -1751,7 +1786,7 @@
 			let size = i*points[i].size + this.trailcoef*points[i].size;
 			let x = size * Math.cos(point.angle + Math.PI/2) + point.x;
 			let y = size * Math.sin(point.angle + Math.PI/2) + point.y;
-			this.trail_shape.graphics.lineTo(x,y);	
+			this.trail_shape.graphics.lineTo(x,y);
 
 		}
 		for(let i=nb; i>=0; --i) {
@@ -1760,8 +1795,8 @@
 			let x = size * Math.cos(point.angle + Math.PI + Math.PI/2) + point.x;
 			let y = size * Math.sin(point.angle + Math.PI + Math.PI/2) + point.y;
 			this.trail_shape.graphics.lineTo(x,y);
-		}	
-		this.trail_shape.graphics.closePath();		
+		}
+		this.trail_shape.graphics.closePath();
 
 		// draw landing aerial splash
 		/*this.trail_splash.graphics.clear();
@@ -1770,7 +1805,7 @@
 			this.trail_splash.graphics.drawCircle(0, 0, this.trail_splash._width/2);
 		}
 		*/
-		
+
 
 		this.trail_cont.mask = this.wave.shape_mask;
 		//this.trail_cont.cache(xmin,0,xmax-xmin,this.wave.params.height);
@@ -1778,12 +1813,12 @@
 
 
 		// align trail with the board contact with the water
-		this.trail_cont.y = 50;	
+		this.trail_cont.y = 50;
 
 	}
 
 	prototype.drawSpatter = function() {
-	
+
 		if(this.spatterpoints.length === 0) return;
 
 		if(this.status !== 'aerial') return;
@@ -1821,8 +1856,8 @@
 				xc = ( x1 + x2 ) >> 1,
 				yc = ( y1 + y2 ) >> 1
 				;
-			this.spatter_shape_inner.graphics.quadraticCurveTo(x1,y1,xc,yc);	
-			this.spatter_shape_outer.graphics.quadraticCurveTo(x1,y1 - outerwidth,xc,yc - outerwidth);	
+			this.spatter_shape_inner.graphics.quadraticCurveTo(x1,y1,xc,yc);
+			this.spatter_shape_outer.graphics.quadraticCurveTo(x1,y1 - outerwidth,xc,yc - outerwidth);
 
 		}
 		for(let i=nb; i>0; --i) {
@@ -1838,8 +1873,8 @@
 				yc = ( y1 + y2 ) >> 1
 			;
 			this.spatter_shape_inner.graphics.quadraticCurveTo(x1,y1,xc,yc);
-			this.spatter_shape_outer.graphics.quadraticCurveTo(x1,y1 + outerwidth,xc,yc + outerwidth);	
-		}	
+			this.spatter_shape_outer.graphics.quadraticCurveTo(x1,y1 + outerwidth,xc,yc + outerwidth);
+		}
 
 		/*
 		this.spatter_shape_inner.graphics.clear();
@@ -1861,13 +1896,13 @@
 
 			this.spatter_shape_inner.graphics.quadraticCurveTo(x1,y1,xc,yc);
 			this.spatter_shape_outer.graphics.quadraticCurveTo(x1,y1,xc,yc);
-			
+
 		}
-		*/	
+		*/
 
 		//draw ramp
 
-		
+
 		const width = 200;
 		const height = actual.y - start.y;
 		const ch = height * 0.2;
@@ -1891,8 +1926,8 @@
 			this.spatter_shape_outer.graphics.clear();
 			this.spatter_shape_inner.graphics.clear();
 			this.spatter_ramp_shape.graphics.clear();
-			this.spatter_ramp_shape.alpha = 1;		
-			this.spatter_cont.alpha = 1;	
+			this.spatter_ramp_shape.alpha = 1;
+			this.spatter_cont.alpha = 1;
 			this.color_spatter_num = 0;
 		},this));
 	}
@@ -1902,7 +1937,7 @@
 		this.weapons = this.config.weapons || [];
 
 		if(this.weapons.indexOf('saberlight') != -1) {
-			this.initSaberlight();			
+			this.initSaberlight();
 		}
 	}
 
@@ -1927,8 +1962,8 @@
 		this.saber_middle.graphics.beginStroke('white').drawCircle(0,0,15);
 		this.saber_end = new createjs.Shape();
 		this.saber_end.graphics.beginStroke('white').drawCircle(0,0,10);
-		this.saber_trail = this.saber_end.clone();		
-		this.weapon_points.push(this.saber_start,this.saber_middle,this.saber_end,this.saber_trail);		
+		this.saber_trail = this.saber_end.clone();
+		this.weapon_points.push(this.saber_start,this.saber_middle,this.saber_end,this.saber_trail);
 
 		createjs.Tween.get(this).wait(1500).to({saber_length: 120}, 1000);
 	}
@@ -1954,7 +1989,7 @@
 								.moveTo(this.saber_start.x,this.saber_start.y).lineTo(this.saber_end.x,this.saber_end.y)
 								.beginStroke('white').setStrokeStyle(4)
 								.moveTo(this.saber_start.x,this.saber_start.y).lineTo(this.saber_end.x,this.saber_end.y)
-								;		
+								;
 
 		var blurFilter = new createjs.BlurFilter(5, 5, 1);
 		saber.filters = [blurFilter];
@@ -1984,16 +2019,16 @@
 
 		// hide if no debug
 		if(DEBUG === 0) {
-			this.hitbox.alpha = 0;		
-			this.hitboard.alpha = 0;	
+			this.hitbox.alpha = 0;
+			this.hitboard.alpha = 0;
 			this.virtualMouse.alpha = 0;
 			this.debug_cont.alpha = 0;
 			return;
 		}
 
 		//apply opacity
-		this.hitbox.alpha = 0.5;		
-		this.hitboard.alpha = 0.5;	
+		this.hitbox.alpha = 0.5;
+		this.hitboard.alpha = 0.5;
 		this.virtualMouse.alpha = 0.5;
 		this.debug_cont.alpha = 1;
 
@@ -2048,8 +2083,8 @@
 
 		if(this.locations[1] === undefined) return this.angle = 90;
 		this.angle_rad = Math.atan2(this.locations[0].y - this.locations[1].y,this.locations[0].x - this.locations[1].x);
-		this.angle = Math.degrees(this.angle_rad);	
-		
+		this.angle = Math.degrees(this.angle_rad);
+
 		return this.angle;
 	}
 
@@ -2088,18 +2123,18 @@
 
 	}
 
-	prototype.setSurferSilhouette = function() {	
-		
+	prototype.setSurferSilhouette = function() {
+
 		if(this.auto_silhouette === false) return;
 
-		if(this.locations[0] === undefined || this.locations[1] === undefined) return new this.silhouette.gotoAndStop('S');	
-		
+		if(this.locations[0] === undefined || this.locations[1] === undefined) return new this.silhouette.gotoAndStop('S');
+
 		this.getAngle();
 		var rad = Math.atan2(this.locations[1].x-this.locations[0].x,this.locations[1].y-this.locations[0].y);
 		var deg = -1*Math.degrees(rad);
 
 		var bearing = this.getSurferBearing(deg);
-		return this.silhouette.gotoAndStop(bearing);		
+		return this.silhouette.gotoAndStop(bearing);
 
 	}
 
@@ -2126,7 +2161,7 @@
 		if(degree>-160) return 'WSSS';
 		if(degree>-170) return 'WSSSS';
 		if(degree<=-170) return 'S';
-		if(degree<10) return 'N';	
+		if(degree<10) return 'N';
 
 	}
 

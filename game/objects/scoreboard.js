@@ -1,5 +1,5 @@
 (function() {
-  
+
   function Scoreboard(params) {
 
     this.Container_constructor();
@@ -28,6 +28,7 @@
       { type: 'trick', value: 'Backflip', count: 2, name: 'Faire 2 backflip ({n})' },
       { type: 'catch', value: 'prize', count: 3, name: 'Attraper 3 prix ({n})' },
       { type: 'kill', value: 'surfer', count: 10, name: 'Défoncer 10 surfers ({n})' },
+      { type: 'tube', value: 5, name: 'Faire un tube de 5s ou + ({n})' },
     ];
 
     this.goalsFilled = false;
@@ -61,8 +62,8 @@
     this.score_pt = new createjs.Point(300,20);
     this.total.x = this.score_pt.x;
     this.total.y = this.score_pt.y;
-    
-    this.subscore = new createjs.Text('+0','italic 14px Arial','#FFFFFF');  
+
+    this.subscore = new createjs.Text('+0','italic 14px Arial','#FFFFFF');
     this.subscore.alpha = 0;
     this.subscore_pt = new createjs.Point(300,5);
 
@@ -72,7 +73,7 @@
     //Ticker
     this.addEventListener('tick',proxy(this.tick,this));
     //Listeners
-    this.initEventsListeners(); 
+    this.initEventsListeners();
 
     this.showGoals();
     this.initGoalsListeners();
@@ -100,7 +101,7 @@
       pt.y += 20;
     }
 
-    console.log(this.goals);
+    //console.log(this.goals);
   }
 
   prototype.initGoalsListeners = function() {
@@ -125,7 +126,36 @@
         goal.current = 0;
         this.spot.on('kill', this.updateGoalKill );
       }
+      if(goal.type === 'tube') {
+        this.spot.on('surfer_tube_in', proxy(this.updateTubeIn, this));
+        this.spot.on('surfer_tube_out', proxy(this.updateTubeOut, this));
+      }
     }
+  }
+
+  prototype.updateTubeIn = function() {
+
+   this.tubeTime = 0;
+   this.goalsTimers['tube'] = new Interval(proxy(this.updateTubeTime, this), 100);
+  }
+
+  prototype.updateTubeTime = function() {
+
+    let goal = this.goals.find(g => g.type === 'tube');
+    this.tubeTime += 100;
+    let seconds = Math.ceil(this.tubeTime/1000);
+    goal.text.text = this.goalsNameFormatter(goal, seconds);
+
+    if(seconds >= goal.value) {
+      this.setGoalFilled(goal);
+    }
+  }
+
+  prototype.updateTubeOut = function() {
+
+    let goal = this.goals.find(g => g.type === 'tube');
+    if(goal.filled !== true) goal.text.text = this.goalsNameFormatter(goal, 0);
+    this.goalsTimers['tube'].clear();
   }
 
   prototype.goalsCheck = function() {
@@ -165,7 +195,7 @@
 
     if(seconds > goal.value) {
       this.setGoalFilled(goal);
-    }    
+    }
   }
 
   prototype.updateGoalScore = function() {
@@ -176,7 +206,7 @@
 
     if(score >= goal.value) {
       this.setGoalFilled(goal);
-    }  
+    }
   }
 
   prototype.updateGoalTricks = function(e) {
@@ -232,10 +262,10 @@
       else if(event.quality >= 20) this.takeoff.grade('Good').add(1000).end();
       else this.takeoff.grade('Bad').end();
       this.addScore(this.takeoff);
-      
+
     },this);
 
-    this.spot.on('surfer_aerial_start',function(event) {  
+    this.spot.on('surfer_aerial_start',function(event) {
       this.aerial = this.newScore(event.trick.name).add(event.trick.score).growth(20);
     },this);
 
@@ -276,25 +306,25 @@
       let bonus = event.bonus;
       if(bonus == 'photo') {
         let score = this.newScore("Nice pic !").add(500).end();
-        this.addScore(score);        
+        this.addScore(score);
       }
       if(bonus == 'drone') {
         let score = this.newScore("Great pic !").add(1000).end();
-        this.addScore(score);        
+        this.addScore(score);
       }
       if(bonus == 'multiplier') {
         let score = this.newScore("[TO DO...]").add(0).end();
-        this.addScore(score);   
+        this.addScore(score);
       }
       if(bonus == 'prize') {
         let score = this.newScore("Bonus !").add(event.obstacle.value).end();
-        this.addScore(score);        
+        this.addScore(score);
       }
     },this);
 
     this.spot.on('kill',function(event) {
       let score;
-      if(event.type === 'surfer') {
+      if(event.target === 'surfer') {
         if(event.player === event.killed) score = this.newScore("Paf...").end();
         if(event.player === event.killer) {
           this.kill_count++;
@@ -302,9 +332,9 @@
           if(this.kill_count === 2) score = this.newScore('Kill!').add(500).end();
           if(this.kill_count === 3) score = this.newScore('Kill!').add(1000).end();
           if(this.kill_count > 3) score = this.newScore('Kill!').add(1000).end();
-        }        
+        }
+        this.addScore(score);
       }
-      this.addScore(score); 
 
       //reset kill count to 0 after 2s
       clearTimeout(this.kill_reset);
@@ -330,7 +360,7 @@
 
     if(this.disabled === true) return;
 
-    this.add(parseInt(score.subscore.text));    
+    this.add(parseInt(score.subscore.text));
   }
 
   prototype.testScore = function() {
@@ -348,15 +378,15 @@
 
   }
 
-  prototype.discardAllScores = function() {    
+  prototype.discardAllScores = function() {
     this.getScores().map(score => score.discard());
   }
 
   prototype.getRandomPhrase = function(key) {
 
     if(typeof key === 'undefined') return 'Key is not defined...';
-    if(typeof this.phrases[key] === 'undefined') return 'There is no key ('+key+')...';   
-    if(typeof this.phrases[key].length === 0) return 'There is no cool text for this key ('+key+')...';   
+    if(typeof this.phrases[key] === 'undefined') return 'There is no key ('+key+')...';
+    if(typeof this.phrases[key].length === 0) return 'There is no cool text for this key ('+key+')...';
     var i = Math.random()*this.phrases[key].length;
     i = Math.floor(i);
     return this.phrases[key][i];
@@ -407,23 +437,23 @@
     this.subscore.text = text;
 
     createjs.Tween.get(this.subscore)
-      .to({scaleX:4, scaleY:4 },200, createjs.Tween.elasticOut) 
-      .to({scaleX:0, scaleY:0, alpha:0 },400, createjs.Tween.elasticOut)    
+      .to({scaleX:4, scaleY:4 },200, createjs.Tween.elasticOut)
+      .to({scaleX:0, scaleY:0, alpha:0 },400, createjs.Tween.elasticOut)
       ;
   }
 
   prototype.add = function(amount) {
 
     this.current_score += amount;
-    this.total.text = this.current_score; 
+    this.total.text = this.current_score;
     this.showSubScore('+'+amount);
     return this;
   }
 
   prototype.sub = function(amount) {
-    
+
     this.current_score -= amount;
-    if(this.current_score < 0) this.current_score = 0;  
+    if(this.current_score < 0) this.current_score = 0;
     this.total.text = this.current_score;
     this.showSubScore('+'+amount);
     return this;
@@ -454,7 +484,7 @@
   }
 
   prototype.slideAboveWaveText = function() {
-    
+
     if(SPOT.wave == undefined) return;
 
     var offscreen = null;
@@ -463,7 +493,7 @@
     for(var i=0;i<cont.numChildren;i++) {
 
       var text = cont.getChildAt(i);
-  
+
       if(text.sliding == undefined) continue;
       if(text.sliding == true) {
         text.x += SPOT.wave.movingX;
@@ -487,7 +517,7 @@
       else {
         this.timers.splice(i,1);
       }
-    }    
+    }
     return this.timers;
   }
 
@@ -533,7 +563,7 @@
 
     function XpBar(config) {
 
-      this.Container_constructor();       
+      this.Container_constructor();
       config = config || {};
       this.init(config);
     }
@@ -566,7 +596,7 @@
       this.progressBar.addChild(progress);
       var current = new createjs.Shape();
       current.graphics.beginFill('lightblue').drawRect(0,0,this.width,this.height);
-      this.currentBar.addChild(current); 
+      this.currentBar.addChild(current);
 
       //texts
       this.currentXP = new createjs.Text("0", "bold 16px Arial", "#AAA");
@@ -614,11 +644,11 @@
       this.progressBar.scaleX = ratio;
       this.progressBar.xp = current_xp;
       this.levelCounter.text = 'Level '+ parseInt(level);
-      
+
       var newRatio = (win_xp + current_xp)/level_xp;
       var excedent_xp = (current_xp + win_xp) - level_xp;
       var time = this.duration * (newRatio-ratio);
-      
+
       createjs.Tween.removeTweens(this.progressBar);
       createjs.Tween.get(this.progressBar)
           .to({scaleX:newRatio,xp: current_xp + win_xp},time)
@@ -627,7 +657,7 @@
     }
 
     prototype.progress = function(level,excedent_xp) {
-      
+
       //update xp counter
       this.currentXP.text = parseInt(this.progressBar.xp);
       this.maxXP.text = parseInt(this.levels[level]);
@@ -661,8 +691,8 @@
 
         //new progress bar
         this.start(0,excedent_xp,new_level);
-        
-      } 
+
+      }
     }
 
     window.XpBar = createjs.promote(XpBar, "Container");
@@ -674,7 +704,7 @@
 
     function Score(text) {
 
-      this.Container_constructor();       
+      this.Container_constructor();
 
       this.timers = [];
       this.sliding = false;
@@ -695,7 +725,7 @@
       // text
       this.text = new createjs.Text(text,'bold 70px BubblegumSansRegular','#FFF'); //BubblegumSansRegular BoogalooRegular albaregular
       this.text.regX = this.text.getMeasuredWidth()/2;
-      this.text.regY = this.text.getMeasuredHeight()/2;      
+      this.text.regY = this.text.getMeasuredHeight()/2;
       this.addChild(this.text);
       createjs.Tween.get(this.text).set({y: 100, scale: 0, alpha: 0}).to({y: 0, alpha: 1, scale:1}, 800, createjs.Ease.elasticOut);
 
@@ -745,9 +775,9 @@
 
     prototype.add = function(score) {
 
-      this.subscore.text = parseInt(this.subscore.text) + score;  
+      this.subscore.text = parseInt(this.subscore.text) + score;
       this.subscore.regX = this.subscore.getMeasuredWidth()/2;
-      this.subscore.regY = this.subscore.getMeasuredHeight()/2;    
+      this.subscore.regY = this.subscore.getMeasuredHeight()/2;
       this.subscore.alpha = 1;
 
       return this;
@@ -783,7 +813,7 @@
       this.timers.splice(this.timers.indexOf(this.growth_interval,1));
       this.growth_interval.clear();
       this.growth_interval = null;
-          
+
     }
 
     prototype.end = function() {
@@ -797,7 +827,7 @@
       createjs.Tween.get(this).wait(1000).set({sliding: true});
 
       return this;
-      
+
     }
 
     prototype.addToSubscore = function(amount) {
@@ -808,7 +838,7 @@
     prototype.discard = function() {
 
       if(this.growth_interval instanceof Interval) {
-        this.stopGrowth();        
+        this.stopGrowth();
       }
 
       this.text.color = 'red';
@@ -816,7 +846,7 @@
       this.subscore.color = 'red';
 
       if(this.subscore.alpha !== 0) {
-        createjs.Tween.get(this.subscore).to({scale:1.2},200).to({scale: 0.5, alpha: 0}, 800, createjs.Ease.quartIn);          
+        createjs.Tween.get(this.subscore).to({scale:1.2},200).to({scale: 0.5, alpha: 0}, 800, createjs.Ease.quartIn);
         createjs.Tween.get(this.subscore).to({y: this.subscore.y+50}, 1000);
       }
 
@@ -845,7 +875,7 @@
         forces: [vec2.fromValues(0,0.5)],
         shapes: [{shape:'star',fill:'yellow',stroke:0.1,strokeColor:'yellow',percentage:100}]
       });
-      
+
       this.particles_cont.addChild(this.emitter);
     }
 

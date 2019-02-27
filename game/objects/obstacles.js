@@ -1,5 +1,5 @@
 (function() {
-	
+
 	function Obstacle(config) {
 
 		this.Container_constructor();
@@ -10,7 +10,7 @@
 	//add EventDispatcher
 	createjs.EventDispatcher.initialize(prototype);
 
-	//init 
+	//init
 	prototype.init = function(config) {
 		this.config = config || {};
 		this.wave = this.config.wave;
@@ -40,7 +40,7 @@
 
 		this.center = new createjs.Shape();
 		this.center.graphics.beginFill('black').drawCircle(0,0,2);
-		this.debug_cont.addChild(this.center);		
+		this.debug_cont.addChild(this.center);
 
 		this.initialPosition();
 
@@ -92,25 +92,25 @@
 	}
 
 	prototype.drawImage = function() {
-		
+
 		var sheet = new createjs.SpriteSheet({
 		    images: [queue.getResult('paddler')],
-		    frames: {width:80, height:80, count:11},
+		    frames: {width:300, height:300, count:11},
 		    animations: {
 	        up: {
 	        	frames: [9,10,9,10,9,10],
 	        	next: "up",
-	        	speed: 0.3
-	        },	        
+	        	speed: 0.1
+	        },
 		    }
-		});		
+		});
 
 		this.sprite = new createjs.Sprite(sheet);
-		this.sprite.scale = 2;
-		this.sprite.x = 80;
-		this.sprite.y = -80;
+		this.sprite.scale = 0.5;
+		this.sprite.x = 75;
+		this.sprite.y = -75;
 		this.sprite.scaleX *= this.wave.direction === LEFT ? -1 : 1;
-		this.sprite.gotoAndPlay('up');	
+		this.sprite.gotoAndPlay('up');
 		this.image_cont.addChild(this.sprite);
 	}
 
@@ -133,7 +133,7 @@
 			this.maluses.push(malus);
 	}
 
-	prototype.drawDebug = function() {		
+	prototype.drawDebug = function() {
 		this.debug_cont.alpha = (DEBUG===1)? 1 : 0;
 	}
 
@@ -238,30 +238,30 @@
 		function BombObstacle(config) {
 
 			config.img = 'bomb';
-			config.name = 'bomb';			
-			this.Obstacle_constructor(config);		    
+			config.name = 'bomb';
+			this.Obstacle_constructor(config);
 
 		}
 		BombObstacle.prototype = Object.create(Obstacle.prototype);
 		BombObstacle.prototype.constructor = BombObstacle;
 		window.BombObstacle = createjs.promote(BombObstacle, "Obstacle");
 
-		BombObstacle.prototype.drawImage = function() {			
-		
+		BombObstacle.prototype.drawImage = function() {
+
 			var sheet = new createjs.SpriteSheet({
 			    images: [queue.getResult('bomb_boom')],
 			    frames: {width:312, height:285, regX: 155, regY: 142},
 			    framerate: 1,
 			    animations: {
-			    	floating: [0, 1, false, 1],	        
+			    	floating: [0, 1, false, 1],
 			        explode: [2, 7, false, 0.5],
 			    }
-			});			
+			});
 
 			this.sprite = new createjs.Sprite(sheet);
 			this.sprite.scaleX = this.sprite.scaleY = 0.5;
 			this.sprite.y = -50;
-			this.sprite.gotoAndPlay('floating');	
+			this.sprite.gotoAndPlay('floating');
 			this.image_cont.addChild(this.sprite);
 
 		}
@@ -298,7 +298,7 @@
 
 		BombObstacle.prototype.bonusHitted = function() {
 			// bomb explose at distance (bonus), but if surfer is too close (malus) he will fall...
-			this.sprite.gotoAndPlay('explode');	
+			this.sprite.gotoAndPlay('explode');
 
 		}
 
@@ -316,16 +316,16 @@
 		function BeachTrooper(config) {
 
 			config.img = 'beachtrooper';
-			config.name = 'beachtrooper';			
-			this.Obstacle_constructor(config);		    
+			config.name = 'beachtrooper';
+			this.Obstacle_constructor(config);
 
 		}
 		BeachTrooper.prototype = Object.create(Obstacle.prototype);
 		BeachTrooper.prototype.constructor = BeachTrooper;
 		window.BeachTrooper = createjs.promote(BeachTrooper, "Obstacle");
 
-		BeachTrooper.prototype.drawImage = function() {			
-		
+		BeachTrooper.prototype.drawImage = function() {
+
 			var sheet = new createjs.SpriteSheet({
 			    images: [queue.getResult('sprite_beachtrooper')],
 			    frames: {width:368, height:281, regX: 155, regY: 142},
@@ -337,19 +337,19 @@
 			    	pullout: [4,6,false],
 			    	fire: 7
 			    }
-			});			
+			});
 
 			this.sprite = new createjs.Sprite(sheet);
 			this.sprite.scaleX = this.sprite.scaleY = 0.5;
 			this.sprite.y = -50;
 			if(this.wave.isLEFT()) this.scaleX = - this.scaleX;
-			this.sprite.gotoAndPlay('chill');	
+			this.sprite.gotoAndPlay('chill');
 			this.image_cont.addChild(this.sprite);
 
 		}
 
 		BeachTrooper.prototype.drawBonus = function() {
-			
+
 			var bonus = new createjs.Shape();
 				bonus.graphics.beginFill('green').drawCircle(0,0,50);
 				bonus.y = -35;
@@ -370,9 +370,9 @@
 			createjs.Tween.get(this).to({alpha:0}, 300);
 		}
 
-		BeachTrooper.prototype.malusHitted = function() {			
+		BeachTrooper.prototype.malusHitted = function() {
 
-			this.wave.surfer.fall('laser_hit');			
+			this.wave.surfer.fall('laser_hit');
 
 		}
 
@@ -470,20 +470,20 @@
 			config.img = 'photographer';
 			config.name = 'photo';
 
-			this.Obstacle_constructor(config);		    
+			this.Obstacle_constructor(config);
 
 		}
 		Photografer.prototype = Object.create(Obstacle.prototype);
 		Photografer.prototype.constructor = Photografer;
 		window.Photografer = createjs.promote(Photografer, "Obstacle");
 
-		Photografer.prototype.drawImage = function() {			
+		Photografer.prototype.drawImage = function() {
 
 			var sheet = new createjs.SpriteSheet({
 			    images: [queue.getResult(this.img)],
 			    frames: {width:100, height:80, regX:50, regY:40},
 			    framerate: 1,
-			    animations: {	        
+			    animations: {
 			        swim: 0,
 			        flash: [1,1,'swim'],
 			    }
@@ -493,7 +493,7 @@
 			this.sprite.scale = 1.8;
 			this.sprite.scaleX *= this.wave.direction === LEFT ? 1 : -1;
 			this.image_cont.addChild(this.sprite);
-			
+
 		}
 
 		Photografer.prototype.drawBonus = function() {
@@ -510,7 +510,7 @@
 		Photografer.prototype.drawMalus = function() {
 
 			var malus = new createjs.Shape();
-				malus.graphics.beginFill('red').drawCircle(0,0,20);		
+				malus.graphics.beginFill('red').drawCircle(0,0,20);
 				malus.x = this.wave.direction === LEFT ? -40 : 40;
 				malus.y = 40;
 				malus.alpha = 0.5;
@@ -545,7 +545,7 @@
 
 			this.Obstacle_constructor(config);
 		}
-		
+
 		FlyObstacle.prototype = Object.create(Obstacle.prototype);
 		FlyObstacle.prototype.constructor = FlyObstacle;
 		window.FlyObstacle = createjs.promote(FlyObstacle, "Obstacle");
@@ -582,15 +582,15 @@
 
 			let x = this.wave.params.breaking_center + (200 - Math.random() * 400);
 			let y = this.spot.config.lines.break - this.wave.params.height - this.wave.params.height - this.high;
-		
+
 			if(this.wave.isLEFT()) {
 				if(this.reverse) x = this.wave.shoulder_left.x + STAGEWIDTH*2;
-				else x = this.wave.shoulder_left.x - STAGEWIDTH/2;										
+				else x = this.wave.shoulder_left.x - STAGEWIDTH/2;
 			}
 			if(this.wave.isRIGHT()) {
 				if(this.reverse) x = this.wave.shoulder_right.x - STAGEWIDTH*2;
 				else x = this.wave.shoulder_right.x + STAGEWIDTH/2;
-			}				
+			}
 
 			let direction = (this.speed < 0)? -1 : 1;
 			x *= direction;
@@ -630,29 +630,29 @@
 			config.amp = 10;
 			config.time = 0;
 			config.phase = Math.random() * 1000;
-			
-			this.multiplier = config.multiplier || 2;	
+
+			this.multiplier = config.multiplier || 2;
 
 			this.FlyObstacle_constructor(config);
 
 		}
-		
+
 		FlyingMultiplier.prototype = Object.create(FlyObstacle.prototype);
 		FlyingMultiplier.prototype.constructor = FlyingMultiplier;
 		window.FlyingMultiplier = createjs.promote(FlyingMultiplier, "FlyObstacle");
 
-		FlyingMultiplier.prototype.drawImage = function() {			
+		FlyingMultiplier.prototype.drawImage = function() {
 
 			var graphics = new createjs.Graphics()
 					.setStrokeStyle(5)
 					.beginStroke('rgba(255,255,255,0.5)')
 					.beginFill('rgba(255,255,255,1)')
 					.drawCircle(0, 0, 30)
-					;	 
-		
+					;
+
 			var circle = new createjs.Shape(graphics)
 			this.image_cont.addChild(circle);
-			
+
 			var text = new createjs.Text('','bold 26px Helvetica','#000')
 			text.text = 'x'+this.config.multiplier;
 			var b = text.getBounds()
@@ -692,7 +692,7 @@
 			config.speed = 15;
 			config.phase = Math.random() * 1000;
 
-			this.value = config.value || 1000;	
+			this.value = config.value || 1000;
 			if(this.value === 1000) this.color = 'green';
 			if(this.value === 2000) this.color = 'yellow';
 			if(this.value === 3000) this.color = 'orange';
@@ -702,20 +702,20 @@
 			this.FlyObstacle_constructor(config);
 
 		}
-		
+
 		FlyingPrize.prototype = Object.create(FlyObstacle.prototype);
 		FlyingPrize.prototype.constructor = FlyingPrize;
 		window.FlyingPrize = createjs.promote(FlyingPrize, "FlyObstacle");
 
-		FlyingPrize.prototype.drawImage = function() {			
+		FlyingPrize.prototype.drawImage = function() {
 
 			var graphics = new createjs.Graphics()
 					.setStrokeStyle(5)
 					.beginStroke('rgba(255,255,255,0.5)')
 					.beginFill(this.color)
 					.drawCircle(0, 0, 30)
-					;	 
-		
+					;
+
 			var circle = new createjs.Shape(graphics)
 			this.image_cont.addChild(circle);
 
@@ -763,18 +763,18 @@
 
 			this.FlyObstacle_constructor(config);
 		}
-		
+
 		Cigogne.prototype = Object.create(FlyObstacle.prototype);
 		Cigogne.prototype.constructor = Cigogne;
 		window.Cigogne = createjs.promote(Cigogne, "FlyObstacle");
 
-		Cigogne.prototype.drawImage = function() {			
+		Cigogne.prototype.drawImage = function() {
 
 			var sheet = new createjs.SpriteSheet({
 			    images: [queue.getResult(this.img)],
 			    frames: {width:256, height:256, regX:128, regY:128},
 			    framerate: 1,
-			    animations: {	        
+			    animations: {
 			        fly: [0,5,'fly'],
 			    }
 			});
@@ -795,7 +795,7 @@
 		}
 
 		Cigogne.prototype.bonusHitted = function() {
-			
+
 		}
 
 
@@ -815,18 +815,18 @@
 			this.FlyObstacle_constructor(config);
 
 		}
-		
+
 		Drone.prototype = Object.create(FlyObstacle.prototype);
 		Drone.prototype.constructor = Drone;
 		window.Drone = createjs.promote(Drone, "FlyObstacle");
 
-		Drone.prototype.drawImage = function() {			
+		Drone.prototype.drawImage = function() {
 
 			var sheet = new createjs.SpriteSheet({
 			    images: [queue.getResult('drone')],
 			    frames: {width:256, height:256, regX:128, regY:128},
 			    framerate: 1,
-			    animations: {	        
+			    animations: {
 			        fly: [0,2,'fly'],
 			        flash: [3,6,'fly']
 			    }
@@ -855,9 +855,9 @@
 		}
 
 		Drone.prototype.bonusHitted = function() {
-			
+
 			this.sprite.gotoAndPlay('flash');
-			
+
 		}
 
 

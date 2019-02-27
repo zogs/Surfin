@@ -1,8 +1,12 @@
-var conf = {	
+var conf = {
 	id: 1,
 	name: 'moyen',
 	alias: 'default',
 	config: {
+		init: {
+			type: 'static',
+			// type: 'fixed',
+		},
 		colors: {
 			top: '#00557f',
 			bottom: '#57c9ff'
@@ -15,13 +19,13 @@ var conf = {
 			obstacle: 750,
 		},
 		series: {
-			length :  1,
+			length :  3,
 			speed : 20000,
 			frequency : 5000,
-			interval : 14000,				
-			spread : 200,	
-			xshift: 10,			
-		},	
+			interval : 14000,
+			spread : 200,
+			xshift: 10,
+		},
 		surfers: {
 			proportion: 1.5,
 			velocities: {
@@ -46,14 +50,14 @@ var conf = {
 				splash_h_ease: 0.4,
 				left: {
 					width: 20,
-					width_max: 30,				
+					width_max: 30,
 					width_interval: 0,
 					width_pause: 0,
 					block_interval: 0,
 					block_interval_max: 0,
 					block_width: 100,
 					block_width_max: 200,
-				},					
+				},
 				right: {
 					width: 20,
 					width_max: 0,
@@ -75,7 +79,7 @@ var conf = {
 					width: 700,
 					height: 10,
 					lifetime: 800,
-				},				
+				},
 			},
 			splash: {
 				colors: {
@@ -85,9 +89,9 @@ var conf = {
 			},
 			paddling_effort: 1,
 			bottom_fall_scale: 0.8,
-			top_fall_scale: 0.15,	
-			tube_difficulty_min	: 1,	
-			tube_difficulty_max	: 10,	
+			top_fall_scale: 0.15,
+			tube_difficulty_min	: 1,
+			tube_difficulty_max	: 10,
 			suction: {x: 5, y: 4},
 			colors: [
 				['#04567d',0,0],
@@ -101,9 +105,9 @@ var conf = {
 					'objects' : {
 						'paddler' : {percentage: 30},
 						'photographer' : {percentage: 30},
-						'bomb': {percentage: 40},	
-						'trooper': {percentage: 0},				
-					},									
+						'bomb': {percentage: 40},
+						'trooper': {percentage: 0},
+					},
 				},
 				'fly': {
 					'interval': 0,
@@ -111,8 +115,8 @@ var conf = {
 					'objects' : {
 						'prize' : {percentage: 30},
 						'cigogne' : {percentage: 30},
-						'drone': {percentage: 40},					
-					},									
+						'drone': {percentage: 40},
+					},
 				}
 			},
 			shoulder : {
@@ -131,7 +135,7 @@ var conf = {
 					slope: 0
 				}
 			}
-		},		
+		},
 	}
 };
 

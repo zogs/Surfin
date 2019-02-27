@@ -1,5 +1,5 @@
 (function() {
-	
+
 	function Spot(spot) {
 
 		this.Container_constructor();
@@ -23,7 +23,7 @@
 
 		this.score_cont = new createjs.Container();
 		this.addChild(this.score_cont);
-		
+
 		this.sea_cont = new createjs.Container();
 		this.addChild(this.sea_cont);
 
@@ -36,9 +36,9 @@
 
 		this.overlay_cont = new createjs.Container();
 		this.addChild(this.overlay_cont);
-		
+
 		this.debug_cont = new createjs.Container();
-		this.addChild(this.debug_cont);	
+		this.addChild(this.debug_cont);
 
 		this.drawBackground();
 		this.drawFrontground();
@@ -58,7 +58,7 @@
 		this.background.addChild(defaultbkg);
 
 		const skyimage = new createjs.Bitmap(queue.getResult('spot_back'));
-		skyimage.y = - skyimage.image.height/2;
+		skyimage.y = 0;
 		this.background.addChild(skyimage);
 
 		const seagradient = new createjs.Shape();
@@ -98,7 +98,7 @@
 		frontimage.alpha = 0.4;
 		this.frontground.addChild(frontimage);
 	}
-	
+
 	prototype.addNextSerie = function() {
 		// launch a new serie timer
 		let serie_timer = new Timer(proxy(this.addSerie,this),this.config.series.interval);
@@ -116,9 +116,9 @@
 			config.y = this.config.lines.horizon + (this.config.lines.peak - this.config.lines.horizon) * coef;
 			config.x = (this.config.series.xshift/100 * STAGEWIDTH) + this.config.series.spread/2 - Math.random()*this.config.series.spread;
 
-		var wave = new Wave({spot: this, config: config});		
+		var wave = new Wave({spot: this, config: config});
 		this.sea_cont.addChild(wave);
-		this.waves.push(wave);		
+		this.waves.push(wave);
 
 		return wave;
 	}
@@ -132,7 +132,7 @@
 		for(let i=2; i <= this.config.series.length; ++i) {
 
 			// calcul delay
-			let delay = (i-1) * this.config.series.frequency;			
+			let delay = (i-1) * this.config.series.frequency;
 			// launch timer
 			let timer = new Timer(proxy(this.addSwell,this,[i]),delay);
 			// add timer to timers
@@ -141,7 +141,7 @@
 		}
 	}
 
-	prototype.addSwell = function(nb) {		
+	prototype.addSwell = function(nb) {
 console.log('addSwell');
 		//configuration of the wave
 		var config = this.config.waves;
@@ -156,14 +156,14 @@ console.log('addSwell');
 		this.waves.unshift(wave);
 
 		//start tween
-		var tween = createjs.Tween.get(wave);		
+		var tween = createjs.Tween.get(wave);
 		tween.to({y: this.config.lines.beach + this.config.waves.height}, this.config.series.speed)
 		tween.call(proxy(this.removeWave,this,[wave]))
 		tween.addEventListener('change',proxy(wave.coming,wave));
 		wave.coming_tween = tween;
 
 		// if last wave of serie, add next wave
-		if( nb === this.config.series.length) {		
+		if( nb === this.config.series.length) {
 			console.log('addNextSerie');
 			// call next serie
 			this.addNextSerie();
@@ -188,7 +188,7 @@ console.log('addSwell');
 			let previLaunch = frequency * i;
 			let currentTime = speed * startAt;
 			let diff = previLaunch - currentTime;
-			
+
 			// if next wave should be already launched
 			if(diff <= 0) {
 				// add a wave at a advanced position
@@ -218,32 +218,42 @@ console.log('addSwell');
 		config.y = this.config.lines.horizon;
 
 		// create wave
-		let wave = new Wave({spot: this, config: config});		
+		let wave = new Wave({spot: this, config: config});
 
 		// set tween
-		let tween  = createjs.Tween.get(wave);					
+		let tween  = createjs.Tween.get(wave);
 			tween.to({y: this.config.lines.beach + this.config.waves.height}, this.config.series.speed)
 			tween.call(proxy(this.removeWave,this,[wave]))
 			tween.addEventListener('change',proxy(wave.coming,wave));
 			wave.coming_tween = tween;
 
-		// start tween at advanced position			
+		// start tween at advanced position
 		tween.setPosition(position);
 
 		// if this wave is starting at a position which is over the breaking line, skip this wave
 		if(wave.y >= this.config.lines.break) return;
 
 		// add to scene
-		this.sea_cont.addChildAt(wave);			
+		this.sea_cont.addChildAt(wave);
 
 		// add to array
 		this.waves.unshift(wave);
 	}
 
-	prototype.init = function() {
+	prototype.init = function(type) {
+
+		return this.initWaving();
+		if(this.config.init.type == undefined) return this.initStatic();
+		if(this.config.init.type === 'static') return this.initStatic();
+		if(this.config.init.type === 'waving') return this.initWaving();
+		if(this.config.init.type === 'ready?') return this.initWhenReady();
+
+	}
+
+	prototype.initStatic = function() {
 
 		this.removeAllWaves();
-		this.initEventsListeners();		
+		this.initEventsListeners();
 		let wave = this.addWave(1);
 		this.setWave(wave);
 
@@ -251,7 +261,7 @@ console.log('addSwell');
 
 	}
 
-	prototype.launch = function() {
+	prototype.initWaving = function() {
 
 		this.runing = true;
 		this.removeAllWaves();
@@ -259,6 +269,67 @@ console.log('addSwell');
 		this.addInitialSerie();
 		//this.addSerie();
 		this.addPaddler(STAGEWIDTH/2,430);
+	}
+
+	prototype.initWhenReady = function() {
+
+		this.removeAllWaves();
+		this.initEventsListeners();
+
+		var wave = this.addWave();
+		this.setWave(wave);
+
+		var x = STAGEWIDTH/2
+		var y = wave.params.height*1/3;
+		var paddler = this.addPaddler(x + wave.getX(), wave.y - wave.params.height + y);
+		paddler.removeAllListeners();
+
+
+		var surfer = new Surfer({
+			x: x,
+			y: y,
+			wave: wave,
+			spot: this,
+		});
+
+		var readyButton = new createjs.Container();
+    var bkg = new createjs.Shape();
+    var txt = new createjs.Text('Ready ?','24px Helvetica');
+    var bound = txt.getBounds();
+    var pad = {x: 40, y: 15};
+    bkg.graphics.beginFill('#FFF').drawRoundRect(-bound.x/2 - pad.x, -bound.y - pad.y, bound.width + pad.x*2, bound.height + pad.y*2, 5);
+    readyButton.x = paddler.localToGlobal(0,0).x;
+    readyButton.y = paddler.localToGlobal(0,0).y + 100;
+    readyButton.regX = txt.getMeasuredWidth()/2;
+    readyButton.regY = txt.getMeasuredHeight()/2;
+    readyButton.cursor = 'pointer';
+    readyButton.addChild(bkg,txt);
+    this.overlay_cont.addChild(readyButton);
+
+    var time = wave.config.breaking.y_speed;
+
+    readyButton.on('click',proxy(
+    	function() {
+
+				window.switchSlowMo(0.5, 0);
+				wave.initBreak(STAGEWIDTH/2);
+				paddler.silhouette.gotoAndPlay('down');
+
+				window.switchSlowMo(1, time)
+				setTimeout(proxy(
+					function() {
+						wave.playerTakeOff(surfer);
+						this.removePaddler(paddler);
+					},this)
+				,time*1/4);
+
+				this.overlay_cont.removeChild(readyButton);
+
+    	},this));
+
+
+
+
 	}
 
 	prototype.initRunMode = function() {
@@ -280,17 +351,17 @@ console.log('addSwell');
       spot: this,
     });
 
-    surfer.automove = true;        
+    surfer.automove = true;
     surfer.alpha = 0; //hide surfer temporaly
-    TEST = 1; // avoid auto surfer to fall  
+    TEST = 1; // avoid auto surfer to fall
     wave.playerTakeOff(surfer);
 
     createjs.Tween.get(surfer.virtualMouse).to({y: wave.y + surfer.y }, 2000).to({y: wave.y - wave.params.height*1/3 }, 500);
-    createjs.Tween.get(surfer.virtualMouse).to({x: wave.x + surfer.x - wave.params.breaking.width * 2}, 2000);    
+    createjs.Tween.get(surfer.virtualMouse).to({x: wave.x + surfer.x - wave.params.breaking.width * 2}, 2000);
     createjs.Tween.get(surfer).wait(1000).to({alpha: 1}, 1000)
-      .call(function() { 
-        surfer.automove = false; 
-        TEST = 0; 
+      .call(function() {
+        surfer.automove = false;
+        TEST = 0;
       });
 
 	}
@@ -322,7 +393,7 @@ console.log('addSwell');
 			this.stopPlayedWave(event.wave);
 		},this);
 
-		this.on('non_played_wave',function(event) {			
+		this.on('non_played_wave',function(event) {
 			this.fadeNonPlayedWave(event.wave);
 		},this);
 
@@ -330,11 +401,11 @@ console.log('addSwell');
 			this.paddlerPaddling(event);
 		},this);
 
-		this.on('player_fallen',function(event) {	
+		this.on('player_fallen',function(event) {
 			this.playerFalling(event);
 		},this,true);
 
-		this.on('xpbar.level_up',function(event) {	
+		this.on('xpbar.level_up',function(event) {
 			//
 		},this);
 	}
@@ -366,7 +437,7 @@ console.log('addSwell');
 			while(index >= 0) {
 
 				if(this.sea_cont.getChildAt(index) instanceof Wave) {
-				
+
 					var wave = this.sea_cont.getChildAt(index);
 
 					//find if paddler superposed to wave
@@ -377,7 +448,7 @@ console.log('addSwell');
 
 					//if user is above wave
 					if(paddler.getY() < wave.y - wave.params.height) {
-						
+
 						//swap index pos
 						this.sea_cont.swapChildren(paddler,wave);
 
@@ -391,7 +462,7 @@ console.log('addSwell');
 	}
 
 	prototype.fadeNonPlayedWave = function(wave) {
-		
+
 		var tween  = createjs.Tween.get(wave, {override:false})
 			.to({alpha: 0}, 1000)
 			.call(proxy(this.removeWave,this,[wave]))
@@ -413,7 +484,7 @@ console.log('addSwell');
 	}
 
 	prototype.playerTakeOff = function(surfer,wave) {
-		
+
 		this.wave = wave;
 		this.surfer = surfer;
 		//stop spot timers
@@ -430,6 +501,8 @@ console.log('addSwell');
 
 		this.sea_cont.addChild(paddler);
 		this.paddlers.push(paddler);
+
+		return paddler;
 	}
 
 	prototype.addPaddlerBot = function(x,y) {
@@ -453,7 +526,7 @@ console.log('addSwell');
 		console.log(this.paddlers);
 	}
 
-	
+
 
 	prototype.paddlerPaddling = function(event) {
 
@@ -475,12 +548,12 @@ console.log('addSwell');
 			if(wave instanceof Wave) {
 
 				if(bot.y <= wave.y - wave.params.height/3 && bot.y > wave.y - wave.params.height) {
-					
+
 					if(bot.paddling_attempt >= 2) {
 
 						var x = ( bot.getX() - wave.getX() );
 						var y = ( wave.params.height - ( wave.getY() - bot.getY() ));
-						
+
 						var direction = (bot.getX() <= STAGEWIDTH/2)? 1 : -1;
 
 						var surfer = new SurferBot({
@@ -526,8 +599,8 @@ console.log('addSwell');
 
 		var wave = this.firstWaveBehindPaddler(paddler);
 		//return if no wave
-		if(!wave) return;		
-		//return is not ON wave
+		if(!wave) return;
+		//return if not ON wave
 		if(!this.isPaddlerOnWave(paddler,wave)) return;
 		//return if paddling force not enough
 		if(paddler.paddling_force <= wave.params.paddling_effort) return;
@@ -538,19 +611,15 @@ console.log('addSwell');
 
 		//replace paddler by surfer
 		var surfer = new Surfer({
-			x: x, 
-			y: y, 
-			wave: wave, 
+			x: x,
+			y: y,
+			wave: wave,
 			spot: this,
 		});
 
 		this.wave = wave;
 		wave.playerTakeOff(surfer);
 		this.removePaddler(paddler);
-
-		//score
-		this.showScore();
-
 
 	}
 
@@ -595,7 +664,7 @@ console.log('addSwell');
 		if(!this.wave || this.wave.direction == 0) return;
 
 		if(PAUSED) return;
-		
+
 		var index = this.sea_cont.getChildIndex(this.wave) - 1;
 		while(index >= 0) {
 
@@ -609,7 +678,7 @@ console.log('addSwell');
 				if(wave.cont.x > STAGEWIDTH || wave.cont.x < -STAGEWIDTH) {
 					this.removeWave(wave);
 				}
-				
+
 			}
 
 			index--;
@@ -617,19 +686,19 @@ console.log('addSwell');
 	}
 
 	prototype.playerFalling = function(event) {
-		
+
 		if(TEST) return;
 
 		//stop useless interval
 		this.wave.cleaning_timer.clear();
 		//freaze the wave after 6s
-		this.stopWaveTimeout = setTimeout(proxy(this.stopWaveAfterFall,this), 6000);		
+		this.stopWaveTimeout = setTimeout(proxy(this.stopWaveAfterFall,this), 6000);
 		//launch fall screen
 		this.initFallScreen();
 	}
 
 	prototype.stopWaveAfterFall = function() {
-				
+
 		this.wave.removeAllEventListeners('tick');
 	}
 
@@ -646,7 +715,7 @@ console.log('addSwell');
 		this.removeAllWaves();
 
 		this.overlay_cont.addChild(SCREENS.getSkillScreen(this));
-		
+
 	}
 
 	prototype.removeSkillScreen = function() {
@@ -655,7 +724,7 @@ console.log('addSwell');
 
 		this.init();
 	}
-	
+
 	prototype.initFallScreen = function(e) {
 
 		this.overlay_cont.removeAllChildren();
@@ -699,10 +768,10 @@ console.log('addSwell');
 
 		//hide fall overlay
 		this.overlay_veil.alpha = 0;
-		
+
 		//reset this spot
-		//this.init();
-		this.launch();
+		this.init();
+		//this.launch();
 
 		//reset score
 		this.score.reset();
