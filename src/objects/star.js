@@ -22,7 +22,7 @@
       var sheet = new createjs.SpriteSheet({
           images: [queue.getResult(this.img)],
           frames: {width:120, height:120, regX:60, regY:60},
-          framerate: 1,
+          framerate: 20,
           animations: {
               rotate: [0,5,'rotate'],
           }
@@ -58,7 +58,6 @@
 
     RotatingStar.prototype.bonusHitted = function() {
       let sound = createjs.Sound.play("pickup");
-      sound.volume = 0.1;
       this.sprite.gotoAndStop(0);
       createjs.Tween.get(this.sprite).to({y: -400, alpha:0}, 800, createjs.Ease.quartIn);
       createjs.Tween.get(this.sprite).to({scale:0.2}, 200).to({scale:0.4}, 200);

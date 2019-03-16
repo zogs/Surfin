@@ -1534,6 +1534,12 @@ prototype.addCigogne = function() {
 	this.addFlyingObstacle(obs);
 }
 
+prototype.addShark = function() {
+	var obs = new Shark({wave: this, spot: this.spot});
+	this.addObstacle(obs);
+	return obs;
+}
+
 prototype.addRotatingStar = function() {
 	var obs = new RotatingStar({wave: this, spot: this.spot});
 	this.addObstacle(obs);

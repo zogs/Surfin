@@ -1260,6 +1260,11 @@
 
 		this.splash_anim.gotoAndPlay('splash');
 
+    createjs.Sound.play("gasp");
+		setTimeout(function() {
+    	createjs.Sound.play("plouf");
+		},600);
+
 		this.on('stop',proxy(this.fallFinished, this), this, true);
 	}
 

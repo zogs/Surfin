@@ -35,13 +35,19 @@ window.loaded = function() {
 		{id:'wash',src:'assets/img/object/wash.png'},
 		{id:'sprite_beachtrooper',src:'assets/img/object/beachtrooper.png'},
 		{id:'washed_text',src:'assets/img/washed.png'},
-		{id:'star', src:'assets/img/object/star.png'}
+		{id:'star', src:'assets/img/object/star.png'},
+		{id:'shark', src:'assets/img/object/shark.png'},
 
 		]);
 
 	createjs.Sound.alternateExtensions = ["mp3"];
  	createjs.Sound.registerSound("assets/sounds/yeah.mp3", "bravo");
  	createjs.Sound.registerSound("assets/sounds/pickup.wav", "pickup");
+ 	createjs.Sound.registerSound("assets/sounds/cut.wav", "cut");
+ 	createjs.Sound.registerSound("assets/sounds/sharkroar.wav", "sharkroar");
+ 	createjs.Sound.registerSound("assets/sounds/plouf.mp3", "plouf");
+ 	createjs.Sound.registerSound("assets/sounds/gasp.wav", "gasp");
+	createjs.Sound.volume = 0.1;
 
 
 
@@ -129,10 +135,10 @@ window.initialize = function() {
 }
 
 
-window.tick = function() {
+window.tick = function(e) {
 
 	//console.log(createjs.Tween._tweens.length);
-	stage.update();
+	stage.update(e);
 }
 
 window.loadSpot = function(event, name = 'default') {
@@ -286,6 +292,7 @@ window.keyDownHandler = function(e)
     case '"':  SPOT.getWave().addBomb(); break;
     case '\'':  SPOT.getWave().addBeachTrooper(); break;
     case '(':  SPOT.getWave().addRandomStarline(); break;
+    case '-':  SPOT.getWave().addShark(); break;
     case '1':  SPOT.getWave().addFlyingMultiplier(); break;
     case '2':  SPOT.getWave().addFlyingPrize(); break;
     case '3':  SPOT.getWave().addCigogne(); break;

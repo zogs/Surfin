@@ -159,7 +159,7 @@
 
       if(surfer.hit(zone,x,y,radius)) {
         bonus.hitted = true;
-        this.bonusHitted(bonus);
+        this.bonusHitted(surfer, bonus);
         return true;
       }
     }
@@ -182,7 +182,7 @@
 
       if(surfer.hit(zone,x,y,radius)) {
         malus.hitted = true;
-        this.malusHitted(malus);
+        this.malusHitted(surfer, malus);
         return true;
       }
     }
