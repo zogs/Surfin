@@ -142,7 +142,7 @@
 	}
 
 	prototype.addSwell = function(nb) {
-console.log('addSwell');
+		//console.log('addSwell');
 		//configuration of the wave
 		var config = this.config.waves;
 			config.x = (this.config.series.xshift/100 * STAGEWIDTH) + this.config.series.spread/2 - Math.random()*this.config.series.spread;
@@ -164,7 +164,7 @@ console.log('addSwell');
 
 		// if last wave of serie, add next wave
 		if( nb === this.config.series.length) {
-			console.log('addNextSerie');
+			//console.log('addNextSerie');
 			// call next serie
 			this.addNextSerie();
 		}
@@ -389,7 +389,7 @@ console.log('addSwell');
 		},this);
 
 		this.on('played_wave',function(event) {
-			console.log('played_wave');
+			//console.log('played_wave');
 			this.stopPlayedWave(event.wave);
 		},this);
 
@@ -470,7 +470,7 @@ console.log('addSwell');
 	}
 
 	prototype.stopPlayedWave = function(wave) {
-		console.log('stopPlayedWave');
+		//console.log('stopPlayedWave');
 		//stop this wave and all the next ones
 		var i = this.waves.indexOf(wave) + 1;
 		while(i--) {
@@ -523,7 +523,7 @@ console.log('addSwell');
 		this.sea_cont.addChild(bot);
 		this.paddlers.push(bot);
 
-		console.log(this.paddlers);
+		//console.log(this.paddlers);
 	}
 
 
@@ -826,7 +826,7 @@ console.log('addSwell');
 	}
 
 	prototype.removeWave = function(wave) {
-		console.log('removeWave');
+		//console.log('removeWave');
 		createjs.Tween.removeTweens(wave);
 		wave.selfRemove();
 		this.sea_cont.removeChild(wave);

@@ -27,6 +27,7 @@
       { type: 'score', value: 2000, name: 'Faire un score de 2000 points' },
       { type: 'trick', value: 'Backflip', count: 2, name: 'Faire 2 backflip ({n})' },
       { type: 'catch', value: 'prize', count: 3, name: 'Attraper 3 prix ({n})' },
+      { type: 'catch', value: 'star', count: 50, name: 'Attraper 50 étoiles ({n})' },
       { type: 'kill', value: 'surfer', count: 10, name: 'Défoncer 10 surfers ({n})' },
       { type: 'tube', value: 5, name: 'Faire un tube de 5s ou + ({n})' },
     ];

@@ -1534,6 +1534,46 @@ prototype.addCigogne = function() {
 	this.addFlyingObstacle(obs);
 }
 
+prototype.addRotatingStar = function() {
+	var obs = new RotatingStar({wave: this, spot: this.spot});
+	this.addObstacle(obs);
+	return obs;
+}
+
+prototype.addStarline = function(length = 5, spreadX = 100, spreadY = 100, sinScale = 10) {
+
+	let first = this.addRotatingStar();
+	let othersX = [];
+	let othersY = [];
+	for(let i=1; i<=length-1; i++) {
+		let dx = (this.direction === LEFT)? -i * spreadX : i*spreadX;
+		let x = first.x + dx;
+		let y = first.y + Math.sin(Math.random()*sinScale + i/sinScale) * spreadY;
+		othersX.push(x);
+		othersY.push(y);
+	}
+
+	let dy = 0;
+	let minY = Math.min(...othersY);
+	if(first.y + minY > this.y - this.params.height ) dy += (first.y+minY) - (this.y - this.params.height);
+
+	first.setXY(first.x, first.y - dy);
+	for(let i=0; i<=othersX.length-1; i++) {
+		let star = this.addRotatingStar();
+		star.setXY(othersX[i], othersY[i] - dy);
+	}
+}
+
+prototype.addRandomStarline = function() {
+
+	let length = Math.ceil(Math.random()*12) + 1;
+	let spreadX = 100 + Math.random()*100;
+	let spreadY = Math.random()*(this.params.height/2);
+	let sinScale = Math.ceil(Math.random()*10);
+	console.log(length, spreadX, spreadY, sinScale);
+	this.addStarline(length, spreadX, spreadY, sinScale);
+}
+
 prototype.addDrone = function() {
 	var obs = new Drone({wave: this, spot: this.spot});
 	this.addFlyingObstacle(obs);

@@ -17,7 +17,7 @@
 	//public static properties
 	prototype.gravity = new Victor(0,7);
 	prototype.hitbox_proportion = 70;
-	prototype.hitboard_proportion = 15;
+	prototype.hitboard_proportion = 30;
 	prototype.height = 300;
 
 	//init
@@ -732,7 +732,6 @@
 		// add pump-pump to velocity
 		velocity = this.addPumpedInertia(velocity);
 
-		console.log(this.boost);
 		// add boost
 		if(this.boost) {
 			velocity.scaleX(2);

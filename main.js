@@ -34,12 +34,14 @@ window.loaded = function() {
 		{id:'wash_plouf',src:'assets/img/object/wash.svg'},
 		{id:'wash',src:'assets/img/object/wash.png'},
 		{id:'sprite_beachtrooper',src:'assets/img/object/beachtrooper.png'},
-		{id:'washed_text',src:'assets/img/washed.png'}
+		{id:'washed_text',src:'assets/img/washed.png'},
+		{id:'star', src:'assets/img/object/star.png'}
 
 		]);
 
 	createjs.Sound.alternateExtensions = ["mp3"];
  	createjs.Sound.registerSound("assets/sounds/yeah.mp3", "bravo");
+ 	createjs.Sound.registerSound("assets/sounds/pickup.wav", "pickup");
 
 
 
@@ -283,6 +285,7 @@ window.keyDownHandler = function(e)
     case 'é':  SPOT.getWave().addPhotographer(); break;
     case '"':  SPOT.getWave().addBomb(); break;
     case '\'':  SPOT.getWave().addBeachTrooper(); break;
+    case '(':  SPOT.getWave().addRandomStarline(); break;
     case '1':  SPOT.getWave().addFlyingMultiplier(); break;
     case '2':  SPOT.getWave().addFlyingPrize(); break;
     case '3':  SPOT.getWave().addCigogne(); break;
