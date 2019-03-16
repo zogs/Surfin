@@ -8,7 +8,7 @@
 	<link rel="stylesheet" href="assets/font/Alba/stylesheet.css">
 	<link rel="stylesheet" href="assets/font/Boogaloo/stylesheet.css">
 	<link rel="stylesheet" href="assets/font/Bubblegum/stylesheet.css">
-	
+
 	<style type="text/css">
 			body { margin: 0; padding: 0; background: #000; }
 			canvas { display:block; margin:0 auto; background: #000; }
@@ -17,10 +17,10 @@
 	</head>
 
 	<body onload="loaded()">
-			<canvas id="canvas" width="1500" height="800"><!-- dont touch the dimension, it is use to calculate the proportion --></canvas>			
+			<canvas id="canvas" width="1500" height="800"><!-- dont touch the dimension, it is use to calculate the proportion --></canvas>
 		</div>
 	</body>
-	
+
 
 	<script src="lib/createjs/easeljs-1.1.js"></script>
 	<script src="lib/justice.mapped.min.js"></script>
@@ -34,27 +34,28 @@
 	<script src="commons/particles.js" type="text/javascript"></script>
 	<script src="config/spots.conf.js" type="text/javascript"></script>
 	<?php loadJsDir('config/spots/'); ?>
-	<script src="game/objects/user.js" type="text/javascript"></script>
-	<script src="game/objects/obstacles.js" type="text/javascript"></script>
-	<script src="game/objects/scoreboard.js" type="text/javascript"></script>
-	<script src="game/objects/spots.js" type="text/javascript"></script>
-	<script src="game/objects/waves.js" type="text/javascript"></script>
-	<script src="game/objects/surfers.js" type="text/javascript"></script>
-	<script src="game/objects/paddlers.js" type="text/javascript"></script>
-	<script src="game/objects/bots.js" type="text/javascript"></script>
-	<script src="game/objects/screens.js" type="text/javascript"></script>
-	<script src="game/customizer.js" type="text/javascript"></script>
+	<script src="src/user.js" type="text/javascript"></script>
+	<script src="src/scoreboard.js" type="text/javascript"></script>
+	<script src="src/spots.js" type="text/javascript"></script>
+	<script src="src/waves.js" type="text/javascript"></script>
+	<script src="src/surfers.js" type="text/javascript"></script>
+	<script src="src/paddlers.js" type="text/javascript"></script>
+	<script src="src/bots.js" type="text/javascript"></script>
+	<script src="src/screens.js" type="text/javascript"></script>
+	<script src="src/objects.js" type="text/javascript"></script>
+	<?php loadJsDir('src/objects/'); ?>
+	<script src="src/customizer.js" type="text/javascript"></script>
 	<script src="main.js" type="text/javascript"></script>
 
-<?php 
+<?php
 
 function loadJsDir($dir) {
-	
+
 	$handle = opendir($dir);
 	while(($file = readdir($handle))!==false) {
 		if($file == '.' || $file == '..') continue;
 		$file = $dir.$file;
-		echo '<script src="'.$file.'" type="text/javascript"></script>';		
+		echo '<script src="'.$file.'" type="text/javascript"></script>';
 	}
 	closedir($handle);
 }
