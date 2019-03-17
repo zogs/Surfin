@@ -14,32 +14,41 @@
     BombObstacle.prototype.drawImage = function() {
 
       var sheet = new createjs.SpriteSheet({
-          images: [queue.getResult('bomb_boom')],
-          frames: {width:312, height:285, regX: 155, regY: 142},
+          images: [queue.getResult('bomb')],
+          frames: {width:200, height:200, regX: 100, regY: 100},
           framerate: 1,
           animations: {
-            floating: [0, 1, false, 1],
-              explode: [2, 7, false, 0.5],
+            normal: [0],
+            prox: [1, 2, 'prox', 1],
+            timer: [3, 6, false, 2],
           }
       });
 
-      this.sprite = new createjs.Sprite(sheet);
-      this.sprite.scaleX = this.sprite.scaleY = 0.5;
-      this.sprite.y = -50;
-      this.sprite.gotoAndPlay('floating');
-      this.image_cont.addChild(this.sprite);
+      this.bomb = new createjs.Sprite(sheet);
+      this.bomb.scaleX = this.bomb.scaleY = 0.8;
+      this.bomb.gotoAndPlay('timer');
+      this.image_cont.addChild(this.bomb);
+
+      var sheet = new createjs.SpriteSheet({
+          images: [queue.getResult('boom')],
+          frames: {width:312, height:285, regX: 155, regY: 142},
+          framerate: 10,
+          animations: {
+              explode: [0, 5, false],
+          }
+      });
+
+      this.boom = new createjs.Sprite(sheet);
+      this.boom.scaleX = this.boom.scaleY = 0.8;
+      this.boom.gotoAndStop(0);
+      this.boom.y = -80;
+      this.boom.alpha = 0;
+      this.image_cont.addChild(this.boom);
 
     }
 
     BombObstacle.prototype.drawBonus = function() {
 
-      var bonus = new createjs.Shape();
-        bonus.graphics.beginFill('green').drawCircle(0,0,100);
-        bonus.y = 0;
-        bonus.x = 5;
-        bonus.alpha = 0.5;
-        this.debug_cont.addChild(bonus);
-        this.bonuses.push(bonus);
     }
 
     BombObstacle.prototype.drawMalus = function() {
@@ -62,14 +71,14 @@
     }
 
     BombObstacle.prototype.bonusHitted = function() {
-      // bomb explose at distance (bonus), but if surfer is too close (malus) he will fall...
-      this.sprite.gotoAndPlay('explode');
 
     }
 
     BombObstacle.prototype.malusHitted = function() {
 
-      //
+      this.bomb.alpha = 0;
+      this.boom.alpha = 1;
+      this.boom.gotoAndPlay('explode');
     }
 
 }());
