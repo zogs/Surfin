@@ -524,6 +524,7 @@
 
   prototype.getScores = function() {
     let array = [];
+    if(SPOT.wave == null) return [];
     for (let i=0, len=SPOT.wave.score_text_cont.numChildren; i < len; ++i) {
       let score = SPOT.wave.score_text_cont.getChildAt(i);
       array.push(score);

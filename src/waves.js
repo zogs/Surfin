@@ -887,15 +887,15 @@ prototype.shake = function() {
 	this.shake_x = Math.floor(Math.random()*amplitude*2 - amplitude);
 	this.shake_y = Math.floor(Math.random()*amplitude*2 - amplitude);
 
-	createjs.Tween.get(this)
-		.to({x:this.x+this.shake_x,y:this.y+this.shake_y},50)
+	createjs.Tween.get(window.spot_cont)
+		.to({x:this.shake_x,y:this.shake_y},50)
 		.call(proxy(this.unshake,this));
 }
 
 prototype.unshake = function() {
 
-	createjs.Tween.get(this)
-		.to({x:this.x-this.shake_x,y:this.y-this.shake_y},50)
+	createjs.Tween.get(window.spot_cont)
+		.to({x:this.shake_x,y:this.shake_y},50)
 		.call(proxy(this.shake,this));
 }
 

@@ -268,7 +268,7 @@
 		this.initEventsListeners();
 		this.addInitialSerie();
 		//this.addSerie();
-		this.addPaddler(STAGEWIDTH/2,430);
+		this.addPaddler(STAGEWIDTH/2,460);
 	}
 
 	prototype.initWhenReady = function() {
@@ -470,12 +470,15 @@
 	}
 
 	prototype.stopPlayedWave = function(wave) {
-		//console.log('stopPlayedWave');
-		//stop this wave and all the next ones
-		var i = this.waves.indexOf(wave) + 1;
-		while(i--) {
-			this.waves[i].coming_tween.paused = true;
-			//createjs.Tween.removeTweens(this.waves[i]);
+
+		//stop this wave
+		wave.coming_tween.paused = true;
+
+		//fade out other wave
+		for(let i=0, ln=this.waves.length-1; i<ln; i++) {
+			let other = this.waves[i];
+			if(other == wave) continue;
+			createjs.Tween.get(other).to({alpha:0}, 1200).call(proxy(this.removeWave,this,[other]));
 		}
 
 		//stop serie incoming

@@ -64,7 +64,6 @@ window.initialize = function() {
 	MOUSE_X = STAGEWIDTH/2;
 	MOUSE_Y = STAGEHEIGHT/2;
 	MOUSE_POINTS = [new createjs.Point(MOUSE_X,MOUSE_Y)];
-
 	DEBUG = 0;
 	TEST = 0;
 	PAUSED = 0;
@@ -72,6 +71,22 @@ window.initialize = function() {
 	TIME_SCALE = 1;
 	SLOW_MOTION = false;
 	SPOT = null;
+
+
+	// Containers
+	window.spot_cont = new createjs.Container();
+	stage.addChild(window.spot_cont);
+	window.border_cont = new createjs.Container();
+	stage.addChild(window.border_cont);
+	window.menu_cont = new createjs.Container();
+	stage.addChild(window.menu_cont);
+	window.pause_cont = new createjs.Container();
+	stage.addChild(window.pause_cont);
+
+	let border = new createjs.Shape();
+	border.graphics.beginStroke('#FFF').setStrokeStyle(10).moveTo(0,0).lineTo(STAGEWIDTH,0).lineTo(STAGEWIDTH,STAGEHEIGHT).lineTo(0,STAGEHEIGHT).closePath();
+	window.border_cont.addChild(border);
+
 
 	//USER
 	USER = new User();
@@ -119,10 +134,16 @@ window.initialize = function() {
 	//resize event
 	window.onresize = browserResize;
 
+	//window event
+  window.addEventListener('blur', window.onWindowPassive);
+  window.addEventListener('focus', window.onWindowActive);
+
 	// set customizer
 	initCustomizer();
 
 	window.resizeCanvas();
+
+
 
 	/*let bar = new XpBar({width: 500, height: 30, dispatcher: stage});
 	bar.x = STAGEWIDTH/2;
@@ -137,13 +158,15 @@ window.initialize = function() {
 
 window.tick = function(e) {
 
-	//console.log(createjs.Tween._tweens.length);
+	if(PAUSED) return;
 	stage.update(e);
 }
 
 window.loadSpot = function(event, name = 'default') {
 
 	console.log('Loading spot "'+name+'"')
+
+	window.menu_cont.removeAllChildren();
 
 	const spot = SPOTSCONF.find(s => s.name === name || s.alias === name);
 
@@ -166,11 +189,11 @@ window.addSpot = function(config, launch = true) {
 		window.removeSpot(SPOT);
 	}
 	//clear stage
-	stage.removeAllChildren();
+	window.spot_cont.removeAllChildren();
 	//create spot with new config
 	SPOT = new Spot(config);
 	//add it
-	stage.addChild(SPOT);
+	window.spot_cont.addChild(SPOT);
 	//init spot
   SPOT.init();
 	// add menu
@@ -183,7 +206,7 @@ window.removeSpot = function(spot) {
 	if(SPOT === null) return;
 
 	spot.remove();
-	stage.removeChild(spot);
+	window.spot_cont.removeChild(spot);
 
 	SPOT = null;
 }
@@ -208,7 +231,7 @@ window.addMenu = function() {
 	cont.x = 50;
 	cont.y = 30;
 	cont.addChild(bkg,txt);
-	stage.addChild(cont);
+	window.menu_cont.addChild(cont);
 
 	cont.on('click',showMenu);
 }
@@ -221,7 +244,7 @@ window.showMenu = function(e) {
 	if(typeof SPOT !== 'undefined') window.removeSpot(SPOT);
 
 	//clear stage
-	stage.removeAllChildren();
+	window.menu_cont.removeAllChildren();
 
 
 	const spots = SPOTSCONF;
@@ -229,12 +252,12 @@ window.showMenu = function(e) {
 
 
 	const background = new createjs.Bitmap(queue.getResult('bg_paradize'));
-	stage.addChild(background);
+	window.menu_cont.addChild(background);
 
 	const cont = new createjs.Container();
 	cont.x = STAGEWIDTH/10;
 	cont.cursor = 'pointer';
-	stage.addChild(cont);
+	window.menu_cont.addChild(cont);
 
 	let rowx = 200;
 	let rowy = 100;
@@ -379,19 +402,40 @@ window.updateTimeScale = function() {
 	if(SPOT) SPOT.setTimeScale(TIME_SCALE);
 }
 
+window.onWindowActive = function(e) {
+  // must click to unpause
+}
+
+window.onWindowPassive = function(e) {
+  if(window.PAUSED == false) window.pause();
+}
+
 window.pause = function() {
 
+	if(!SPOT) return;
+
+	//disable pause
 	if(PAUSED === 1) {
 		PAUSED = 0;
 		createjs.Ticker.paused = false;
+		window.pause_cont.removeAllChildren();
 		SPOT.resume();
-		console.log('PAUSE DESACTIVATED');
 	}
+	//enable pause
 	else {
 		PAUSED = 1;
 		createjs.Ticker.paused = true;
 		SPOT.pause();
-		console.log('PAUSE ACTIVATED !');
+
+		let overlay = new createjs.Shape();
+		overlay.graphics.beginFill('#000').drawRect(0,0,STAGEWIDTH,STAGEHEIGHT);
+		overlay.alpha = 0.4;
+		window.pause_cont.addChild(overlay);
+
+		overlay.on('click', function(e) {
+			window.pause();
+			e.stopImmediatePropagation();
+		}, null, true);
 	}
 }
 

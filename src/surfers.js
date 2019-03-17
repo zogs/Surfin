@@ -383,21 +383,17 @@
 
 	prototype.resize = function() {
 
-		var y_persperctive = this.wave.getResizeCoef();
+		let scale = this.wave.getResizeCoef() * this.getSurferProportion();
+		this.height = this.silhouette_height*scale;
 
-		this.scale = y_persperctive * this.getSurferProportion();
-		this.height = this.silhouette_height*this.scale;
-
-		this.silhouette_cont.scaleX = this.scale;
-		this.silhouette_cont.scaleY = this.scale;
+		this.silhouette_cont.scaleX = scale;
+		this.silhouette_cont.scaleY = scale;
 		this.silhouette_cont.regX = this.silhouette_width/2;
 		this.silhouette_cont.regY = this.silhouette_height/2;
-		//this.silhouette_cont.x = (- this.silhouette_width/2) * this.scale;
-		//this.silhouette_cont.y = (- this.silhouette_height/2) * this.scale;
 
-		this.hitbox.scale = this.hitbox_radius = this.scale * this.hitbox_proportion;
-		this.hitboard.scale = this.hitboard_radius = this.scale * this.hitboard_proportion;
-		this.hitboard.y = this.silhouette_height/4 * this.scale;
+		this.hitbox.scale = this.hitbox_radius = scale * this.hitbox_proportion;
+		this.hitboard.scale = this.hitboard_radius = scale * this.hitboard_proportion;
+		this.hitboard.y = this.silhouette_height/4 * scale;
 	}
 
 	prototype.getVanishPoint = function() {
@@ -1050,8 +1046,8 @@
 		let image = new createjs.Bitmap(this.silhouette_cont.cacheCanvas);
 		image.filters = [ new createjs.ColorFilter(0,0,0,1, Math.random()*255,Math.random()*255,Math.random()*255,0) ];
 		image.cache(0,0,w*2,w*2);
-		image.scaleX = this.scale;
-		image.scaleY = this.scale;
+		image.scaleX = this.silhouette_cont.scaleX;
+		image.scaleY = this.silhouette_cont.scaleY;
 		image.x = this.x;
 		image.y = this.y;
 		image.regX = w;
@@ -1066,7 +1062,7 @@
 		image.scaleX = 0;
 		image.scaleY = 0;
 		createjs.Tween.get(image).to({ alpha: 0}, lifespan).call(proxy(this.removePersistedImage,this,[image]));
-		createjs.Tween.get(image).to({ scaleX: this.scale, scaleY: this.scale}, lifespan/2, createjs.Ease.backOut);
+		createjs.Tween.get(image).to({ scaleX: this.silhouette_cont.scaleX, scaleY: this.silhouette_cont.scaleY}, lifespan/2, createjs.Ease.backOut);
 	}
 
 	prototype.removePersistedImage = function(image) {
@@ -1311,11 +1307,11 @@
 
 		plouf.x = this.x + 50*this.wave.direction*-1;
 		plouf.y = this.y;
-		plouf.scaleX = plouf.scaleY = this.scale;
+		plouf.scaleX = plouf.scaleY = this.silhouette_cont.scaleX;
 		plouf.rotation = Math.random(10)*(Math.random(2)-1);
 		this.wave.surfers_cont.addChild(plouf);
 
-		var c = this.scale*3;
+		var c = this.silhouette_cont.scaleX*3;
 		createjs.Tween.get(plouf)
 		.to({scaleX:c, scaleY:c, alpha:0, y:plouf.y-50},600)
 		;

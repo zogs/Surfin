@@ -25,6 +25,7 @@
 		this.lifttotal = 0;
 		this.isPlayer = true;
 		this.isPaddling = false;
+		this.isDucking = false;
 
 		this.skill = {
 			speed: 1, //0 to 1
@@ -42,9 +43,16 @@
 
 		this.debug_cont = new createjs.Container();
 		this.cont.addChild(this.debug_cont);
-		if(DEBUG) this.drawDebug();
+
+		this.hitbox = new createjs.Shape();
+		this.hitbox.graphics.beginFill('orange').drawCircle(0,0,1);
+		this.hitbox.alpha = 0;
+		this.hitbox_radius = 1;
+		this.cont.addChild(this.hitbox);
 
 		this.resize();
+
+		stage.addEventListener("tick", proxy(this.tick, this));
 
 		this.initListeners();
 
@@ -56,6 +64,12 @@
 
 	prototype.getY = function() {
 		return this.y + this.cont.y;
+	}
+
+	prototype.tick = function() {
+		if(PAUSED) return;
+		this.checkDucking();
+		this.drawDebug();
 	}
 
 	prototype.initListeners = function() {
@@ -78,9 +92,17 @@
 
 	prototype.drawDebug = function() {
 
+		if(DEBUG === 0) {
+			this.hitbox.alpha = 0;
+			return;
+		}
+
+		this.hitbox.alpha = 0.5;
+
 		var center = new createjs.Shape();
 		center.graphics.beginFill('red').drawCircle(0,0,3);
 		this.debug_cont.addChild(center);
+
 	}
 
 	prototype.getScaleByPosition = function() {
@@ -101,6 +123,8 @@
 		this.silhouette.scaleY = this.scale;
 		this.silhouette.x = (- this.silhouette.spriteSheet._frameWidth/2) * this.scale;
 		this.silhouette.y = (- this.silhouette.spriteSheet._frameHeight/2) * this.scale;
+
+		this.hitbox.scale = this.hitbox_radius = this.scale * 50;
 
 	}
 
@@ -184,6 +208,36 @@
 			this.paddling_force = 0;
 			this.paddling_progress = 0;
 		}
+	}
+
+	prototype.checkDucking = function() {
+
+		let wave = SPOT.firstWaveBehindPaddler(this);
+
+		if(!wave) return;
+
+		for(let i=0,ln=wave.allpoints.length-1; i< ln; ++i){
+			let point = wave.allpoints[i];
+			let minDistance = this.hitbox_radius;
+			let xDist = (wave.getX() + point.x) - (this.x + this.cont.x + this.hitbox.x);
+			let yDist = (wave.getY() - wave.params.height + point.y) - (this.y + this.cont.y + this.hitbox.y);
+			let distance = Math.sqrt(xDist*xDist + yDist*yDist);
+			if(distance < minDistance && this.isDucking === false) {
+				this.isDucking = true;
+				//init ducking
+				createjs.Tween.get(this).to({alpha:0},200)
+					.wait(50)
+					.call(proxy(this.duckWave, this, [wave]))
+				return;
+			}
+		}
+	}
+
+	prototype.duckWave = function(wave) {
+		SPOT.sea_cont.swapChildren(this,wave);
+		this.y = wave.y;
+		this.alpha = 1;
+		this.isDucking = false;
 	}
 
 	prototype.setPaddlerSilhouette = function(angle) {
