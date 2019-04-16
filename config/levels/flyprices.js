@@ -1,7 +1,9 @@
 var conf = {
-  id: 6,
-  name: 'Drones',
-  alias: 'Drones',
+  id: 7,
+  name: 'Flyprices',
+  alias: 'Flyprices',
+  planet: 'caladan',
+  level: 5,
   config: {
     init: {
       type: 'static',
@@ -109,12 +111,12 @@ var conf = {
           },
         },
         'fly': {
-          'interval': 2000,
-          'interval_max': 5000,
+          'interval': 1000,
+          'interval_max': 3000,
           'objects' : {
-            'prize' : {percentage: 0},
-            'cigogne' : {percentage: 0},
-            'drone': {percentage: 100},
+            'prize' : {percentage: 80},
+            'cigogne' : {percentage: 20},
+            'drone': {percentage: 0},
           },
         }
       },
@@ -138,4 +140,4 @@ var conf = {
   }
 };
 
-SPOTSCONF.push(conf);
+LEVELS.push(conf);

@@ -21,8 +21,14 @@ window.loaded = function() {
 		{id:'wave',src:'assets/img/waves/wave1.jpg'},
 		{id:'wave_riddle',src:'assets/img/waves/wave-riddle.png'},
 		{id:'spot_seariddle',src:'assets/img/spots/default/seariddles.png'},
-		{id:'spot_front',src:'assets/img/spots/default/front.png'},
 		{id:'spot_back',src:'assets/img/spots/zegema_beach/back.jpg'},
+		{id:'spot_back_home',src:'assets/img/spots/default/homeback.jpg'},
+		{id:'spot_front_home',src:'assets/img/spots/default/homefront.png'},
+		{id:'spot_front',src:'assets/img/spots/default/beach.png'},
+		{id:'btn_startgame',src:'assets/img/buttons/btn_startgame.png'},
+		{id:'btn_level',src:'assets/img/buttons/btn_level.png'},
+		{id:'btn_menu',src:'assets/img/buttons/btn_menu.png'},
+		{id:'dog',src:'assets/img/object/spacedog.png'},
 		{id:'bomb',src:'assets/img/object/astro_bomb.png'},
 		{id:'boom',src:'assets/img/object/astro_boom.png'},
 		{id:'surfer_splash',src:'assets/img/object/splash.gif'},
@@ -38,6 +44,16 @@ window.loaded = function() {
 		{id:'washed_text',src:'assets/img/washed.png'},
 		{id:'star', src:'assets/img/object/star.png'},
 		{id:'shark', src:'assets/img/object/shark.png'},
+		{id:'ptero', src:'assets/img/object/ptero.png'},
+		{id:'spacetablet', src:'assets/img/bkg/tablet.png'},
+		{id:'caladan', src:'assets/img/planets/caladan.png'},
+		{id:'flhoston', src:'assets/img/planets/flhoston.png'},
+		{id:'kashykkk', src:'assets/img/planets/kashykkk.png'},
+		{id:'pandora', src:'assets/img/planets/pandora.png'},
+		{id:'zeguema', src:'assets/img/planets/zeguema.png'},
+		{id:'gargantua', src:'assets/img/planets/gargantua.png'},
+		{id:'lock', src:'assets/img/planets/lock.png'},
+		{id:'caladan_back', src:'assets/img/spots/Caladan_Peak/back.jpg'},
 
 		]);
 
@@ -79,13 +95,15 @@ window.initialize = function() {
 	stage.addChild(window.spot_cont);
 	window.border_cont = new createjs.Container();
 	stage.addChild(window.border_cont);
+	window.home_cont = new createjs.Container();
+	stage.addChild(window.home_cont);
 	window.menu_cont = new createjs.Container();
 	stage.addChild(window.menu_cont);
 	window.pause_cont = new createjs.Container();
 	stage.addChild(window.pause_cont);
 
 	let border = new createjs.Shape();
-	border.graphics.beginStroke('#FFF').setStrokeStyle(10).moveTo(0,0).lineTo(STAGEWIDTH,0).lineTo(STAGEWIDTH,STAGEHEIGHT).lineTo(0,STAGEHEIGHT).closePath();
+	border.graphics.beginStroke('#000').setStrokeStyle(10).moveTo(0,0).lineTo(STAGEWIDTH,0).lineTo(STAGEWIDTH,STAGEHEIGHT).lineTo(0,STAGEHEIGHT).closePath();
 	window.border_cont.addChild(border);
 
 
@@ -96,30 +114,24 @@ window.initialize = function() {
 	//SCREEN
 	SCREENS = new ScreenManager();
 
-	//SPOT
-	const config = SPOTSCONF.find(s => s.alias == 'default');
-	window.addSpot(config,false);
-
-
-	/*const boom = new createjs.SpriteSheet({
-			images: [queue.getResult('bomb_boom')],
-			frames: {width:312, height:285},
-			framerate: 0.1,
-			animations: {
-				floating: [0,5,false],
-				explode: [2,7,false,1],
-			}
-		});
-
-		const animation = new createjs.Sprite(boom,'boom');
-		animation.y = 400;
-		animation.x = 300;
-		animation.gotoAndStop('floating');
-		stage.addChild(animation);
-	*/
+	//BUILD LEVELS
+	PLANETS.map(function(p) {
+		p.levels = LEVELS.filter(l => l.planet == p.id);
+		p.levels = p.levels.sort(function(a,b) { return a.level - b.level });
+	});
 
 	//MENU
-	addMenu();
+	MENU = new Menu(PLANETS);
+	this.menu_cont.addChild(MENU);
+	//MENU.open();
+
+
+
+	//SPOT
+	//const config = LEVELS.find(s => s.alias == 'home');
+	//window.addSpot(config,false);
+	SCREENS.showHome();
+
 
 	//init onEnterFrame
 	createjs.Ticker.timingMode = createjs.Ticker.TIMEOUT;
@@ -145,7 +157,6 @@ window.initialize = function() {
 	window.resizeCanvas();
 
 
-
 	/*let bar = new XpBar({width: 500, height: 30, dispatcher: stage});
 	bar.x = STAGEWIDTH/2;
 	bar.y = STAGEHEIGHT/2;
@@ -155,7 +166,6 @@ window.initialize = function() {
 */
 
 }
-
 
 window.tick = function(e) {
 
@@ -169,7 +179,7 @@ window.loadSpot = function(event, name = 'default') {
 
 	window.menu_cont.removeAllChildren();
 
-	const spot = SPOTSCONF.find(s => s.name === name || s.alias === name);
+	const spot = LEVELS.find(s => s.name === name || s.alias === name);
 
 	if(typeof spot === 'undefined') {
 		console.error(name+ " spot can't be found...");
@@ -198,17 +208,15 @@ window.addSpot = function(config, launch = true) {
 	//init spot
   SPOT.init();
 	// add menu
-	window.addMenu();
+	//SCREENS.addMenuIcon();
 
 }
 
 window.removeSpot = function(spot) {
 
 	if(SPOT === null) return;
-
 	spot.remove();
 	window.spot_cont.removeChild(spot);
-
 	SPOT = null;
 }
 
@@ -216,84 +224,8 @@ window.removeSpot = function(spot) {
 window.initRunnerMode = function(e) {
 
 	SPOT.initRunMode();
-
 }
 
-window.addMenu = function() {
-
-	const cont = new createjs.Container();
-	const bkg = new createjs.Shape();
-	const txt = new createjs.Text('MENU','50px Helvetica');
-	const bound = txt.getBounds();
-	const pad = {x: 40, y: 15};
-
-	bkg.graphics.beginFill('#FFF').drawRoundRect(-bound.x/2 - pad.x, -bound.y - pad.y, bound.width + pad.x*2, bound.height + pad.y*2, 5);
-
-	cont.x = 50;
-	cont.y = 30;
-	cont.addChild(bkg,txt);
-	window.menu_cont.addChild(cont);
-
-	cont.on('click',showMenu);
-}
-
-window.showMenu = function(e) {
-
-	e.stopPropagation();
-
-	//remove spot if exist
-	if(typeof SPOT !== 'undefined') window.removeSpot(SPOT);
-
-	//clear stage
-	window.menu_cont.removeAllChildren();
-
-
-	const spots = SPOTSCONF;
-	spots.sort(function(a,b) { return a.id - b.id });
-
-
-	const background = new createjs.Bitmap(queue.getResult('bg_paradize'));
-	window.menu_cont.addChild(background);
-
-	const cont = new createjs.Container();
-	cont.x = STAGEWIDTH/10;
-	cont.cursor = 'pointer';
-	window.menu_cont.addChild(cont);
-
-	let rowx = 200;
-	let rowy = 100;
-	let posx = 0;
-	let posy = 0;
-	for(let i=0,len=spots.length; i< len; ++i) {
-
-		let spot = spots[i];
-		let button = new createjs.Container();
-		let txt = new createjs.Text(spot.name,'24px Helvetica');
-		let bkg = new createjs.Shape();
-		let bound = txt.getBounds();
-		let pad = {x: 25, y: 15};
-
-		bkg.graphics.beginFill('#EEE').drawRoundRect(-bound.x/2 - pad.x, -bound.y - pad.y, bound.width + pad.x*2, bound.height + pad.y*2, 5);
-		bkg.alpha = 0.8;
-
-		posy += rowy;
-
-		if(posy >= STAGEHEIGHT - 100) {
-			posx += rowx;
-			posy = rowy;
-		}
-
-		button.x = posx;
-		button.y = posy;
-		button.addChild(bkg,txt);
-		cont.addChild(button);
-
-		button.on('click', loadSpot, null, true, spot.name, true);
-
-	}
-
-
-}
 
 
 window.keyDownHandler = function(e)
@@ -302,6 +234,7 @@ window.keyDownHandler = function(e)
    {
     case 'b':  SPOT.getWave().addBlockBreaking(200); break;
     case 'n':  SPOT.getWave().addBreakingPeak(50,500); break;
+    case 'm':  MENU.switch(); break;
     case 's':  window.loadSpot(null,'default'); break;
     case 'a':  SPOT.breakAllWaves(); break;
     case 'p':  window.pause(); break;

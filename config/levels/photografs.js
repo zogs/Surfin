@@ -1,7 +1,9 @@
 var conf = {
-  id: 11,
-  name: 'Small wave',
-  alias: 'Small wave',
+  id: 3,
+  name: 'photograf',
+  alias: 'Photograf',
+  planet: 'caladan',
+  level: 3,
   config: {
     init: {
       type: 'static',
@@ -34,9 +36,9 @@ var conf = {
       weapons: []
     },
     waves: {
-      height : 180,
+      height : 250,
       width : 0,
-      real_height: 2,
+      real_height: 3,
       breaking: {
         width: 180,
         x_speed: 50,
@@ -54,8 +56,8 @@ var conf = {
           width_pause: 0,
           block_interval: 1000,
           block_interval_max: 2000,
-          block_width: 5,
-          block_width_max: 50,
+          block_width: 50,
+          block_width_max: 200,
         },
         right: {
           width: 20,
@@ -64,8 +66,8 @@ var conf = {
           width_pause: 1000,
           block_interval: 1000,
           block_interval_max: 2000,
-          block_width: 5,
-          block_width_max: 55,
+          block_width: 50,
+          block_width_max: 200,
         }
       },
       lip: {
@@ -99,8 +101,8 @@ var conf = {
       ],
       obstacles: {
         'float': {
-          'interval': 0,
-          'interval_max': 2000,
+          'interval': 500,
+          'interval_max': 1000,
           'objects' : {
             'paddler' : {percentage: 0},
             'photographer' : {percentage: 100},
@@ -110,11 +112,11 @@ var conf = {
         },
         'fly': {
           'interval': 0,
-          'interval_max': 3000,
+          'interval_max': 1000,
           'objects' : {
-            'prize' : {percentage: 80},
-            'cigogne' : {percentage: 20},
-            'drone': {percentage: 0},
+            'prize' : {percentage: 30},
+            'cigogne' : {percentage: 30},
+            'drone': {percentage: 40},
           },
         }
       },
@@ -138,4 +140,4 @@ var conf = {
   }
 };
 
-SPOTSCONF.push(conf);
+LEVELS.push(conf);

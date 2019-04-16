@@ -32,8 +32,9 @@
 	<script src="commons/shaker.js" type="text/javascript"></script>
 	<script src="commons/variations.js" type="text/javascript"></script>
 	<script src="commons/particles.js" type="text/javascript"></script>
-	<script src="config/spots.conf.js" type="text/javascript"></script>
-	<?php loadJsDir('config/spots/'); ?>
+	<script src="config/planets.conf.js" type="text/javascript"></script>
+	<script src="config/levels.conf.js" type="text/javascript"></script>
+	<?php loadJsDir('config/levels/'); ?>
 	<script src="src/user.js" type="text/javascript"></script>
 	<script src="src/scoreboard.js" type="text/javascript"></script>
 	<script src="src/spots.js" type="text/javascript"></script>
@@ -43,6 +44,7 @@
 	<script src="src/bots.js" type="text/javascript"></script>
 	<script src="src/screens.js" type="text/javascript"></script>
 	<script src="src/objects.js" type="text/javascript"></script>
+	<script src="src/menu.js" type="text/javascript"></script>
 	<?php loadJsDir('src/objects/'); ?>
 	<script src="src/customizer.js" type="text/javascript"></script>
 	<script src="main.js" type="text/javascript"></script>

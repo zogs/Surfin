@@ -26,7 +26,7 @@
 
       this.bomb = new createjs.Sprite(sheet);
       this.bomb.scaleX = this.bomb.scaleY = 0.8;
-      this.bomb.gotoAndPlay('timer');
+      this.bomb.gotoAndPlay('prox');
       this.image_cont.addChild(this.bomb);
 
       var sheet = new createjs.SpriteSheet({

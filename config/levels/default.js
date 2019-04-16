@@ -2,20 +2,27 @@ var conf = {
 	id: 1,
 	name: 'moyen',
 	alias: 'default',
+	planet: 'caladan',
+	level: 1,
+	unlock: true,
 	config: {
 		init: {
-			type: 'static',
+			type: 'ready?',
 			// type: 'fixed',
 		},
 		colors: {
-			top: '#00557f',
-			bottom: '#57c9ff'
+			top: '#0a1a5d',
+			bottom: '#6b7cf3'
+		},
+		images: {
+			background: 'caladan_back',
+			frontground: 'spot_front',
 		},
 		lines: {
 			horizon: 240,
 			break: 500,
-			peak: 600,
-			beach: 700,
+			peak: 550,
+			beach: 600,
 			obstacle: 750,
 		},
 		series: {
@@ -26,7 +33,11 @@ var conf = {
 			spread : 200,
 			xshift: 10,
 		},
+		scores: {
+
+     },
 		surfers: {
+			max: 1,
 			proportion: 1.5,
 			velocities: {
 				x: 1,
@@ -139,4 +150,4 @@ var conf = {
 	}
 };
 
-SPOTSCONF.push(conf);
+LEVELS.push(conf);

@@ -52,7 +52,7 @@
 
 		this.resize();
 
-		stage.addEventListener("tick", proxy(this.tick, this));
+		this.addEventListener("tick", proxy(this.tick, this));
 
 		this.initListeners();
 

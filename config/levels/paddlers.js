@@ -1,7 +1,9 @@
 var conf = {
-  id: 10,
-  name: 'Position 5',
-  alias: 'Position 5',
+  id: 2,
+  name: 'paddlers',
+  alias: 'paddlers',
+  planet: 'caladan',
+  level: 4,
   config: {
     init: {
       type: 'static',
@@ -11,11 +13,11 @@ var conf = {
       bottom: '#57c9ff'
     },
     lines: {
-      horizon: 220,
-      break: 440,
-      peak: 540,
-      beach: 640,
-      obstacle: 710,
+      horizon: 240,
+      break: 500,
+      peak: 600,
+      beach: 700,
+      obstacle: 750,
     },
     series: {
       length :  2,
@@ -52,20 +54,20 @@ var conf = {
           width_max: 30,
           width_interval: 1000,
           width_pause: 0,
-          block_interval: 1000,
-          block_interval_max: 2000,
-          block_width: 5,
-          block_width_max: 50,
+          block_interval: 0,
+          block_interval_max: 0,
+          block_width: 100,
+          block_width_max: 200,
         },
         right: {
           width: 20,
-          width_max: 30,
-          width_interval: 1000,
+          width_max: 0,
+          width_interval: 0,
           width_pause: 1000,
-          block_interval: 1000,
-          block_interval_max: 2000,
-          block_width: 5,
-          block_width_max: 55,
+          block_interval: 2000,
+          block_interval_max: 600,
+          block_width: 100,
+          block_width_max: 200,
         }
       },
       lip: {
@@ -99,22 +101,22 @@ var conf = {
       ],
       obstacles: {
         'float': {
-          'interval': 0,
-          'interval_max': 2000,
+          'interval': 200,
+          'interval_max': 1000,
           'objects' : {
-            'paddler' : {percentage: 0},
-            'photographer' : {percentage: 100},
+            'paddler' : {percentage: 100},
+            'photographer' : {percentage: 0},
             'bomb': {percentage: 0},
             'trooper': {percentage: 0},
           },
         },
         'fly': {
           'interval': 0,
-          'interval_max': 3000,
+          'interval_max': 1000,
           'objects' : {
-            'prize' : {percentage: 80},
-            'cigogne' : {percentage: 20},
-            'drone': {percentage: 0},
+            'prize' : {percentage: 30},
+            'cigogne' : {percentage: 30},
+            'drone': {percentage: 40},
           },
         }
       },
@@ -138,4 +140,4 @@ var conf = {
   }
 };
 
-SPOTSCONF.push(conf);
+LEVELS.push(conf);

@@ -62,13 +62,13 @@
   prototype.initialPosition = function() {
 
     let x = this.wave.params.breaking_center + (200 - Math.random() * 400);
-    let y = this.wave.spot.config.lines.obstacle - this.wave.y + this.wave.params.height;
+    let y = Math.random()*this.wave.params.height;
 
     if(this.wave.direction === RIGHT) {
-      x = this.wave.shoulder_right.x + Math.random() * (this.wave.params.shoulder.right.width*2);
+      x = this.wave.obstacle_cont.globalToLocal(STAGEWIDTH,0).x;
     }
     if(this.wave.direction === LEFT) {
-      x = this.wave.shoulder_left.x - Math.random() * (this.wave.params.shoulder.left.width*2);
+      x = this.wave.obstacle_cont.globalToLocal(0,0).x;
     }
 
     this.setXY(x,y)
@@ -88,7 +88,7 @@
     const move = new Victor(0, this.wave.getSuction().y);
     this.location.add(move);
     this.x = this.location.x;
-    this.y = this.location.y;
+    //this.y = this.location.y;
   }
 
   prototype.setXY = function(x,y) {

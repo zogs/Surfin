@@ -44,10 +44,24 @@
 		this.drawFrontground();
 
 		this.initScore();
+		this.initMenuBtn();
 
 	}
 
 	var prototype = createjs.extend(Spot, createjs.Container);
+
+	prototype.initMenuBtn = function() {
+
+		//do not draw MENU button when on Home
+		if(this.name == 'home') return;
+
+		let btn = new createjs.Bitmap(queue.getResult('btn_menu'));
+		btn.x = STAGEWIDTH - btn.image.width;
+		btn.y = 10;
+		btn.cursor = 'pointer';
+		btn.on('click', proxy(MENU.open,MENU));
+		this.overlay_cont.addChild(btn);
+	}
 
 	prototype.drawBackground = function() {
 
@@ -57,8 +71,8 @@
 		defaultbkg.graphics.beginFill('#0d4e6d').drawRect(0,0,STAGEWIDTH,STAGEHEIGHT);
 		this.background.addChild(defaultbkg);
 
-		const skyimage = new createjs.Bitmap(queue.getResult('spot_back'));
-		skyimage.y = 0;
+		const skyimage = new createjs.Bitmap(queue.getResult(this.config.images.background));
+		skyimage.y = - skyimage.image.height + this.config.lines.horizon;
 		this.background.addChild(skyimage);
 
 		const seagradient = new createjs.Shape();
@@ -94,9 +108,43 @@
 
 	prototype.drawFrontground = function() {
 
-		const frontimage = new createjs.Bitmap(queue.getResult('spot_front'));
-		frontimage.alpha = 0.4;
-		this.frontground.addChild(frontimage);
+		const front1 = new createjs.Bitmap(queue.getResult(this.config.images.frontground));
+		front1.regX = front1.image.width/2;
+		front1.regY = front1.image.height/2;
+		front1.y = STAGEHEIGHT - front1.image.height/2;
+		front1.x = STAGEWIDTH/2
+		this.frontground.addChild(front1);
+
+		const front2 = new createjs.Bitmap(queue.getResult(this.config.images.frontground));
+		front2.regX = front2.image.width/2;
+		front2.regY = front2.image.height/2;
+		front2.scaleX = -1;
+		front2.y = front1.y;
+		front2.x = front1.x + front1.image.width;
+		this.frontground.addChild(front2);
+
+		this.front1 = front1;
+		this.front2 = front2;
+	}
+
+	prototype.paralaxFront = function() {
+
+		if(!this.wave) return;
+
+		let dx = (this.front1.y - this.config.lines.horizon) / (this.wave.y - this.wave.params.height/2 - this.config.lines.horizon);
+
+		this.front1.x += this.wave.movingX * dx;
+		this.front2.x += this.wave.movingX * dx;
+
+		if(this.wave.direction === LEFT) {
+			if(this.front1.x > STAGEWIDTH + this.front1.image.width/2) { this.front1.x = this.front2.x - this.front1.image.width; }
+			if(this.front2.x > STAGEWIDTH + this.front2.image.width/2) { this.front2.x = this.front1.x - this.front2.image.width;}
+		}
+		else {
+			if(this.front1.x < - this.front1.image.width/2) { this.front1.x = this.front2.x + this.front1.image.width; }
+			if(this.front2.x < - this.front2.image.width/2) { this.front2.x = this.front1.x + this.front2.image.width; }
+		}
+
 	}
 
 	prototype.addNextSerie = function() {
@@ -242,7 +290,7 @@
 
 	prototype.init = function(type) {
 
-		return this.initWaving();
+		console.log(this.config.init);
 		if(this.config.init.type == undefined) return this.initStatic();
 		if(this.config.init.type === 'static') return this.initStatic();
 		if(this.config.init.type === 'waving') return this.initWaving();
@@ -292,9 +340,10 @@
 			spot: this,
 		});
 
+    var count = 3;
 		var readyButton = new createjs.Container();
     var bkg = new createjs.Shape();
-    var txt = new createjs.Text('Ready ?','24px Helvetica');
+    var txt = new createjs.Text('Click '+count+' times','22px Helvetica');
     var bound = txt.getBounds();
     var pad = {x: 40, y: 15};
     bkg.graphics.beginFill('#FFF').drawRoundRect(-bound.x/2 - pad.x, -bound.y - pad.y, bound.width + pad.x*2, bound.height + pad.y*2, 5);
@@ -308,12 +357,16 @@
 
     var time = wave.config.breaking.y_speed;
 
-    readyButton.on('click',proxy(
-    	function() {
+    readyButton.on('click',proxy(function() {
 
-				window.switchSlowMo(0.5, 0);
-				wave.initBreak(STAGEWIDTH/2);
+    		count--;
+    		txt.text = 'Click '+count+' times';
 				paddler.silhouette.gotoAndPlay('down');
+
+    		if(count > 0) return;
+
+				window.switchSlowMo(0.2, 0);
+				wave.initBreak(STAGEWIDTH/2);
 
 				window.switchSlowMo(1, time)
 				setTimeout(proxy(
@@ -416,6 +469,7 @@
 
 		this.managePaddlers();
 		this.paralaxWaves();
+		this.paralaxFront();
 		this.drawDebug();
 	}
 
@@ -495,6 +549,8 @@
 	}
 
 	prototype.addPaddler = function(x,y) {
+
+		if(this.config.surfers.max == 0) return;
 
 		var paddler = new Paddler({
 			spot: this,
@@ -644,10 +700,12 @@
 	}
 
 	prototype.initScore = function() {
+
 		this.score = new Scoreboard({spot: this});
-		this.score.alpha = 1;
 		this.score_cont.addChild(this.score);
 		SCORE = this.score;
+
+		if(this.config.scores == null) this.score.alpha = 0;
 	}
 
 	prototype.resetScore = function() {

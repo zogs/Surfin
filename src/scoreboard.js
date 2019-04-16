@@ -60,13 +60,15 @@
 
     //display
     this.total = new createjs.Text('0','50px Arial','#FFFFFF');
-    this.score_pt = new createjs.Point(300,20);
+    this.score_pt = new createjs.Point(20,20);
     this.total.x = this.score_pt.x;
     this.total.y = this.score_pt.y;
 
     this.subscore = new createjs.Text('+0','italic 14px Arial','#FFFFFF');
     this.subscore.alpha = 0;
-    this.subscore_pt = new createjs.Point(300,5);
+    this.subscore_pt = new createjs.Point(20,5);
+
+    this.goals_pt = new createjs.Point(20, 80);
 
     this.score_cont.addChild(this.total);
     this.score_cont.addChild(this.subscore);
@@ -88,7 +90,7 @@
 
   prototype.showGoals = function() {
 
-    let pt = new createjs.Point(300,80);
+    let pt = this.goals_pt.clone();
 
     for(let i=0,ln=this.goals.length-1;i<=ln;i++) {
 

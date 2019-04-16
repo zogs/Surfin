@@ -1,12 +1,81 @@
 (function() {
-  
+
   function ScreenManager(conf) {
 
     this.Container_constructor();
-    
+
   }
 
   var prototype = createjs.extend(ScreenManager, createjs.Container);
+
+  prototype.showHome = function() {
+
+    window.spot_cont.removeAllChildren();
+
+    // add waves & backgrounds
+    const config = LEVELS.find(s => s.alias == 'home');
+    SPOT = new Spot(config);
+    window.spot_cont.addChild(SPOT);
+    SPOT.init();
+
+    // add doggo
+    const dog = new createjs.Sprite(
+      new createjs.SpriteSheet({
+          images: [queue.getResult('dog')],
+          frames: {width:64, height:64, regX: 16, regY: 16},
+          framerate: 10,
+          animations: {
+            sit: [0,1, 'sit'],
+          }
+      })
+    );
+    dog.x = 430;
+    dog.y = STAGEHEIGHT - 150;
+    dog.scale = 1;
+    dog.gotoAndPlay('sit');
+    window.spot_cont.addChild(dog);
+
+    // add ptero
+    const ptero = new createjs.Sprite(
+      new createjs.SpriteSheet({
+          images: [queue.getResult('ptero')],
+          frames: {width:128, height:128, regX: 64, regY: 64},
+          framerate: 20,
+          animations: {
+            fly: [0,9, 'fly'],
+          }
+      })
+    );
+    let pad = 128;
+    ptero.x = -pad;
+    ptero.y = 150;
+    ptero.scale = 1;
+    ptero.gotoAndPlay('fly');
+    window.spot_cont.addChild(ptero);
+    createjs.Tween.get(ptero, {loop: true}).to({x: STAGEWIDTH+pad}, 10000).wait(2000).set({scaleX:-1}).to({x:-pad},10000).wait(2000).set({scaleX:1});
+
+
+    // add button
+    const sprite = new createjs.Sprite(
+      new createjs.SpriteSheet({
+          images: [queue.getResult('btn_startgame')],
+          frames: {width:700, height:280, regX: 350, regY: 140},
+          framerate: 1,
+          animations: {
+            out: [0],
+            over: [1],
+            down: [2],
+          }
+      })
+    );
+    const btn = new createjs.ButtonHelper(sprite, "out", "over", "down");
+    sprite.x = STAGEWIDTH/2;
+    sprite.y = STAGEHEIGHT - 100;
+    window.spot_cont.addChild(sprite);
+    sprite.addEventListener('click', function(e) {
+      MENU.open();
+    });
+  }
 
   prototype.getFallScreen = function(parent) {
 
@@ -14,7 +83,7 @@
 
     var backred = new createjs.Shape();
     backred.graphics.beginFill('red').rect(0,0,STAGEWIDTH,STAGEHEIGHT);
-    backred.alpha = 0;  
+    backred.alpha = 0;
 
     var backwhite = new createjs.Shape();
     backwhite.graphics.beginFill('white').rect(0,0,STAGEWIDTH,STAGEHEIGHT);
@@ -118,7 +187,7 @@
     var fore = bar.predict(previous_score, wave_score, USER.level);
     USER.updateTemp();
     USER.setLevel(fore.level);
-    USER.setXp(fore.xp);  
+    USER.setXp(fore.xp);
     USER.addSkillPoint(fore.points);
     USER.save();
 
@@ -143,7 +212,7 @@
     retryButton.cursor = 'pointer';
     retryButton.addChild(bkg,txt);
     menu.addChild(retryButton);
-    
+
 
     var skillsButton = new createjs.Container();
     var bkg = new createjs.Shape();
@@ -158,13 +227,13 @@
     skillsButton.cursor = 'pointer';
     skillsButton.addChild(bkg,txt);
     menu.addChild(skillsButton);
-    
+
 
     let skillStar = new createjs.Container();
     let star = new createjs.Shape();
-    star.graphics.beginFill('yellow').drawPolyStar(0,0,30,5,0.5); 
+    star.graphics.beginFill('yellow').drawPolyStar(0,0,30,5,0.5);
     star.rotation = 55;
-    let skillCounter = new createjs.Text("+"+USER.temp.points, "20px Helvetica", "#c3c32a");    
+    let skillCounter = new createjs.Text("+"+USER.temp.points, "20px Helvetica", "#c3c32a");
     skillCounter.x = star.x - skillCounter.getMeasuredWidth()/2;
     skillCounter.y = star.y - skillCounter.getMeasuredHeight()/2;
     skillStar.addChild(star, skillCounter);
@@ -179,7 +248,7 @@
     levelStar.x = STAGEWIDTH*1/2 + 500;
     levelStar.y = STAGEHEIGHT*1/2 - 100;
     let stamp = new createjs.Shape();
-    stamp.graphics.beginFill('red').drawPolyStar(0,0,100,10,0.3);  
+    stamp.graphics.beginFill('red').drawPolyStar(0,0,100,10,0.3);
     stamp.alpha = 0.6;
     var levelCounter = new createjs.Text("Level "+USER.temp.level,"26px Arial", "#FFF");
     levelCounter.x = - levelCounter.getBounds().width/2;
@@ -196,17 +265,17 @@
 
     //skill button
     var that = this;
-    skillsButton.addEventListener('click',function(e) { 
+    skillsButton.addEventListener('click',function(e) {
       e.stopImmediatePropagation();
       e.stopPropagation();
       e.preventDefault();
-      
+
       var skillcont = that.getSkillCont([menu],skillStar);
       cont.addChild(skillcont);
 
       menu.alpha = 0;
 
-      //parent.initSkillScreen(); 
+      //parent.initSkillScreen();
     },false);
 
     //on level up
@@ -242,11 +311,11 @@
     var cont = new createjs.Container();
 
     var star = new createjs.Shape();
-    star.graphics.beginFill('yellow').drawPolyStar(0,0,15,5,0.5); 
+    star.graphics.beginFill('yellow').drawPolyStar(0,0,15,5,0.5);
     star.rotation = 55;
 
     var neutron = new createjs.Shape();
-    neutron.graphics.beginFill('grey').drawPolyStar(0,0,15,5,0.5);  
+    neutron.graphics.beginFill('grey').drawPolyStar(0,0,15,5,0.5);
     neutron.rotation = 55;
 
     var x = STAGEWIDTH/2 - 140;
@@ -275,13 +344,13 @@
       line.x = x - 130;
       line.y = y + 50 + i*50;
       var label = new createjs.Text(skill.toUpperCase(), "bold 30px Arial", "#AAA");
-      label.width = 150;      
+      label.width = 150;
       label.x = 0;
       label.y = -5;
       line.addChild(label);
 
       for(var j=0,ln=10;j<=ln;j++) {
-        
+
         if(1 + j <= USER.skills[skill]*10) {
           var icon = star.clone();
           icon.active = true;
@@ -364,7 +433,7 @@
       if(icon.active) continue;
       else {
         var newstar = new createjs.Shape();
-        newstar.graphics.beginFill('yellow').drawPolyStar(0,0,10,5,0.5);  
+        newstar.graphics.beginFill('yellow').drawPolyStar(0,0,10,5,0.5);
         newstar.rotation = 55;
         newstar.x = icon.x;
         newstar.y = icon.y;

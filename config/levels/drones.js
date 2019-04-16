@@ -1,7 +1,7 @@
 var conf = {
-  id: 2,
-  name: 'paddlers',
-  alias: 'paddlers',
+  id: 6,
+  name: 'Drones',
+  alias: 'Drones',
   config: {
     init: {
       type: 'static',
@@ -52,20 +52,20 @@ var conf = {
           width_max: 30,
           width_interval: 1000,
           width_pause: 0,
-          block_interval: 0,
-          block_interval_max: 0,
-          block_width: 100,
-          block_width_max: 200,
+          block_interval: 1000,
+          block_interval_max: 2000,
+          block_width: 5,
+          block_width_max: 50,
         },
         right: {
           width: 20,
-          width_max: 0,
-          width_interval: 0,
+          width_max: 30,
+          width_interval: 1000,
           width_pause: 1000,
-          block_interval: 2000,
-          block_interval_max: 600,
-          block_width: 100,
-          block_width_max: 200,
+          block_interval: 1000,
+          block_interval_max: 2000,
+          block_width: 5,
+          block_width_max: 55,
         }
       },
       lip: {
@@ -99,22 +99,22 @@ var conf = {
       ],
       obstacles: {
         'float': {
-          'interval': 200,
-          'interval_max': 1000,
+          'interval': 0,
+          'interval_max': 2000,
           'objects' : {
-            'paddler' : {percentage: 100},
-            'photographer' : {percentage: 0},
+            'paddler' : {percentage: 0},
+            'photographer' : {percentage: 100},
             'bomb': {percentage: 0},
             'trooper': {percentage: 0},
           },
         },
         'fly': {
-          'interval': 0,
-          'interval_max': 1000,
+          'interval': 2000,
+          'interval_max': 5000,
           'objects' : {
-            'prize' : {percentage: 30},
-            'cigogne' : {percentage: 30},
-            'drone': {percentage: 40},
+            'prize' : {percentage: 0},
+            'cigogne' : {percentage: 0},
+            'drone': {percentage: 100},
           },
         }
       },
@@ -138,4 +138,4 @@ var conf = {
   }
 };
 
-SPOTSCONF.push(conf);
+LEVELS.push(conf);

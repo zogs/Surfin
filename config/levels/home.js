@@ -1,31 +1,38 @@
 var conf = {
-  id: 9,
-  name: 'Position 3',
-  alias: 'Position 3',
+  id: 1,
+  name: 'home',
+  alias: 'home',
   config: {
     init: {
-      type: 'static',
+      type: 'waving',
+      // type: 'fixed',
     },
     colors: {
       top: '#00557f',
       bottom: '#57c9ff'
     },
+    images: {
+      background: 'spot_back_home',
+      frontground: 'spot_front_home',
+    },
     lines: {
-      horizon: 200,
-      break: 460,
-      peak: 560,
-      beach: 660,
-      obstacle: 710,
+      horizon: 240,
+      break: 450,
+      peak: 500,
+      beach: 580,
+      obstacle: 750,
     },
     series: {
-      length :  2,
+      length :  3,
       speed : 20000,
       frequency : 5000,
-      interval : 14000,
-      spread : 200,
-      xshift: 10,
+      interval : 10000,
+      spread : 0,
+      xshift: 0,
     },
+    scores: null,
     surfers: {
+      max: 0,
       proportion: 1.5,
       velocities: {
         x: 1,
@@ -34,9 +41,9 @@ var conf = {
       weapons: []
     },
     waves: {
-      height : 250,
+      height : 150,
       width : 0,
-      real_height: 3,
+      real_height: 1.2,
       breaking: {
         width: 180,
         x_speed: 50,
@@ -50,28 +57,28 @@ var conf = {
         left: {
           width: 20,
           width_max: 30,
-          width_interval: 1000,
+          width_interval: 0,
           width_pause: 0,
-          block_interval: 1000,
-          block_interval_max: 2000,
-          block_width: 5,
-          block_width_max: 50,
+          block_interval: 0,
+          block_interval_max: 0,
+          block_width: 100,
+          block_width_max: 200,
         },
         right: {
           width: 20,
-          width_max: 30,
-          width_interval: 1000,
+          width_max: 0,
+          width_interval: 0,
           width_pause: 1000,
-          block_interval: 1000,
-          block_interval_max: 2000,
-          block_width: 5,
-          block_width_max: 55,
+          block_interval: 2000,
+          block_interval_max: 600,
+          block_width: 100,
+          block_width_max: 200,
         }
       },
       lip: {
         thickness: 10,
         colors: {
-          top: '#093950',
+          top: '#216587',
           bottom: 'rgba(255,255,255,0.2)',
         },
         cap: {
@@ -100,21 +107,21 @@ var conf = {
       obstacles: {
         'float': {
           'interval': 0,
-          'interval_max': 2000,
+          'interval_max': 1000,
           'objects' : {
-            'paddler' : {percentage: 0},
-            'photographer' : {percentage: 100},
-            'bomb': {percentage: 0},
+            'paddler' : {percentage: 30},
+            'photographer' : {percentage: 30},
+            'bomb': {percentage: 40},
             'trooper': {percentage: 0},
           },
         },
         'fly': {
           'interval': 0,
-          'interval_max': 3000,
+          'interval_max': 1000,
           'objects' : {
-            'prize' : {percentage: 80},
-            'cigogne' : {percentage: 20},
-            'drone': {percentage: 0},
+            'prize' : {percentage: 30},
+            'cigogne' : {percentage: 30},
+            'drone': {percentage: 40},
           },
         }
       },
@@ -138,4 +145,4 @@ var conf = {
   }
 };
 
-SPOTSCONF.push(conf);
+LEVELS.push(conf);
