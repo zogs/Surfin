@@ -22,7 +22,7 @@
       var sheet = new createjs.SpriteSheet({
           images: [queue.getResult(this.img)],
           frames: {width:128, height:128, regX:64, regY:64},
-          framerate: 1,
+          framerate: 10,
           animations: {
               fly: [0,10,'fly'],
           }

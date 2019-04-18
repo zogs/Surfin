@@ -40,7 +40,7 @@
       new createjs.SpriteSheet({
           images: [queue.getResult('ptero')],
           frames: {width:128, height:128, regX: 64, regY: 64},
-          framerate: 20,
+          framerate: 4,
           animations: {
             fly: [0,9, 'fly'],
           }
@@ -53,6 +53,7 @@
     ptero.gotoAndPlay('fly');
     window.spot_cont.addChild(ptero);
     createjs.Tween.get(ptero, {loop: true}).to({x: STAGEWIDTH+pad}, 10000).wait(2000).set({scaleX:-1}).to({x:-pad},10000).wait(2000).set({scaleX:1});
+    createjs.Tween.get(ptero, {loop: true}).to({y: 200}, 2000).to({y: 150}, 2000);
 
 
     // add button

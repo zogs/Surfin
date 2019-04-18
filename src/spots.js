@@ -290,7 +290,6 @@
 
 	prototype.init = function(type) {
 
-		console.log(this.config.init);
 		if(this.config.init.type == undefined) return this.initStatic();
 		if(this.config.init.type === 'static') return this.initStatic();
 		if(this.config.init.type === 'waving') return this.initWaving();
@@ -316,7 +315,7 @@
 		this.initEventsListeners();
 		this.addInitialSerie();
 		//this.addSerie();
-		this.addPaddler(STAGEWIDTH/2,460);
+		this.addPaddler(STAGEWIDTH/2,420);
 	}
 
 	prototype.initWhenReady = function() {
@@ -853,7 +852,6 @@
 	}
 
 	prototype.setConfig = function(config) {
-
 		this.config = config;
 		this.getWaves().map(function(w) {
 			w.updateConfig(config.waves);

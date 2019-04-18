@@ -152,7 +152,7 @@ window.initialize = function() {
   window.addEventListener('focus', window.onWindowActive);
 
 	// set customizer
-	initCustomizer();
+	//initCustomizer();
 
 	window.resizeCanvas();
 

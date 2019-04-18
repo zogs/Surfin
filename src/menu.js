@@ -154,7 +154,7 @@
       let btn = new createjs.Sprite(
         new createjs.SpriteSheet({
             images: [queue.getResult('btn_level')],
-            frames: {width:163, height:51},
+            frames: {width:160, height:45},
             framerate: 1,
             animations: { out: [0], over: [1], down: [2], lock: [3] }
         })
@@ -164,7 +164,7 @@
       this.acti_cont.addChild(btn);
       let title = new createjs.Text('LEVEL '+(i+1), '16px Arial', '#0f2d58');
       title.x = btn.x + 45;
-      title.y = btn.y + 18;
+      title.y = btn.y + 15;
       title.mouseEnabled = false;
       this.acti_cont.addChild(title);
 
@@ -204,10 +204,14 @@
     //add it
     window.spot_cont.addChild(SPOT);
     //init spot
-    SPOT.init();
+    setTimeout(function() {
+      SPOT.init();
+    },100);
     // add menu
     //SCREENS.addMenuIcon();
     this.close();
+
+    //initCustomizer();
   }
 
   prototype.removeLevel = function(level) {

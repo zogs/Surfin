@@ -675,6 +675,7 @@ prototype.resize = function() {
 	if(h > this.config.height) {
 		h = this.config.height;
 	}
+
 	//set new height
 	this.params.height = h;
 	this.cont.y = - h;
@@ -1022,6 +1023,7 @@ prototype.initBreakingBlockLeftInterval = function() {
 }
 
 prototype.continueBreakingBlockLeftInterval = function() {
+	if(this.config == null) return;
 	var t = this.config.breaking.left.block_interval + Math.random()*(this.config.breaking.left.block_interval_max - this.config.breaking.left.block_interval);
 	var w = this.config.breaking.left.block_width + Math.random()*(this.config.breaking.left.block_width_max - this.config.breaking.left.block_width);
 	this.initBlockBreakingLeft(w);
@@ -1036,6 +1038,7 @@ prototype.initBreakingBlockRightInterval = function() {
 }
 
 prototype.continueBreakingBlockRightInterval = function() {
+	if(this.config == null) return;
 	var t = this.config.breaking.right.block_interval + Math.random()*(this.config.breaking.right.block_interval_max - this.config.breaking.right.block_interval);
 	var w = this.config.breaking.right.block_width + Math.random()*(this.config.breaking.right.block_width_max - this.config.breaking.right.block_width);
 	this.initBlockBreakingRight(w);
@@ -1122,6 +1125,7 @@ prototype.initBreakingPeakRightInterval = function() {
 
 prototype.continueBreakingPeakRightInterval = function() {
 
+	if(this.config == null) return;
 	var t = this.config.breaking.right.peak_interval + Math.random()*(this.config.breaking.right.peak_interval_max - this.config.breaking.right.peak_interval);
 	var w = this.config.breaking.right.peak_width + Math.random()*(this.config.breaking.right.peak_width_max - this.config.breaking.right.peak_width);
 
@@ -1141,6 +1145,7 @@ prototype.initBreakingPeakLeftInterval = function() {
 
 prototype.continueBreakingPeakLeftInterval = function() {
 
+	if(this.config == null) return;
 	var t = this.config.breaking.left.peak_interval + Math.random()*(this.config.breaking.left.peak_interval_max - this.config.breaking.left.peak_interval);
 	var w = this.config.breaking.left.peak_width + Math.random()*(this.config.breaking.left.peak_width_max - this.config.breaking.left.peak_width);
 
@@ -1317,10 +1322,12 @@ prototype.oldmoveWave = function() {
 }
 
 prototype.selfRemove = function() {
-
+	console.log('selfRemove');
 	this.surfers.map(s => s.selfRemove());
 	this.allpoints.map(p => createjs.Tween.removeTweens(p));
-	this.getTimers().map(t => t.clear());
+	this.getTimers().map(function(t) {
+	 t.clear();
+	});
 	this.removeAllEventListeners('tick');
 	this.cont.removeAllChildren();
 	this.removeAllChildren();
@@ -1454,6 +1461,9 @@ prototype.addRandomFloatObstacle = function() {
 			else if(obs === 'photographer') this.addPhotographer();
 			else if(obs === 'bomb') this.addBomb();
 			else if(obs === 'trooper') this.addBeachTrooper();
+			else if(obs === 'drone') this.addDrone();
+			else if(obs === 'shark') this.addShark();
+			else if(obs === 'stars') this.addStarline();
 			else this.addPaddler();
 			return;
 		}
@@ -1923,13 +1933,15 @@ prototype.drawDebug = function() {
 prototype.drawBackground = function() {
 
 	const colors = this.config.colors;
+	const height = this.params.height;
+	if(!height) return;
 	this.background_gradient.graphics.clear();
 	for(let i=0,ln=colors.length-1;i<ln;++i) {
 		if(colors[i+1] === undefined) break;
 		let color1 = colors[i];
 		let color2 = colors[i+1];
-		let y1 = this.params.height * color1[2] / 100;
-		let y2 = this.params.height * color2[2] / 100;
+		let y1 = height * color1[2] / 100;
+		let y2 = height * color2[2] / 100;
 
 		this.background_gradient.graphics
 			.beginLinearGradientFill([color1[0],color2[0]],[0+color1[1],1-color2[1]],0,y1,0,y2)
@@ -1938,8 +1950,8 @@ prototype.drawBackground = function() {
 
 	//shadow gradient background
 	this.background_shadow.graphics.clear()
-		.beginLinearGradientFill(['rgba(0,0,0,0.4)','rgba(0,0,0,0)'],[0,1],0,0,0,this.params.height)
-		.drawRect(0,0,STAGEWIDTH*2,this.params.height);
+		.beginLinearGradientFill(['rgba(0,0,0,0.4)','rgba(0,0,0,0)'],[0,1],0,0,0, height)
+		.drawRect(0,0,STAGEWIDTH*2, height);
 }
 
 prototype.initAnimateBackground = function() {
@@ -2125,8 +2137,8 @@ prototype.setTimeScale = function(scale) {
 }
 prototype.updateConfig = function(config) {
 
-	this.config = config;
-	this.params = config;
+	this.config = extend(this.config,config);
+	this.params = extend(this.params,config);
 
 	//recalcul suction
 	this.suction = this.getSuction();
