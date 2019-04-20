@@ -64,7 +64,7 @@ const PLANETS = [
     name: 'Gargantua',
     location: 'Somewhere behind a black hole ',
     levels: [],
-    unlock: true,
+    unlock: false,
     images: {
       background: 'spot_back',
       frontground: 'spot_front',

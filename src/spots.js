@@ -45,7 +45,6 @@
 
 		this.initScore();
 		this.initMenuBtn();
-
 	}
 
 	var prototype = createjs.extend(Spot, createjs.Container);
@@ -54,6 +53,8 @@
 
 		//do not draw MENU button when on Home
 		if(this.name == 'home') return;
+
+		console.log('initMenuBtn');
 
 		let btn = new createjs.Bitmap(queue.getResult('btn_menu'));
 		btn.x = STAGEWIDTH - btn.image.width;

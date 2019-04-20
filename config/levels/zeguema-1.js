@@ -1,7 +1,8 @@
 var conf = {
   id: 1,
-  name: 'home',
-  alias: 'home',
+  planet: 'zeguema',
+  level: 1,
+  unlock: true,
   config: {
     init: {
       type: 'waving',
@@ -12,14 +13,11 @@ var conf = {
       bottom: '#57c9ff'
     },
     images: {
-      background: 'spot_back_home',
-      frontground: 'spot_front_home',
+      background: 'spot_back',
+      frontground: 'spot_front',
     },
     lines: {
       horizon: 240,
-      break: 450,
-      peak: 500,
-      beach: 580,
       obstacle: 750,
     },
     series: {
@@ -30,9 +28,9 @@ var conf = {
       spread : 0,
       xshift: 0,
     },
-    scores: null,
+    scores: {},
     surfers: {
-      max: 0,
+      max: 1,
       proportion: 1.5,
       velocities: {
         x: 1,
@@ -41,9 +39,7 @@ var conf = {
       weapons: []
     },
     waves: {
-      height : 150,
       width : 0,
-      real_height: 1.2,
       breaking: {
         width: 180,
         x_speed: 50,

@@ -28,6 +28,7 @@ window.loaded = function() {
 		{id:'btn_startgame',src:'assets/img/buttons/btn_startgame.png'},
 		{id:'btn_level',src:'assets/img/buttons/btn_level.png'},
 		{id:'btn_menu',src:'assets/img/buttons/btn_menu.png'},
+		{id:'btn_close',src:'assets/img/buttons/btn_close.png'},
 		{id:'dog',src:'assets/img/object/spacedog.png'},
 		{id:'bomb',src:'assets/img/object/astro_bomb.png'},
 		{id:'boom',src:'assets/img/object/astro_boom.png'},
@@ -95,8 +96,6 @@ window.initialize = function() {
 	stage.addChild(window.spot_cont);
 	window.border_cont = new createjs.Container();
 	stage.addChild(window.border_cont);
-	window.home_cont = new createjs.Container();
-	stage.addChild(window.home_cont);
 	window.menu_cont = new createjs.Container();
 	stage.addChild(window.menu_cont);
 	window.pause_cont = new createjs.Container();
@@ -117,6 +116,9 @@ window.initialize = function() {
 	//BUILD LEVELS
 	PLANETS.map(function(p) {
 		p.levels = LEVELS.filter(l => l.planet == p.id);
+		//(temp) fill empty planet with default levels
+		if(p.levels.length==0) p.levels = LEVELS.filter(l => l.planet == 'zeguema');
+		//order levels
 		p.levels = p.levels.sort(function(a,b) { return a.level - b.level });
 	});
 
@@ -357,14 +359,16 @@ window.pause = function() {
 	}
 	//enable pause
 	else {
+		let overlay = new createjs.Shape();
+		overlay.graphics.beginFill('#000').drawRect(0,0,STAGEWIDTH,STAGEHEIGHT);
+		overlay.alpha = 0.2;
+		window.pause_cont.addChild(overlay);
+		stage.update();
+
 		PAUSED = 1;
 		createjs.Ticker.paused = true;
 		SPOT.pause();
 
-		let overlay = new createjs.Shape();
-		overlay.graphics.beginFill('#000').drawRect(0,0,STAGEWIDTH,STAGEHEIGHT);
-		overlay.alpha = 0.4;
-		window.pause_cont.addChild(overlay);
 
 		overlay.on('click', function(e) {
 			window.pause();

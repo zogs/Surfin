@@ -27,16 +27,20 @@
 
   var prototype = createjs.extend(Menu, createjs.Container);
 
-  prototype.open = function() {
+  prototype.open = function(e) {
 
     this.status = 'opened';
     createjs.Tween.get(this).to({rotation:0, alpha:1}, 777, createjs.Ease.quartOut);
+
+    if(e) e.stopImmediatePropagation();
   }
 
-  prototype.close = function() {
+  prototype.close = function(e) {
 
     this.status = 'closed'
     createjs.Tween.get(this).to({rotation:40, alpha:0}, 777, createjs.Ease.quartOut);
+
+    if(e) e.stopImmediatePropagation();
   }
 
   prototype.switch = function() {
@@ -114,7 +118,9 @@
 
   }
 
-  prototype.loadPlanet = function(name) {
+  prototype.loadPlanet = function(name, e) {
+
+    if(e) e.stopImmediatePropagation();
 
     if(this.cplanet == name) return;
     this.cplanet = name;
@@ -176,6 +182,21 @@
         btn.gotoAndStop('lock');
       }
     }
+
+    //close button
+    let btn = new createjs.Sprite(
+        new createjs.SpriteSheet({
+            images: [queue.getResult('btn_close')],
+            frames: {width:71, height:71},
+            framerate: 1,
+            animations: { out: [0], over: [1], down: [2] }
+        })
+      );
+    btn.x = 1265;
+    btn.y = 350;
+    new createjs.ButtonHelper(btn, "out","over","down");
+    this.acti_cont.addChild(btn);
+    btn.on('click', proxy(this.close, this));
 
 
     //fancy bar

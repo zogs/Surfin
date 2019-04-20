@@ -1,7 +1,10 @@
 var conf = {
   id: 1,
-  name: 'home',
-  alias: 'home',
+  name: 'zeguema3',
+  alias: 'zeguema3',
+  planet: 'zeguema',
+  level: 3,
+  unlock: true,
   config: {
     init: {
       type: 'waving',
@@ -12,14 +15,14 @@ var conf = {
       bottom: '#57c9ff'
     },
     images: {
-      background: 'spot_back_home',
-      frontground: 'spot_front_home',
+      background: 'spot_back',
+      frontground: 'spot_front',
     },
     lines: {
       horizon: 240,
-      break: 450,
-      peak: 500,
-      beach: 580,
+      break: 500,
+      peak: 550,
+      beach: 600,
       obstacle: 750,
     },
     series: {
@@ -30,9 +33,9 @@ var conf = {
       spread : 0,
       xshift: 0,
     },
-    scores: null,
+    scores: {},
     surfers: {
-      max: 0,
+      max: 1,
       proportion: 1.5,
       velocities: {
         x: 1,
@@ -41,9 +44,9 @@ var conf = {
       weapons: []
     },
     waves: {
-      height : 150,
+      height : 250,
       width : 0,
-      real_height: 1.2,
+      real_height: 3,
       breaking: {
         width: 180,
         x_speed: 50,
@@ -59,8 +62,8 @@ var conf = {
           width_max: 30,
           width_interval: 0,
           width_pause: 0,
-          block_interval: 0,
-          block_interval_max: 0,
+          block_interval: 1000,
+          block_interval_max: 3000,
           block_width: 100,
           block_width_max: 200,
         },
@@ -106,22 +109,18 @@ var conf = {
       ],
       obstacles: {
         'float': {
-          'interval': 0,
+          'interval': 500,
           'interval_max': 1000,
           'objects' : {
-            'paddler' : {percentage: 30},
-            'photographer' : {percentage: 30},
-            'bomb': {percentage: 40},
-            'trooper': {percentage: 0},
+            'bomb': {percentage: 60},
+            'trooper': {percentage: 40},
           },
         },
         'fly': {
-          'interval': 0,
-          'interval_max': 1000,
+          'interval': 1000,
+          'interval_max': 1500,
           'objects' : {
-            'prize' : {percentage: 30},
-            'cigogne' : {percentage: 30},
-            'drone': {percentage: 40},
+            'drone': {percentage: 100},
           },
         }
       },
