@@ -1,5 +1,7 @@
 var conf = {
   id: 1,
+  name: 'zeguema1',
+  alias: 'zeguema1',
   planet: 'zeguema',
   level: 1,
   unlock: true,
@@ -18,6 +20,9 @@ var conf = {
     },
     lines: {
       horizon: 240,
+      break: 500,
+      peak: 550,
+      beach: 600,
       obstacle: 750,
     },
     series: {
@@ -39,7 +44,9 @@ var conf = {
       weapons: []
     },
     waves: {
+      height : 250,
       width : 0,
+      real_height: 3,
       breaking: {
         width: 180,
         x_speed: 50,
