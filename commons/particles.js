@@ -19,7 +19,7 @@
 	*/
 
 (function() {
-	
+
 	function Particle(params) {
 
 		this.Container_constructor();
@@ -37,7 +37,7 @@
 		this.tweens = params.tweens || [];
 		this.shapes = params.shapes || [];
 		this.scale = 1;
-		
+
 		this.drawParticle();
 
 		//aplly tweens
@@ -50,7 +50,7 @@
 	var prototype = createjs.extend(Particle, createjs.Container);
 
 	prototype.drawParticle = function() {
-		
+
 		if(this.shapes.length == 0) {
 			var shape = new createjs.Shape();
 			shape.graphics.beginFill('#FFF').drawCircle(0,0,this.size);
@@ -77,14 +77,14 @@
 	prototype.createShape = function(config) {
 
 		var shape = new createjs.Shape();
-		var k = shape.graphics;			
+		var k = shape.graphics;
 		if(config.stroke) k.setStrokeStyle(config.stroke);
 		if(config.strokeColor) k.beginStroke(config.strokeColor);
 		if(config.fill) k.beginFill(config.fill);
 		if(config.shape == 'circle') k.drawCircle(0,0,this.size);
 		if(config.shape == 'rect') k.drawRect(0,0,this.size,this.size);
 		if(config.shape == 'ellipse') k.drawEllipse(0,0,this.size,this.size);
-		if(config.shape == 'star') k.drawPolyStar(0,0,this.size,5,0.5);		
+		if(config.shape == 'star') k.drawPolyStar(0,0,this.size,5,0.5);
 
 		return shape;
 	}
@@ -93,7 +93,7 @@
 
 		this.alpha -= this.fader;
 		if(this.alpha<=0) this.alpha = 0;
-		
+
 		this.rotation += this.rotate;
 
 		this.scale += this.scaler;
@@ -171,15 +171,15 @@
 
 		if(this.params.timeMode === 'TIMEOUT') {
 			this.timer();
-		} 
+		}
 		else {
 			this.addEventListener('tick', proxy(this.tick, this));
-		}		
+		}
 
 		// emit particles for a time duration
 		if(this.params.duration >= 0) this.duration_interval = window.setTimeout(proxy(this.continuousEmitting,this),this.params.frequency);
 		else this.emitParticles(this.params.density);
-		
+
 		// clean invisible particles
 		this.cleaner_interval = window.setInterval(proxy(this.cleanParticles,this),1000);
 	}
@@ -191,7 +191,7 @@
 	prototype.continuousEmitting = function() {
 
 		if(this.paused) return;
-		
+
 		this.params.onEmit(this);
 
 		this.totalTime += this.params.frequency;
@@ -199,8 +199,8 @@
 		this.emitParticles(this.params.density);
 
 		if(this.totalTime > this.params.duration && this.config.duration !== 0) {
-			
-			window.clearTimeout(this.duration_interval);			
+
+			window.clearTimeout(this.duration_interval);
 			return;
 		}
 
@@ -233,14 +233,14 @@
 		//if velicity is set, override angle and magnitude
 		if(this.params.velocity !== null) {
 			// Use an angle randomized over the spread so we have more of a "spray"
-			angle = Math.atan2(this.params.velocity[1],this.params.velocity[0]) + this.params.spread - (Math.random() * this.params.spread * 2);		
+			angle = Math.atan2(this.params.velocity[1],this.params.velocity[0]) + this.params.spread - (Math.random() * this.params.spread * 2);
 			// The magnitude of the emitter's velocity
 			magnitude = vec2.length(this.params.velocity);
 		}
 
 		// The emitter's position
 		const position = vec2.fromValues(this.params.position[0], this.params.position[1]);
-		
+
 		// New velocity based off of the calculated angle and magnitude
 		const velocity = vec2.fromValues(magnitude * Math.cos(angle), magnitude * Math.sin(angle));
 
@@ -331,20 +331,20 @@
 			if(position.y - particle.scale <= 0) {
 				this.particles_cont.removeChildAt(i);
 			}
-			if(position.y - particle.scale >= stage.canvas.height) {
+			if(position.y - particle.scale >= window.Stage.canvas.height) {
 				this.particles_cont.removeChildAt(i);
 			}
 			if(position.x - particle.scale <= 0) {
 				this.particles_cont.removeChildAt(i);
 			}
-			if(position.x - particle.scale >= stage.canvas.width) {
+			if(position.x - particle.scale >= window.Stage.canvas.width) {
 				this.particles_cont.removeChildAt(i);
 			}
 			i--;
 		}
 
 
-		if(this.particles_cont.numChildren === 0) {			
+		if(this.particles_cont.numChildren === 0) {
 			window.clearInterval(this.cleaner_interval);
 			if(this.params.timeMode == 'TIMEOUT') window.clearInterval(this.duration_interval);
 			else createjs.Ticker.removeEventListener("tick", this.tick);

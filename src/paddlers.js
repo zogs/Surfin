@@ -74,7 +74,7 @@
 
 	prototype.initListeners = function() {
 
-		this.click_listener = stage.on('click',proxy(this.movePaddler,this),this);
+		this.click_listener = window.Stage.on('click',proxy(this.movePaddler,this),this);
 
 	}
 
@@ -87,7 +87,7 @@
 
 	prototype.removeAllListeners = function() {
 
-		stage.off('click',this.click_listener);
+		window.Stage.off('click',this.click_listener);
 	}
 
 	prototype.drawDebug = function() {

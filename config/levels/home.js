@@ -2,6 +2,9 @@ var conf = {
   id: 1,
   name: 'home',
   alias: 'home',
+  planet: 'default',
+  level: 5,
+  unlock: true,
   config: {
     init: {
       type: 'waving',

@@ -194,7 +194,7 @@
 	prototype.initEventsListener = function() {
 
 		//add new click event to jump ollie
-		stage.on('click',function(event) {
+		window.Stage.on('click',function(event) {
 			//this.ollie();
 			this.lightSaberStrike();
 		},this);
@@ -336,8 +336,8 @@
 		ev.quality = quality;
 		this.dispatchEvent(ev);
 
-		stage.addEventListener('stagemousedown', proxy(this.onBoost, this));
-		stage.addEventListener('stagemouseup', proxy(this.offBoost,this));
+		window.Stage.addEventListener('stagemousedown', proxy(this.onBoost, this));
+		window.Stage.addEventListener('stagemouseup', proxy(this.offBoost,this));
 	}
 
 	prototype.onBoost = function() {
@@ -1277,8 +1277,8 @@
 		this.timer.clear();
 
 		//window.clearInterval(this.ploufinterval);
-		stage.removeAllEventListeners('stagemousedown');
-		stage.removeAllEventListeners('stagemouseup');
+		window.Stage.removeAllEventListeners('stagemousedown');
+		window.Stage.removeAllEventListeners('stagemouseup');
 	}
 
 	prototype.slowUntilStop = function()

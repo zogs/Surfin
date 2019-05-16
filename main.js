@@ -34,6 +34,7 @@ window.loaded = function() {
 		{id:'btn_retry',src:'assets/img/buttons/btn_retry.png'},
 		{id:'btn_retry_sm',src:'assets/img/buttons/btn_retry_sm.png'},
 		{id:'btn_close',src:'assets/img/buttons/btn_close.png'},
+		{id:'btn_skills',src:'assets/img/buttons/btn_skills.png'},
 		{id:'dog',src:'assets/img/object/spacedog.png'},
 		{id:'bomb',src:'assets/img/object/astro_bomb.png'},
 		{id:'boom',src:'assets/img/object/astro_boom.png'},
@@ -60,6 +61,7 @@ window.loaded = function() {
 		{id:'pandora', src:'assets/img/planets/pandora.png'},
 		{id:'zeguema', src:'assets/img/planets/zeguema.png'},
 		{id:'gargantua', src:'assets/img/planets/gargantua.png'},
+		{id:'default', src:'assets/img/planets/default.png'},
 		{id:'lock', src:'assets/img/planets/lock.png'},
 		{id:'astrovan', src:'assets/img/object/astrovan.png'},
 		{id:'cocktail', src:'assets/img/object/cocktail.png'},
@@ -67,6 +69,13 @@ window.loaded = function() {
 		{id:'drinkshadow', src:'assets/img/object/drinkshadow.png'},
 		{id:'successtxt', src:'assets/img/object/successtxt.png'},
 		{id:'tryagaintxt', src:'assets/img/object/tryagaintxt.png'},
+		{id:'failed', src:'assets/img/object/failed.png'},
+		{id:'valid', src:'assets/img/object/valid.png'},
+		{id:'medal_gold', src:'assets/img/object/medal_gold.png'},
+		{id:'medal_silver', src:'assets/img/object/medal_silver.png'},
+		{id:'medal_bronze', src:'assets/img/object/medal_bronze.png'},
+		{id:'medal_empty', src:'assets/img/object/medal_empty.png'},
+		{id:'astroposeur', src:'assets/img/object/astroposeur.png'}
 
 		]);
 
@@ -145,9 +154,6 @@ window.initialize = function() {
 	//const config = LEVELS.find(s => s.alias == 'home');
 	//window.addSpot(config,false);
 	SCREENS.showHome();
-
-	SPOT.initFallScreen();
-
 
 	//init onEnterFrame
 	createjs.Ticker.timingMode = createjs.Ticker.TIMEOUT;

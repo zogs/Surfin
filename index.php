@@ -40,7 +40,9 @@
 	<script src="config/levels.conf.js" type="text/javascript"></script>
 	<?php loadJsDir('config/levels/'); ?>
 	<script src="src/user.js" type="text/javascript"></script>
+	<script src="src/score_ui.js" type="text/javascript"></script>
 	<script src="src/scoreboard.js" type="text/javascript"></script>
+	<script src="src/xpbar.js" type="text/javascript"></script>
 	<script src="src/spots.js" type="text/javascript"></script>
 	<script src="src/waves.js" type="text/javascript"></script>
 	<script src="src/surfers.js" type="text/javascript"></script>

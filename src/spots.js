@@ -6,6 +6,8 @@
 
 		this.id = spot.id;
 		this.name = spot.name;
+		this.planet = spot.planet;
+		this.level = spot.level;
 		this.config = spot.config;
 		this.randid = Math.floor(Math.random()*10000);
 
@@ -701,7 +703,7 @@
 
 	prototype.initScore = function() {
 
-		this.score = new Scoreboard({spot: this});
+		this.score = new ScoreUI({spot: this});
 		this.score_cont.addChild(this.score);
 		SCORE = this.score;
 
@@ -755,7 +757,7 @@
 		//freaze the wave after 6s
 		this.stopWaveTimeout = setTimeout(proxy(this.stopWaveAfterFall,this), 6000);
 		//launch fall screen
-		this.initFallScreen();
+		this.showScoreboard();
 	}
 
 	prototype.stopWaveAfterFall = function() {
@@ -786,13 +788,16 @@
 		this.init();
 	}
 
-	prototype.initFallScreen = function(e) {
-console.log('initFallScreen');
+	prototype.showScoreboard = function(e) {
+
 		this.overlay_cont.removeAllChildren();
 
 		let delay = new Timer(proxy(function() {
-			this.overlay_cont.addChild(SCREENS.getLevelScreen(this));
-		},this),2000);
+			let scoreboard = new Scoreboard(this.score);
+			this.overlay_cont.addChild(scoreboard);
+
+			scoreboard.show();
+		},this),1500);
 
 
 	}
@@ -819,10 +824,12 @@ console.log('initFallScreen');
 		createjs.Tween.get(this.overlay_veil).to({alpha: 0}, time);
 	}
 
-	prototype.fallRetry = function(e) {
-
+	prototype.retry = function(e) {
 
 		clearTimeout(this.stopWaveTimeout);
+
+		//reset wave
+		this.wave = null;
 
 		//clear scene
 		this.overlay_cont.removeAllChildren();
