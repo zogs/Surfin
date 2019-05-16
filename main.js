@@ -11,8 +11,8 @@ const RIGHT = 2;
 
 window.loaded = function() {
 
-	stage = new createjs.Stage('canvas');
-	stage.enableMouseOver(10);
+	window.Stage = new createjs.Stage('canvas');
+	window.Stage.enableMouseOver(10);
 
 	queue = new createjs.LoadQueue();
 	queue.addEventListener('complete',initialize);
@@ -25,9 +25,14 @@ window.loaded = function() {
 		{id:'spot_back_home',src:'assets/img/spots/default/homeback.jpg'},
 		{id:'spot_front_home',src:'assets/img/spots/default/homefront.png'},
 		{id:'spot_front',src:'assets/img/spots/default/beach.png'},
+		{id:'caladan_back', src:'assets/img/spots/Caladan_Peak/back.jpg'},
 		{id:'btn_startgame',src:'assets/img/buttons/btn_startgame.png'},
 		{id:'btn_level',src:'assets/img/buttons/btn_level.png'},
+		{id:'btn_back',src:'assets/img/buttons/btn_back.png'},
 		{id:'btn_menu',src:'assets/img/buttons/btn_menu.png'},
+		{id:'btn_menu_sm',src:'assets/img/buttons/btn_menu_sm.png'},
+		{id:'btn_retry',src:'assets/img/buttons/btn_retry.png'},
+		{id:'btn_retry_sm',src:'assets/img/buttons/btn_retry_sm.png'},
 		{id:'btn_close',src:'assets/img/buttons/btn_close.png'},
 		{id:'dog',src:'assets/img/object/spacedog.png'},
 		{id:'bomb',src:'assets/img/object/astro_bomb.png'},
@@ -47,6 +52,8 @@ window.loaded = function() {
 		{id:'shark', src:'assets/img/object/shark.png'},
 		{id:'ptero', src:'assets/img/object/ptero.png'},
 		{id:'spacetablet', src:'assets/img/bkg/tablet.png'},
+		{id:'scoretable', src:'assets/img/bkg/scoretable.png'},
+		{id:'scoreboard', src:'assets/img/bkg/scoreboard.png'},
 		{id:'caladan', src:'assets/img/planets/caladan.png'},
 		{id:'flhoston', src:'assets/img/planets/flhoston.png'},
 		{id:'kashykkk', src:'assets/img/planets/kashykkk.png'},
@@ -54,7 +61,12 @@ window.loaded = function() {
 		{id:'zeguema', src:'assets/img/planets/zeguema.png'},
 		{id:'gargantua', src:'assets/img/planets/gargantua.png'},
 		{id:'lock', src:'assets/img/planets/lock.png'},
-		{id:'caladan_back', src:'assets/img/spots/Caladan_Peak/back.jpg'},
+		{id:'astrovan', src:'assets/img/object/astrovan.png'},
+		{id:'cocktail', src:'assets/img/object/cocktail.png'},
+		{id:'coffee', src:'assets/img/object/coffee.png'},
+		{id:'drinkshadow', src:'assets/img/object/drinkshadow.png'},
+		{id:'successtxt', src:'assets/img/object/successtxt.png'},
+		{id:'tryagaintxt', src:'assets/img/object/tryagaintxt.png'},
 
 		]);
 
@@ -76,8 +88,8 @@ window.loaded = function() {
 window.initialize = function() {
 
 	//Globals
-	STAGEWIDTH = stage.canvas.width;
-	STAGEHEIGHT = stage.canvas.height;
+	STAGEWIDTH = window.Stage.canvas.width;
+	STAGEHEIGHT = window.Stage.canvas.height;
 	RATIO = STAGEWIDTH / STAGEHEIGHT;
 	MOUSE_X = STAGEWIDTH/2;
 	MOUSE_Y = STAGEHEIGHT/2;
@@ -93,13 +105,13 @@ window.initialize = function() {
 
 	// Containers
 	window.spot_cont = new createjs.Container();
-	stage.addChild(window.spot_cont);
+	window.Stage.addChild(window.spot_cont);
 	window.border_cont = new createjs.Container();
-	stage.addChild(window.border_cont);
+	window.Stage.addChild(window.border_cont);
 	window.menu_cont = new createjs.Container();
-	stage.addChild(window.menu_cont);
+	window.Stage.addChild(window.menu_cont);
 	window.pause_cont = new createjs.Container();
-	stage.addChild(window.pause_cont);
+	window.Stage.addChild(window.pause_cont);
 
 	let border = new createjs.Shape();
 	border.graphics.beginStroke('#000').setStrokeStyle(10).moveTo(0,0).lineTo(STAGEWIDTH,0).lineTo(STAGEWIDTH,STAGEHEIGHT).lineTo(0,STAGEHEIGHT).closePath();
@@ -134,13 +146,15 @@ window.initialize = function() {
 	//window.addSpot(config,false);
 	SCREENS.showHome();
 
+	SPOT.initFallScreen();
+
 
 	//init onEnterFrame
 	createjs.Ticker.timingMode = createjs.Ticker.TIMEOUT;
 	createjs.Ticker.addEventListener('tick',tick);
 
 	//init Mouse move
-	stage.addEventListener('stagemousemove',onMouseMove);
+	window.Stage.addEventListener('stagemousemove',onMouseMove);
 
 	 //keyboard handlers
 	window.onkeyup = keyUpHandler;
@@ -167,12 +181,14 @@ window.initialize = function() {
 	bar.start(0, 13000, 1);
 */
 
+
+
 }
 
 window.tick = function(e) {
 
 	if(PAUSED) return;
-	stage.update(e);
+	window.Stage.update(e);
 }
 
 window.loadSpot = function(event, name = 'default') {
@@ -363,7 +379,7 @@ window.pause = function() {
 		overlay.graphics.beginFill('#000').drawRect(0,0,STAGEWIDTH,STAGEHEIGHT);
 		overlay.alpha = 0.2;
 		window.pause_cont.addChild(overlay);
-		stage.update();
+		window.Stage.update();
 
 		PAUSED = 1;
 		createjs.Ticker.paused = true;
@@ -393,13 +409,13 @@ window.resizeCanvas = function() {
 	var windowWidth = window.innerWidth || document.documentElement.clientWidth || document.body.clientWidth;
 	var windowHeight = window.innerHeight || document.documentElement.clientHeight || document.body.clientHeight;
 
-	var currentHeight = stage.canvas.height;
-	var currentWidth = stage.canvas.width;
-	if(windowHeight < stage.canvas.height) {
+	var currentHeight = window.Stage.canvas.height;
+	var currentWidth = window.Stage.canvas.width;
+	if(windowHeight < window.Stage.canvas.height) {
 		currentHeight = windowHeight;
 		currentWidth = currentHeight * RATIO;
 	}
-	if(windowWidth < stage.canvas.width) {
+	if(windowWidth < window.Stage.canvas.width) {
 		currentWidth = windowWidth;
 		currentHeight = currentWidth / RATIO;
 	}
@@ -408,7 +424,7 @@ window.resizeCanvas = function() {
 		//hide address bar
         document.body.style.height = (windowHeight + 50) + 'px';
         //enable Touch event
-        createjs.Touch.enable(stage);
+        createjs.Touch.enable(window.Stage);
     }
 
 	document.getElementById('canvas').style.width = currentWidth+'px';

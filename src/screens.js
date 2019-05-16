@@ -76,6 +76,166 @@
     sprite.addEventListener('click', function(e) {
       MENU.open();
     });
+
+  }
+
+  prototype.getLevelScreen = function(parent) {
+
+    //init score info
+    let isCompleted = true;
+
+    //init container
+    let cont = new createjs.Container();
+
+    // draw background
+    var bkg = new createjs.Bitmap(queue.getResult('scoreboard'));
+    bkg.regX = bkg.image.width/2;
+    bkg.regY = bkg.image.height/2;
+    bkg.x = STAGEWIDTH/2 + 80;
+    bkg.y = STAGEHEIGHT/2 - 120;
+    cont.addChild(bkg);
+
+    // draw table
+    var table = new createjs.Bitmap(queue.getResult('scoretable'));
+    table.regX = table.image.width/2;
+    table.regY = table.image.height/2;
+    table.x = bkg.x - 400;
+    table.y = bkg.y + 200;
+    cont.addChild(table);
+
+    //fill with design content
+    let content = (isCompleted)? this.getSuccessContent() : this.getFailContent();
+    cont.addChild(content);
+
+    // draw location
+    //
+    // draw score
+    //
+    // draw buttons
+    if(isCompleted) {
+      let btn_menu = new createjs.Bitmap(queue.getResult('btn_menu'));
+      btn_menu.x = 920;
+      btn_menu.y = 400;
+      let btn_retry = new createjs.Bitmap(queue.getResult('btn_retry_sm'));
+      btn_retry.x = 700;
+      btn_retry.y = 405;
+
+      cont.addChild(btn_menu);
+      cont.addChild(btn_retry);
+    }
+    else {
+      let btn_retry = new createjs.Bitmap(queue.getResult('btn_retry'));
+      btn_retry.x = 920;
+      btn_retry.y = 400;
+      let btn_menu = new createjs.Bitmap(queue.getResult('btn_menu_sm'));
+      btn_menu.x = 700;
+      btn_menu.y = 405;
+
+      cont.addChild(btn_menu);
+      cont.addChild(btn_retry);
+    }
+
+    return cont;
+  }
+
+  prototype.getSuccessContent = function() {
+
+    var cont = new createjs.Container();
+
+    //draw title
+    let title = new createjs.Bitmap(queue.getResult('successtxt'));
+    title.x = 410;
+    title.y = 60;
+    let van = new createjs.Sprite(
+      new createjs.SpriteSheet({
+          images: [queue.getResult('astrovan')],
+          frames: {width:140, height:100, regX: 70, regY: 50},
+          framerate: 12,
+          animations: {
+            fly: [0,1, 'fly'],
+          }
+      })
+    );
+    van.x = 674;
+    van.y = 78;
+    van.scale = 1;
+    van.gotoAndPlay('fly');
+    cont.addChild(van);
+    cont.addChild(title);
+
+    // add cocktail
+    const cocktail = new createjs.Sprite(
+      new createjs.SpriteSheet({
+          images: [queue.getResult('cocktail')],
+          frames: {width:100, height:120, regX: 50, regY: 60},
+          framerate: 10,
+          animations: {
+            bubble: [0,11, 'bubble'],
+          }
+      })
+    );
+    cocktail.x = 500;
+    cocktail.y = 465;
+    cocktail.scale = 1;
+    cocktail.gotoAndPlay('bubble');
+    const shadow = new createjs.Bitmap(queue.getResult('drinkshadow'));
+    shadow.x = 495;
+    shadow.y = 470;
+
+    cont.addChild(shadow);
+    cont.addChild(cocktail);
+
+    return cont;
+  }
+
+  prototype.getFailContent = function() {
+
+    var cont = new createjs.Container();
+
+    // title
+    let title = new createjs.Bitmap(queue.getResult('tryagaintxt'));
+    title.x = 410;
+    title.y = 60;
+    cont.addChild(title);
+    let dog = new createjs.Sprite(
+      new createjs.SpriteSheet({
+          images: [queue.getResult('dog')],
+          frames: {width:64, height:64, regX: 16, regY: 16},
+          framerate: 10,
+          animations: {
+            sit: [0,1, 'sit'],
+          }
+      })
+    );
+    dog.x = 750;
+    dog.y = 60;
+    dog.scaleX = -1;
+    dog.gotoAndPlay('sit');
+    cont.addChild(dog);
+    cont.addChild(title);
+
+    const coffee = new createjs.Sprite(
+      new createjs.SpriteSheet({
+          images: [queue.getResult('coffee')],
+          frames: {width:117, height:130, regX: 56, regY: 65},
+          framerate: 10,
+          animations: {
+            smoke: [0,7, 'smoke'],
+          }
+      })
+    );
+    coffee.x = 500;
+    coffee.y = 460;
+    coffee.scale = 1;
+    coffee.gotoAndPlay('smoke');
+    const shadow = new createjs.Bitmap(queue.getResult('drinkshadow'));
+    shadow.x = 495;
+    shadow.y = 470;
+
+    cont.addChild(shadow);
+    cont.addChild(coffee);
+
+    return cont;
   }
 
   prototype.getFallScreen = function(parent) {

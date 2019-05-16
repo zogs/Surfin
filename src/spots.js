@@ -56,7 +56,7 @@
 
 		console.log('initMenuBtn');
 
-		let btn = new createjs.Bitmap(queue.getResult('btn_menu'));
+		let btn = new createjs.Bitmap(queue.getResult('btn_back'));
 		btn.x = STAGEWIDTH - btn.image.width;
 		btn.y = 10;
 		btn.cursor = 'pointer';
@@ -787,11 +787,11 @@
 	}
 
 	prototype.initFallScreen = function(e) {
-
+console.log('initFallScreen');
 		this.overlay_cont.removeAllChildren();
 
 		let delay = new Timer(proxy(function() {
-			this.overlay_cont.addChild(SCREENS.getFallScreen(this));
+			this.overlay_cont.addChild(SCREENS.getLevelScreen(this));
 		},this),2000);
 
 
