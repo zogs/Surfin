@@ -10,8 +10,8 @@ var conf = {
     "type": "waving"
   },
   "colors": {
-    "top": "#0f1d5e",
-    "bottom": "#4c5aba"
+    "top": "#091c63",
+    "bottom": "#5169cb"
   },
   "images": {
     "background": "caladan_back",
@@ -106,17 +106,17 @@ var conf = {
     },
     "colors": [
       [
-        "#1b2043",
+        "#0d1544",
         0,
         0
       ],
       [
-        "#6e7ccf",
+        "#3a52b8",
         0,
         50
       ],
       [
-        "#4857b4",
+        "#2943ae",
         0,
         100
       ]
