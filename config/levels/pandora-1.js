@@ -1,8 +1,8 @@
 var conf = {
   id: 1,
-  name: 'zeguema1',
-  alias: 'zeguema1',
-  planet: 'zeguema',
+  name: 'pandora1',
+  alias: 'pandora1',
+  planet: 'pandora',
   level: 1,
   unlock: true,
   init: {

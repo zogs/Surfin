@@ -7,12 +7,15 @@
     this.x = 0;
     this.y = 0;
     this.spot = params.spot;
+    this.goals = this.spot.config.goals;
     that = this;
 
     this.disabled = false;
     this.talking = false;
     this.kill_count = 0;
+    this.countdown = false;
     this.timers = [];
+    this.goals_filled = false;
 
     this.phrases = {
       'hit top lip' : ['Open your mouth for a free teethbrush','This wave is too big for you'],
@@ -22,7 +25,7 @@
       'hit photographer' : ['Damn it, you will pay for this camera !'],
     }
 
-    this.goals = [
+    if(!this.goals) this.goals = [
       { type: 'timed', current:0, aim: 20, name: 'Survivre 20 secondes ({n}s)' },
       { type: 'score', current:0, aim: 2000, name: 'Faire un score de 2000 points' },
       { type: 'trick', current:0, aim: 'Backflip', count: 2, name: 'Faire 2 backflip ({n})' },
@@ -32,8 +35,6 @@
       { type: 'tube', current:0, aim: 5, name: 'Faire un tube de 5s ou + ({n})' },
     ];
 
-    this.goalsFilled = false;
-    this.goalsFilledColor = 'lightgreen';
     this.goalsTimers = [];
 
     this.levels = {
@@ -59,27 +60,18 @@
     this.addChild(this.score_cont);
 
     //display
-    this.total = new createjs.Text('0','50px Arial','#FFFFFF');
+    this.total = new createjs.Text('0','bold 30px Arial','#FFFFFF');
     this.score_pt = new createjs.Point(20,20);
     this.total.x = this.score_pt.x;
     this.total.y = this.score_pt.y;
-
-    this.subscore = new createjs.Text('+0','italic 14px Arial','#FFFFFF');
-    this.subscore.alpha = 0;
-    this.subscore_pt = new createjs.Point(20,5);
-
-    this.goals_pt = new createjs.Point(20, 80);
-
+    this.goals_pt = new createjs.Point(20, 60);
     this.score_cont.addChild(this.total);
-    this.score_cont.addChild(this.subscore);
+
 
     //Ticker
     this.addEventListener('tick',proxy(this.tick,this));
-    //Listeners
-    this.initEventsListeners();
 
-    this.showGoals();
-    this.initGoalsListeners();
+    this.init();
 
   }
 
@@ -87,6 +79,61 @@
 
   //add EventDispatcher
   createjs.EventDispatcher.initialize(prototype);
+
+  prototype.init = function() {
+
+    this.initCountdown();
+    this.showGoals();
+    this.initGoalsListeners();
+    this.initPlayerListeners();
+  }
+
+  prototype.initCountdown = function() {
+
+    if(typeof this.spot.config.timelimit == 'undefined') return;
+    this.countdown = this.spot.config.timelimit;
+    this.timer = new createjs.Text('00:00', '60px Arial', '#FFFFFF');
+    this.timer.x = STAGEWIDTH/2 - this.timer.getMeasuredWidth()/2;
+    this.timer.y = 20;
+    this.timer.alpha = 0.5;
+    this.score_cont.addChild(this.timer);
+    this.timer.text = this.formatCountdown(this.countdown);
+  }
+
+  prototype.startCountdown = function() {
+
+    this.countdown_interval = new Interval(proxy(this.updateCountdown,this), 1000);
+    this.timers.push(this.timer);
+  }
+
+  prototype.updateCountdown = function() {
+
+    this.countdown--;
+    if(this.countdown == 0) {
+      this.spot.dispatchEvent('wave_timeout');
+      clearInterval(this.countdown_interval);
+    }
+    if(this.countdown < 10) {
+      this.timer.color = 'red';
+      this.timer.alpha = 0.5 + 0.5 * (1/this.countdown);
+    }
+    this.timer.text = this.formatCountdown(this.countdown);
+  }
+
+  prototype.formatCountdown = function(total) {
+
+    let min = Math.floor(total/60);
+    let sec = total - min*60;
+    min = (min<10)? '0'+min : min;
+    sec = (sec<10)? '0'+sec : sec;
+    return min+':'+sec;
+  }
+
+  prototype.timeout = function() {
+
+    this.spot.wave.addBlockBreaking(STAGEWIDTH);
+
+  }
 
   prototype.showGoals = function() {
 
@@ -96,7 +143,7 @@
 
       let goal = this.goals[i];
       let name = this.goalsNameFormatter(goal, 0);
-      let text = new createjs.Text(name, '12px Arial', '#FFF');
+      let text = new createjs.Text(name, 'bold 14px Arial', '#FFF');
       text.x = pt.x;
       text.y = pt.y;
       this.score_cont.addChild(text);
@@ -109,6 +156,15 @@
 
   prototype.initGoalsListeners = function() {
 
+    //countdown
+    if(this.countdown) {
+      //takeoff
+      this.spot.on('player_take_off', proxy(this.startCountdown, this), null, true);
+      //timeout
+      this.spot.on('wave_timeout', proxy(this.timeout, this), null, true);
+    }
+
+    //goals
     for(let i=0,ln=this.goals.length-1;i<=ln;i++) {
       let goal = this.goals[i];
       if(goal.type === 'timed') {
@@ -171,21 +227,8 @@
     }
 
     if(count == total) {
-      this.goalsFilled = true;
+      this.goals_filled = true;
     }
-  }
-
-
-  prototype.setGoalFilled = function(goal) {
-
-    goal.text.color = this.goalsFilledColor;
-    goal.filled = true;
-    this.goalsCheck();
-  }
-
-  prototype.goalsNameFormatter = function(goal, n) {
-
-    return goal.name.replace(/{n}/,n);
   }
 
   prototype.updateGoalTime = function() {
@@ -254,22 +297,33 @@
     }
   }
 
+  prototype.setGoalFilled = function(goal) {
 
-  prototype.initEventsListeners = function() {
+    goal.text.color = 'lightgreen';
+    goal.filled = true;
+    this.goalsCheck();
+  }
 
-    this.spot.on('surfer_take_off',function(event) {
+  prototype.goalsNameFormatter = function(goal, n) {
+
+    return goal.name.replace(/{n}/,n);
+  }
+
+  prototype.initPlayerListeners = function() {
+
+    this.spot.on('player_take_off',function(event) {
       this.progress();
       this.takeoff = this.newScore('Takeoff');
-    },this);
+    },this, null, true);
 
-    this.spot.on('surfer_take_off_ended',function(event) {
+    this.spot.on('player_take_off_ended',function(event) {
 
       if(event.quality >= 50) this.takeoff.grade('Super').add(2000).end();
       else if(event.quality >= 20) this.takeoff.grade('Good').add(1000).end();
       else this.takeoff.grade('Bad').end();
       this.addScore(this.takeoff);
 
-    },this);
+    },this, null, true);
 
     this.spot.on('surfer_aerial_start',function(event) {
       this.aerial = this.newScore(event.trick.name).add(event.trick.score).growth(20);
@@ -302,11 +356,11 @@
     this.spot.on('player_fall',function(event) {
       this.disable().stopProgress().discardAllScores();
       this.failPhrase = this.getRandomPhrase(event.reason);
-    },this);
+    },this, null, true);
 
     this.spot.on('player_fallen',function(event) {
       //
-    },this);
+    },this, null, true);
 
     this.spot.on('bonus_hitted',function(event) {
       let bonus = event.bonus;
@@ -404,11 +458,6 @@
     this.slideAboveWaveText();
   }
 
-  prototype.reset = function() {
-    this.current_score = 0;
-    this.total.text = 0;
-  }
-
   prototype.getScore = function() {
     return this.current_score;
   }
@@ -432,27 +481,10 @@
     return this.failPhrase;
   }
 
-  prototype.showSubScore = function(text) {
-
-    var b = this.subscore.getBounds();
-    this.subscore.x = this.subscore_pt.x + b.width/2;
-    this.subscore.y = this.subscore_pt.y + b.width/2;
-    this.subscore.regX = b.width/2;
-    this.subscore.regY = b.height/2;
-    this.subscore.alpha = 1;
-    this.subscore.text = text;
-
-    createjs.Tween.get(this.subscore)
-      .to({scaleX:4, scaleY:4 },200, createjs.Tween.elasticOut)
-      .to({scaleX:0, scaleY:0, alpha:0 },400, createjs.Tween.elasticOut)
-      ;
-  }
-
   prototype.add = function(amount) {
 
     this.current_score += amount;
     this.total.text = this.current_score;
-    this.showSubScore('+'+amount);
     return this;
   }
 
@@ -461,7 +493,6 @@
     this.current_score -= amount;
     if(this.current_score < 0) this.current_score = 0;
     this.total.text = this.current_score;
-    this.showSubScore('+'+amount);
     return this;
   }
 

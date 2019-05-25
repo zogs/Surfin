@@ -8,6 +8,10 @@
 	function Surfer(params) {
 
 		this.Container_constructor();
+		this.type = 'player';
+		this.img_takeoff = 'surfer_takeoff';
+		this.img_surfing = 'surfer';
+
 		this.init(params);
 	}
 
@@ -28,8 +32,6 @@
 		this.config = params.config || this.spot.config.surfers;
 		this.x = params.x;
 		this.y = params.y;
-
-		this.type = 'player';
 
 		this.location;
 		this.locations = [];
@@ -200,19 +202,20 @@
 		},this);
 
 		//custom events
+		/*
 		this.on('take_off',function(event) {
-			var ev = new createjs.Event('surfer_take_off');
-			ev.surfer = event.surfer;
-			ev.wave = event.wave;
-			this.spot.dispatchEvent(ev);
+			//this is triggered by wave.playerTakeOff()
 		},this);
+		*/
 
 		this.on('take_off_ended',function(event) {
-			var ev = new createjs.Event('surfer_take_off_ended');
-			ev.surfer = event.surfer;
-			ev.wave = event.wave;
-			ev.quality = event.quality;
-			this.spot.dispatchEvent(ev);
+			if(this.isPlayer()) {
+				var ev = new createjs.Event('player_take_off_ended');
+				ev.surfer = event.surfer;
+				ev.wave = event.wave;
+				ev.quality = event.quality;
+				this.spot.dispatchEvent(ev);
+			}
 		},this);
 
 		this.on('aerial_start',function(event) {
@@ -268,7 +271,7 @@
 
 		const speed = 0.2 + this.getSkill('takeoff');
 		const takeoff = new createjs.SpriteSheet({
-			images: [queue.getResult('surfer_takeoff')],
+			images: [queue.getResult(this.img_takeoff)],
 			frames: {width:300, height:300},
 			animations: {
 				takeoff: [0,3,false,speed],
@@ -2091,7 +2094,7 @@
 	prototype.initSilhouette = function() {
 
 		let surfer_sprite = new createjs.SpriteSheet({
-			images: [queue.getResult('surfer')],
+			images: [queue.getResult(this.img_surfing)],
 			frames: {width: 300, height: 300},
 			animations: {
 				S: 0,

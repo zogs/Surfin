@@ -200,7 +200,8 @@ prototype.init = function(spot, config) {
 		this.lip_cap = new createjs.Shape();
 		this.lip_spray = new createjs.Shape();
 		this.lip_surface = new createjs.Shape();
-		this.lip_cont.addChild(this.lip_thickness, this.lip_shadow, this.lip_surface, this.lip_spray);
+		this.lip_riddle = new createjs.Container();
+		this.lip_cont.addChild(this.lip_thickness, this.lip_shadow, this.lip_surface, this.lip_riddle, this.lip_spray);
 		this.lipcap_cont.addChild(this.lip_cap);
 
 		this.background = new createjs.Container();
@@ -211,7 +212,7 @@ prototype.init = function(spot, config) {
 		this.background_cont.addChild(this.background,this.background_shadow);
 
 		this.initAnimateBackground();
-
+		this.initLipRiddle();
 
 
 		//draw shape mask beetween the two shoulder
@@ -278,7 +279,7 @@ prototype.mergeCollidingPeaks = function() {
 			//remove last point to make a nice visual merge
 			first.points.splice(first.points.length-1,1);
 			//concat all points
-			let merged = first.points.concat(second.points);
+			let merged = first.points.push(...second.points);
 			//set the main peak as the older one
 			let main = (first.id < second.id)? first : second;
 			let dump = (first.id > second.id)? first : second;
@@ -304,7 +305,7 @@ prototype.mergeCollidingPeaks = function() {
 			first.boundaries[RIGHT] >= second.boundaries[LEFT] - this.params.breaking.left.width) {
 
 			first.points.splice(first.points.length-1,1);
-			var merged = first.points.concat(second.points);
+			var merged = first.points.push(...second.points);
 			//sort all the points from left to right (because order is not garantied)
 			merged.sort((a,b) => a.x < b.x ? -1 : 1);
 			var main = (first.id < second.id)? first : second;
@@ -627,7 +628,7 @@ prototype.addScore = function(score) {
 prototype.coming = function() {
 
 	//when it pass the beach line
-	if(this.beached === false && this.y > this.spot.config.lines.beach) {
+	if(this.beached === false && this.y > this.spot.planet.lines.beach) {
 		this.beached = true;
 
 		//dispatch event that wave reach the beach
@@ -640,15 +641,14 @@ prototype.coming = function() {
 	}
 
 	// break the wave when it reach the break line
-	if(this.breaked === false && this.y > this.spot.config.lines.break) {
+	if(this.breaked === false && this.y > this.spot.planet.lines.break) {
 			this.initBreak(STAGEWIDTH/2);
 	}
 
 	// stop resizing wave when peak line is reached
-	if(this.y >= this.spot.config.lines.peak) {
+	if(this.y >= this.spot.planet.lines.peak) {
 		//if wave is played, send event to freeze the spot
 		if(this.played === true) {
-			console.log('dispatch played_wave');
 			var e = new createjs.Event("played_wave");
 			e.wave = this;
 			this.spot.dispatchEvent(e);
@@ -662,7 +662,7 @@ prototype.coming = function() {
 
 prototype.getResizeCoef = function() {
 
-	return (this.y  - this.spot.config.lines.horizon) / ( this.spot.config.lines.peak - this.spot.config.lines.horizon);
+	return (this.y  - this.spot.planet.lines.horizon) / ( this.spot.planet.lines.peak - this.spot.planet.lines.horizon);
 }
 
 prototype.resize = function() {
@@ -844,7 +844,7 @@ prototype.initVariablePameters = function() {
 }
 
 prototype.playerTakeOff = function(surfer) {
-
+	console.log('wave playerTakeOff');
 	this.surfed = true;
 	this.played = true;
 	this.surfer = surfer;
@@ -856,9 +856,9 @@ prototype.playerTakeOff = function(surfer) {
 
 	//throw event
 	var e = new createjs.Event("player_take_off");
-		e.wave = this;
-		e.surfer = this.surfer;
-		this.spot.dispatchEvent(e);
+	e.wave = this;
+	e.surfer = this.surfer;
+	this.spot.dispatchEvent(e);
 
 		console.log(USER.skills);
 
@@ -1300,7 +1300,7 @@ prototype.oldmoveWave = function() {
 		//get vanish point x
 		var pt = this.cont.localToGlobal(this.vanish_left.x,0);
 		//calcul lateral movement from y position
-		var coef = ( 100*this.y/ this.spot.config.lines.peak) / 100;
+		var coef = ( 100*this.y/ this.spot.planet.lines.peak) / 100;
 		var xwidth = this.params.breaking.left.width * 1/coef;
 		//move wave normally when well positioned
 		if(pt.x >= (STAGEWIDTH-100)) this.cont.x += xwidth;
@@ -1311,7 +1311,7 @@ prototype.oldmoveWave = function() {
 		//get vanish point x
 		var pt = this.cont.localToGlobal(this.vanish_right.x,0);
 		//calcul lateral movement from y position
-		var coef = ( 100*this.y/ this.spot.config.lines.peak) / 100;
+		var coef = ( 100*this.y/ this.spot.planet.lines.peak) / 100;
 		var xwidth = this.params.breaking.right.width * 1/coef;
 		//move wave normally when well positioned
 		if(pt.x <= 100) this.cont.x -= xwidth;
@@ -1601,6 +1601,18 @@ prototype.removeObstacle = function(obs) {
 	this.obstacle_cont.removeChild(obs);
 }
 
+prototype.initLipRiddle = function() {
+
+	const riddle = new createjs.Bitmap(queue.getResult('spot_seariddle'));
+	riddle.regX = riddle.image.width/2;
+	riddle.regY = riddle.image.height/2;
+	riddle.alpha = 0.4;
+	riddle.rotation = 90;
+	riddle.scaleY = 2;
+	this.lip_riddle.addChild(riddle);
+	this.lip_riddle.mask = this.lip_surface;
+	this.lip_riddle.visible = false;
+}
 
 prototype.drawLip = function() {
 
@@ -1612,8 +1624,11 @@ prototype.drawLip = function() {
 	this.lip_shadow.graphics.clear().beginLinearGradientFill(["rgba(0,0,0,0.1)","rgba(0,0,0,0)"], [0, 1], 0, 0, 0, this.params.height);
 	this.lip_cap.graphics.clear().beginFill(hexToRgbA('#FFF',0.5));
 	this.lip_spray.graphics.clear().beginLinearGradientFill(["rgba(255,255,255,0.15)","rgba(255,255,255,0)"], [0, 1], 0, this.params.height, 0, -this.params.height/2);
-	this.lip_surface.graphics.clear().beginLinearGradientFill([this.params.lip.colors.top,this.params.lip.colors.bottom],[0,1], 0, this.params.height / 10, 0, this.params.height);
+	this.lip_surface.graphics.clear().beginLinearGradientFill([this.spot.planet.colors.lip.top,this.spot.planet.colors.lip.bottom],[0,1], 0, this.params.height / 10, 0, this.params.height);
 
+
+	//init
+	var point1x = 0;
 
 	//for each peak
 	for(let j=0, ln=this.peaks.length; j<ln; j++) {
@@ -1622,6 +1637,8 @@ prototype.drawLip = function() {
 
 		//do NOT draw when there are no lip points
 		if(points.length === 0) continue;
+
+		if(j==1) point1x = points[0].x;
 
 		//draw from the first point of the lip
 		this.lip_thickness.graphics.moveTo(points[0].x,0);
@@ -1635,8 +1652,8 @@ prototype.drawLip = function() {
 
 		//LOW PERF
 		if(PERF==0) {
-			for(var i=1,len=points.length; i<len -2; ++i){
-				var pt = points[i],
+			for(let i=1,len=points.length; i<len -2; ++i){
+				let pt = points[i],
 					x = pt.x,
 					y = (pt.splashed)? this.params.height : pt.y,
 					thk = this.params.lip.thickness,
@@ -1659,7 +1676,7 @@ prototype.drawLip = function() {
 			for(var i=1,len=points.length; i<len-2; ++i){
 
 				//Draw lip
-				var p1 = points[i],
+				let p1 = points[i],
 					p2 = points[i+1]
 					x1 = p1.x,
 					x2 = p2.x,
@@ -1711,8 +1728,8 @@ prototype.drawLip = function() {
 
 		//LOW PERF
 		if(PERF==0) {
-			for(var i=points.lenght-1, len=0; i>=len; --i){
-				var pt = points[i];
+			for(let i=points.lenght-1, len=0; i>=len; --i){
+				let pt = points[i];
 
 				//draw spray
 				if(pt.spray) this.lip_spray.graphics.lineTo(pt.x, pt.y);
@@ -1721,10 +1738,10 @@ prototype.drawLip = function() {
 		}
 		//HIGH PERF
 		else {
-			for(var i=points.length-1,len=0; i>=len; --i){
+			for(let i=points.length-1,len=0; i>=len; --i){
 
 				//Draw lip
-				var p1 = points[i];
+				let p1 = points[i];
 
 				//draw spray
 				if(p1.spray) this.lip_spray.graphics.lineTo(p1.x, p1.y);
@@ -1733,6 +1750,11 @@ prototype.drawLip = function() {
 		}
 
 	}
+
+	// apply mask to riddle bitmap
+	this.lip_riddle.x = -this.getX() + STAGEWIDTH/2;
+	this.lip_riddle.visible = true;
+
 
 }
 
@@ -1750,7 +1772,7 @@ prototype.drawSplash = function () {
 		if(points.length === 0) continue;
 
 		//var color = createjs.Graphics.getHSL(Math.random()*360,100,50);
-		this.splash_gfx.beginLinearGradientFill([this.params.splash.colors.top,this.params.splash.colors.bottom],[0,1], 0, this.params.height / 10, 0, this.params.height).beginStroke('rgba(0,0,0,0.2').setStrokeStyle(1);
+		this.splash_gfx.beginLinearGradientFill([this.spot.planet.colors.splash.top,this.spot.planet.colors.splash.bottom],[0,1], 0, this.params.height / 10, 0, this.params.height).beginStroke('rgba(0,0,0,0.2').setStrokeStyle(1);
 		this.splash_gfx.moveTo(points[0].x, points[0].splash_y);
 		//this.splash_gfx.moveTo(points[0].x - this.params.breaking.left.width, points[0].splash_y);
 		//this.splash_gfx.lineTo(points[0].x,points[0].splash_y);
@@ -1932,7 +1954,7 @@ prototype.drawDebug = function() {
 
 prototype.drawBackground = function() {
 
-	const colors = this.config.colors;
+	const colors = this.spot.planet.colors.wave;
 	const height = this.params.height;
 	if(!height) return;
 	this.background_gradient.graphics.clear();

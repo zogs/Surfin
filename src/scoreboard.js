@@ -74,8 +74,8 @@
   prototype.drawPlanet = function() {
 
     // draw planet
-    let planet = PLANETS.find(p => p.id = SPOT.planet);
-    let img = new createjs.Bitmap(queue.getResult(SPOT.planet));
+    let planet = SPOT.planet;
+    let img = new createjs.Bitmap(queue.getResult(planet.id));
     img.regX = img.image.width/2;
     img.regY = img.image.height/2;
     img.x = -350;

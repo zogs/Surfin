@@ -7,7 +7,11 @@
 	function SurferBot(config) {
 
 		this.Surfer_constructor(config);
+		this.type = 'bot';
+		this.img_surfing = 'stormsurfer';
+		this.img_takeoff = 'stormsurfer_takeoff';
 		this.initBot(config);
+		this.init(config);
 
 	}
 
@@ -30,7 +34,7 @@
 
 	prototype.initBot = function(config) {
 
-		this.type = 'bot';
+
 		this.direction = (config.direction == 1)? 1 : -1;
 		this.saber_color = 'red';
 		this.saber_length_default = this.saber_length;

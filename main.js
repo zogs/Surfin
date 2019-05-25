@@ -26,6 +26,9 @@ window.loaded = function() {
 		{id:'spot_front_home',src:'assets/img/spots/default/homefront.png'},
 		{id:'spot_front',src:'assets/img/spots/default/beach.png'},
 		{id:'caladan_back', src:'assets/img/spots/Caladan_Peak/back.jpg'},
+		{id:'flhoston_back', src:'assets/img/spots/Flhoston_Paradise/back.png'},
+		{id:'pandora_back', src:'assets/img/spots/Pandora_Bay/back.jpg'},
+		{id:'zeguema_back', src:'assets/img/spots/Zeguema_Beach/back.jpg'},
 		{id:'btn_startgame',src:'assets/img/buttons/btn_startgame.png'},
 		{id:'btn_level',src:'assets/img/buttons/btn_level.png'},
 		{id:'btn_back',src:'assets/img/buttons/btn_back.png'},
@@ -41,6 +44,8 @@ window.loaded = function() {
 		{id:'surfer_splash',src:'assets/img/object/splash.gif'},
 		{id:'surfer',src:'assets/img/surfer/astrosurfer_moves.png'},
 		{id:'surfer_takeoff',src:'assets/img/surfer/astrosurfer_takeoff.png'},
+		{id:'stormsurfer',src:'assets/img/surfer/surfer_stormtrooper.png'},
+		{id:'stormsurfer_takeoff',src:'assets/img/surfer/takeoff_stormtrooper.png'},
 		{id:'paddler',src:'assets/img/surfer/astropaddler.png'},
 		{id:'photographer',src:'assets/img/object/photographer.png'},
 		{id:'cigogne',src:'assets/img/object/cigogne.png'},
@@ -151,9 +156,8 @@ window.initialize = function() {
 
 
 	//SPOT
-	//const config = LEVELS.find(s => s.alias == 'home');
-	//window.addSpot(config,false);
-	SCREENS.showHome();
+	const config = LEVELS.find(s => s.alias == 'zeguema1');
+	window.addSpot(config,false);
 
 	//init onEnterFrame
 	createjs.Ticker.timingMode = createjs.Ticker.TIMEOUT;
@@ -186,6 +190,15 @@ window.initialize = function() {
 
 	bar.start(0, 13000, 1);
 */
+
+	let image = new createjs.Bitmap(queue.getResult('spot_front'));
+	image.x = 0;
+	image.y = 300;
+	var matrix = new createjs.ColorMatrix().adjustHue(11).adjustSaturation(-71);
+	var filter = new createjs.ColorMatrixFilter(matrix);
+  image.filters = [filter];
+  image.cache(0, 0, image.getBounds().width, image.getBounds().height);
+	//window.Stage.addChild(image);
 
 
 
@@ -229,10 +242,6 @@ window.addSpot = function(config, launch = true) {
 	SPOT = new Spot(config);
 	//add it
 	window.spot_cont.addChild(SPOT);
-	//init spot
-  SPOT.init();
-	// add menu
-	//SCREENS.addMenuIcon();
 
 }
 

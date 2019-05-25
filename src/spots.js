@@ -1,14 +1,14 @@
 (function() {
 
-	function Spot(spot) {
+	function Spot(config) {
 
 		this.Container_constructor();
 
-		this.id = spot.id;
-		this.name = spot.name;
-		this.planet = spot.planet;
-		this.level = spot.level;
-		this.config = spot.config;
+		this.id = config.id;
+		this.name = config.name;
+		this.planet = PLANETS.find(p => p.id == config.planet);
+		this.level = config.level;
+		this.config = config;
 		this.randid = Math.floor(Math.random()*10000);
 
 		this.waves = [];
@@ -16,6 +16,7 @@
 		this.paddlers = [];
 		this.timers = [];
 
+		this.score = null;
 		this.wave = null;
 		this.runing = false;
 		this.time_scale = (TIME_SCALE) ? TIME_SCALE : 1;
@@ -41,22 +42,35 @@
 
 		this.debug_cont = new createjs.Container();
 		this.addChild(this.debug_cont);
-
+console.log(this.config);
+console.log(this.planet);
 		this.drawBackground();
 		this.drawFrontground();
 
-		this.initScore();
-		this.initMenuBtn();
+		this.init();
+
 	}
 
 	var prototype = createjs.extend(Spot, createjs.Container);
+
+	prototype.init = function(type) {
+
+
+		this.initScore();
+		this.initMenuBtn();
+		if(this.name == 'home') this.initHomeScreen();
+
+		if(this.config.init.type == undefined) return this.initStatic();
+		if(this.config.init.type === 'static') return this.initStatic();
+		if(this.config.init.type === 'waving') return this.initWaving();
+		if(this.config.init.type === 'ready?') return this.initWhenReady();
+
+	}
 
 	prototype.initMenuBtn = function() {
 
 		//do not draw MENU button when on Home
 		if(this.name == 'home') return;
-
-		console.log('initMenuBtn');
 
 		let btn = new createjs.Bitmap(queue.getResult('btn_back'));
 		btn.x = STAGEWIDTH - btn.image.width;
@@ -74,26 +88,26 @@
 		defaultbkg.graphics.beginFill('#0d4e6d').drawRect(0,0,STAGEWIDTH,STAGEHEIGHT);
 		this.background.addChild(defaultbkg);
 
-		const skyimage = new createjs.Bitmap(queue.getResult(this.config.images.background));
-		skyimage.y = - skyimage.image.height + this.config.lines.horizon;
+		const skyimage = new createjs.Bitmap(queue.getResult(this.planet.images.background));
+		skyimage.y = - skyimage.image.height + this.planet.lines.horizon;
 		this.background.addChild(skyimage);
 
 		const seagradient = new createjs.Shape();
 		seagradient.graphics
-					.beginLinearGradientFill([this.config.colors.top,this.config.colors.bottom],[0,1],0,this.config.lines.horizon,0,STAGEHEIGHT)
-					.drawRect(0,this.config.lines.horizon,STAGEWIDTH,STAGEHEIGHT)
+					.beginLinearGradientFill([this.planet.colors.sea.top, this.planet.colors.sea.bottom],[0,1],0, this.planet.lines.horizon,0,STAGEHEIGHT)
+					.drawRect(0,this.planet.lines.horizon,STAGEWIDTH,STAGEHEIGHT)
 					;
 		this.background.addChild(seagradient);
 
 		const image1 = new createjs.Bitmap(queue.getResult('spot_seariddle'));
 		image1.alpha = 0.2;
-		image1.y = this.config.lines.horizon;
+		image1.y = this.planet.lines.horizon;
 		this.riddles1 = image1;
 		this.background.addChild(image1);
 
 		const image2 = new createjs.Bitmap(queue.getResult('spot_seariddle'));
 		image2.alpha = 0.2;
-		image2.y = this.config.lines.horizon;
+		image2.y = this.planet.lines.horizon;
 		image2.skewX = 1;
 		this.riddles2 = image2;
 		this.background.addChild(image2);
@@ -111,20 +125,34 @@
 
 	prototype.drawFrontground = function() {
 
-		const front1 = new createjs.Bitmap(queue.getResult(this.config.images.frontground));
+		var matrix = new createjs.ColorMatrix()
+					.adjustHue(this.planet.colors.sand.hue)
+					.adjustSaturation(this.planet.colors.sand.sat)
+					.adjustContrast(this.planet.colors.sand.con)
+					.adjustBrightness(this.planet.colors.sand.lum)
+					;
+		var filter = new createjs.ColorMatrixFilter(matrix);
+
+		const front1 = new createjs.Bitmap(queue.getResult(this.planet.images.frontground));
 		front1.regX = front1.image.width/2;
 		front1.regY = front1.image.height/2;
 		front1.y = STAGEHEIGHT - front1.image.height/2;
-		front1.x = STAGEWIDTH/2
+		front1.x = STAGEWIDTH/2;
+		front1.filters = [filter];
+  	front1.cache(0, 0, front1.getBounds().width, front1.getBounds().height);
 		this.frontground.addChild(front1);
 
-		const front2 = new createjs.Bitmap(queue.getResult(this.config.images.frontground));
+		const front2 = new createjs.Bitmap(queue.getResult(this.planet.images.frontground));
 		front2.regX = front2.image.width/2;
 		front2.regY = front2.image.height/2;
 		front2.scaleX = -1;
 		front2.y = front1.y;
 		front2.x = front1.x + front1.image.width;
+		front2.filters = [filter];
+  	front2.cache(0, 0, front2.getBounds().width, front2.getBounds().height);
 		this.frontground.addChild(front2);
+
+		this.frontground.alpha = this.planet.colors.sand.alpha;
 
 		this.front1 = front1;
 		this.front2 = front2;
@@ -134,7 +162,7 @@
 
 		if(!this.wave) return;
 
-		let dx = (this.front1.y - this.config.lines.horizon) / (this.wave.y - this.wave.params.height/2 - this.config.lines.horizon);
+		let dx = (this.front1.y - this.planet.lines.horizon) / (this.wave.y - this.wave.params.height/2 - this.planet.lines.horizon);
 
 		this.front1.x += this.wave.movingX * dx;
 		this.front2.x += this.wave.movingX * dx;
@@ -164,7 +192,7 @@
 		var config = this.config.waves;
 			config.height = this.config.waves.height * coef
 			config.width = this.config.waves.width * coef
-			config.y = this.config.lines.horizon + (this.config.lines.peak - this.config.lines.horizon) * coef;
+			config.y = this.planet.lines.horizon + (this.planet.lines.peak - this.planet.lines.horizon) * coef;
 			config.x = (this.config.series.xshift/100 * STAGEWIDTH) + this.config.series.spread/2 - Math.random()*this.config.series.spread;
 
 		var wave = new Wave({spot: this, config: config});
@@ -197,7 +225,7 @@
 		//configuration of the wave
 		var config = this.config.waves;
 			config.x = (this.config.series.xshift/100 * STAGEWIDTH) + this.config.series.spread/2 - Math.random()*this.config.series.spread;
-			config.y = this.config.lines.horizon;
+			config.y = this.planet.lines.horizon;
 
 		//create Wave at horizon point
 		var wave = new Wave({spot: this, config: config});
@@ -208,7 +236,7 @@
 
 		//start tween
 		var tween = createjs.Tween.get(wave);
-		tween.to({y: this.config.lines.beach + this.config.waves.height}, this.config.series.speed)
+		tween.to({y: this.planet.lines.beach + this.config.waves.height}, this.config.series.speed)
 		tween.call(proxy(this.removeWave,this,[wave]))
 		tween.addEventListener('change',proxy(wave.coming,wave));
 		wave.coming_tween = tween;
@@ -266,14 +294,14 @@
 		// create config
 		let config = this.config.waves;
 		config.x = (this.config.series.xshift/100 * STAGEWIDTH) + this.config.series.spread/2 - Math.random()*this.config.series.spread;
-		config.y = this.config.lines.horizon;
+		config.y = this.planet.lines.horizon;
 
 		// create wave
 		let wave = new Wave({spot: this, config: config});
 
 		// set tween
 		let tween  = createjs.Tween.get(wave);
-			tween.to({y: this.config.lines.beach + this.config.waves.height}, this.config.series.speed)
+			tween.to({y: this.planet.lines.beach + this.config.waves.height}, this.config.series.speed)
 			tween.call(proxy(this.removeWave,this,[wave]))
 			tween.addEventListener('change',proxy(wave.coming,wave));
 			wave.coming_tween = tween;
@@ -282,7 +310,7 @@
 		tween.setPosition(position);
 
 		// if this wave is starting at a position which is over the breaking line, skip this wave
-		if(wave.y >= this.config.lines.break) return;
+		if(wave.y >= this.planet.lines.break) return;
 
 		// add to scene
 		this.sea_cont.addChildAt(wave);
@@ -291,12 +319,70 @@
 		this.waves.unshift(wave);
 	}
 
-	prototype.init = function(type) {
 
-		if(this.config.init.type == undefined) return this.initStatic();
-		if(this.config.init.type === 'static') return this.initStatic();
-		if(this.config.init.type === 'waving') return this.initWaving();
-		if(this.config.init.type === 'ready?') return this.initWhenReady();
+	prototype.initHomeScreen = function() {
+
+		//hide score
+		this.score_cont.alpha = 0;
+
+		// add doggo
+    const dog = new createjs.Sprite(
+      new createjs.SpriteSheet({
+          images: [queue.getResult('dog')],
+          frames: {width:64, height:64, regX: 16, regY: 16},
+          framerate: 10,
+          animations: {
+            sit: [0,1, 'sit'],
+          }
+      })
+    );
+    dog.x = 430;
+    dog.y = STAGEHEIGHT - 150;
+    dog.scale = 1;
+    dog.gotoAndPlay('sit');
+    window.spot_cont.addChild(dog);
+
+    // add ptero
+    const ptero = new createjs.Sprite(
+      new createjs.SpriteSheet({
+          images: [queue.getResult('ptero')],
+          frames: {width:128, height:128, regX: 64, regY: 64},
+          framerate: 4,
+          animations: {
+            fly: [0,9, 'fly'],
+          }
+      })
+    );
+    let pad = 128;
+    ptero.x = -pad;
+    ptero.y = 150;
+    ptero.scale = 1;
+    ptero.gotoAndPlay('fly');
+    window.spot_cont.addChild(ptero);
+    createjs.Tween.get(ptero, {loop: true}).to({x: STAGEWIDTH+pad}, 10000).wait(2000).set({scaleX:-1}).to({x:-pad},10000).wait(2000).set({scaleX:1});
+    createjs.Tween.get(ptero, {loop: true}).to({y: 200}, 2000).to({y: 150}, 2000);
+
+
+    // add button
+    const sprite = new createjs.Sprite(
+      new createjs.SpriteSheet({
+          images: [queue.getResult('btn_startgame')],
+          frames: {width:700, height:280, regX: 350, regY: 140},
+          framerate: 1,
+          animations: {
+            out: [0],
+            over: [1],
+            down: [2],
+          }
+      })
+    );
+    const btn = new createjs.ButtonHelper(sprite, "out", "over", "down");
+    sprite.x = STAGEWIDTH/2;
+    sprite.y = STAGEHEIGHT - 100;
+    window.spot_cont.addChild(sprite);
+    sprite.addEventListener('click', function(e) {
+      MENU.open();
+    });
 
 	}
 
@@ -569,7 +655,7 @@
 	prototype.addPaddlerBot = function(x,y) {
 
 		var x = x || STAGEWIDTH/4 + Math.random()*(STAGEWIDTH/2);
-		var y = y || Math.random()*(this.config.lines.peak - this.config.lines.horizon - 100) + this.config.lines.horizon;
+		var y = y || Math.random()*(this.planet.lines.peak - this.planet.lines.horizon - 100) + this.planet.lines.horizon;
 
 
 		var x = MOUSE_X;
@@ -703,15 +789,15 @@
 
 	prototype.initScore = function() {
 
+		if(this.score) {
+			this.score.selfRemove();
+			this.score_cont.removeAllChildren();
+		}
 		this.score = new ScoreUI({spot: this});
 		this.score_cont.addChild(this.score);
+		this.score_cont.alpha = 1;
 		SCORE = this.score;
 
-		if(this.config.scores == null) this.score.alpha = 0;
-	}
-
-	prototype.resetScore = function() {
-		this.score.reset();
 	}
 
 	prototype.showScore = function() {
@@ -797,7 +883,7 @@
 			this.overlay_cont.addChild(scoreboard);
 
 			scoreboard.show();
-		},this),1500);
+		},this),1000);
 
 
 	}
@@ -841,9 +927,6 @@
 		this.init();
 		//this.launch();
 
-		//reset score
-		this.score.reset();
-
 		e.stopPropagation();
 		e.remove();
 	}
@@ -861,6 +944,7 @@
 
 	prototype.setConfig = function(config) {
 		this.config = config;
+		this.planet = PLANETS.find(p => p.id == config.planet);
 		this.getWaves().map(function(w) {
 			w.updateConfig(config.waves);
 			w.getSurfers().map(s => s.updateConfig(config.surfers));
@@ -952,23 +1036,23 @@
 		this.debug_cont.removeAllChildren();
 
 		var line = new createjs.Shape();
-		line.graphics.beginStroke('red').setStrokeStyle(2).moveTo(0, this.config.lines.horizon).lineTo(50,this.config.lines.horizon);
+		line.graphics.beginStroke('red').setStrokeStyle(2).moveTo(0, this.planet.lines.horizon).lineTo(50,this.planet.lines.horizon);
 		this.debug_cont.addChild(line);
 
 		var line = new createjs.Shape();
-		line.graphics.beginStroke('orange').setStrokeStyle(2).moveTo(0, this.config.lines.break).lineTo(50,this.config.lines.break);
+		line.graphics.beginStroke('orange').setStrokeStyle(2).moveTo(0, this.planet.lines.break).lineTo(50,this.planet.lines.break);
 		this.debug_cont.addChild(line);
 
 		var line = new createjs.Shape();
-		line.graphics.beginStroke('pink').setStrokeStyle(2).moveTo(0, this.config.lines.peak).lineTo(50,this.config.lines.peak);
+		line.graphics.beginStroke('pink').setStrokeStyle(2).moveTo(0, this.planet.lines.peak).lineTo(50,this.planet.lines.peak);
 		this.debug_cont.addChild(line);
 
 		var line = new createjs.Shape();
-		line.graphics.beginStroke('yellow').setStrokeStyle(2).moveTo(0, this.config.lines.beach).lineTo(50,this.config.lines.beach);
+		line.graphics.beginStroke('yellow').setStrokeStyle(2).moveTo(0, this.planet.lines.beach).lineTo(50,this.planet.lines.beach);
 		this.debug_cont.addChild(line);
 
 		var line = new createjs.Shape();
-		line.graphics.beginStroke('purple').setStrokeStyle(2).moveTo(0, this.config.lines.obstacle).lineTo(50,this.config.lines.obstacle);
+		line.graphics.beginStroke('purple').setStrokeStyle(2).moveTo(0, this.planet.lines.obstacle).lineTo(50,this.planet.lines.obstacle);
 		this.debug_cont.addChild(line);
 	}
 

@@ -1,8 +1,8 @@
 var conf = {
   id: 1,
-  name: 'zeguema1',
-  alias: 'zeguema1',
-  planet: 'zeguema',
+  name: 'flhoston1',
+  alias: 'flhoston1',
+  planet: 'flhoston',
   level: 1,
   unlock: true,
   init: {
@@ -13,7 +13,7 @@ var conf = {
     length :  3,
     speed : 20000,
     frequency : 5000,
-    interval : 8000,
+    interval : 28000,
     spread : 0,
     xshift: 0,
   },

@@ -107,7 +107,7 @@
 
 	prototype.getScaleByPosition = function() {
 
-		return (this.y - this.spot.config.lines.horizon) / (this.spot.config.lines.peak - this.spot.config.lines.horizon);
+		return (this.y - this.spot.planet.lines.horizon) / (this.spot.planet.lines.peak - this.spot.planet.lines.horizon);
 	}
 
 	prototype.getScaleByWaveSize = function() {

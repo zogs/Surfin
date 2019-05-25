@@ -18,11 +18,8 @@
           frames: {width:368, height:281, regX: 155, regY: 142},
           framerate: 1,
           animations: {
-            chill: 0,
-            sleep: [1,2,false],
-            warned: 3,
-            pullout: [4,6,false],
-            fire: 7
+            chill: [0,1, 'chill'],
+            fire: [2,8]
           }
       });
 
@@ -64,20 +61,12 @@
     }
 
     BeachTrooper.prototype.onEnterFrame = function() {
-
+      return;
       var distance = get2dDistance(this.x,this.y,this.wave.surfer.x,this.wave.surfer.y);
 
       if(distance < 620) {
         this.sprite.gotoAndPlay('fire');
         this.fire();
-        return;
-      }
-      if(distance < 650) {
-        this.sprite.gotoAndPlay('pullout');
-        return;
-      }
-      if(distance < 700) {
-        this.sprite.gotoAndStop('warned');
         return;
       }
     }

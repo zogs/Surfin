@@ -5,25 +5,9 @@ var conf = {
   planet: 'zeguema',
   level: 4,
   unlock: true,
-  config: {
     init: {
       type: 'waving',
       // type: 'fixed',
-    },
-    colors: {
-      top: '#00557f',
-      bottom: '#57c9ff'
-    },
-    images: {
-      background: 'spot_back',
-      frontground: 'spot_front',
-    },
-    lines: {
-      horizon: 240,
-      break: 500,
-      peak: 550,
-      beach: 600,
-      obstacle: 750,
     },
     series: {
       length :  3,
@@ -33,7 +17,15 @@ var conf = {
       spread : 0,
       xshift: 0,
     },
-    scores: {},
+    timelimit: 30,
+    goals: [
+      { type: 'score', current:0, aim: 2000, name: 'Faire un score de 2000 points' },
+      { type: 'trick', current:0, aim: 'Backflip', count: 2, name: 'Faire 2 backflip ({n})' },
+      { type: 'catch', current:0, aim: 'prize', count: 3, name: 'Attraper 3 prix ({n})' },
+      { type: 'catch', current:0, aim: 'star', count: 50, name: 'Attraper 50 étoiles ({n})' },
+      { type: 'kill', current:0, aim: 'surfer', count: 10, name: 'Défoncer 10 surfers ({n})' },
+      { type: 'tube', current:0, aim: 5, name: 'Faire un tube de 5s ou + ({n})' },
+    ],
     surfers: {
       max: 1,
       proportion: 1.5,
@@ -80,21 +72,11 @@ var conf = {
       },
       lip: {
         thickness: 10,
-        colors: {
-          top: '#216587',
-          bottom: 'rgba(255,255,255,0.2)',
-        },
         cap: {
           width: 700,
           height: 10,
           lifetime: 800,
         },
-      },
-      splash: {
-        colors: {
-          top: '#FFF',
-          bottom: '#FFF',
-        }
       },
       paddling_effort: 1,
       bottom_fall_scale: 0.8,
@@ -102,11 +84,6 @@ var conf = {
       tube_difficulty_min : 1,
       tube_difficulty_max : 10,
       suction: {x: 5, y: 4},
-      colors: [
-        ['#04567d',0,0],
-        ['#2ea8e3',0,50],
-        ['#36aee8',0,100]
-      ],
       obstacles: {
         'float': {
           'interval': 500,
@@ -142,7 +119,6 @@ var conf = {
         }
       }
     },
-  }
 };
 
 LEVELS.push(conf);

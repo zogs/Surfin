@@ -1,28 +1,12 @@
 var conf = {
   id: 1,
-  name: 'moyen',
-  alias: 'default',
+  name: 'caladan2',
+  alias: 'caladan2',
   planet: 'caladan',
   level: 2,
   unlock: true,
-  config: {
   "init": {
     "type": "waving"
-  },
-  "colors": {
-    "top": "#091c63",
-    "bottom": "#5169cb"
-  },
-  "images": {
-    "background": "caladan_back",
-    "frontground": "spot_front"
-  },
-  "lines": {
-    "horizon": 240,
-    "break": 500,
-    "peak": 550,
-    "beach": 600,
-    "obstacle": 750
   },
   "series": {
     "length": 3,
@@ -79,20 +63,10 @@ var conf = {
     },
     "lip": {
       "thickness": 10,
-      "colors": {
-        "top": "#233993",
-        "bottom": "#a9b3f1"
-      },
       "cap": {
         "width": 700,
         "height": 10,
         "lifetime": 800
-      }
-    },
-    "splash": {
-      "colors": {
-        "top": "#FFF",
-        "bottom": "#FFF"
       }
     },
     "paddling_effort": 1,
@@ -104,23 +78,6 @@ var conf = {
       "x": 5,
       "y": 4
     },
-    "colors": [
-      [
-        "#0d1544",
-        0,
-        0
-      ],
-      [
-        "#3a52b8",
-        0,
-        50
-      ],
-      [
-        "#2943ae",
-        0,
-        100
-      ]
-    ],
     "obstacles": {
       "float": {
         "interval": 2000,
@@ -164,7 +121,6 @@ var conf = {
       }
     }
   }
-}
   //endconfig
 };
 

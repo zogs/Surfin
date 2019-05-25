@@ -85,10 +85,10 @@
 
   prototype.move = function() {
 
-    const move = new Victor(0, this.wave.getSuction().y);
+    const move = new Victor(this.wave.getSuction().x, this.wave.getSuction().y);
     this.location.add(move);
     this.x = this.location.x;
-    //this.y = this.location.y;
+    this.y = this.location.y;
   }
 
   prototype.setXY = function(x,y) {
