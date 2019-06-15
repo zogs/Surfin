@@ -25,6 +25,8 @@ var conf = {
   surfers: {
     max: 1,
     proportion: 1.5,
+    "x": 750,
+    "y": 470,
     velocities: {
       x: 1,
       y: 1

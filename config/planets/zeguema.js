@@ -3,6 +3,7 @@ var planet = {
     name: 'Zeguema',
     location: 'UCF Outer Rings',
     information: "",
+    order: 5,
     levels: [],
     unlock: true,
     colors: {
@@ -17,11 +18,11 @@ var planet = {
       frontground: 'spot_front',
     },
     lines: {
-      horizon: 240,
-      break: 500,
-      peak: 550,
-      beach: 600,
-      obstacle: 750,
+      horizon: 300,
+      break: 550,
+      peak: 600,
+      beach: 650,
+      obstacle: 800,
     },
 }
 PLANETS.push(planet);

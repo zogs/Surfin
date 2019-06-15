@@ -860,8 +860,6 @@ prototype.playerTakeOff = function(surfer) {
 	e.surfer = this.surfer;
 	this.spot.dispatchEvent(e);
 
-		console.log(USER.skills);
-
 	}
 
 prototype.startShaking = function() {

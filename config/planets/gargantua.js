@@ -3,6 +3,7 @@ var planet = {
     name: 'Gargantua',
     location: 'Somewhere behind a black hole ',
     information: "",
+    order: 6,
     levels: [],
     unlock: false,
     images: {

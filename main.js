@@ -27,6 +27,7 @@ window.loaded = function() {
 		{id:'spot_front',src:'assets/img/spots/default/beach.png'},
 		{id:'caladan_back', src:'assets/img/spots/Caladan_Peak/back.jpg'},
 		{id:'flhoston_back', src:'assets/img/spots/Flhoston_Paradise/back.png'},
+		{id:'flhoston_back_reflect', src:'assets/img/spots/Flhoston_Paradise/shipreflect.png'},
 		{id:'pandora_back', src:'assets/img/spots/Pandora_Bay/back.jpg'},
 		{id:'zeguema_back', src:'assets/img/spots/Zeguema_Beach/back.jpg'},
 		{id:'btn_startgame',src:'assets/img/buttons/btn_startgame.png'},
@@ -140,7 +141,7 @@ window.initialize = function() {
 	SCREENS = new ScreenManager();
 
 	//BUILD LEVELS
-	PLANETS.map(function(p) {
+	PLANETS.sort(function(a,b) { return a.order - b.order }).map(function(p) {
 		p.levels = LEVELS.filter(l => l.planet == p.id);
 		//(temp) fill empty planet with default levels
 		if(p.levels.length==0) p.levels = LEVELS.filter(l => l.planet == 'zeguema');
@@ -156,7 +157,7 @@ window.initialize = function() {
 
 
 	//SPOT
-	const config = LEVELS.find(s => s.alias == 'zeguema1');
+	const config = LEVELS.find(s => s.alias == 'flhoston1');
 	window.addSpot(config,false);
 
 	//init onEnterFrame

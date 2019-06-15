@@ -3,6 +3,7 @@ var planet = {
     name: 'Kashykkk',
     location: 'Mytaranor sector',
     information: "",
+    order: 2,
     levels: [],
     unlock: true,
     images: {

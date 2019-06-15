@@ -19,6 +19,7 @@
 		this.score = null;
 		this.wave = null;
 		this.runing = false;
+    this.paused = false;
 		this.time_scale = (TIME_SCALE) ? TIME_SCALE : 1;
 
 		this.background = new createjs.Container();
@@ -42,10 +43,10 @@
 
 		this.debug_cont = new createjs.Container();
 		this.addChild(this.debug_cont);
-console.log(this.config);
-console.log(this.planet);
+
 		this.drawBackground();
 		this.drawFrontground();
+    this.drawExtra();
 
 		this.init();
 
@@ -114,6 +115,20 @@ console.log(this.planet);
 
 		this.animateBackground();
 	}
+
+  prototype.drawExtra = function() {
+
+    if(this.planet.images.extra) {
+      for(let i=0,ln=this.planet.images.extra.length; i<ln; i++) {
+        let extra = this.planet.images.extra[i];
+        let image = new createjs.Bitmap(queue.getResult(extra.asset));
+        image.x = extra.x;
+        image.y = extra.y;
+        image.alpha = (extra.alpha)? extra.alpha : 1;
+        this.background.addChild(image);
+      }
+    }
+  }
 
 	prototype.animateBackground = function() {
 
@@ -392,8 +407,7 @@ console.log(this.planet);
 		this.initEventsListeners();
 		let wave = this.addWave(1);
 		this.setWave(wave);
-
-		this.addPaddler(STAGEWIDTH/2,this.waves[0].y - 2/3*this.waves[0].params.height);
+		this.addPaddler(this.config.surfers.x, this.config.surfers.y);
 
 	}
 
@@ -404,7 +418,7 @@ console.log(this.planet);
 		this.initEventsListeners();
 		this.addInitialSerie();
 		//this.addSerie();
-		this.addPaddler(STAGEWIDTH/2,420);
+		this.addPaddler(this.config.surfers.x, this.config.surfers.y);
 	}
 
 	prototype.initWhenReady = function() {
@@ -553,7 +567,7 @@ console.log(this.planet);
 
 	prototype.tick = function() {
 
-		if(PAUSED) return;
+		if(this.paused) return;
 
 		this.managePaddlers();
 		this.paralaxWaves();
@@ -567,7 +581,7 @@ console.log(this.planet);
 		if(this.runing === false) return;
 
 		// cancel if on pause
-		if(PAUSED === true) return;
+		if(this.paused === true) return;
 
 		// manage relative position for each paddler
 		for(var i=0,len=this.paddlers.length;i<len;++i) {
@@ -812,7 +826,7 @@ console.log(this.planet);
 
 		if(!this.wave || this.wave.direction == 0) return;
 
-		if(PAUSED) return;
+		if(this.paused) return;
 
 		var index = this.sea_cont.getChildIndex(this.wave) - 1;
 		while(index >= 0) {
@@ -1006,8 +1020,11 @@ console.log(this.planet);
 
 	prototype.pause = function() {
 
+    this.paused = true;
+
 		for(var i=0; i < this.waves.length; ++i) {
 			this.waves[i].pause();
+      this.waves[i].coming_tween.paused = true;
 		}
 		for(var i=0; i < this.timers.length; ++i) {
 			this.timers[i].pause();
@@ -1018,7 +1035,10 @@ console.log(this.planet);
 
 	prototype.resume = function() {
 
+    this.paused = false;
+
 		for(var i=0; i < this.waves.length; ++i) {
+      this.waves[i].coming_tween.paused = false;
 			this.waves[i].resume();
 		}
 

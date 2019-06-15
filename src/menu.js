@@ -30,6 +30,7 @@
   prototype.open = function(e) {
 
     this.status = 'opened';
+    SPOT.pause();
     createjs.Tween.get(this).to({rotation:0, alpha:1}, 777, createjs.Ease.quartOut);
 
     if(e) e.stopImmediatePropagation();
@@ -37,7 +38,8 @@
 
   prototype.close = function(e) {
 
-    this.status = 'closed'
+    this.status = 'closed';
+    SPOT.resume();
     createjs.Tween.get(this).to({rotation:40, alpha:0}, 777, createjs.Ease.quartOut);
 
     if(e) e.stopImmediatePropagation();
