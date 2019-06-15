@@ -1,0 +1,27 @@
+version: '3'
+services:
+    nginx:
+        image: nginx
+        volumes:
+            - ${PATH_SOURCE}/.docker/conf/nginx/default.conf:/etc/nginx/conf.d/default.conf
+            - ${PATH_SOURCE}/.docker/conf/nginx/nginx.conf:/etc/nginx/nginx.conf
+            - ${PATH_SOURCE}:/var/www/surf/
+        ports:
+            - 80:80
+        restart: always
+        depends_on:
+            - php
+    php:
+        build: .docker
+        restart: always
+        ports:
+            - 9000:9000
+        volumes:
+            - ${PATH_SOURCE}/.docker/conf/php/php.ini:/usr/local/etc/php/conf.d/php.ini
+            - ${PATH_SOURCE}/.docker/conf/php/www.conf:/usr/local/etc/php-fpm.d/www.conf
+            - ${PATH_SOURCE}:/var/www/surf/
+
+    node:
+        image: node:10.15-stretch
+        volumes:
+            - ${PATH_SOURCE}:/var/www/surf/
