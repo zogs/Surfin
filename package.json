@@ -1,0 +1,31 @@
+{
+  "name": "spacesurfer",
+  "version": "0.0.1",
+  "description": "Space surfer game dev",
+  "main": "main.js",
+  "directories": {
+    "lib": "lib"
+  },
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "genimg": "node genimg.js"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/zogs/Surfin.git"
+  },
+  "author": "Simon Guichard guichardsim@gmail.com",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/zogs/Surfin/issues"
+  },
+  "homepage": "https://github.com/zogs/Surfin#readme",
+  "dependencies": {
+    "image-size": "^0.7.4",
+    "jimp": "^0.6.4",
+    "mkdirp": "^0.5.1",
+    "recursive-readdir": "^2.2.2",
+    "resolve-path": "^1.4.0",
+    "sharp": "^0.22.1"
+  }
+}

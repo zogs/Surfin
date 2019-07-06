@@ -1984,7 +1984,7 @@ prototype.initFrontgroundRipples = function() {
 	this.lip_ripples.ripple2 = ripple2;
 
 	this.lip_ripples.ripple_width = width;
-	this.lip_ripples.alpha = 0.5;
+	this.lip_ripples.alpha = 0.3;
 	this.lip_ripples.y = height/2;
 	this.lip_ripples.mask = this.lip_surface;
 	this.lip_ripples.visible = false;
