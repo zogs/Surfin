@@ -200,19 +200,18 @@ prototype.init = function(spot, config) {
 		this.lip_cap = new createjs.Shape();
 		this.lip_spray = new createjs.Shape();
 		this.lip_surface = new createjs.Shape();
-		this.lip_riddle = new createjs.Container();
-		this.lip_cont.addChild(this.lip_thickness, this.lip_shadow, this.lip_surface, this.lip_riddle, this.lip_spray);
+		this.lip_ripples = new createjs.Container();
+		this.lip_cont.addChild(this.lip_thickness, this.lip_shadow, this.lip_surface, this.lip_ripples, this.lip_spray);
 		this.lipcap_cont.addChild(this.lip_cap);
 
 		this.background = new createjs.Container();
 		this.background_gradient = new createjs.Shape();
-		this.background_riddles = new createjs.Container();
+		this.background_ripples = new createjs.Container();
 		this.background_shadow = new createjs.Shape();
-		this.background.addChild(this.background_gradient,this.background_riddles);
+		this.background.addChild(this.background_gradient,this.background_ripples);
 		this.background_cont.addChild(this.background,this.background_shadow);
 
-		this.initAnimateBackground();
-		this.initLipRiddle();
+		this.initRipples();
 
 
 		//draw shape mask beetween the two shoulder
@@ -254,7 +253,7 @@ prototype.tick = function(ev) {
 		this.drawMask();
 	}
 
-	this.animateBackground();
+	this.animateRipples();
 
 	if(DEBUG) {
 		this.drawDebug();
@@ -1599,19 +1598,6 @@ prototype.removeObstacle = function(obs) {
 	this.obstacle_cont.removeChild(obs);
 }
 
-prototype.initLipRiddle = function() {
-
-	const riddle = new createjs.Bitmap(queue.getResult('spot_seariddle'));
-	riddle.regX = riddle.image.width/2;
-	riddle.regY = riddle.image.height/2;
-	riddle.alpha = 0.4;
-	riddle.rotation = 90;
-	riddle.scaleY = 2;
-	this.lip_riddle.addChild(riddle);
-	this.lip_riddle.mask = this.lip_surface;
-	this.lip_riddle.visible = false;
-}
-
 prototype.drawLip = function() {
 
 	//return if not breked yet
@@ -1749,9 +1735,9 @@ prototype.drawLip = function() {
 
 	}
 
-	// apply mask to riddle bitmap
-	this.lip_riddle.x = -this.getX() + STAGEWIDTH/2;
-	this.lip_riddle.visible = true;
+	// apply mask to ripple bitmap
+	this.lip_ripples.x = -this.getX() + STAGEWIDTH/2;
+	this.lip_ripples.visible = true;
 
 
 }
@@ -1974,94 +1960,158 @@ prototype.drawBackground = function() {
 		.drawRect(0,0,STAGEWIDTH*2, height);
 }
 
-prototype.initAnimateBackground = function() {
+prototype.initRipples = function() {
 
-	this.background_riddles.alpha = 0.1;
-
-	this.background_riddle1 = new createjs.Bitmap(queue.getResult('wave_riddle'));
-
-	var height = this.background_riddle1.image.height;
-	this.background_scale = this.params.height / height;
-
-	this.background_riddle1.scaleY = this.background_scale;
-
-	this.background_riddle2 = this.background_riddle1.clone();
-	this.background_riddle2.x = 0;
-	this.background_riddle2.scaleY = this.background_scale;
-	this.background_riddle2.y = this.background_riddle1.image.height * this.background_scale;
-
-	this.background_riddle3 = this.background_riddle1.clone();
-	this.background_riddle3.x = this.background_riddle1.image.width;
-	this.background_riddle3.scaleY = this.background_scale;
-	this.background_riddle3.y = 0;
-
-	this.background_riddle4 = this.background_riddle1.clone();
-	this.background_riddle4.x = this.background_riddle4.image.width;
-	this.background_riddle4.scaleY = this.background_scale;
-	this.background_riddle4.y = this.background_riddle4.image.height * this.background_scale;
-
-	this.background_riddles.addChild(this.background_riddle1, this.background_riddle2, this.background_riddle3, this.background_riddle4);
+	this.initBackgroundRipples();
+	this.initFrontgroundRipples();
 }
 
-prototype.animateBackground = function() {
+prototype.initFrontgroundRipples = function() {
+
+	const ripple1 = new createjs.Bitmap(queue.getResult('lip_ripple'));
+	const width = ripple1.image.width;
+	const height = ripple1.image.height;
+	ripple1.regX = width/2;
+	ripple1.regY = height/2;
+	ripple1.scaleY = 1;
+	ripple1.x = 0;
+	this.lip_ripples.addChild(ripple1);
+	this.lip_ripples.ripple1 = ripple1;
+
+	const ripple2 = ripple1.clone();
+	ripple2.x = width;
+	this.lip_ripples.addChild(ripple2);
+	this.lip_ripples.ripple2 = ripple2;
+
+	this.lip_ripples.ripple_width = width;
+	this.lip_ripples.alpha = 0.5;
+	this.lip_ripples.y = height/2;
+	this.lip_ripples.mask = this.lip_surface;
+	this.lip_ripples.visible = false;
+}
+
+prototype.initBackgroundRipples = function() {
+
+	this.background_ripples.alpha = 0.1;
+
+	this.background_ripple1 = new createjs.Bitmap(queue.getResult('wave_ripple'));
+
+	var height = this.background_ripple1.image.height;
+	this.background_scale = this.params.height / height;
+
+	this.background_ripple1.scaleY = this.background_scale;
+
+	this.background_ripple2 = this.background_ripple1.clone();
+	this.background_ripple2.x = 0;
+	this.background_ripple2.scaleY = this.background_scale;
+	this.background_ripple2.y = this.background_ripple1.image.height * this.background_scale;
+
+	this.background_ripple3 = this.background_ripple1.clone();
+	this.background_ripple3.x = this.background_ripple1.image.width;
+	this.background_ripple3.scaleY = this.background_scale;
+	this.background_ripple3.y = 0;
+
+	this.background_ripple4 = this.background_ripple1.clone();
+	this.background_ripple4.x = this.background_ripple4.image.width;
+	this.background_ripple4.scaleY = this.background_scale;
+	this.background_ripple4.y = this.background_ripple4.image.height * this.background_scale;
+
+	this.background_ripples.addChild(this.background_ripple1, this.background_ripple2, this.background_ripple3, this.background_ripple4);
+}
+
+prototype.animateRipples = function() {
+
+	this.animateBackgroundRipples();
+	this.animateFrontgroundRipples();
+}
+
+prototype.animateFrontgroundRipples = function() {
+
+	if(PERF <= 1) return;
+	if(false === SPOT.runing && false === this.isPlayed()) return;
+
+	const ripple1 = this.lip_ripples.ripple1;
+	const ripple2 = this.lip_ripples.ripple2;
+	const width = this.lip_ripples.ripple_width;
+
+	ripple1.x += this.movingX;
+	ripple2.x += this.movingX;
+
+	if(this.direction === LEFT) {
+			if(ripple1.x >= STAGEWIDTH) {
+				ripple1.x = ripple2.x - width;
+			}
+			if(ripple2.x >= STAGEWIDTH) {
+				ripple2.x = ripple1.x - width;
+			}
+		}
+
+		if(this.direction === RIGHT) {
+			if(ripple1.x <= -STAGEWIDTH) {
+				ripple1.x = ripple2.x + width;
+			}
+			if(ripple2.x <= -STAGEWIDTH) {
+				ripple2.x = ripple1.x + width;
+			}
+		}
+}
+
+prototype.animateBackgroundRipples = function() {
 
 	if(PERF <= 1) return;
 
 	if(SPOT.runing === false && this.isPlayed() === false) return;
 
-	//create all sub riddles if not created yet
-	if(this.background_riddles.numChildren < 4) this.initAnimateBackground();
-
-	const riddle1 = this.background_riddle1;
-	const riddle2 = this.background_riddle2;
-	const riddle3 = this.background_riddle3;
-	const riddle4 = this.background_riddle4;
-	const width  = riddle1.image.width;
-	const height = riddle1.image.height * this.background_scale;
+	const ripple1 = this.background_ripple1;
+	const ripple2 = this.background_ripple2;
+	const ripple3 = this.background_ripple3;
+	const ripple4 = this.background_ripple4;
+	const width  = ripple1.image.width;
+	const height = ripple1.image.height * this.background_scale;
 	const coef = this.getResizeCoef();
 
-	riddle1.y += this.suction.y * coef;
-	riddle2.y += this.suction.y * coef;
-	riddle3.y += this.suction.y * coef;
-	riddle4.y += this.suction.y * coef;
+	ripple1.y += this.suction.y * coef;
+	ripple2.y += this.suction.y * coef;
+	ripple3.y += this.suction.y * coef;
+	ripple4.y += this.suction.y * coef;
 
-	if(riddle1.y <= - height) riddle1.y = riddle2.y + height;
-	if(riddle2.y <= - height) riddle2.y = riddle1.y + height;
-	if(riddle3.y <= - height) riddle3.y = riddle4.y + height;
-	if(riddle4.y <= - height) riddle4.y = riddle3.y + height;
+	if(ripple1.y <= - height) ripple1.y = ripple2.y + height;
+	if(ripple2.y <= - height) ripple2.y = ripple1.y + height;
+	if(ripple3.y <= - height) ripple3.y = ripple4.y + height;
+	if(ripple4.y <= - height) ripple4.y = ripple3.y + height;
 
-	riddle1.x += this.movingX;
-	riddle2.x += this.movingX;
-	riddle3.x += this.movingX;
-	riddle4.x += this.movingX;
+	ripple1.x += this.movingX;
+	ripple2.x += this.movingX;
+	ripple3.x += this.movingX;
+	ripple4.x += this.movingX;
 
 	if(this.direction === LEFT) {
-		if(riddle1.x >= STAGEWIDTH) {
-			riddle1.x = riddle3.x - width;
+		if(ripple1.x >= STAGEWIDTH) {
+			ripple1.x = ripple3.x - width;
 		}
-		if(riddle2.x >= STAGEWIDTH) {
-			riddle2.x = riddle4.x - width;
+		if(ripple2.x >= STAGEWIDTH) {
+			ripple2.x = ripple4.x - width;
 		}
-		if(riddle3.x >= STAGEWIDTH) {
-			riddle3.x = riddle1.x - width;
+		if(ripple3.x >= STAGEWIDTH) {
+			ripple3.x = ripple1.x - width;
 		}
-		if(riddle4.x >= STAGEWIDTH) {
-			riddle4.x = riddle2.x - width;
+		if(ripple4.x >= STAGEWIDTH) {
+			ripple4.x = ripple2.x - width;
 		}
 	}
 
 	if(this.direction === RIGHT) {
-		if(riddle1.x <= -STAGEWIDTH) {
-			riddle1.x = riddle3.x + width;
+		if(ripple1.x <= -STAGEWIDTH) {
+			ripple1.x = ripple3.x + width;
 		}
-		if(riddle2.x <= -STAGEWIDTH) {
-			riddle2.x = riddle4.x + width;
+		if(ripple2.x <= -STAGEWIDTH) {
+			ripple2.x = ripple4.x + width;
 		}
-		if(riddle3.x <= -STAGEWIDTH) {
-			riddle3.x = riddle1.x + width;
+		if(ripple3.x <= -STAGEWIDTH) {
+			ripple3.x = ripple1.x + width;
 		}
-		if(riddle4.x <= -STAGEWIDTH) {
-			riddle4.x = riddle2.x + width;
+		if(ripple4.x <= -STAGEWIDTH) {
+			ripple4.x = ripple2.x + width;
 		}
 	}
 

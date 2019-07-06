@@ -19,8 +19,9 @@ window.loaded = function() {
 	queue.loadManifest([
 		{id:'bg_paradize',src:'assets/img/spots/default/full.jpg'},
 		{id:'wave',src:'assets/img/waves/wave1.jpg'},
-		{id:'wave_riddle',src:'assets/img/waves/wave-riddle.png'},
-		{id:'spot_seariddle',src:'assets/img/spots/default/seariddles.png'},
+		{id:'wave_ripple',src:'assets/img/waves/wave-ripple.png'},
+		{id:'lip_ripple',src:'assets/img/waves/lip-ripple.png'},
+		{id:'spot_searipple',src:'assets/img/spots/default/searipples.png'},
 		{id:'spot_back',src:'assets/img/spots/zegema_beach/back.jpg'},
 		{id:'spot_back_home',src:'assets/img/spots/default/homeback.jpg'},
 		{id:'spot_front_home',src:'assets/img/spots/default/homefront.png'},
