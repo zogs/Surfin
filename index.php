@@ -9,9 +9,9 @@
 
 	<link rel="manifest" href="manifest.json">
 
-	<link rel="stylesheet" href="assets/font/Alba/stylesheet.css">
-	<link rel="stylesheet" href="assets/font/Boogaloo/stylesheet.css">
-	<link rel="stylesheet" href="assets/font/Bubblegum/stylesheet.css">
+	<link rel="stylesheet" href="dist/font/Alba/stylesheet.css">
+	<link rel="stylesheet" href="dist/font/Boogaloo/stylesheet.css">
+	<link rel="stylesheet" href="dist/font/Bubblegum/stylesheet.css">
 
 	<style type="text/css">
 			body { margin: 0; padding: 0; background: #000; }

@@ -17,14 +17,11 @@ let CURRENTY;
 let rX;
 let rY;
 
-let ASSETS = 'dist/img';
-
 window.load = function() {
 
 	CURRENTX = 1280
 	CURRENTY = 720;
 
-	ASSETS += '/'+CURRENTX+'x'+CURRENTY+'/';
 
 	USER = new User();
 
@@ -33,84 +30,85 @@ window.load = function() {
 
 	window.resizeCanvas();
 
+	let imgdir = 'dist/img/'+CURRENTX+'x'+CURRENTY+'/';
 	queue = new createjs.LoadQueue();
 	queue.addEventListener('complete',initialize);
 	queue.loadManifest([
-		{id:'bg_paradize',src:ASSETS+'spots/default/full.jpg'},
-		{id:'wave',src:ASSETS+'waves/wave1.jpg'},
-		{id:'wave_ripple',src:ASSETS+'waves/wave-ripple.png'},
-		{id:'lip_ripple',src:ASSETS+'waves/lip-ripple.png'},
-		{id:'spot_searipple',src:ASSETS+'spots/default/searipples.png'},
-		{id:'spot_back',src:ASSETS+'spots/zegema_beach/back.jpg'},
-		{id:'spot_back_home',src:ASSETS+'spots/default/homeback.jpg'},
-		{id:'spot_front_home',src:ASSETS+'spots/default/homefront.png'},
-		{id:'spot_front',src:ASSETS+'spots/default/beach.png'},
-		{id:'caladan_back', src:ASSETS+'spots/Caladan_Peak/back.jpg'},
-		{id:'flhoston_back', src:ASSETS+'spots/Flhoston_Paradise/back.png'},
-		{id:'flhoston_back_reflect', src:ASSETS+'spots/Flhoston_Paradise/shipreflect.png'},
-		{id:'pandora_back', src:ASSETS+'spots/Pandora_Bay/back.jpg'},
-		{id:'zeguema_back', src:ASSETS+'spots/Zeguema_Beach/back.jpg'},
-		{id:'btn_startgame',src:ASSETS+'buttons/btn_startgame.png'},
-		{id:'btn_level',src:ASSETS+'buttons/btn_level.png'},
-		{id:'btn_back',src:ASSETS+'buttons/btn_back.png'},
-		{id:'btn_menu',src:ASSETS+'buttons/btn_menu.png'},
-		{id:'btn_menu_sm',src:ASSETS+'buttons/btn_menu_sm.png'},
-		{id:'btn_retry',src:ASSETS+'buttons/btn_retry.png'},
-		{id:'btn_retry_sm',src:ASSETS+'buttons/btn_retry_sm.png'},
-		{id:'btn_close',src:ASSETS+'buttons/btn_close.png'},
-		{id:'btn_skills',src:ASSETS+'buttons/btn_skills.png'},
-		{id:'dog',src:ASSETS+'object/spacedog.png'},
-		{id:'bomb',src:ASSETS+'object/astro_bomb.png'},
-		{id:'boom',src:ASSETS+'object/astro_boom.png'},
-		{id:'surfer_splash',src:ASSETS+'object/splash.png'},
-		{id:'surfer',src:ASSETS+'surfer/astrosurfer_moves.png'},
-		{id:'surfer_takeoff',src:ASSETS+'surfer/astrosurfer_takeoff.png'},
-		{id:'stormsurfer',src:ASSETS+'surfer/surfer_stormtrooper.png'},
-		{id:'stormsurfer_takeoff',src:ASSETS+'surfer/takeoff_stormtrooper.png'},
-		{id:'paddler',src:ASSETS+'surfer/astropaddler.png'},
-		{id:'photographer',src:ASSETS+'object/photographer.png'},
-		{id:'cigogne',src:ASSETS+'object/cigogne.png'},
-		{id:'drone',src:ASSETS+'object/drone.png'},
-		{id:'wash',src:ASSETS+'object/wash.png'},
-		{id:'sprite_beachtrooper',src:ASSETS+'object/beachtrooper.png'},
-		{id:'washed_text',src:ASSETS+'washed.png'},
-		{id:'star', src:ASSETS+'object/star.png'},
-		{id:'shark', src:ASSETS+'object/shark.png'},
-		{id:'ptero', src:ASSETS+'object/ptero.png'},
-		{id:'spacetablet', src:ASSETS+'bkg/tablet.png'},
-		{id:'scoretable', src:ASSETS+'bkg/scoretable.png'},
-		{id:'scoreboard', src:ASSETS+'bkg/scoreboard.png'},
-		{id:'caladan', src:ASSETS+'planets/caladan.png'},
-		{id:'flhoston', src:ASSETS+'planets/flhoston.png'},
-		{id:'kashykkk', src:ASSETS+'planets/kashykkk.png'},
-		{id:'pandora', src:ASSETS+'planets/pandora.png'},
-		{id:'zeguema', src:ASSETS+'planets/zeguema.png'},
-		{id:'gargantua', src:ASSETS+'planets/gargantua.png'},
-		{id:'default', src:ASSETS+'planets/default.png'},
-		{id:'lock', src:ASSETS+'planets/lock.png'},
-		{id:'astrovan', src:ASSETS+'object/astrovan.png'},
-		{id:'cocktail', src:ASSETS+'object/cocktail.png'},
-		{id:'coffee', src:ASSETS+'object/coffee.png'},
-		{id:'drinkshadow', src:ASSETS+'object/drinkshadow.png'},
-		{id:'successtxt', src:ASSETS+'object/successtxt.png'},
-		{id:'tryagaintxt', src:ASSETS+'object/tryagaintxt.png'},
-		{id:'failed', src:ASSETS+'object/failed.png'},
-		{id:'valid', src:ASSETS+'object/valid.png'},
-		{id:'medal_gold', src:ASSETS+'object/medal_gold.png'},
-		{id:'medal_silver', src:ASSETS+'object/medal_silver.png'},
-		{id:'medal_bronze', src:ASSETS+'object/medal_bronze.png'},
-		{id:'medal_empty', src:ASSETS+'object/medal_empty.png'},
-		{id:'astroposeur', src:ASSETS+'object/astroposeur.png'}
+		{id:'bg_paradize',src:imgdir+'spots/default/full.jpg'},
+		{id:'wave',src:imgdir+'waves/wave1.jpg'},
+		{id:'wave_ripple',src:imgdir+'waves/wave-ripple.png'},
+		{id:'lip_ripple',src:imgdir+'waves/lip-ripple.png'},
+		{id:'spot_searipple',src:imgdir+'spots/default/searipples.png'},
+		{id:'spot_back',src:imgdir+'spots/zegema_beach/back.jpg'},
+		{id:'spot_back_home',src:imgdir+'spots/default/homeback.jpg'},
+		{id:'spot_front_home',src:imgdir+'spots/default/homefront.png'},
+		{id:'spot_front',src:imgdir+'spots/default/beach.png'},
+		{id:'caladan_back', src:imgdir+'spots/Caladan_Peak/back.jpg'},
+		{id:'flhoston_back', src:imgdir+'spots/Flhoston_Paradise/back.png'},
+		{id:'flhoston_back_reflect', src:imgdir+'spots/Flhoston_Paradise/shipreflect.png'},
+		{id:'pandora_back', src:imgdir+'spots/Pandora_Bay/back.jpg'},
+		{id:'zeguema_back', src:imgdir+'spots/Zeguema_Beach/back.jpg'},
+		{id:'btn_startgame',src:imgdir+'buttons/btn_startgame.png'},
+		{id:'btn_level',src:imgdir+'buttons/btn_level.png'},
+		{id:'btn_back',src:imgdir+'buttons/btn_back.png'},
+		{id:'btn_menu',src:imgdir+'buttons/btn_menu.png'},
+		{id:'btn_menu_sm',src:imgdir+'buttons/btn_menu_sm.png'},
+		{id:'btn_retry',src:imgdir+'buttons/btn_retry.png'},
+		{id:'btn_retry_sm',src:imgdir+'buttons/btn_retry_sm.png'},
+		{id:'btn_close',src:imgdir+'buttons/btn_close.png'},
+		{id:'btn_skills',src:imgdir+'buttons/btn_skills.png'},
+		{id:'dog',src:imgdir+'object/spacedog.png'},
+		{id:'bomb',src:imgdir+'object/astro_bomb.png'},
+		{id:'boom',src:imgdir+'object/astro_boom.png'},
+		{id:'surfer_splash',src:imgdir+'object/splash.png'},
+		{id:'surfer',src:imgdir+'surfer/astrosurfer_moves.png'},
+		{id:'surfer_takeoff',src:imgdir+'surfer/astrosurfer_takeoff.png'},
+		{id:'stormsurfer',src:imgdir+'surfer/surfer_stormtrooper.png'},
+		{id:'stormsurfer_takeoff',src:imgdir+'surfer/takeoff_stormtrooper.png'},
+		{id:'paddler',src:imgdir+'surfer/astropaddler.png'},
+		{id:'photographer',src:imgdir+'object/photographer.png'},
+		{id:'cigogne',src:imgdir+'object/cigogne.png'},
+		{id:'drone',src:imgdir+'object/drone.png'},
+		{id:'wash',src:imgdir+'object/wash.png'},
+		{id:'sprite_beachtrooper',src:imgdir+'object/beachtrooper.png'},
+		{id:'washed_text',src:imgdir+'washed.png'},
+		{id:'star', src:imgdir+'object/star.png'},
+		{id:'shark', src:imgdir+'object/shark.png'},
+		{id:'ptero', src:imgdir+'object/ptero.png'},
+		{id:'spacetablet', src:imgdir+'bkg/tablet.png'},
+		{id:'scoretable', src:imgdir+'bkg/scoretable.png'},
+		{id:'scoreboard', src:imgdir+'bkg/scoreboard.png'},
+		{id:'caladan', src:imgdir+'planets/caladan.png'},
+		{id:'flhoston', src:imgdir+'planets/flhoston.png'},
+		{id:'kashykkk', src:imgdir+'planets/kashykkk.png'},
+		{id:'pandora', src:imgdir+'planets/pandora.png'},
+		{id:'zeguema', src:imgdir+'planets/zeguema.png'},
+		{id:'gargantua', src:imgdir+'planets/gargantua.png'},
+		{id:'default', src:imgdir+'planets/default.png'},
+		{id:'lock', src:imgdir+'planets/lock.png'},
+		{id:'astrovan', src:imgdir+'object/astrovan.png'},
+		{id:'cocktail', src:imgdir+'object/cocktail.png'},
+		{id:'coffee', src:imgdir+'object/coffee.png'},
+		{id:'drinkshadow', src:imgdir+'object/drinkshadow.png'},
+		{id:'successtxt', src:imgdir+'object/successtxt.png'},
+		{id:'tryagaintxt', src:imgdir+'object/tryagaintxt.png'},
+		{id:'failed', src:imgdir+'object/failed.png'},
+		{id:'valid', src:imgdir+'object/valid.png'},
+		{id:'medal_gold', src:imgdir+'object/medal_gold.png'},
+		{id:'medal_silver', src:imgdir+'object/medal_silver.png'},
+		{id:'medal_bronze', src:imgdir+'object/medal_bronze.png'},
+		{id:'medal_empty', src:imgdir+'object/medal_empty.png'},
+		{id:'astroposeur', src:imgdir+'object/astroposeur.png'}
 
 		]);
 
 	createjs.Sound.alternateExtensions = ["mp3"];
- 	createjs.Sound.registerSound("assets/sounds/yeah.mp3", "bravo");
- 	createjs.Sound.registerSound("assets/sounds/pickup.wav", "pickup");
- 	createjs.Sound.registerSound("assets/sounds/cut.wav", "cut");
- 	createjs.Sound.registerSound("assets/sounds/sharkroar.wav", "sharkroar");
- 	createjs.Sound.registerSound("assets/sounds/plouf.mp3", "plouf");
- 	createjs.Sound.registerSound("assets/sounds/gasp.wav", "gasp");
+ 	createjs.Sound.registerSound("dist/sounds/yeah.mp3", "bravo");
+ 	createjs.Sound.registerSound("dist/sounds/pickup.wav", "pickup");
+ 	createjs.Sound.registerSound("dist/sounds/cut.wav", "cut");
+ 	createjs.Sound.registerSound("dist/sounds/sharkroar.wav", "sharkroar");
+ 	createjs.Sound.registerSound("dist/sounds/plouf.mp3", "plouf");
+ 	createjs.Sound.registerSound("dist/sounds/gasp.wav", "gasp");
 	createjs.Sound.volume = 0.1;
 
 
