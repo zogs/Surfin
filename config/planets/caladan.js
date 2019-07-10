@@ -5,6 +5,7 @@ var planet = {
     information: "> Planet is under the blocus of the Imperial fleet. \n> Rumors about war preparation \n> Tourist are authorized to leave \n> Enter at your own risk !!! \n> Beach are desert :)",
     order: 1,
     levels: [],
+    active: true,
     unlock: true,
     "colors": {
       "sea": {"top": "#2c78f5","bottom": "#1e3bb3"},

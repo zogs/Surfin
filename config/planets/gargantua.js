@@ -5,6 +5,7 @@ var planet = {
     information: "",
     order: 6,
     levels: [],
+    active: true,
     unlock: false,
     images: {
       background: 'spot_back',

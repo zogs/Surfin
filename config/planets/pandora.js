@@ -5,6 +5,7 @@ var planet = {
     information: "",
     order: 3,
     levels: [],
+    active: true,
     unlock: true,
     colors: {
       sea: {top: '#092f5e',bottom: '#37b3d6'},

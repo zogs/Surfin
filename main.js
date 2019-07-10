@@ -9,82 +9,98 @@ const LEFT = 1;
 const CENTER = 0;
 const RIGHT = 2;
 
-const assetsdir = 'assets/img/1500x800/';
+const ORIGINX = 1500;
+const ORIGINY = 800;
 
-window.loaded = function() {
+let CURRENTX;
+let CURRENTY;
+let rX;
+let rY;
+
+let ASSETS = 'dist/img';
+
+window.load = function() {
+
+	CURRENTX = 1280
+	CURRENTY = 720;
+
+	ASSETS += '/'+CURRENTX+'x'+CURRENTY+'/';
+
+	USER = new User();
 
 	window.Stage = new createjs.Stage('canvas');
 	window.Stage.enableMouseOver(10);
 
+	window.resizeCanvas();
+
 	queue = new createjs.LoadQueue();
 	queue.addEventListener('complete',initialize);
 	queue.loadManifest([
-		{id:'bg_paradize',src:assetsdir+'spots/default/full.jpg'},
-		{id:'wave',src:assetsdir+'waves/wave1.jpg'},
-		{id:'wave_ripple',src:assetsdir+'waves/wave-ripple.png'},
-		{id:'lip_ripple',src:assetsdir+'waves/lip-ripple.png'},
-		{id:'spot_searipple',src:assetsdir+'spots/default/searipples.png'},
-		{id:'spot_back',src:assetsdir+'spots/zegema_beach/back.jpg'},
-		{id:'spot_back_home',src:assetsdir+'spots/default/homeback.jpg'},
-		{id:'spot_front_home',src:assetsdir+'spots/default/homefront.png'},
-		{id:'spot_front',src:assetsdir+'spots/default/beach.png'},
-		{id:'caladan_back', src:assetsdir+'spots/Caladan_Peak/back.jpg'},
-		{id:'flhoston_back', src:assetsdir+'spots/Flhoston_Paradise/back.png'},
-		{id:'flhoston_back_reflect', src:assetsdir+'spots/Flhoston_Paradise/shipreflect.png'},
-		{id:'pandora_back', src:assetsdir+'spots/Pandora_Bay/back.jpg'},
-		{id:'zeguema_back', src:assetsdir+'spots/Zeguema_Beach/back.jpg'},
-		{id:'btn_startgame',src:assetsdir+'buttons/btn_startgame.png'},
-		{id:'btn_level',src:assetsdir+'buttons/btn_level.png'},
-		{id:'btn_back',src:assetsdir+'buttons/btn_back.png'},
-		{id:'btn_menu',src:assetsdir+'buttons/btn_menu.png'},
-		{id:'btn_menu_sm',src:assetsdir+'buttons/btn_menu_sm.png'},
-		{id:'btn_retry',src:assetsdir+'buttons/btn_retry.png'},
-		{id:'btn_retry_sm',src:assetsdir+'buttons/btn_retry_sm.png'},
-		{id:'btn_close',src:assetsdir+'buttons/btn_close.png'},
-		{id:'btn_skills',src:assetsdir+'buttons/btn_skills.png'},
-		{id:'dog',src:assetsdir+'object/spacedog.png'},
-		{id:'bomb',src:assetsdir+'object/astro_bomb.png'},
-		{id:'boom',src:assetsdir+'object/astro_boom.png'},
-		{id:'surfer_splash',src:assetsdir+'object/splash.gif'},
-		{id:'surfer',src:assetsdir+'surfer/astrosurfer_moves.png'},
-		{id:'surfer_takeoff',src:assetsdir+'surfer/astrosurfer_takeoff.png'},
-		{id:'stormsurfer',src:assetsdir+'surfer/surfer_stormtrooper.png'},
-		{id:'stormsurfer_takeoff',src:assetsdir+'surfer/takeoff_stormtrooper.png'},
-		{id:'paddler',src:assetsdir+'surfer/astropaddler.png'},
-		{id:'photographer',src:assetsdir+'object/photographer.png'},
-		{id:'cigogne',src:assetsdir+'object/cigogne.png'},
-		{id:'drone',src:assetsdir+'object/drone.png'},
-		{id:'wash_plouf',src:assetsdir+'object/wash.svg'},
-		{id:'wash',src:assetsdir+'object/wash.png'},
-		{id:'sprite_beachtrooper',src:assetsdir+'object/beachtrooper.png'},
-		{id:'washed_text',src:assetsdir+'washed.png'},
-		{id:'star', src:assetsdir+'object/star.png'},
-		{id:'shark', src:assetsdir+'object/shark.png'},
-		{id:'ptero', src:assetsdir+'object/ptero.png'},
-		{id:'spacetablet', src:assetsdir+'bkg/tablet.png'},
-		{id:'scoretable', src:assetsdir+'bkg/scoretable.png'},
-		{id:'scoreboard', src:assetsdir+'bkg/scoreboard.png'},
-		{id:'caladan', src:assetsdir+'planets/caladan.png'},
-		{id:'flhoston', src:assetsdir+'planets/flhoston.png'},
-		{id:'kashykkk', src:assetsdir+'planets/kashykkk.png'},
-		{id:'pandora', src:assetsdir+'planets/pandora.png'},
-		{id:'zeguema', src:assetsdir+'planets/zeguema.png'},
-		{id:'gargantua', src:assetsdir+'planets/gargantua.png'},
-		{id:'default', src:assetsdir+'planets/default.png'},
-		{id:'lock', src:assetsdir+'planets/lock.png'},
-		{id:'astrovan', src:assetsdir+'object/astrovan.png'},
-		{id:'cocktail', src:assetsdir+'object/cocktail.png'},
-		{id:'coffee', src:assetsdir+'object/coffee.png'},
-		{id:'drinkshadow', src:assetsdir+'object/drinkshadow.png'},
-		{id:'successtxt', src:assetsdir+'object/successtxt.png'},
-		{id:'tryagaintxt', src:assetsdir+'object/tryagaintxt.png'},
-		{id:'failed', src:assetsdir+'object/failed.png'},
-		{id:'valid', src:assetsdir+'object/valid.png'},
-		{id:'medal_gold', src:assetsdir+'object/medal_gold.png'},
-		{id:'medal_silver', src:assetsdir+'object/medal_silver.png'},
-		{id:'medal_bronze', src:assetsdir+'object/medal_bronze.png'},
-		{id:'medal_empty', src:assetsdir+'object/medal_empty.png'},
-		{id:'astroposeur', src:assetsdir+'object/astroposeur.png'}
+		{id:'bg_paradize',src:ASSETS+'spots/default/full.jpg'},
+		{id:'wave',src:ASSETS+'waves/wave1.jpg'},
+		{id:'wave_ripple',src:ASSETS+'waves/wave-ripple.png'},
+		{id:'lip_ripple',src:ASSETS+'waves/lip-ripple.png'},
+		{id:'spot_searipple',src:ASSETS+'spots/default/searipples.png'},
+		{id:'spot_back',src:ASSETS+'spots/zegema_beach/back.jpg'},
+		{id:'spot_back_home',src:ASSETS+'spots/default/homeback.jpg'},
+		{id:'spot_front_home',src:ASSETS+'spots/default/homefront.png'},
+		{id:'spot_front',src:ASSETS+'spots/default/beach.png'},
+		{id:'caladan_back', src:ASSETS+'spots/Caladan_Peak/back.jpg'},
+		{id:'flhoston_back', src:ASSETS+'spots/Flhoston_Paradise/back.png'},
+		{id:'flhoston_back_reflect', src:ASSETS+'spots/Flhoston_Paradise/shipreflect.png'},
+		{id:'pandora_back', src:ASSETS+'spots/Pandora_Bay/back.jpg'},
+		{id:'zeguema_back', src:ASSETS+'spots/Zeguema_Beach/back.jpg'},
+		{id:'btn_startgame',src:ASSETS+'buttons/btn_startgame.png'},
+		{id:'btn_level',src:ASSETS+'buttons/btn_level.png'},
+		{id:'btn_back',src:ASSETS+'buttons/btn_back.png'},
+		{id:'btn_menu',src:ASSETS+'buttons/btn_menu.png'},
+		{id:'btn_menu_sm',src:ASSETS+'buttons/btn_menu_sm.png'},
+		{id:'btn_retry',src:ASSETS+'buttons/btn_retry.png'},
+		{id:'btn_retry_sm',src:ASSETS+'buttons/btn_retry_sm.png'},
+		{id:'btn_close',src:ASSETS+'buttons/btn_close.png'},
+		{id:'btn_skills',src:ASSETS+'buttons/btn_skills.png'},
+		{id:'dog',src:ASSETS+'object/spacedog.png'},
+		{id:'bomb',src:ASSETS+'object/astro_bomb.png'},
+		{id:'boom',src:ASSETS+'object/astro_boom.png'},
+		{id:'surfer_splash',src:ASSETS+'object/splash.png'},
+		{id:'surfer',src:ASSETS+'surfer/astrosurfer_moves.png'},
+		{id:'surfer_takeoff',src:ASSETS+'surfer/astrosurfer_takeoff.png'},
+		{id:'stormsurfer',src:ASSETS+'surfer/surfer_stormtrooper.png'},
+		{id:'stormsurfer_takeoff',src:ASSETS+'surfer/takeoff_stormtrooper.png'},
+		{id:'paddler',src:ASSETS+'surfer/astropaddler.png'},
+		{id:'photographer',src:ASSETS+'object/photographer.png'},
+		{id:'cigogne',src:ASSETS+'object/cigogne.png'},
+		{id:'drone',src:ASSETS+'object/drone.png'},
+		{id:'wash',src:ASSETS+'object/wash.png'},
+		{id:'sprite_beachtrooper',src:ASSETS+'object/beachtrooper.png'},
+		{id:'washed_text',src:ASSETS+'washed.png'},
+		{id:'star', src:ASSETS+'object/star.png'},
+		{id:'shark', src:ASSETS+'object/shark.png'},
+		{id:'ptero', src:ASSETS+'object/ptero.png'},
+		{id:'spacetablet', src:ASSETS+'bkg/tablet.png'},
+		{id:'scoretable', src:ASSETS+'bkg/scoretable.png'},
+		{id:'scoreboard', src:ASSETS+'bkg/scoreboard.png'},
+		{id:'caladan', src:ASSETS+'planets/caladan.png'},
+		{id:'flhoston', src:ASSETS+'planets/flhoston.png'},
+		{id:'kashykkk', src:ASSETS+'planets/kashykkk.png'},
+		{id:'pandora', src:ASSETS+'planets/pandora.png'},
+		{id:'zeguema', src:ASSETS+'planets/zeguema.png'},
+		{id:'gargantua', src:ASSETS+'planets/gargantua.png'},
+		{id:'default', src:ASSETS+'planets/default.png'},
+		{id:'lock', src:ASSETS+'planets/lock.png'},
+		{id:'astrovan', src:ASSETS+'object/astrovan.png'},
+		{id:'cocktail', src:ASSETS+'object/cocktail.png'},
+		{id:'coffee', src:ASSETS+'object/coffee.png'},
+		{id:'drinkshadow', src:ASSETS+'object/drinkshadow.png'},
+		{id:'successtxt', src:ASSETS+'object/successtxt.png'},
+		{id:'tryagaintxt', src:ASSETS+'object/tryagaintxt.png'},
+		{id:'failed', src:ASSETS+'object/failed.png'},
+		{id:'valid', src:ASSETS+'object/valid.png'},
+		{id:'medal_gold', src:ASSETS+'object/medal_gold.png'},
+		{id:'medal_silver', src:ASSETS+'object/medal_silver.png'},
+		{id:'medal_bronze', src:ASSETS+'object/medal_bronze.png'},
+		{id:'medal_empty', src:ASSETS+'object/medal_empty.png'},
+		{id:'astroposeur', src:ASSETS+'object/astroposeur.png'}
 
 		]);
 
@@ -124,6 +140,8 @@ window.initialize = function() {
 	// Containers
 	window.spot_cont = new createjs.Container();
 	window.Stage.addChild(window.spot_cont);
+	window.extra_cont = new createjs.Container();
+	window.Stage.addChild(window.extra_cont);
 	window.border_cont = new createjs.Container();
 	window.Stage.addChild(window.border_cont);
 	window.menu_cont = new createjs.Container();
@@ -136,8 +154,7 @@ window.initialize = function() {
 	window.border_cont.addChild(border);
 
 
-	//USER
-	USER = new User();
+
 	//USER.load();
 
 	//SCREEN
@@ -160,7 +177,7 @@ window.initialize = function() {
 
 
 	//SPOT
-	const config = LEVELS.find(s => s.alias == 'flhoston1');
+	const config = LEVELS.find(s => s.alias == 'home');
 	window.addSpot(config,false);
 
 	//init onEnterFrame
@@ -183,28 +200,6 @@ window.initialize = function() {
 
 	// set customizer
 	//initCustomizer();
-
-	window.resizeCanvas();
-
-
-	/*let bar = new XpBar({width: 500, height: 30, dispatcher: stage});
-	bar.x = STAGEWIDTH/2;
-	bar.y = STAGEHEIGHT/2;
-	stage.addChild(bar);
-
-	bar.start(0, 13000, 1);
-*/
-
-	let image = new createjs.Bitmap(queue.getResult('spot_front'));
-	image.x = 0;
-	image.y = 300;
-	var matrix = new createjs.ColorMatrix().adjustHue(11).adjustSaturation(-71);
-	var filter = new createjs.ColorMatrixFilter(matrix);
-  image.filters = [filter];
-  image.cache(0, 0, image.getBounds().width, image.getBounds().height);
-	//window.Stage.addChild(image);
-
-
 
 }
 
@@ -425,18 +420,46 @@ window.browserResizeEnded = function() {
 
 window.resizeCanvas = function() {
 
+	if (USER.device.android || USER.device.ios) { //if android or ios
+		//hide address bar
+        document.body.style.height = (windowHeight + 50) + 'px';
+        //enable Touch event
+        createjs.Touch.enable(window.Stage);
+    }
+
+  rX = CURRENTX / ORIGINX;
+  rY = CURRENTY / ORIGINY;
+
+  document.getElementById('canvas').width = CURRENTX;
+  document.getElementById('canvas').height = CURRENTY;
+
+	document.getElementById('canvas').style.width = CURRENTX+'px';
+	document.getElementById('canvas').style.height = CURRENTY+'px';
+
+	//scroll to top
+	window.setTimeout(function() { //rowsers don't fire if there is not short delay
+		window.scrollTo(0,1);
+    }, 1);
+
+}
+/*
+window.resizeCanvas = function() {
+
 	var windowWidth = window.innerWidth || document.documentElement.clientWidth || document.body.clientWidth;
 	var windowHeight = window.innerHeight || document.documentElement.clientHeight || document.body.clientHeight;
 
-	var currentHeight = window.Stage.canvas.height;
+
 	var currentWidth = window.Stage.canvas.width;
+	var currentHeight = window.Stage.canvas.height;
+	var ratio = currentWidth / currentHeight;
+
 	if(windowHeight < window.Stage.canvas.height) {
 		currentHeight = windowHeight;
-		currentWidth = currentHeight * RATIO;
+		currentWidth = currentHeight * ratio;
 	}
 	if(windowWidth < window.Stage.canvas.width) {
 		currentWidth = windowWidth;
-		currentHeight = currentWidth / RATIO;
+		currentHeight = currentWidth / ratio;
 	}
 
 	if (USER.device.android || USER.device.ios) { //if android or ios
@@ -455,3 +478,4 @@ window.resizeCanvas = function() {
     }, 1);
 
 }
+*/

@@ -74,6 +74,7 @@
     let padding = 50;
     for(let i=0,ln=this.planets.length; i<ln; i++) {
       let config = this.planets[i];
+      if(config.active == false) continue;
       let planet = new createjs.Bitmap(queue.getResult(config.id));
       planet.name = config.name;
       planet.regX = planet.image.width/2;
@@ -222,6 +223,7 @@
     }
     //clear stage
     window.spot_cont.removeAllChildren();
+    window.extra_cont.removeAllChildren();
     //create spot with new config
     SPOT = new Spot(level);
     //add it

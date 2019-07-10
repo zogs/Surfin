@@ -1946,8 +1946,8 @@ prototype.drawBackground = function() {
 		if(colors[i+1] === undefined) break;
 		let color1 = colors[i];
 		let color2 = colors[i+1];
-		let y1 = height * color1[2] / 100;
-		let y2 = height * color2[2] / 100;
+		let y1 = parseInt(height * color1[2] / 100);
+		let y2 = parseInt(height * color2[2] / 100);
 
 		this.background_gradient.graphics
 			.beginLinearGradientFill([color1[0],color2[0]],[0+color1[1],1-color2[1]],0,y1,0,y2)

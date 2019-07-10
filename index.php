@@ -20,7 +20,7 @@
 
 	</head>
 
-	<body onload="loaded()">
+	<body onload="load()">
 			<canvas id="canvas" width="1500" height="800"><!-- dont touch the dimension, it is use to calculate the proportion --></canvas>
 		</div>
 	</body>

@@ -100,13 +100,13 @@
 					;
 		this.background.addChild(seagradient);
 
-		const image1 = new createjs.Bitmap(queue.getResult('spot_seariddle'));
+		const image1 = new createjs.Bitmap(queue.getResult('spot_searipple'));
 		image1.alpha = 0.2;
 		image1.y = this.planet.lines.horizon;
 		this.riddles1 = image1;
 		this.background.addChild(image1);
 
-		const image2 = new createjs.Bitmap(queue.getResult('spot_seariddle'));
+		const image2 = new createjs.Bitmap(queue.getResult('spot_searipple'));
 		image2.alpha = 0.2;
 		image2.y = this.planet.lines.horizon;
 		image2.skewX = 1;
@@ -344,24 +344,25 @@
     const dog = new createjs.Sprite(
       new createjs.SpriteSheet({
           images: [queue.getResult('dog')],
-          frames: {width:64, height:64, regX: 16, regY: 16},
+          frames: {width:parseInt(64*rX), height:parseInt(64*rY), regX: parseInt(16*rX), regY: parseInt(16*rY)},
           framerate: 10,
           animations: {
             sit: [0,1, 'sit'],
           }
       })
     );
-    dog.x = 430;
-    dog.y = STAGEHEIGHT - 150;
+    dog.x = 430*rX;
+    dog.y = STAGEHEIGHT - 150*rY;
     dog.scale = 1;
     dog.gotoAndPlay('sit');
-    window.spot_cont.addChild(dog);
+    window.extra_cont.addChild(dog);
 
     // add ptero
+
     const ptero = new createjs.Sprite(
       new createjs.SpriteSheet({
           images: [queue.getResult('ptero')],
-          frames: {width:128, height:128, regX: 64, regY: 64},
+          frames: {width:parseInt(128*rX), height:parseInt(128*rY), regX: parseInt(64*rX), regY: parseInt(64*rY)},
           framerate: 4,
           animations: {
             fly: [0,9, 'fly'],
@@ -369,20 +370,20 @@
       })
     );
     let pad = 128;
-    ptero.x = -pad;
-    ptero.y = 150;
+    ptero.x = -pad * rX;
+    ptero.y = 150 * rY;
     ptero.scale = 1;
     ptero.gotoAndPlay('fly');
-    window.spot_cont.addChild(ptero);
-    createjs.Tween.get(ptero, {loop: true}).to({x: STAGEWIDTH+pad}, 10000).wait(2000).set({scaleX:-1}).to({x:-pad},10000).wait(2000).set({scaleX:1});
-    createjs.Tween.get(ptero, {loop: true}).to({y: 200}, 2000).to({y: 150}, 2000);
+    window.extra_cont.addChild(ptero);
+    createjs.Tween.get(ptero, {loop: true}).to({x: STAGEWIDTH+pad*rX}, 10000).wait(2000).set({scaleX:-1}).to({x:-pad*rX},10000).wait(2000).set({scaleX:1});
+    createjs.Tween.get(ptero, {loop: true}).to({y: 200*rY}, 2000).to({y: 150*rY}, 2000);
 
 
     // add button
     const sprite = new createjs.Sprite(
       new createjs.SpriteSheet({
           images: [queue.getResult('btn_startgame')],
-          frames: {width:700, height:280, regX: 350, regY: 140},
+          frames: {width:parseInt(700*rX), height:parseInt(280*rY), regX: parseInt(350*rX), regY: parseInt(140*rY)},
           framerate: 1,
           animations: {
             out: [0],
@@ -393,8 +394,8 @@
     );
     const btn = new createjs.ButtonHelper(sprite, "out", "over", "down");
     sprite.x = STAGEWIDTH/2;
-    sprite.y = STAGEHEIGHT - 100;
-    window.spot_cont.addChild(sprite);
+    sprite.y = STAGEHEIGHT - 100*rY;
+    window.extra_cont.addChild(sprite);
     sprite.addEventListener('click', function(e) {
       MENU.open();
     });
