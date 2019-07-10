@@ -71,7 +71,7 @@
     let startx = 0;
     let starty = 0;
     let previous = null;
-    let padding = 50;
+    let padding = 50*rY;
     for(let i=0,ln=this.planets.length; i<ln; i++) {
       let config = this.planets[i];
       if(config.active == false) continue;
@@ -112,8 +112,8 @@
 
     }
     this.nav_cont.scale = 0.35;
-    this.nav_cont.x = 183;
-    this.nav_cont.y = 190;
+    this.nav_cont.x = 183*rX;
+    this.nav_cont.y = 190*rY;
 
 
     let first = this.planets[0].name;
@@ -139,41 +139,41 @@
     let bplanet = new createjs.Bitmap(queue.getResult(planet.id));
     bplanet.regX = bplanet.image.width/2;
     bplanet.regY = bplanet.image.height/2;
-    bplanet.x = 750;
-    bplanet.y = 250;
+    bplanet.x = 750*rX;
+    bplanet.y = 250*rY;
     this.deco_cont.addChild(bplanet);
 
     //title
     let title = new createjs.Text(planet.name.toUpperCase().replace(/(\S{1})/g,"$1 "), '30px Arial', '#FFF');
     title.regX = title.getMeasuredWidth()/2;
-    title.x = 750;
-    title.y = bplanet.y + bplanet.image.height/2 + 10;
+    title.x = 750*rX;
+    title.y = bplanet.y + bplanet.image.height/2 + 10*rY;
     this.deco_cont.addChild(title);
     let subtitle = new createjs.Text(planet.location, '15px Arial', '#FFF');
     subtitle.regX = subtitle.getMeasuredWidth()/2;
-    subtitle.x = 750;
-    subtitle.y = title.y + 30;
+    subtitle.x = 750*rX;
+    subtitle.y = title.y + 30*rY;
     this.deco_cont.addChild(subtitle);
 
     //levels
-    let ox = 330;
-    let oy = subtitle.y + 80;
+    let ox = 330*rX;
+    let oy = subtitle.y + 80*rY;
     for(let i=0,ln=planet.levels.length; i<ln; i++) {
       let level = planet.levels[i];
       let btn = new createjs.Sprite(
         new createjs.SpriteSheet({
             images: [queue.getResult('btn_level')],
-            frames: {width:160, height:45},
+            frames: {width:parseInt(160*rX), height:parseInt(45*rY)},
             framerate: 1,
             animations: { out: [0], over: [1], down: [2], lock: [3] }
         })
       );
-      btn.x = ox + 180*i;
+      btn.x = ox + 180*i*rX;
       btn.y = oy;
       this.acti_cont.addChild(btn);
       let title = new createjs.Text('LEVEL '+(i+1), '16px Arial', '#0f2d58');
-      title.x = btn.x + 45;
-      title.y = btn.y + 15;
+      title.x = btn.x + 45*rX;
+      title.y = btn.y + 15*rY;
       title.mouseEnabled = false;
       this.acti_cont.addChild(title);
 
@@ -190,13 +190,13 @@
     let btn = new createjs.Sprite(
         new createjs.SpriteSheet({
             images: [queue.getResult('btn_close')],
-            frames: {width:71, height:71},
+            frames: {width:parseInt(71*rX), height:parseInt(71*rY)},
             framerate: 1,
             animations: { out: [0], over: [1], down: [2] }
         })
       );
-    btn.x = 1265;
-    btn.y = 350;
+    btn.x = 1265 * rX;
+    btn.y = 350 * rY;
     new createjs.ButtonHelper(btn, "out","over","down");
     this.acti_cont.addChild(btn);
     btn.on('click', proxy(this.close, this));
@@ -251,28 +251,28 @@
 
     let text = new createjs.Text(infos, '12px Arial', '#25d2d0');
     text.lineWidth = 400;
-    text.x = 880;
-    text.y = 690;
+    text.x = 880 * rX;
+    text.y = 690 * rY;
     this.deco_cont.addChild(text);
   }
 
   prototype.loadFancy = function(name) {
 
     //bars
-    let ox = 330;
-    let oy = 690;
+    let ox = 330 * rX;
+    let oy = 690 * rY;
     let bars = new createjs.Container();
     for(var i=0,ln=10;i<=ln;i++) {
       let bar = this.makeBar();
-      bar.x = ox + 10*i;
+      bar.x = ox + 10*i*rX;
       bar.y = oy;
       bars.addChild(bar);
     }
     this.deco_cont.addChild(bars);
 
     //curves
-    ox = 450;
-    oy = 690;
+    ox = 450 * rX;
+    oy = 690 * rY;
     for(var i=0,ln=3;i<ln;i++) {
       let curve = this.makeCurve();
       curve.x = ox;
@@ -281,10 +281,10 @@
     }
 
     //rounds
-    ox = 640;
-    oy = 715;
-    dx = 60;
-    dy = 50;
+    ox = 640 * rX;
+    oy = 715 * rY;
+    dx = 60 * rX;
+    dy = 50 * rY;
     for(var i=0,ln=4;i<ln;i++) {
       let round = this.makeRound();
       round.x = ox + dx*i;
@@ -298,14 +298,14 @@
     }
     let round = this.makeRound();
     round.scale = 0.9;
-    round.x = 800;
-    round.y = 750;
+    round.x = 800 * rX;
+    round.y = 750 * rY;
     this.deco_cont.addChild(round);
   }
 
   prototype.makeRound = function() {
 
-    let size = 50;
+    let size = 50 * rX;
     let cont = new createjs.Container();
     let back = new createjs.Shape();
     back.graphics.beginFill('#25d2d0').drawCircle(0,0,size);
@@ -316,16 +316,16 @@
     let pt1 = findPointFromAngle(0,0,angle,2000);
     let pt2 = findPointFromAngle(0,0,angle + 60 + Math.random()*280,2000);
     shade.graphics.beginFill('#1eaaa9').moveTo(0,0).lineTo(pt1.x,pt1.y).lineTo(pt2.x,pt2.y).closePath();
-    shade.x = -25;
-    shade.y = -25;
+    shade.x = -25 * rX;
+    shade.y = -25 * rX;
     shade.mask = back;
     let center = new createjs.Shape();
     center.graphics.beginFill('#425898').drawCircle(0,0,size);
     center.regX = size/2;
     center.regY = size/2;
     center.scale = 0.35;
-    center.x = -15;
-    center.y = -15;
+    center.x = -15 * rX;
+    center.y = -15 * rX;
 
     cont.addChild(back, shade, center);
     return cont;
@@ -333,8 +333,10 @@
 
   prototype.makeCurve = function() {
 
+    let width = 100;
+    let height = 50;
     let curve = new createjs.Shape();
-    curve.graphics.setStrokeStyle(2).beginStroke('#25d2d0').moveTo(0,25+Math.random()*50).quadraticCurveTo(50,Math.random()*80,100,25+Math.random()*50);
+    curve.graphics.setStrokeStyle(2).beginStroke('#25d2d0').moveTo(0,(height/2)+Math.random()*height).quadraticCurveTo(width/2,Math.random()*(height*2/3),width,(height/2)+Math.random()*height);
     curve.alpha = Math.random()*0.8 + 0.2;
     return curve;
   }
@@ -343,9 +345,11 @@
 
     let cont = new createjs.Container();
     let back = new createjs.Shape();
-    back.graphics.beginFill('#25d2d0').setStrokeStyle(0).drawRect(0, 0, 5, 80);
+    let width = 5 * rX;
+    let height = 80 * rY;
+    back.graphics.beginFill('#25d2d0').setStrokeStyle(0).drawRect(0, 0, width, height);
     let front = new createjs.Shape();
-    back.graphics.beginFill('#5570b3').setStrokeStyle(0).drawRect(0, 0, 5, Math.random()*50+30);
+    back.graphics.beginFill('#5570b3').setStrokeStyle(0).drawRect(0, 0, width, Math.random()*(height*2/3)+(height*1/3));
     cont.addChild(back,front);
     return cont;
   }

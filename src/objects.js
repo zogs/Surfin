@@ -101,7 +101,7 @@
 
     var sheet = new createjs.SpriteSheet({
         images: [queue.getResult('paddler')],
-        frames: {width:300, height:300, count:11},
+        frames: {width:parseInt(300*rX), height:parseInt(300*rY), count:11},
         animations: {
           up: {
             frames: [9,10,9,10,9,10],
@@ -113,8 +113,8 @@
 
     this.sprite = new createjs.Sprite(sheet);
     this.sprite.scale = 0.5;
-    this.sprite.x = 75;
-    this.sprite.y = -75;
+    this.sprite.x = 75 * rX;
+    this.sprite.y = -75 * rY;
     this.sprite.scaleX *= this.wave.direction === LEFT ? -1 : 1;
     this.sprite.gotoAndPlay('up');
     this.image_cont.addChild(this.sprite);
@@ -123,8 +123,8 @@
   prototype.drawBonus = function() {
 
     var bonus = new createjs.Shape();
-      bonus.graphics.beginFill('green').drawCircle(0,0,20);
-      bonus.y = 30;
+      bonus.graphics.beginFill('green').drawCircle(0,0,20*rY);
+      bonus.y = 30*rY;
       bonus.alpha = 0.5;
       this.debug_cont.addChild(bonus);
       this.bonuses.push(bonus);
@@ -133,7 +133,7 @@
   prototype.drawMalus = function() {
 
     var malus = new createjs.Shape();
-      malus.graphics.beginFill('red').drawCircle(0,0,20);
+      malus.graphics.beginFill('red').drawCircle(0,0,20*rY);
       malus.alpha = 0.5;
       this.debug_cont.addChild(malus);
       this.maluses.push(malus);
@@ -250,7 +250,7 @@
 
       this.speed = config.speed || 10;
       this.amp = config.amp || 0;
-      this.high_min = config.high_min || 50;
+      this.high_min = config.high_min || 50 * rY;
       this.high_max = config.high_max || Math.random() * STAGEHEIGHT*1/3;
       this.high = this.high_min + Math.random() * (this.high_max - this.high_min);
       this.time = 0;

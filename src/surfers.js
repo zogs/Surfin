@@ -88,7 +88,7 @@
 
 		const sprite_splash = new createjs.SpriteSheet({
 			images: [queue.getResult('surfer_splash')],
-			frames: {width:200, height:150, regX: 100, regY: 75},
+			frames: {width:parseInt(200*rX), height:parseInt(150*rY), regX: parseInt(100*rX), regY: parseInt(75*rY)},
 			framerate: 1,
 			animations: {
 				hide: 1,
@@ -96,7 +96,7 @@
 			}
 		});
 		this.splash_anim = new createjs.Sprite(sprite_splash);
-		this.splash_anim.y = -20;
+		this.splash_anim.y = -20*rY;
 		this.splash_anim.x = 0;
 		this.splash_anim.alpha = 0.4;
 		this.splash_anim.gotoAndStop(0);
@@ -138,8 +138,8 @@
 		this.lifebar.graphics.clear().beginStroke('white').setStrokeStyle(10).moveTo(0,0).lineTo(100,0);
 		this.lifebar.alpha = 0;
 		this.lifebar_cont = new createjs.Container();
-		this.lifebar_cont.x = -50;
-		this.lifebar_cont.y = 80;
+		this.lifebar_cont.x = -50*rX;
+		this.lifebar_cont.y = 80*rY;
 		this.lifebar_cont.addChild(this.lifebar);
 		this.addChild(this.lifebar_cont);
 
@@ -272,7 +272,7 @@
 		const speed = 0.2 + this.getSkill('takeoff');
 		const takeoff = new createjs.SpriteSheet({
 			images: [queue.getResult(this.img_takeoff)],
-			frames: {width:300, height:300},
+			frames: {width:parseInt(300*rX), height:parseInt(300*rY)},
 			animations: {
 				takeoff: [0,3,false,speed],
 			}
@@ -2095,7 +2095,7 @@
 
 		let surfer_sprite = new createjs.SpriteSheet({
 			images: [queue.getResult(this.img_surfing)],
-			frames: {width: 300, height: 300},
+			frames: {width: parseInt(300*rX), height: parseInt(300*rY)},
 			animations: {
 				S: 0,
 				SE: 1,
@@ -2121,8 +2121,8 @@
 		});
 
 		this.silhouette = new createjs.Sprite(surfer_sprite,'S');
-		this.silhouette_width = 300;
-		this.silhouette_height = 300;
+		this.silhouette_width = 300*rX;
+		this.silhouette_height = 300*rY;
 
 	}
 

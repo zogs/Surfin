@@ -17,7 +17,7 @@
 
       var sheet = new createjs.SpriteSheet({
           images: [queue.getResult(this.img)],
-          frames: {width:100, height:80, regX:50, regY:40},
+          frames: {width:parseInt(100*rX), height:parseInt(80*rY), regX:parseInt(50*rX), regY:parseInt(40*rY)},
           framerate: 1,
           animations: {
               swim: 0,
@@ -35,9 +35,9 @@
     Photografer.prototype.drawBonus = function() {
 
       var bonus = new createjs.Shape();
-      bonus.graphics.beginFill('green').drawCircle(0,0,60);
-      bonus.y = -50;
-      bonus.x = this.wave.direction === LEFT ? 60 : -60;
+      bonus.graphics.beginFill('green').drawCircle(0,0,60*rX);
+      bonus.y = -50*rY;
+      bonus.x = this.wave.direction === LEFT ? 60*rX : -60*rX;
       bonus.alpha = 0.5;
       this.debug_cont.addChild(bonus);
       this.bonuses.push(bonus);
@@ -46,9 +46,9 @@
     Photografer.prototype.drawMalus = function() {
 
       var malus = new createjs.Shape();
-        malus.graphics.beginFill('red').drawCircle(0,0,20);
-        malus.x = this.wave.direction === LEFT ? -40 : 40;
-        malus.y = 40;
+        malus.graphics.beginFill('red').drawCircle(0,0,20*rX);
+        malus.x = this.wave.direction === LEFT ? -40*rX : 40*rX;
+        malus.y = 40*rY;
         malus.alpha = 0.5;
         this.debug_cont.addChild(malus);
         this.maluses.push(malus);

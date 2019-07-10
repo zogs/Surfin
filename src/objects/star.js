@@ -21,7 +21,7 @@
 
       var sheet = new createjs.SpriteSheet({
           images: [queue.getResult(this.img)],
-          frames: {width:120, height:120, regX:60, regY:60},
+          frames: {width:parseInt(120*rX), height:parseInt(120*rY), regX:parseInt(60*rX), regY:parseInt(60*rY)},
           framerate: 20,
           animations: {
               rotate: [0,5,'rotate'],
@@ -38,7 +38,7 @@
       this.shadow.graphics.beginFill('#000').drawCircle(0,0,20);
       this.shadow.scaleY = 0.5;
       this.shadow.alpha = 0.1;
-      this.shadow.y = 40;
+      this.shadow.y = 40 * rY;
       this.image_cont.addChild(this.shadow);
 
     }
@@ -59,7 +59,7 @@
     RotatingStar.prototype.bonusHitted = function() {
       let sound = createjs.Sound.play("pickup");
       this.sprite.gotoAndStop(0);
-      createjs.Tween.get(this.sprite).to({y: -400, alpha:0}, 800, createjs.Ease.quartIn);
+      createjs.Tween.get(this.sprite).to({y: -400*rY, alpha:0}, 800, createjs.Ease.quartIn);
       createjs.Tween.get(this.sprite).to({scale:0.2}, 200).to({scale:0.4}, 200);
       createjs.Tween.get(this.shadow).to({alpha:0}, 200);
     }
@@ -71,8 +71,8 @@
     }
     RotatingStar.prototype.initialPosition = function() {
 
-    let x = this.wave.params.breaking_center + (200 - Math.random() * 400);
-    let y = this.wave.y - this.wave.params.height - 60 - Math.random()*this.wave.params.height;
+    let x = this.wave.params.breaking_center + (200 - Math.random() * 400)*rX;
+    let y = this.wave.y - this.wave.params.height - Math.random()*this.wave.params.height - 60 * rY;
 
     if(this.wave.direction === RIGHT) {
       x = this.wave.shoulder_right.x + Math.random() * (this.wave.params.shoulder.right.width*2);

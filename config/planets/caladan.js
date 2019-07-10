@@ -7,16 +7,16 @@ var planet = {
     levels: [],
     active: true,
     unlock: true,
-    "colors": {
-      "sea": {"top": "#2c78f5","bottom": "#1e3bb3"},
-      "wave": [["#0d1544",0,0],["#3a52b8",0,50],["#2943ae",0,100]],
-      "lip": {"top": "#233993", "bottom": "#a9b3f1"},
-      "splash": {"top": "#FFF","bottom": "#FFF"},
-      "sand": {"hue": 11, "sat":-71, "lum":0, "con": 0, "alpha":1},
+    colors: {
+      sea: {top: "#2c78f5",bottom: "#1e3bb3"},
+      wave: [["#0d1544",0,0],["#3a52b8",0,50],["#2943ae",0,100]],
+      lip: {top: "#233993", bottom: "#a9b3f1"},
+      splash: {top: "#FFF", bottom: "#FFF"},
+      sand: {"hue": 11, "sat":-71, "lum":0, "con": 0, "alpha":1},
     },
-    "images": {
-      "background": "caladan_back",
-      "frontground": "spot_front"
+    images: {
+      background: "caladan_back",
+      frontground: "spot_front"
     },
     lines: {
       horizon: 300,

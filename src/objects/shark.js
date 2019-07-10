@@ -18,7 +18,7 @@
 
       var sheet = new createjs.SpriteSheet({
           images: [queue.getResult(this.img)],
-          frames: {width:200, height:80, regX:100, regY:40},
+          frames: {width:parseInt(200*rX), height:parseInt(80,rY), regX:parseInt(100*rX), regY:parseInt(40,rY)},
           framerate: 5,
           animations: {
               swim: [0,5],
@@ -39,10 +39,10 @@
 
     Shark.prototype.drawMalus = function() {
       var malus = new createjs.Shape();
-      malus.graphics.beginFill('red').drawCircle(0,0,30);
+      malus.graphics.beginFill('red').drawCircle(0,0,30*rX);
       malus.alpha = 0.5;
-      malus.y = -30;
-      malus.x = -15;
+      malus.y = -30*rX;
+      malus.x = -15*rY;
       malus.hitzone = 'board';
       this.debug_cont.addChild(malus);
       this.maluses.push(malus);
@@ -60,8 +60,8 @@
     }
     Shark.prototype.initialPosition = function() {
 
-    let x = this.wave.params.breaking_center + (200 - Math.random() * 400);
-    let y = this.wave.y - this.wave.params.height - 60 - this.wave.params.height/2 + Math.random()*this.wave.params.height/2;
+    let x = this.wave.params.breaking_center + (200 - Math.random() * 400)*rX;
+    let y = this.wave.y - this.wave.params.height - this.wave.params.height/2 + Math.random()*this.wave.params.height/2  - 60 *rY;
 
     if(this.wave.direction === RIGHT) {
       x = this.wave.shoulder_right.x + Math.random() * (this.wave.params.shoulder.right.width*2);

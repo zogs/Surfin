@@ -15,7 +15,7 @@
 
       var sheet = new createjs.SpriteSheet({
           images: [queue.getResult('bomb')],
-          frames: {width:200, height:200, regX: 100, regY: 100},
+          frames: {width:parseInt(200*rX), height:parseInt(200*rY), regX: parseInt(100*rX), regY: parseInt(100*rY)},
           framerate: 1,
           animations: {
             normal: [0],
@@ -31,7 +31,7 @@
 
       var sheet = new createjs.SpriteSheet({
           images: [queue.getResult('boom')],
-          frames: {width:312, height:285, regX: 155, regY: 142},
+          frames: {width:parseInt(312*rX), height:parseInt(285*rY), regX: parseInt(155*rX), regY: parseInt(142*rY)},
           framerate: 10,
           animations: {
               explode: [0, 5, false],
@@ -41,7 +41,7 @@
       this.boom = new createjs.Sprite(sheet);
       this.boom.scaleX = this.boom.scaleY = 0.8;
       this.boom.gotoAndStop(0);
-      this.boom.y = -80;
+      this.boom.y = -80*rY;
       this.boom.alpha = 0;
       this.image_cont.addChild(this.boom);
 
@@ -54,9 +54,9 @@
     BombObstacle.prototype.drawMalus = function() {
 
       var malus = new createjs.Shape();
-        malus.graphics.beginFill('red').drawCircle(0,0,50);
+        malus.graphics.beginFill('red').drawCircle(0,0,50*rX);
         malus.y = 0;
-        malus.x = 5;
+        malus.x = 5 * rX;
         malus.alpha = 0.5;
         malus.shotable = true;
         malus.onShoted = proxy(this.cancelMalus,this,[malus]);

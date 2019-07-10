@@ -44,7 +44,7 @@
     }
 
     this.x = STAGEWIDTH/2;
-    this.y = STAGEHEIGHT/2 - 100;
+    this.y = STAGEHEIGHT/2 - 100*rY;
   }
 
   prototype.drawBoard = function() {
@@ -65,8 +65,8 @@
     var table = new createjs.Bitmap(queue.getResult('scoretable'));
     table.regX = table.image.width/2;
     table.regY = table.image.height/2;
-    table.x = - 400;
-    table.y = 200;
+    table.x = - 400*rX;
+    table.y = 200*rY;
     this.cont_table.addChild(table);
     this.cont_table.alpha = 0;
   }
@@ -78,15 +78,15 @@
     let img = new createjs.Bitmap(queue.getResult(planet.id));
     img.regX = img.image.width/2;
     img.regY = img.image.height/2;
-    img.x = -350;
-    img.y = -50;
+    img.x = -350 * rX;
+    img.y = -50 * rY;
     img.scale = 100 / img.image.width;
     let name = new createjs.Text(planet.name.toUpperCase(), '18px Arial', '#747474');
-    name.x = img.x + 60;
-    name.y = img.y - 15;
+    name.x = img.x + 60*rX;
+    name.y = img.y - 15*rY;
     let system = new createjs.Text(planet.location, '12px Arial', '#AAA');
-    system.x = name.x + 5;
-    system.y = name.y + 20;
+    system.x = name.x + 5*rX;
+    system.y = name.y + 20*rY;
 
     this.cont_board.addChild(img);
     this.cont_board.addChild(name);
@@ -96,9 +96,9 @@
   prototype.drawScore = function() {
 
     //draw goals
-    let x = -80;
-    let y = -70;
-    let h = 28;
+    let x = -80*rX;
+    let y = -70*rY;
+    let h = 28*rY;
     for(let i=0,ln=this.score.goals.length-1; i<=ln; i++) {
       let goal = this.score.goals[i];
       let isFilled = (goal.filled == true)? true : false;
@@ -112,16 +112,16 @@
 
       let icon = new createjs.Bitmap(queue.getResult((isFilled)? 'valid' : 'failed'));
       icon.mouseEnabled = false;
-      icon.x = x - 35;
-      icon.y = y + (i*h) - 6;
+      icon.x = x - 35*rX;
+      icon.y = y + (i*h) - 6*rY;
       this.cont_board.addChild(icon);
     }
 
     //draw medals
     let empty = new createjs.Bitmap(queue.getResult('medal_empty'));
     empty.mouseEnabled = false;
-    empty.x = - 120;
-    empty.y = - 130;
+    empty.x = - 120 * rX;
+    empty.y = - 130 * rY;
     this.cont_board.addChild(empty);
 
     let grade = 'gold';
@@ -134,21 +134,21 @@
     let time = Math.ceil(Math.random()*30);
     let text = new createjs.Text(time+' s', 'bold 22px Arial', '#AAA');
     text.mouseEnabled = false;
-    text.x = medal.x + 50;
-    text.y = medal.y + 20;
+    text.x = medal.x + 50*rX;
+    text.y = medal.y + 20*rY;
     this.cont_board.addChild(text);
   }
 
   prototype.drawSkills = function() {
 
     let img = new createjs.Bitmap(queue.getResult('astroposeur'));
-    img.x = 330;
-    img.y = -150;
+    img.x = 330 * rX;
+    img.y = -150 * rY;
     this.cont_board.addChild(img);
 
     let btn = new createjs.Bitmap(queue.getResult('btn_skills'));
-    btn.x = 310;
-    btn.y = -10;
+    btn.x = 310 * rX;
+    btn.y = -10 * rY;
     btn.mouseEnabled = true;
     btn.cursor = 'pointer';
     this.cont_board.addChild(btn);
@@ -161,7 +161,7 @@
     let overlay = new createjs.Shape();
     overlay.graphics.beginFill('#FFF').drawRect(0,0,STAGEWIDTH, STAGEHEIGHT);
     overlay.x = - STAGEWIDTH/2;
-    overlay.y = - STAGEHEIGHT/2 + 100;
+    overlay.y = - STAGEHEIGHT/2 + 100*rY;
     overlay.alpha = 0.4;
     this.cont_overlay.addChild(overlay);
     this.cont_overlay.alpha = 0;
@@ -173,20 +173,20 @@
     const cocktail = new createjs.Sprite(
       new createjs.SpriteSheet({
           images: [queue.getResult('cocktail')],
-          frames: {width:100, height:120, regX: 50, regY: 60},
+          frames: {width:parseInt(100*rX), height:parseInt(120*rY), regX: parseInt(50*rX), regY: parseInt(60*rY)},
           framerate: 10,
           animations: {
             bubble: [0,11, 'bubble'],
           }
       })
     );
-    cocktail.x = -360;
-    cocktail.y = 240;
+    cocktail.x = -360 * rX;
+    cocktail.y = 240 * rY;
     cocktail.scale = 1;
     cocktail.gotoAndPlay('bubble');
     const shadow = new createjs.Bitmap(queue.getResult('drinkshadow'));
-    shadow.x = cocktail.x - 5;
-    shadow.y = cocktail.y + 3;
+    shadow.x = cocktail.x - 5*rX;
+    shadow.y = cocktail.y + 3*rY;
 
     this.cont_table.addChild(shadow);
     this.cont_table.addChild(cocktail);
@@ -202,15 +202,15 @@
     let van = new createjs.Sprite(
       new createjs.SpriteSheet({
           images: [queue.getResult('astrovan')],
-          frames: {width:140, height:100, regX: 70, regY: 50},
+          frames: {width:parseInt(140*rX), height:parseInt(100*rY), regX: parseInt(70*rX), regY: parseInt(50*rY)},
           framerate: 12,
           animations: {
             fly: [0,1, 'fly'],
           }
       })
     );
-    van.x = title.x + title.image.width + 60;
-    van.y = title.y + 18;
+    van.x = title.x + title.image.width + 60 * rX;
+    van.y = title.y + 18 * rY;
     van.scale = 1;
     van.gotoAndPlay('fly');
     this.cont_board.addChild(van);
@@ -223,20 +223,20 @@
       const coffee = new createjs.Sprite(
       new createjs.SpriteSheet({
           images: [queue.getResult('coffee')],
-          frames: {width:117, height:130, regX: 56, regY: 65},
+          frames: {width:parseInt(117*rX), height:parseInt(130*rY), regX: parseInt(56*rX), regY: parseInt(65*rY)},
           framerate: 10,
           animations: {
             smoke: [0,7, 'smoke'],
           }
       })
     );
-    coffee.x = -350;
-    coffee.y = 220;
+    coffee.x = -350*rX;
+    coffee.y = 220*rY;
     coffee.scale = 1;
     coffee.gotoAndPlay('smoke');
     const shadow = new createjs.Bitmap(queue.getResult('drinkshadow'));
-    shadow.x = coffee.x - 4;
-    shadow.y = coffee.y + 10;
+    shadow.x = coffee.x - 4*rX;
+    shadow.y = coffee.y + 10*rY;
 
     this.cont_table.addChild(shadow);
     this.cont_table.addChild(coffee);
@@ -246,20 +246,20 @@
 
     // title
     let title = new createjs.Bitmap(queue.getResult('tryagaintxt'));
-    title.x = -410;
-    title.y = -220;
+    title.x = -410*rX;
+    title.y = -220*rY;
     let dog = new createjs.Sprite(
       new createjs.SpriteSheet({
           images: [queue.getResult('dog')],
-          frames: {width:64, height:64, regX: 16, regY: 16},
+          frames: {width:parseInt(64*rX), height:parseInt(64*rY), regX: parseInt(16*rX), regY: parseInt(16*rY)},
           framerate: 10,
           animations: {
             sit: [0,1, 'sit'],
           }
       })
     );
-    dog.x = title.x + title.image.width + 80;
-    dog.y = title.y + 10;
+    dog.x = title.x + title.image.width + 80*rX;
+    dog.y = title.y + 10*rY;
     dog.scaleX = -1;
     dog.gotoAndPlay('sit');
     this.cont_board.addChild(dog);
@@ -271,13 +271,13 @@
     let btn_menu = new createjs.Bitmap(queue.getResult('btn_menu'));
     btn_menu.mouseEnabled = true;
     btn_menu.cursor = 'pointer';
-    btn_menu.x = 100;
-    btn_menu.y = 130;
+    btn_menu.x = 100*rX;
+    btn_menu.y = 130*rY;
     let btn_retry = new createjs.Bitmap(queue.getResult('btn_retry_sm'));
     btn_retry.mouseEnabled = true;
     btn_retry.cursor = 'pointer';
-    btn_retry.x = -120;
-    btn_retry.y = 135;
+    btn_retry.x = -120*rX;
+    btn_retry.y = 135*rY;
 
     this.cont_board.addChild(btn_menu);
     this.cont_board.addChild(btn_retry);
@@ -291,13 +291,13 @@
     let btn_retry = new createjs.Bitmap(queue.getResult('btn_retry'));
     btn_retry.mouseEnabled = true;
     btn_retry.cursor = 'pointer';
-    btn_retry.x = 100;
-    btn_retry.y = 130;
+    btn_retry.x = 100*rX;
+    btn_retry.y = 130*rY;
     let btn_menu = new createjs.Bitmap(queue.getResult('btn_menu_sm'));
     btn_menu.mouseEnabled = true;
     btn_menu.cursor = 'pointer';
-    btn_menu.x = -120;
-    btn_menu.y = 135;
+    btn_menu.x = -120*rX;
+    btn_menu.y = 135*rY;
 
     this.cont_board.addChild(btn_menu);
     this.cont_board.addChild(btn_retry);
@@ -308,8 +308,8 @@
 
   prototype.show = function() {
 
-    let y = 100;
-    let t = 800;
+    let y = 100*rX;
+    let t = 800*rY;
     this.cont_board.y -= y;
     createjs.Tween.get(this.cont_board).to({ y: this.cont_board.y + y, alpha: 1}, t, createjs.Ease.backOut);
 

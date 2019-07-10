@@ -22,7 +22,7 @@
 
       var sheet = new createjs.SpriteSheet({
           images: [queue.getResult('drone')],
-          frames: {width:256, height:256, regX:128, regY:128},
+          frames: {width:parseInt(256*rX), height:parseInt(256*rY), regX:parseInt(128*rX), regY:parseInt(128*rY)},
           framerate: 1,
           animations: {
               fly: [0,2,'fly'],
@@ -40,10 +40,10 @@
 
     Drone.prototype.drawBonus = function() {
       var bonus = new createjs.Shape();
-      bonus.graphics.beginFill('green').drawCircle(0,0,75);
+      bonus.graphics.beginFill('green').drawCircle(0,0,75*rX);
       bonus.alpha = 0.2;
       bonus.hitzone = 'body';
-      bonus.y = 75;
+      bonus.y = 75*rY;
       this.debug_cont.addChild(bonus);
       this.bonuses.push(bonus);
     }

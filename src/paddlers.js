@@ -266,7 +266,7 @@
 
 		var paddler_sheet = new createjs.SpriteSheet({
 		    images: [queue.getResult('paddler')],
-		    frames: {width:300, height:300, count:11},
+		    frames: {width:parseInt(300*rX), height:parseInt(300*rY), count:11},
 		    animations: {
 		    	wait: 0,
 		    	waitright: 1,

@@ -160,11 +160,18 @@ window.initialize = function() {
 
 	//BUILD LEVELS
 	PLANETS.sort(function(a,b) { return a.order - b.order }).map(function(p) {
-		p.levels = LEVELS.filter(l => l.planet == p.id);
-		//(temp) fill empty planet with default levels
-		if(p.levels.length==0) p.levels = LEVELS.filter(l => l.planet == 'zeguema');
+		// adapt planet variables to resolution
+		resizePlanetConf(p);
+		// find levels of a planet
+		let levels = LEVELS.filter(l => l.planet == p.id);
+		//##temp## fill empty planet with default levels
+		if(levels.length==0) levels = LEVELS.filter(l => l.planet == 'zeguema');
+		// adapt level variables to resolution
+		levels.map(l => resizeLevelConf(l));
 		//order levels
-		p.levels = p.levels.sort(function(a,b) { return a.level - b.level });
+		levels = levels.sort(function(a,b) { return a.level - b.level });
+		// assign levels to planet
+		p.levels = levels;
 	});
 
 	//MENU
@@ -200,6 +207,7 @@ window.initialize = function() {
 	//initCustomizer();
 
 }
+
 
 window.tick = function(e) {
 
@@ -477,3 +485,54 @@ window.resizeCanvas = function() {
 
 }
 */
+
+resizePlanetConf = function(planet) {
+	planet.lines.horizon *= rY;
+	planet.lines.break *= rY;
+	planet.lines.peak *= rY;
+	planet.lines.beach *= rY;
+	planet.lines.obstacle *= rY;
+	return planet;
+}
+
+resizeLevelConf = function(level) {
+	//series
+	level.series.spread *= rX;
+	level.series.xshift *= rX;
+	//surfers
+	level.surfers.x *= rX;
+	level.surfers.y *= rY;
+	level.surfers.velocities.x *= rX;
+	level.surfers.velocities.y *= rY;
+	//waves
+	level.waves.height *= rY;
+	level.waves.width *= rX;
+	level.waves.breaking.width *= rX;
+	level.waves.breaking.x_speed *= rX;
+	level.waves.breaking.x_speed_max *= rX;
+	level.waves.breaking.y_speed *= rY;
+	level.waves.breaking.left.width *= rX;
+	level.waves.breaking.left.width_max *= rX;
+	level.waves.breaking.left.block_width *= rX;
+	level.waves.breaking.left.block_width_max *= rX;
+	level.waves.breaking.right.width *= rX;
+	level.waves.breaking.right.width_max *= rX;
+	level.waves.breaking.right.block_width *= rX;
+	level.waves.breaking.right.block_width_max *= rX;
+	level.waves.lip.thickness *= rY;
+	level.waves.lip.cap.width *= rX;
+	level.waves.lip.cap.height *= rY;
+	level.waves.suction.x *= rX;
+	level.waves.suction.y *= rY;
+	level.waves.shoulder.left.width *= rX;
+	level.waves.shoulder.left.inner *= rX;
+	level.waves.shoulder.left.outer *= rX;
+	level.waves.shoulder.left.marge *= rX;
+	level.waves.shoulder.left.slope *= rX;
+	level.waves.shoulder.right.width *= rX;
+	level.waves.shoulder.right.inner *= rX;
+	level.waves.shoulder.right.outer *= rX;
+	level.waves.shoulder.right.marge *= rX;
+	level.waves.shoulder.right.slope *= rX;
+	return level;
+}

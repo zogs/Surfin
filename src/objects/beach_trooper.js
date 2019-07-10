@@ -15,7 +15,7 @@
 
       var sheet = new createjs.SpriteSheet({
           images: [queue.getResult('sprite_beachtrooper')],
-          frames: {width:368, height:281, regX: 155, regY: 142},
+          frames: {width:parseInt(368*rX), height:parseInt(281*rY), regX: parseInt(155*rX), regY: parseInt(142*rY)},
           framerate: 1,
           animations: {
             chill: [0,1, 'chill'],
@@ -25,7 +25,7 @@
 
       this.sprite = new createjs.Sprite(sheet);
       this.sprite.scaleX = this.sprite.scaleY = 0.5;
-      this.sprite.y = -50;
+      this.sprite.y = -50 * rY;
       if(this.wave.isLEFT()) this.scaleX = - this.scaleX;
       this.sprite.gotoAndPlay('chill');
       this.image_cont.addChild(this.sprite);
@@ -35,9 +35,9 @@
     BeachTrooper.prototype.drawBonus = function() {
 
       var bonus = new createjs.Shape();
-        bonus.graphics.beginFill('green').drawCircle(0,0,50);
-        bonus.y = -35;
-        bonus.x = 25;
+        bonus.graphics.beginFill('green').drawCircle(0,0,50*rX);
+        bonus.y = -35*rY;
+        bonus.x = 25*rX;
         bonus.alpha = 0.5;
         this.debug_cont.addChild(bonus);
         this.bonuses.push(bonus);
@@ -64,7 +64,7 @@
       return;
       var distance = get2dDistance(this.x,this.y,this.wave.surfer.x,this.wave.surfer.y);
 
-      if(distance < 620) {
+      if(distance < 620*rX) {
         this.sprite.gotoAndPlay('fire');
         this.fire();
         return;
