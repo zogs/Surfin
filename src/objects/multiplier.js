@@ -30,7 +30,7 @@
       var circle = new createjs.Shape(graphics)
       this.image_cont.addChild(circle);
 
-      var text = new createjs.Text('','bold 26px Helvetica','#000')
+      var text = new createjs.Text('','bold '+Math.floor(26*rY)+'px Helvetica','#000')
       text.text = 'x'+this.config.multiplier;
       var b = text.getBounds()
       text.x = - b.width / 2

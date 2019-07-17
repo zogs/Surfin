@@ -60,7 +60,7 @@
     this.addChild(this.score_cont);
 
     //display
-    this.total = new createjs.Text('0','bold 30px Arial','#FFFFFF');
+    this.total = new createjs.Text('0','bold '+Math.floor(30*rY)+'px Arial','#FFFFFF');
     this.score_pt = new createjs.Point(20,20);
     this.total.x = this.score_pt.x;
     this.total.y = this.score_pt.y;
@@ -92,7 +92,7 @@
 
     if(typeof this.spot.config.timelimit == 'undefined') return;
     this.countdown = this.spot.config.timelimit;
-    this.timer = new createjs.Text('00:00', '60px Arial', '#FFFFFF');
+    this.timer = new createjs.Text('00:00', Math.floor(60*rY)+'px Arial', '#FFFFFF');
     this.timer.x = STAGEWIDTH/2 - this.timer.getMeasuredWidth()/2;
     this.timer.y = 20;
     this.timer.alpha = 0.5;
@@ -143,7 +143,7 @@
 
       let goal = this.goals[i];
       let name = this.goalsNameFormatter(goal, 0);
-      let text = new createjs.Text(name, 'bold 14px Arial', '#FFF');
+      let text = new createjs.Text(name, 'bold '+Math.floor(14*rY)+'px Arial', '#FFF');
       text.x = pt.x;
       text.y = pt.y;
       this.score_cont.addChild(text);
@@ -620,14 +620,14 @@
       createjs.Tween.get(this.circle).set({scale: 0}).to({scale: 1}, 700, createjs.Ease.bounceOut).wait(300).to({alpha: 0}, 1000, createjs.Ease.quartOut);
 
       // text
-      this.text = new createjs.Text(text,'bold 70px BubblegumSansRegular','#FFF'); //BubblegumSansRegular BoogalooRegular albaregular
+      this.text = new createjs.Text(text,'bold '+Math.floor(70*rY)+'px BubblegumSansRegular','#FFF'); //BubblegumSansRegular BoogalooRegular albaregular
       this.text.regX = this.text.getMeasuredWidth()/2;
       this.text.regY = this.text.getMeasuredHeight()/2;
       this.addChild(this.text);
       createjs.Tween.get(this.text).set({y: 100, scale: 0, alpha: 0}).to({y: 0, alpha: 1, scale:1}, 800, createjs.Ease.elasticOut);
 
       // quality
-      this.quality = new createjs.Text('Wait for grade', 'bold 70px BubblegumSansRegular', '#eaea49');
+      this.quality = new createjs.Text('Wait for grade', 'bold '+Math.floor(70*rY)+'px BubblegumSansRegular', '#eaea49');
       this.quality.regX = this.quality.getMeasuredWidth()/2;
       this.quality.regY = this.quality.getMeasuredHeight()/2;
       this.quality.x = - 300;
@@ -635,7 +635,7 @@
       this.addChild(this.quality);
 
       // score
-      this.subscore = new createjs.Text('0','italic 36px BubblegumSansRegular','yellow');  //BubblegumSansRegular BoogalooRegular albaregular
+      this.subscore = new createjs.Text('0','italic '+Math.floor(36*rY)+'px BubblegumSansRegular','yellow');  //BubblegumSansRegular BoogalooRegular albaregular
       this.subscore.regX = this.subscore.getMeasuredWidth()/2;
       this.subscore.regY = this.subscore.getMeasuredHeight()/2;
       this.subscore.x = 0;

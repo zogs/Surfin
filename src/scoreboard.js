@@ -81,10 +81,10 @@
     img.x = -350 * rX;
     img.y = -50 * rY;
     img.scale = 100 / img.image.width;
-    let name = new createjs.Text(planet.name.toUpperCase(), '18px Arial', '#747474');
+    let name = new createjs.Text(planet.name.toUpperCase(), Math.floor(18*rY)+'px Arial', '#747474');
     name.x = img.x + 60*rX;
     name.y = img.y - 15*rY;
-    let system = new createjs.Text(planet.location, '12px Arial', '#AAA');
+    let system = new createjs.Text(planet.location, Math.floor(12*rY)+'px Arial', '#AAA');
     system.x = name.x + 5*rX;
     system.y = name.y + 20*rY;
 
@@ -104,7 +104,7 @@
       let isFilled = (goal.filled == true)? true : false;
       let color = (isFilled == true)? '#3e8d26' : '#5d5d5d';
       let name = goal.name.replace(/{n}/, goal.current);
-      let text = new createjs.Text(name, 'bold 14px Arial', color);
+      let text = new createjs.Text(name, 'bold '+Math.floor(14*rY)+'px Arial', color);
       text.mouseEnabled = false;
       text.x = x;
       text.y = y + (i*h);
@@ -132,7 +132,7 @@
     this.cont_board.addChild(medal);
 
     let time = Math.ceil(Math.random()*30);
-    let text = new createjs.Text(time+' s', 'bold 22px Arial', '#AAA');
+    let text = new createjs.Text(time+' s', 'bold '+Math.floor(22*rY)+'px Arial', '#AAA');
     text.mouseEnabled = false;
     text.x = medal.x + 50*rX;
     text.y = medal.y + 20*rY;

@@ -39,10 +39,10 @@
       this.currentBar.addChild(current);
 
       //texts
-      this.currentXP = new createjs.Text("0", "bold 16px Arial", "#AAA");
-      this.maxXP = new createjs.Text("0", "16px Arial", "#AAA");
-      this.minXP = new createjs.Text("0", "16px Arial", "#AAA");
-      this.levelCounter = new createjs.Text("Level 1", "16px Arial", "#AAA");
+      this.currentXP = new createjs.Text("0", "bold "+Math.floor(16*rY)+"px Arial", "#AAA");
+      this.maxXP = new createjs.Text("0", Math.floor(16*rY)+"px Arial", "#AAA");
+      this.minXP = new createjs.Text("0", Math.floor(16*rY)+"px Arial", "#AAA");
+      this.levelCounter = new createjs.Text("Level 1", Math.floor(16*rY)+"px Arial", "#AAA");
       this.addChild(this.currentXP, this.maxXP, this.minXP, this.levelCounter);
 
       //default position

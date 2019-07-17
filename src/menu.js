@@ -144,12 +144,12 @@
     this.deco_cont.addChild(bplanet);
 
     //title
-    let title = new createjs.Text(planet.name.toUpperCase().replace(/(\S{1})/g,"$1 "), '30px Arial', '#FFF');
+    let title = new createjs.Text(planet.name.toUpperCase().replace(/(\S{1})/g,"$1 "), Math.floor(30*rY)+'px Arial', '#FFF');
     title.regX = title.getMeasuredWidth()/2;
     title.x = 750*rX;
     title.y = bplanet.y + bplanet.image.height/2 + 10*rY;
     this.deco_cont.addChild(title);
-    let subtitle = new createjs.Text(planet.location, '15px Arial', '#FFF');
+    let subtitle = new createjs.Text(planet.location, Math.floor(15*rY)+'px Arial', '#FFF');
     subtitle.regX = subtitle.getMeasuredWidth()/2;
     subtitle.x = 750*rX;
     subtitle.y = title.y + 30*rY;
@@ -171,7 +171,7 @@
       btn.x = ox + 180*i*rX;
       btn.y = oy;
       this.acti_cont.addChild(btn);
-      let title = new createjs.Text('LEVEL '+(i+1), '16px Arial', '#0f2d58');
+      let title = new createjs.Text('LEVEL '+(i+1), Math.floor(16*rY)+'px Arial', '#0f2d58');
       title.x = btn.x + 45*rX;
       title.y = btn.y + 15*rY;
       title.mouseEnabled = false;
@@ -249,7 +249,7 @@
 
   prototype.loadNews = function(infos) {
 
-    let text = new createjs.Text(infos, '12px Arial', '#25d2d0');
+    let text = new createjs.Text(infos, Math.floor(12*rY)+'px Arial', '#25d2d0');
     text.lineWidth = 400;
     text.x = 880 * rX;
     text.y = 690 * rY;

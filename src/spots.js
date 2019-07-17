@@ -451,7 +451,7 @@
     var count = 3;
 		var readyButton = new createjs.Container();
     var bkg = new createjs.Shape();
-    var txt = new createjs.Text('Click '+count+' times','22px Helvetica');
+    var txt = new createjs.Text('Click '+count+' times',Math.floor(22*rY)+'px Helvetica');
     var bound = txt.getBounds();
     var pad = {x: 40, y: 15};
     bkg.graphics.beginFill('#FFF').drawRoundRect(-bound.x/2 - pad.x, -bound.y - pad.y, bound.width + pad.x*2, bound.height + pad.y*2, 5);

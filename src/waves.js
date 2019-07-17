@@ -1078,7 +1078,7 @@ prototype.addBreakingPeak = function(width,distance) {
 
 prototype.addBreakingPeakWarning = function() {
 
-	var text = new createjs.Text('Watch out !','bold 40px BubblegumSansRegular','#FFF'); //BubblegumSansRegular BoogalooRegular albaregular
+	var text = new createjs.Text('Watch out !','bold '.Math.floor(40*rY)+'px BubblegumSansRegular','#FFF'); //BubblegumSansRegular BoogalooRegular albaregular
 		text.alpha = 0.8;
 		var b = text.getBounds();
 		if(this.direction === CENTER) return;
