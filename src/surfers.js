@@ -50,6 +50,7 @@
 		this.speed = 0;
 		this.boost = false;
 		this.angle = 90;
+		this.angle_rad = Math.PI/2;
 		this.angles = [];
 		this.status = 'wait';
 		this.tubing = false;
@@ -65,9 +66,9 @@
 		this.automove = false;
 		this.ollie_cooldown = 1000;
 		this.auto_silhouette = true;
-		this.distanceMinToMouse = 400;
-		this.distanceMoyToMouse = 450;
-		this.distanceMaxToMouse = 500;
+		this.distanceMinToMouse = 400*rX;
+		this.distanceMoyToMouse = 450*rX;
+		this.distanceMaxToMouse = 500*rX;
 		this.trailsize_origin = this.trailsize;
 		this.color_spatter_num = 0;
 		this.fall_reason = null;
@@ -157,8 +158,7 @@
 		this.virtualMouse.y = this.wave.y - this.wave.params.height + this.y;
 		this.virtualMouse.alpha = 0;
 
-		//NO MORE USED
-		//this.addEventListener('tick',proxy(this.tick,this));
+		this.addEventListener('tick',proxy(this.tick,this));
 
 		this.initEventsListener();
 
@@ -171,6 +171,7 @@
 
 	prototype.tick = function() {
 
+		this.getAngle();
 		this.move();
 		this.stock();
 		this.checkFall();
@@ -178,20 +179,6 @@
 		this.drawWeapon();
 		this.drawDebug();
 	}
-
-	prototype.continuousMovement = function() {
-
-		this.move();
-		this.stock();
-		this.checkFall();
-		this.drawTrails();
-		this.drawWeapon();
-		this.drawDebug();
-
-		this.timer = new Timer(proxy(this.continuousMovement,this), this.wave.params.breaking.x_speed);
-		this.time += this.wave.params.breaking.x_speed;
-
-		}
 
 	prototype.initEventsListener = function() {
 
@@ -309,9 +296,6 @@
 
 		// init weapon
 		this.initWeapon();
-
-		//init timer refresh
-		this.timer = new Timer(proxy(this.continuousMovement,this), this.wave.params.breaking.x_speed);
 
 		return this;
 	}
@@ -529,7 +513,7 @@
 			this.x = this.location.x;
 			this.y = this.location.y;
 		} else {
-			createjs.Tween.get(this).to({x: this.location.x, y: this.location.y}, this.wave.params.breaking.x_speed);
+			createjs.Tween.get(this).to({x: this.location.x, y: this.location.y}, 30);
 		}
 
 		//set silhouette
@@ -872,7 +856,7 @@
 
 		// add point to trails array
 		this.trailpoints.unshift(point);
-		this.trailpoints = this.trailpoints.slice(0,50);
+		this.trailpoints = this.trailpoints.slice(0,100);
 
 		// add point to spatters array
 		if(point.location.y < 0) {
@@ -1361,7 +1345,7 @@
 		this.checkTrajectory();
 
 		//new method for checking fall point
-		var points = this.wave.getAllPeaksPoints();
+		var points = this.wave.allpoints;
 
 		var j = points.length;
 		while(j--) {
@@ -1435,7 +1419,7 @@
 
 	prototype.isTubing = function() {
 
-		const points = this.wave.getAllPeaksPoints();
+		const points = this.wave.allpoints;
 		const waveHeight = this.wave.params.height;
 		const tubePoints = [];
 		let i = points.length;
@@ -1770,6 +1754,7 @@
 			let point = new createjs.Point(x,y);
 			point.size = trail.size;
 			point.angle = trail.angle_rad;
+			if(point.angle === 0) point.angle = Math.PI/2; //dont touch
 			points.push(point);
 			//save all x values
 			//xs.push(point.x);
@@ -1779,26 +1764,34 @@
 		//const xmin = Math.min.apply(null,xs) - 100;
 		//const xmax = Math.max.apply(null,xs) + 100;
 
-
 		//draw shape of the trail
 		this.trail_shape.graphics.clear();
 		this.trail_shape.graphics.beginFill("rgba(255,255,255,0.3)");
-		//this.trail_shape.graphics.beginRadialGradientFill(["rgba(255,255,255,1)","rgba(255,255,255,0)"], [0,1], this.x, this.y, 0, this.x, this.y, 600 );
-		for(let i=0; i<=nb; ++i) {
-			let point = points[i];
-			let size = i*points[i].size + this.trailcoef*points[i].size;
-			let x = size * Math.cos(point.angle + Math.PI/2) + point.x;
-			let y = size * Math.sin(point.angle + Math.PI/2) + point.y;
-			this.trail_shape.graphics.lineTo(x,y);
 
-		}
-		for(let i=nb; i>=0; --i) {
+		//this.trail_shape.graphics.beginRadialGradientFill(["rgba(255,255,255,1)","rgba(255,255,255,0)"], [0,1], this.x, this.y, 0, this.x, this.y, 600 );
+		for(let i=0; i<nb; ++i) {
 			let point = points[i];
-			let size = i*points[i].size + this.trailcoef*points[i].size;
-			let x = size * Math.cos(point.angle + Math.PI + Math.PI/2) + point.x;
-			let y = size * Math.sin(point.angle + Math.PI + Math.PI/2) + point.y;
+			var size = i*points[i].size + this.trailcoef*points[i].size;
+			let x = point.x + size * Math.cos(point.angle + Math.PI/2);
+			let y = point.y + size * Math.sin(point.angle + Math.PI/2);
 			this.trail_shape.graphics.lineTo(x,y);
 		}
+
+		// draw round section
+		let last = points[points.length-1];
+		let x = last.x;
+		let y = last.y;
+		this.trail_shape.graphics.bezierCurveTo(x-size,y-size,x+size,y-size,x+size,y);
+
+
+		for(let i=nb; i>0; --i) {
+			let point = points[i];
+			let size = i*points[i].size + this.trailcoef*points[i].size;
+			let x = point.x + size * Math.cos(point.angle + Math.PI + Math.PI/2);
+			let y = point.y + size * Math.sin(point.angle + Math.PI + Math.PI/2);
+			this.trail_shape.graphics.lineTo(x,y);
+		}
+
 		this.trail_shape.graphics.closePath();
 
 		// draw landing aerial splash
@@ -2084,7 +2077,12 @@
 
 	prototype.getAngle = function() {
 
-		if(this.locations[1] === undefined) return this.angle = 90;
+		if(this.locations[1] === undefined) {
+			this.angle_rad = Math.PI/2;
+			this.angle = 90;
+			return;
+		}
+
 		this.angle_rad = Math.atan2(this.locations[0].y - this.locations[1].y,this.locations[0].x - this.locations[1].x);
 		this.angle = Math.degrees(this.angle_rad);
 
@@ -2132,7 +2130,6 @@
 
 		if(this.locations[0] === undefined || this.locations[1] === undefined) return new this.silhouette.gotoAndStop('S');
 
-		this.getAngle();
 		var rad = Math.atan2(this.locations[1].x-this.locations[0].x,this.locations[1].y-this.locations[0].y);
 		var deg = -1*Math.degrees(rad);
 

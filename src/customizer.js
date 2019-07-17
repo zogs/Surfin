@@ -16,10 +16,6 @@
 		this.Height       = SPOT.config.waves.height;
 		this.Meters       = SPOT.config.waves.real_height;
 		this.BreakWidth   = SPOT.config.waves.breaking.width;
-		this.XSpeed       = SPOT.config.waves.breaking.x_speed;
-		this.XSpeedMax    = SPOT.config.waves.breaking.x_speed_max;
-		this.XSpeedInterval = SPOT.config.waves.breaking.x_speed_interval;
-		this.XSpeedPause  = SPOT.config.waves.breaking.x_speed_pause;
 		this.BreakSpeed   = SPOT.config.waves.breaking.y_speed;
 		this.BreakEase    = SPOT.config.waves.breaking.y_ease;
 		this.SplashPerCent = SPOT.config.waves.breaking.splash_h_percent;
@@ -200,10 +196,6 @@
 		verti.add(custom, 'SplashPerCent',0,100).step(1).onChange(function(value) { CONFIG.waves.breaking.splash_h_percent = value; applyConfig(); });
 		verti.add(custom, 'SplashEase',0,1).step(0.1).onChange(function(value) { CONFIG.waves.breaking.splash_h_ease = value; applyConfig(); });
 		var horiz = breaking.addFolder('Horizontal');
-		horiz.add(custom, 'XSpeed',10,100).step(2).onChange(function(value) { CONFIG.waves.breaking.x_speed = value; applyConfig(); });
-		horiz.add(custom, 'XSpeedMax',10,100).step(2).onChange(function(value) { CONFIG.waves.breaking.x_speed_max = value; applyConfig(); });
-		horiz.add(custom, 'XSpeedInterval',1,1500).step(10).onChange(function(value) { CONFIG.waves.breaking.x_speed_interval = value; applyConfig(); });
-		horiz.add(custom, 'XSpeedPause',1,1500).step(10).onChange(function(value) { CONFIG.waves.breaking.x_speed_pause = value; applyConfig(); });
 
 
 		var left = breaking.addFolder('Left');

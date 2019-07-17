@@ -9,7 +9,6 @@
 		this.planet = PLANETS.find(p => p.id == config.planet);
 		this.level = config.level;
 		this.config = config;
-		this.randid = Math.floor(Math.random()*10000);
 
 		this.waves = [];
 		this.surfers = [];
@@ -1057,23 +1056,23 @@
 		this.debug_cont.removeAllChildren();
 
 		var line = new createjs.Shape();
-		line.graphics.beginStroke('red').setStrokeStyle(2).moveTo(0, this.planet.lines.horizon).lineTo(50,this.planet.lines.horizon);
+		line.graphics.beginStroke('red').setStrokeStyle(1).moveTo(0, this.planet.lines.horizon).lineTo(50,this.planet.lines.horizon);
 		this.debug_cont.addChild(line);
 
 		var line = new createjs.Shape();
-		line.graphics.beginStroke('orange').setStrokeStyle(2).moveTo(0, this.planet.lines.break).lineTo(50,this.planet.lines.break);
+		line.graphics.beginStroke('orange').setStrokeStyle(1).moveTo(0, this.planet.lines.break).lineTo(50,this.planet.lines.break);
 		this.debug_cont.addChild(line);
 
 		var line = new createjs.Shape();
-		line.graphics.beginStroke('pink').setStrokeStyle(2).moveTo(0, this.planet.lines.peak).lineTo(50,this.planet.lines.peak);
+		line.graphics.beginStroke('pink').setStrokeStyle(1).moveTo(0, this.planet.lines.peak).lineTo(50,this.planet.lines.peak);
 		this.debug_cont.addChild(line);
 
 		var line = new createjs.Shape();
-		line.graphics.beginStroke('yellow').setStrokeStyle(2).moveTo(0, this.planet.lines.beach).lineTo(50,this.planet.lines.beach);
+		line.graphics.beginStroke('yellow').setStrokeStyle(1).moveTo(0, this.planet.lines.beach).lineTo(50,this.planet.lines.beach);
 		this.debug_cont.addChild(line);
 
 		var line = new createjs.Shape();
-		line.graphics.beginStroke('purple').setStrokeStyle(2).moveTo(0, this.planet.lines.obstacle).lineTo(50,this.planet.lines.obstacle);
+		line.graphics.beginStroke('purple').setStrokeStyle(1).moveTo(0, this.planet.lines.obstacle).lineTo(50,this.planet.lines.obstacle);
 		this.debug_cont.addChild(line);
 	}
 

@@ -6,51 +6,7 @@ function Wave(params) {
 
 	this.Container_constructor();
 
-	var defaults = {
-		x: 0,
-		y: 0,
-		height: 100,
-		width: 1500,
-		real_height: 4,
-		peak_width: 200,
-		breaking: {
-			y_speed: 1200,
-			left: {
-				width: 20,
-				width_max: 30,
-				width_interval: 3000,
-				width_pause: 1000,
-			},
-			right: {
-				width: 10,
-				width_max: 25,
-				width_interval: 3000,
-				width_pause: 1000,
-			}
-		},
-		paddling_effort: 1,
-		bottom_fall_scale: 1,
-		top_fall_scale: 0.2,
-		suction_x: 5,
-		suction_y: 4,
-		shoulder : {
-			left : {
-				width: 1000,
-				inner: 300,
-				outer: 300,
-				marge: 50,
-				slope: 0
-			},
-			right : {
-				width: 1000,
-				inner: 300,
-				outer: 300,
-				marge: 50,
-				slope: 0
-			}
-		},
-	};
-	var params = extend(defaults,params);
+	var params = extend({},params);
 
 	this.init(params.spot, params.config);
 }
@@ -226,27 +182,12 @@ prototype.init = function(spot, config) {
 
 }
 
-prototype.getAllPeaksPoints = function() {
-
-	//get peaks
-	const points = [];
-	for(let i=0, len=this.peaks.length; i<len; ++i) {
-		for(let j=0, ln=this.peaks[i].points.length; j<ln; j++) {
-			points.push(this.peaks[i].points[j]);
-		}
-	}
-	return points;
-}
-
-
 prototype.tick = function(ev) {
 	if(this.paused) return;
 
 	if(this.breaked) {
 
-		// continuous breaking is now done by a settimeout
-		//this.continuousBreaking();
-		//this.mergeCollidingPeaks();
+		this.continuousBreaking();
 		this.drawLip();
 		this.drawSplash();
 		this.moveWave();
@@ -255,12 +196,10 @@ prototype.tick = function(ev) {
 
 	this.animateRipples();
 
-	if(DEBUG) {
-		this.drawDebug();
-	}
+	this.drawDebug();
+
 
 }
-
 
 
 prototype.mergeCollidingPeaks = function() {
@@ -322,16 +261,10 @@ prototype.mergeCollidingPeaks = function() {
 
 }
 
-prototype.initContinuousBreaking = function() {
-
-	this.breaking_timer = new Timer(proxy(this.continuousBreaking,this), this.params.breaking.x_speed);
-
-}
-
 prototype.continuousBreaking = function() {
-//console.log(this.params.breaking.left.width.toString());
+
 	// cancel if wave is paused or not breaked yet
-	//if(this.paused === true || this.breaked === false) return;
+	if(this.paused === true || this.breaked === false) return;
 
 	// add breaking points for each peaks
 	for(let i=0,len=this.peaks.length; i<len; ++i) {
@@ -362,8 +295,6 @@ prototype.continuousBreaking = function() {
 	// merge colliding peaks
 	this.mergeCollidingPeaks();
 
-	//init continuous breaking
-	this.breaking_timer = new Timer(proxy(this.continuousBreaking,this), parseInt(this.params.breaking.x_speed));
 }
 
 prototype.addPeak = function(center, width) {
@@ -754,9 +685,6 @@ prototype.initBreak = function(center) {
 
 	this.addPeak(center,this.config.breaking.width);
 
-	//init continuous breaking
-	this.initContinuousBreaking();
-
 	//init points cleaner
 	this.initCleanOffscreenPoints();
 
@@ -824,19 +752,6 @@ prototype.initVariablePameters = function() {
 			wait: this.config.breaking.right.width_pause,
 			slope: 'both',
 			loops : true,
-			ease: createjs.Tween.cubicInOut,
-		})
-	}
-
-	if(this.config.breaking.x_speed_interval !=0 ) {
-		if(this.params.breaking.x_speed instanceof Variation) this.config.breaking.x_speed.destroy();
-		this.params.breaking.x_speed = new Variation({
-			min: this.params.breaking.x_speed,
-			max: this.params.breaking.x_speed_max,
-			time: this.params.breaking.x_speed_interval,
-			pause: this.params.breaking.x_speed_pause,
-			slope: 'both',
-			loops: true,
 			ease: createjs.Tween.cubicInOut,
 		})
 	}
@@ -1258,7 +1173,7 @@ prototype.moveWave = function() {
 	if(this.surfer.riding === false) return;
 
 	// get absolute surfer x position on the screen
-	const surfer_pos = this.cont.localToGlobal(this.surfer.x,0);
+	let surfer_pos = this.cont.localToGlobal(this.surfer.x,0);
 
 	// horizontal position the which the wave will be translate to a side of the screen
 	let delta = (STAGEWIDTH>>1) - surfer_pos.x; + (STAGEWIDTH*2/3 * this.direction)
@@ -1831,9 +1746,11 @@ prototype.drawMask = function() {
 
 prototype.drawDebug = function() {
 
+	if(DEBUG == false) return;
+
 	this.debug_points_cont.removeAllChildren();
 
-	var points = this.getAllPeaksPoints();
+	var points = this.allpoints;
 	for(let j=0, ln=points.length; j<ln; j++) {
 
 		let point = points[j];
@@ -2200,7 +2117,6 @@ prototype.isCENTER = function() {
 }
 prototype.setTimeScale = function(scale) {
 	this.time_scale = scale;
-	this.params.breaking.x_speed = this.config.breaking.x_speed / scale;
 	this.suction = this.suction.clone().scale(scale);
 	this.allpoints.map(p => p.tweens.map(t => t.timeScale = scale));
 	this.surfers.map(s => s.setTimeScale(scale));

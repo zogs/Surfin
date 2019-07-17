@@ -34,11 +34,6 @@ var conf = {
     "real_height": 3,
     "breaking": {
       "width": 180,
-      "x_speed": 50,
-      "x_speed_max": 50,
-      "x_speed_interval": 0,
-      "x_speed_pause": 200,
-      "y_speed": 1200,
       "y_ease": "quartIn",
       "splash_h_percent": 100,
       "splash_h_ease": 0.4,
