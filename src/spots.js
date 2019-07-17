@@ -19,6 +19,7 @@
 		this.wave = null;
 		this.runing = false;
     this.paused = false;
+    this.played = false;
 		this.time_scale = (TIME_SCALE) ? TIME_SCALE : 1;
 
 		this.background = new createjs.Container();
@@ -235,7 +236,10 @@
 	}
 
 	prototype.addSwell = function(nb) {
-		//console.log('addSwell');
+
+    // if spot is already played, return early
+    if(this.played) return;
+
 		//configuration of the wave
 		var config = this.config.waves;
 			config.x = (this.config.series.xshift/100 * STAGEWIDTH) + this.config.series.spread/2 - Math.random()*this.config.series.spread;
@@ -256,10 +260,12 @@
 		wave.coming_tween = tween;
 
 		// if last wave of serie, add next wave
-		if( nb === this.config.series.length) {
-			//console.log('addNextSerie');
-			// call next serie
-			this.addNextSerie();
+		if( nb === this.config.series.length ) {
+			// if its not played yet
+      if(this.played === false) {
+  			// call next serie
+  			this.addNextSerie();
+      }
 		}
 
 	}
@@ -644,6 +650,7 @@
 
 	prototype.playerTakeOff = function(surfer,wave) {
 
+    this.played = true;
 		this.wave = wave;
 		this.surfer = surfer;
 		//stop spot timers
