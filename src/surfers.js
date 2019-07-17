@@ -294,6 +294,10 @@
 			.set({ y: 1 })
 			.call(proxy(this.endTakeOff,this));
 
+		// align trail with the board contact with the water
+		this.trail_cont.y = 0;
+		createjs.Tween.get(this.trail_cont).to({y : 50}, 2000, createjs.Ease.quartIn);
+
 		// init weapon
 		this.initWeapon();
 
@@ -1809,7 +1813,10 @@
 
 
 		// align trail with the board contact with the water
-		this.trail_cont.y = 50;
+		let dx = 0;
+		if(this.wave.direction === LEFT) dx = 25;
+		if(this.wave.direction === RIGHT) dx = -25;
+		this.trail_cont.x = dx;
 
 	}
 
