@@ -18,7 +18,7 @@
 
       var sheet = new createjs.SpriteSheet({
           images: [queue.getResult(this.img)],
-          frames: {width:parseInt(200*rX), height:parseInt(80,rY), regX:parseInt(100*rX), regY:parseInt(40,rY)},
+          frames: {width:parseInt(200*rX), height:parseInt(80*rY), regX:parseInt(100*rX), regY:parseInt(40*rY)},
           framerate: 5,
           animations: {
               swim: [0,5],
