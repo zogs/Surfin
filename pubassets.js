@@ -9,7 +9,7 @@ var mkdirp = require('mkdirp');
 
 
 // Copy folders
-var folders = ['assets/font','assets/js','assets/sounds']
+var folders = ['assets/font','assets/js','assets/sounds','assets/config']
 var dest = 'dist';
 
 folders.map(folder => {

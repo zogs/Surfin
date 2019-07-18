@@ -1234,7 +1234,7 @@ prototype.oldmoveWave = function() {
 }
 
 prototype.selfRemove = function() {
-	console.log('selfRemove');
+
 	this.surfers.map(s => s.selfRemove());
 	this.allpoints.map(p => createjs.Tween.removeTweens(p));
 	this.getTimers().map(function(t) {
