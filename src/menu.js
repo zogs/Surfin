@@ -218,7 +218,6 @@
 
     //clear previous spot
     if(SPOT) {
-      SPOT.remove();
       this.removeLevel(SPOT);
     }
     //clear stage

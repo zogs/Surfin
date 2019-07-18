@@ -88,7 +88,7 @@
     const move = new Victor(this.wave.getSuction().x, this.wave.getSuction().y);
     this.location.add(move);
     this.x = this.location.x;
-    this.y = this.location.y;
+    //this.y = this.location.y;
   }
 
   prototype.setXY = function(x,y) {
@@ -295,7 +295,7 @@
     FlyObstacle.prototype.initialPosition = function() {
 
       let x = this.wave.params.breaking_center + (200 - Math.random() * 400);
-      let y = this.spot.config.lines.break - this.wave.params.height - this.wave.params.height - this.high;
+      let y = this.spot.planet.lines.break - this.wave.params.height - this.wave.params.height - this.high;
 
       if(this.wave.isLEFT()) {
         if(this.reverse) x = this.wave.shoulder_left.x + STAGEWIDTH*2;

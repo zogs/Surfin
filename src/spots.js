@@ -194,6 +194,9 @@
 	}
 
 	prototype.addNextSerie = function() {
+
+    console.log('addNextSerie');
+    console.log(this.timers);
 		// launch a new serie timer
 		let serie_timer = new Timer(proxy(this.addSerie,this),this.config.series.interval);
 		this.timers.push(serie_timer);
@@ -264,6 +267,7 @@
 			// if its not played yet
       if(this.played === false) {
   			// call next serie
+        console.log('addSwell');
   			this.addNextSerie();
       }
 		}
@@ -304,6 +308,7 @@
 			}
 		}
 
+    console.log('addInitialWave');
 		// add the next serie after interval
 		this.addNextSerie();
 
@@ -529,11 +534,12 @@
 
 	prototype.remove = function() {
 
-		this.timers.map(function(timer) { timer.clear() });
+		this.timers.map(function(timer) { timer.clear(); });
 		this.waves.map(function(wave) { createjs.Tween.removeTweens(wave); wave.selfRemove(); });
 		this.paddlers.map(function(paddler) { paddler.remove() });
 		this.score.selfRemove();
 
+    this.timers = [];
 		this.waves = [];
 		this.paddlers = [];
 		this.removeAllEventListeners();

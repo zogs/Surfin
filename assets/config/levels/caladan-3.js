@@ -41,22 +41,22 @@ var conf = {
       "left": {
         "width": 20,
         "width_max": 30,
-        "width_interval": 0,
+        "width_interval": 1000,
         "width_pause": 0,
-        "block_interval": 0,
-        "block_interval_max": 0,
+        "block_interval": 1000,
+        "block_interval_max": 2000,
         "block_width": 100,
-        "block_width_max": 200
+        "block_width_max": 250
       },
       "right": {
         "width": 20,
-        "width_max": 0,
-        "width_interval": 0,
-        "width_pause": 1000,
-        "block_interval": 2000,
-        "block_interval_max": 600,
+        "width_max": 30,
+        "width_interval": 1000,
+        "width_pause": 0,
+        "block_interval": 1000,
+        "block_interval_max": 2000,
         "block_width": 100,
-        "block_width_max": 200
+        "block_width_max": 250
       }
     },
     "lip": {
@@ -82,10 +82,7 @@ var conf = {
         "interval_max": 1000,
         "objects": {
           "bomb": {
-            "percentage": 95
-          },
-          "stars": {
-            "percentage": 5
+            "percentage": 100
           },
         }
       },

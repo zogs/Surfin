@@ -46,7 +46,6 @@
 		this.velocities = [];
 		this.pumped = [];
 		this.time = 0;
-		this.timer = null;
 		this.speed = 0;
 		this.boost = false;
 		this.angle = 90;
@@ -454,14 +453,10 @@
 
 	prototype.pause = function() {
 
-		this.timer.pause();
-
 		this.particles_cont.children.map(p => p.pause());
 	}
 
 	prototype.resume = function() {
-
-		this.timer.resume();
 
 		this.particles_cont.children.map(p => p.resume());
 	}
@@ -944,7 +939,6 @@
 	prototype.selfRemove = function() {
 
 		this.removeAllTweens();
-		this.timer.clear();
 		this.removeAllEventListeners('tick');
 		this.removeAllChildren();
 
@@ -1263,9 +1257,6 @@
 		var e = new createjs.Event('fallen');
 			e.surfer = this;
 			this.dispatchEvent(e);
-
-		//stop movement timer
-		this.timer.clear();
 
 		//window.clearInterval(this.ploufinterval);
 		window.Stage.removeAllEventListeners('stagemousedown');

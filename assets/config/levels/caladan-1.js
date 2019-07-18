@@ -9,10 +9,10 @@ var conf = {
     "type": "waving"
   },
   "series": {
-    "length": 3,
+    "length": 1,
     "speed": 20000,
     "frequency": 5000,
-    "interval": 14000,
+    "interval": 7000,
     "spread": 200,
     "xshift": 10
   },
@@ -96,18 +96,12 @@ var conf = {
         }
       },
       "fly": {
-        "interval": 0,
-        "interval_max": 1000,
+        "interval": 10000,
+        "interval_max": 15000,
         "objects": {
-          "prize": {
-            "percentage": 30
-          },
           "cigogne": {
-            "percentage": 30
+            "percentage": 100
           },
-          "drone": {
-            "percentage": 40
-          }
         }
       }
     },

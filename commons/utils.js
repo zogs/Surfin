@@ -122,7 +122,7 @@ function Timer(callback, delay) {
         timer, start, ended = false;
 
     this.log = function() {
-      console.log(timer);
+      console.log(timer, this);
     }
 
     this.clear = function () {

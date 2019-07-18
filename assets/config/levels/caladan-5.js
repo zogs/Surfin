@@ -39,24 +39,24 @@ var conf = {
       "splash_h_percent": 100,
       "splash_h_ease": 0.4,
       "left": {
-        "width": 20,
-        "width_max": 30,
+        "width": 30,
+        "width_max": 40,
         "width_interval": 0,
         "width_pause": 0,
-        "block_interval": 0,
-        "block_interval_max": 0,
-        "block_width": 100,
-        "block_width_max": 200
+        "block_width": 300,
+        "block_width_max": 600,
+        "block_interval": 3000,
+        "block_interval_max": 5000,
       },
       "right": {
-        "width": 20,
-        "width_max": 0,
+        "width": 30,
+        "width_max": 40,
         "width_interval": 0,
-        "width_pause": 1000,
-        "block_interval": 2000,
-        "block_interval_max": 600,
-        "block_width": 100,
-        "block_width_max": 200
+        "width_pause": 0,
+        "block_width": 300,
+        "block_width_max": 600,
+        "block_interval": 3000,
+        "block_interval_max": 5000,
       }
     },
     "lip": {
@@ -78,8 +78,8 @@ var conf = {
     },
     "obstacles": {
       "float": {
-        "interval": 2000,
-        "interval_max": 6000,
+        "interval": 0,
+        "interval_max": 0,
         "objects": {
           "paddler": {
             "percentage": 30
@@ -96,18 +96,12 @@ var conf = {
         }
       },
       "fly": {
-        "interval": 0,
+        "interval": 500,
         "interval_max": 1000,
         "objects": {
-          "prize": {
-            "percentage": 30
-          },
           "cigogne": {
-            "percentage": 30
+            "percentage": 100
           },
-          "drone": {
-            "percentage": 40
-          }
         }
       }
     },

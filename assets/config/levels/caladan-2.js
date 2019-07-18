@@ -19,9 +19,9 @@ var conf = {
   "scores": {},
   "surfers": {
     "max": 1,
+    "proportion": 1.5,
     "x": 750,
     "y": 470,
-    "proportion": 1.5,
     "velocities": {
       "x": 1,
       "y": 1
@@ -34,28 +34,29 @@ var conf = {
     "real_height": 3,
     "breaking": {
       "width": 180,
+      "y_speed": 1200,
       "y_ease": "quartIn",
       "splash_h_percent": 100,
       "splash_h_ease": 0.4,
       "left": {
         "width": 20,
-        "width_max": 30,
-        "width_interval": 0,
+        "width_max": 25,
+        "width_interval": 1000,
         "width_pause": 0,
-        "block_interval": 0,
-        "block_interval_max": 0,
-        "block_width": 100,
-        "block_width_max": 200
+        "block_interval": 2000,
+        "block_interval_max": 4000,
+        "block_width": 80,
+        "block_width_max": 100
       },
       "right": {
         "width": 20,
-        "width_max": 0,
-        "width_interval": 0,
-        "width_pause": 1000,
+        "width_max": 25,
+        "width_interval": 1000,
+        "width_pause": 0,
         "block_interval": 2000,
-        "block_interval_max": 600,
-        "block_width": 100,
-        "block_width_max": 200
+        "block_interval_max": 4000,
+        "block_width": 80,
+        "block_width_max": 100
       }
     },
     "lip": {
@@ -77,8 +78,8 @@ var conf = {
     },
     "obstacles": {
       "float": {
-        "interval": 2000,
-        "interval_max": 5000,
+        "interval": 5000,
+        "interval_max": 8000,
         "objects": {
           "stars": {
             "percentage": 100

@@ -78,8 +78,8 @@ var conf = {
     },
     "obstacles": {
       "float": {
-        "interval": 2000,
-        "interval_max": 5000,
+        "interval": 0,
+        "interval_max": 0,
         "objects": {
           "paddler": {
             "shark": 30
@@ -96,17 +96,20 @@ var conf = {
         }
       },
       "fly": {
-        "interval": 0,
-        "interval_max": 1000,
+        "interval": 2000,
+        "interval_max": 4000,
         "objects": {
           "prize": {
-            "percentage": 30
+            "percentage": 25
           },
           "cigogne": {
-            "percentage": 30
+            "percentage": 25
           },
           "drone": {
-            "percentage": 40
+            "percentage": 25
+          },
+          "ptero": {
+            "percentage": 25
           }
         }
       }
