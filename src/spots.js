@@ -307,12 +307,11 @@
 			}
 		}
 
-		// add the next serie after interval
-		//this.addNextSerie();
+
 
 	}
 
-	prototype.addInitialWave = function(position = 0) {
+	prototype.addInitialWave = function(position = 0, nb) {
 
     //console.log('addInitialWave');
 		// create config
@@ -341,6 +340,10 @@
 
 		// add to array
 		this.waves.unshift(wave);
+
+    // add the next serie after interval
+    if(nb == this.config.series.length) this.addNextSerie();
+
 	}
 
 
@@ -581,30 +584,9 @@
 
 		if(this.paused) return;
 
-		this.liftPaddlers();
 		this.paralaxWaves();
 		this.paralaxFront();
 		this.drawDebug();
-	}
-
-	prototype.liftPaddlers = function() {
-
-		// cancel if spot is not currently runing
-		if(this.runing === false) return;
-		// cancel if on pause
-		if(this.paused === true) return;
-
-		// lift paddler up and down the waves
-		for(var i=0,len=this.paddlers.length;i<len;++i) {
-			var paddler = this.paddlers[i];
-			let wave = this.firstWaveBehindPaddler(paddler);
-      if(wave) {
-        paddler.liftup(1);
-      } else {
-        this.sea_cont.swapChildren(paddler, wave);
-        paddler.liftdown();
-      }
-		}
 	}
 
 	prototype.fadeNonPlayedWave = function(wave) {

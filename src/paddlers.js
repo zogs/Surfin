@@ -209,11 +209,15 @@
 	}
 
 	prototype.checkDucking = function() {
-
+		//find wave to catch
 		let wave = SPOT.firstWaveBehindPaddler(this);
-
+		//return early if no wave
 		if(!wave) return;
-
+		//lift paddler when on the wave
+		if(this.getY() < wave.y && this.getY() > wave.y - wave.params.height) {
+        this.liftup(1);
+    }
+    //duck paddler when close to the top
 		for(let i=0,ln=wave.allpoints.length-1; i< ln; ++i){
 			let point = wave.allpoints[i];
 			let minDistance = this.hitbox_radius;
@@ -233,9 +237,9 @@
 
 	prototype.duckWave = function(wave) {
 		SPOT.sea_cont.swapChildren(this,wave);
-		//this.y = wave.y;
 		this.alpha = 1;
 		this.isDucking = false;
+		this.liftdown();
 	}
 
 	prototype.getPaddlingDirection = function(angle) {

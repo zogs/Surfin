@@ -10,7 +10,7 @@ var conf = {
   "series": {
     "length": 1,
     "speed": 20000,
-    "frequency": 5000,
+    "frequency": 7000,
     "interval": 7000,
     "spread": 200,
     "xshift": 10
