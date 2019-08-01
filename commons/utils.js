@@ -116,7 +116,7 @@ function cloneObject(obj) {
 
 // Create a timeout with a pause method
 // usage : new Timer(Function, Number, arg1, arg2, arg3...)
-function Timer(callback, delay) {
+function Timer(callback, delay, onFinished = false) {
     var args = arguments,
         self = this,
         timer, start, ended = false;
@@ -138,18 +138,24 @@ function Timer(callback, delay) {
         start = new Date();
         timer = setTimeout(function () {
             callback.apply(self, Array.prototype.slice.call(args, 2, args.length));
-            ended = true;
+            self.end();
         }, delay);
     };
 
     this.resume = function () {
         if(ended == true) return;
         start = new Date();
+        this.clear();
         timer = setTimeout(function () {
             callback.apply(self, Array.prototype.slice.call(args, 2, args.length));
-            ended = true;
+            self.end();
         }, delay);
     };
+
+    this.end = function() {
+      ended = true;
+      if(onFinished) onFinished(self);
+    }
 
     this.isEnded = function() {
       return ended;

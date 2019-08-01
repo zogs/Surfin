@@ -22,7 +22,6 @@ window.load = function() {
 	CURRENTX = 1280
 	CURRENTY = 720;
 
-
 	USER = new User();
 
 	window.Stage = new createjs.Stage('canvas');
@@ -165,7 +164,7 @@ window.initialize = function() {
 		// find levels of a planet
 		let levels = LEVELS.filter(l => l.planet == p.id);
 		//##temp## fill empty planet with default levels
-		if(levels.length==0) levels = LEVELS.filter(l => l.planet == 'zeguema');
+		if(levels.length==0) levels = [];
 		// adapt level variables to resolution
 		levels.map(l => resizeLevelConf(l));
 		//order levels
@@ -174,16 +173,23 @@ window.initialize = function() {
 		p.levels = levels;
 	});
 
+	//unlock first level
+	let planet = PLANETS.find(p => p.order == 1);
+	let level = planet.levels.find(p => p.level == 1);
+	USER.unlockPlanet(planet);
+	USER.unlockLevel(level);
+	USER.currentPlanet = planet.id;
+	USER.currentLevel = level.id;
+
 	//MENU
 	MENU = new Menu(PLANETS);
 	this.menu_cont.addChild(MENU);
 	//MENU.open();
 
-
-
 	//SPOT
 	const config = LEVELS.find(s => s.alias == 'home');
-	window.addSpot(config,false);
+	MENU.loadLevel(config);
+
 
 	//init onEnterFrame
 	createjs.Ticker.timingMode = createjs.Ticker.TIMEOUT;
@@ -215,57 +221,6 @@ window.tick = function(e) {
 	window.Stage.update(e);
 }
 
-window.loadSpot = function(event, name = 'default') {
-
-	console.log('Loading spot "'+name+'"')
-
-	window.menu_cont.removeAllChildren();
-
-	const spot = LEVELS.find(s => s.name === name || s.alias === name);
-
-	if(typeof spot === 'undefined') {
-		console.error(name+ " spot can't be found...");
-	}
-
-	if(event) {
-		event.stopPropagation();
-	}
-
-	window.addSpot(spot);
-}
-
-window.addSpot = function(config, launch = true) {
-
-	//clear previous spot
-	if(SPOT) {
-		SPOT.remove();
-		window.removeSpot(SPOT);
-	}
-	//clear stage
-	window.spot_cont.removeAllChildren();
-	//create spot with new config
-	SPOT = new Spot(config);
-	//add it
-	window.spot_cont.addChild(SPOT);
-
-}
-
-window.removeSpot = function(spot) {
-
-	if(SPOT === null) return;
-	spot.remove();
-	window.spot_cont.removeChild(spot);
-	SPOT = null;
-}
-
-
-window.initRunnerMode = function(e) {
-
-	SPOT.initRunMode();
-}
-
-
-
 window.keyDownHandler = function(e)
 {
    switch(e.key)
@@ -296,7 +251,6 @@ window.keyDownHandler = function(e)
     case 't':  switchTestMode(); break;
     case 'd':  switchDebugMode(); break;
     case 'w':  switchSlowMo(0.1,500); break;
-    case 'q':  initRunnerMode(); break;
     case 'g':  SPOT.removeAllPaddlers().getWave().breakAndFollow(); break;
     case '+':  SPOT.score.add(1000); break;
     case '*':  SPOT.score.testScore();

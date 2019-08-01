@@ -3,6 +3,10 @@
 		this.level = 1;
 		this.xp = 0;
 		this.points = 0;
+		this.currentPlanet = "caladan";
+		this.currentLevel = "caladan1";
+		this.unlocked_planets = [];
+		this.unlocked_levels = ["caladan2","caladan3","caladan4","caladan5",];
 		this.temp = {}; //temporary data
 		this.skills = {
 			speed: 0.1, //0 to 1
@@ -18,6 +22,24 @@
 		var ua = navigator.userAgent.toLowerCase();
 		this.device.android = ua.indexOf('android') > -1 ? true : false;
 		this.device.ios = ( ua.indexOf('iphone') > -1 || ua.indexOf('ipad') > -1  ) ? true : false;
+
+		this.hasPlanet = function(planet) {
+			if(this.unlocked_planets.indexOf(planet.name) !== -1) return true;
+			return false;
+		}
+
+		this.hasLevel = function(level) {
+			if(this.unlocked_levels.indexOf(level.name) !== -1) return true;
+			return false;
+		}
+
+		this.unlockPlanet = function(planet) {
+			this.unlocked_planets.push(planet.name);
+		}
+
+		this.unlockLevel = function(level) {
+			this.unlocked_levels.push(level.name);
+		}
 
 		this.setLevel = function(level) {
 			this.level = level;
@@ -66,7 +88,7 @@
 			return this;
 		}
 
-		
+
 		this.updateTemp();
 	}
 
@@ -98,7 +120,7 @@
 			}
 			else {
 				return this.user = new User();
-				
+
 			}
 		}
 

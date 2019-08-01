@@ -1,8 +1,8 @@
 var conf = {
   id: 1,
-  name: 'pandora1',
-  alias: 'pandora1',
-  planet: 'pandora',
+  name: 'kashykkk1',
+  alias: 'kashykkk1',
+  planet: 'kashykkk',
   level: 1,
   init: {
     type: 'waving',
@@ -12,7 +12,7 @@ var conf = {
     length :  3,
     speed : 20000,
     frequency : 5000,
-    interval : 8000,
+    interval : 28000,
     spread : 0,
     xshift: 0,
   },
@@ -23,9 +23,9 @@ var conf = {
   ],
   surfers: {
     max: 1,
-    x: 750,
-    y: 470,
     proportion: 1.5,
+    "x": 750,
+    "y": 470,
     velocities: {
       x: 1,
       y: 1
@@ -38,6 +38,7 @@ var conf = {
     real_height: 3,
     breaking: {
       width: 180,
+      y_speed: 1200,
       y_ease: 'quartIn',
       splash_h_percent: 100,
       splash_h_ease: 0.4,

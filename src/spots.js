@@ -56,7 +56,6 @@
 
 	prototype.init = function(type) {
 
-
 		this.initScore();
 		this.initMenuBtn();
 		if(this.name == 'home') this.initHomeScreen();
@@ -194,11 +193,9 @@
 	}
 
 	prototype.addNextSerie = function() {
-
-    console.log('addNextSerie');
-    console.log(this.timers);
+    //console.log('addNextSerie');
 		// launch a new serie timer
-		let serie_timer = new Timer(proxy(this.addSerie,this),this.config.series.interval);
+		let serie_timer = new Timer(proxy(this.addSerie,this),this.config.series.interval, proxy(this.removeTimer, this));
 		this.timers.push(serie_timer);
 
 	}
@@ -221,7 +218,7 @@
 	}
 
 	prototype.addSerie = function() {
-
+    //console.log('addSerie');
 		// launch first wave
 		this.addSwell(1);
 
@@ -231,7 +228,7 @@
 			// calcul delay
 			let delay = (i-1) * this.config.series.frequency;
 			// launch timer
-			let timer = new Timer(proxy(this.addSwell,this,[i]),delay);
+			let timer = new Timer(proxy(this.addSwell,this,[i]),delay, proxy(this.removeTimer, this));
 			// add timer to timers
 			this.timers.push(timer);
 
@@ -239,7 +236,7 @@
 	}
 
 	prototype.addSwell = function(nb) {
-
+    //console.log('addSwell', nb);
     // if spot is already played, return early
     if(this.played) return;
 
@@ -267,7 +264,7 @@
 			// if its not played yet
       if(this.played === false) {
   			// call next serie
-        console.log('addSwell');
+
   			this.addNextSerie();
       }
 		}
@@ -276,6 +273,7 @@
 
 	prototype.addInitialSerie = function() {
 
+    //console.log('addInitialSerie');
 		let speed = this.config.series.speed;
 		let length = this.config.series.length;
 		let frequency = this.config.series.frequency;
@@ -283,39 +281,40 @@
 		let startAt = 0.3;
 
 		// launch first wave at advanced position
-		this.addInitialWave(speed * startAt);
+		this.addInitialWave(speed * startAt, 1);
 
 		// test others wave of the serie
 		for(let i=1; i < length; i++) {
-
 			let previLaunch = frequency * i;
 			let currentTime = speed * startAt;
 			let diff = previLaunch - currentTime;
 
 			// if next wave should be already launched
 			if(diff <= 0) {
+        //console.log(i,'at advanced position');
 				// add a wave at a advanced position
 				let position = diff * -1;
-				this.addInitialWave(position);
+				this.addInitialWave(position,i+1);
 				//console.log('add now at position', position);
 			}
 			else {
+        //console.log(i,'with a bit of delay', diff);
 				// launch wave at position zero with a bit of delay
 				let delay = diff;
-				let timer = new Timer(proxy(this.addInitialWave,this),delay);
+				let timer = new Timer(proxy(this.addSwell,this,[i+1]), delay, proxy(this.removeTimer, this));
 				this.timers.push(timer);
 				//console.log('add with delay', delay);
 			}
 		}
 
-    console.log('addInitialWave');
 		// add the next serie after interval
-		this.addNextSerie();
+		//this.addNextSerie();
 
 	}
 
 	prototype.addInitialWave = function(position = 0) {
 
+    //console.log('addInitialWave');
 		// create config
 		let config = this.config.waves;
 		config.x = (this.config.series.xshift/100 * STAGEWIDTH) + this.config.series.spread/2 - Math.random()*this.config.series.spread;
@@ -413,7 +412,7 @@
 	}
 
 	prototype.initStatic = function() {
-
+    //console.log('initStatic');
 		this.removeAllWaves();
 		this.initEventsListeners();
 		let wave = this.addWave(1);
@@ -423,6 +422,7 @@
 	}
 
 	prototype.initWaving = function() {
+    //console.log('initWaving');
 
 		this.runing = true;
 		this.removeAllWaves();
@@ -433,7 +433,7 @@
 	}
 
 	prototype.initWhenReady = function() {
-
+    //console.log('initWhenReady');
 		this.removeAllWaves();
 		this.initEventsListeners();
 
@@ -550,7 +550,7 @@
 
 		this.addEventListener('tick',proxy(this.tick,this));
 
-		this.on('player_take_off',function(event) {
+		this.on('player_takeoff',function(event) {
 			this.playerTakeOff(event.surfer,event.wave);
 			event.remove();
 		},this);
@@ -1014,6 +1014,7 @@
 
 	prototype.removeAllWaves = function() {
 		this.timers.map(t => t.clear());
+    this.timers = [];
 		this.waves.map(w => createjs.Tween.removeTweens(w));
 		this.waves.map(w => w.selfRemove());
 		this.waves = [];
@@ -1031,34 +1032,23 @@
 		}
 	}
 
+  prototype.removeTimer = function(timer) {
+    this.timers.splice(this.timers.indexOf(timer), 1);
+  }
+
 	prototype.pause = function() {
 
     this.paused = true;
-
-		for(var i=0; i < this.waves.length; ++i) {
-			this.waves[i].pause();
-      this.waves[i].coming_tween.paused = true;
-		}
-		for(var i=0; i < this.timers.length; ++i) {
-			this.timers[i].pause();
-		}
-
+    this.waves.map(w => { w.pause(); w.coming_tween.paused = true; });
+    this.timers.map(t => t.pause());
 		this.score.pause();
 	}
 
 	prototype.resume = function() {
 
     this.paused = false;
-
-		for(var i=0; i < this.waves.length; ++i) {
-      this.waves[i].coming_tween.paused = false;
-			this.waves[i].resume();
-		}
-
-		for(var i=0; i < this.timers.length; ++i) {
-			this.timers[i].resume();
-		}
-
+		this.waves.map(w => { w.coming_tween.paused = false; w.resume(); });
+		this.timers.map(t => t.resume());
 		this.score.resume();
 	}
 

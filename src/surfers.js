@@ -189,14 +189,14 @@
 
 		//custom events
 		/*
-		this.on('take_off',function(event) {
+		this.on('takeoff',function(event) {
 			//this is triggered by wave.playerTakeOff()
 		},this);
 		*/
 
-		this.on('take_off_ended',function(event) {
+		this.on('takeoff_ended',function(event) {
 			if(this.isPlayer()) {
-				var ev = new createjs.Event('player_take_off_ended');
+				var ev = new createjs.Event('player_takeoff_ended');
 				ev.surfer = event.surfer;
 				ev.wave = event.wave;
 				ev.quality = event.quality;
@@ -270,7 +270,7 @@
 		this.silhouette_cont.alpha = 1;
 
 
-		const event = new createjs.Event("take_off");
+		const event = new createjs.Event("takeoff");
 			event.wave = this.wave;
 			event.surfer = this;
 			this.dispatchEvent(event);
@@ -320,7 +320,7 @@
 		const point = this.findLipPointUnder();
 		const quality = (point === null)? 0 : point.breaking_percent;
 
-		const ev = new createjs.Event("take_off_ended");
+		const ev = new createjs.Event("takeoff_ended");
 		ev.wave = this.wave;
 		ev.surfer = this;
 		ev.quality = quality;

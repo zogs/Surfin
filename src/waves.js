@@ -217,7 +217,7 @@ prototype.mergeCollidingPeaks = function() {
 			//remove last point to make a nice visual merge
 			first.points.splice(first.points.length-1,1);
 			//concat all points
-			let merged = first.points.push(...second.points);
+			let merged = first.points.concat(second.points);
 			//set the main peak as the older one
 			let main = (first.id < second.id)? first : second;
 			let dump = (first.id > second.id)? first : second;
@@ -243,7 +243,7 @@ prototype.mergeCollidingPeaks = function() {
 			first.boundaries[RIGHT] >= second.boundaries[LEFT] - this.params.breaking.left.width) {
 
 			first.points.splice(first.points.length-1,1);
-			var merged = first.points.push(...second.points);
+			var merged = first.points.concat(second.points);
 			//sort all the points from left to right (because order is not garantied)
 			merged.sort((a,b) => a.x < b.x ? -1 : 1);
 			var main = (first.id < second.id)? first : second;
@@ -758,7 +758,7 @@ prototype.initVariablePameters = function() {
 }
 
 prototype.playerTakeOff = function(surfer) {
-	console.log('wave playerTakeOff');
+
 	this.surfed = true;
 	this.played = true;
 	this.surfer = surfer;
@@ -769,7 +769,7 @@ prototype.playerTakeOff = function(surfer) {
 	if(this.spot.runing === false) this.initBreak(surfer.x);
 
 	//throw event
-	var e = new createjs.Event("player_take_off");
+	var e = new createjs.Event("player_takeoff");
 	e.wave = this;
 	e.surfer = this.surfer;
 	this.spot.dispatchEvent(e);
@@ -839,7 +839,7 @@ prototype.addSurferBot = function(bot) {
 	bot.takeOff(bot.x,bot.y);
 	this.surfers_cont.addChild(bot);
 	this.surfers.unshift(bot);
-	this.spot.dispatchEvent('bot_take_off');
+	this.spot.dispatchEvent('bot_takeoff');
 
 }
 

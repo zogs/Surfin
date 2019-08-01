@@ -26,7 +26,7 @@
 		},this,true);
 
 
-		this.on('take_off', function(event) {
+		this.on('takeoff', function(event) {
 			this.initVirtualMouse();
 			this.initLightSaber();
 		},this,true);

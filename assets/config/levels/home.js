@@ -4,7 +4,6 @@ var conf = {
   alias: 'home',
   planet: 'home',
   level: 5,
-  unlock: true,
   init: {
     type: 'waving',
     // type: 'fixed',

@@ -16,6 +16,7 @@
     this.countdown = false;
     this.timers = [];
     this.goals_filled = false;
+    this.countdown_interval = null;
 
     this.phrases = {
       'hit top lip' : ['Open your mouth for a free teethbrush','This wave is too big for you'],
@@ -51,6 +52,7 @@
     }
 
     this.current_score = 0;
+    this.time_on_wave = 0;
     this.current_tricks_score = 0;
     this.current_multiplier = 1;
     this.points_per_level = 2;
@@ -84,8 +86,8 @@
 
     this.initCountdown();
     this.showGoals();
-    this.initGoalsListeners();
     this.initPlayerListeners();
+    this.spot.on('player_takeoff', proxy(this.initGoalsListeners, this), null, true);
   }
 
   prototype.initCountdown = function() {
@@ -104,6 +106,15 @@
 
     this.countdown_interval = new Interval(proxy(this.updateCountdown,this), 1000);
     this.timers.push(this.timer);
+    this.spot.on('player_fall', proxy(this.stopCountdown, this), null, true);
+  }
+
+  prototype.stopCountdown = function() {
+
+    if(this.countdown_interval == null) return;
+    this.timers.splice(this.timers.indexOf(this.countdown_interval),1);
+    this.countdown_interval.clear();
+    this.countdown_interval = null;
   }
 
   prototype.updateCountdown = function() {
@@ -111,7 +122,7 @@
     this.countdown--;
     if(this.countdown == 0) {
       this.spot.dispatchEvent('wave_timeout');
-      clearInterval(this.countdown_interval);
+      this.stopCountdown();
     }
     if(this.countdown < 10) {
       this.timer.color = 'red';
@@ -159,7 +170,7 @@
     //countdown
     if(this.countdown) {
       //takeoff
-      this.spot.on('player_take_off', proxy(this.startCountdown, this), null, true);
+      this.startCountdown();
       //timeout
       this.spot.on('wave_timeout', proxy(this.timeout, this), null, true);
     }
@@ -196,20 +207,18 @@
   }
 
   prototype.updateTubeTime = function() {
-
     let goal = this.goals.find(g => g.type === 'tube');
     this.tubeTime += 100;
     let seconds = Math.ceil(this.tubeTime/1000);
     goal.text.text = this.goalsNameFormatter(goal, seconds);
     goal.current = seconds;
 
-    if(seconds >= goal.aim) {
+    if(seconds == goal.aim) {
       this.setGoalFilled(goal);
     }
   }
 
   prototype.updateTubeOut = function() {
-
     let goal = this.goals.find(g => g.type === 'tube');
     if(goal.filled !== true) {
       goal.text.text = this.goalsNameFormatter(goal, 0);
@@ -219,7 +228,6 @@
   }
 
   prototype.goalsCheck = function() {
-
     let total = this.goals.length;
     let count = 0;
     for(let i=0,ln=this.goals.length-1;i<=ln;i++) {
@@ -232,28 +240,23 @@
   }
 
   prototype.updateGoalTime = function() {
-
-    if(SPOT.wave === null || SPOT.wave.surfer === null || SPOT.wave.surfer.time === 0) return;
-
     let goal = this.goals.find(g => g.type === 'timed');
-    let time = SPOT.wave.surfer.time;
-    let seconds = Math.ceil(time/1000);
+    let seconds = this.time_on_wave;
     goal.text.text = this.goalsNameFormatter(goal, seconds);
     goal.current = seconds;
 
-    if(seconds > goal.aim) {
+    if(seconds == goal.aim) {
       this.setGoalFilled(goal);
     }
   }
 
   prototype.updateGoalScore = function() {
-
     let goal = this.goals.find(g => g.type === 'score');
     let score = this.current_score;
     goal.text.text = this.goalsNameFormatter(goal, score);
     goal.current = score;
 
-    if(score >= goal.aim) {
+    if(score == goal.aim) {
       this.setGoalFilled(goal);
     }
   }
@@ -266,7 +269,7 @@
     goal.current += 1;
     goal.text.text = that.goalsNameFormatter(goal, goal.current);
 
-    if(goal.current >= goal.count) {
+    if(goal.current == goal.count) {
       that.setGoalFilled(goal);
     }
   }
@@ -278,7 +281,7 @@
     goal.current += 1;
     goal.text.text = that.goalsNameFormatter(goal, goal.current);
 
-    if(goal.current >= goal.count) {
+    if(goal.current == goal.count) {
       that.setGoalFilled(goal);
     }
   }
@@ -287,12 +290,11 @@
 
     let type = e.type;
     let goal = that.goals.find(g => g.type === 'kill' && g.aim === 'surfer');
-    console.log(goal);
     if(typeof goal === 'undefined') return;
     goal.current += 1;
     goal.text.text = that.goalsNameFormatter(goal, goal.current);
 
-    if(goal.current >= goal.count) {
+    if(goal.current == goal.count) {
       that.setGoalFilled(goal);
     }
   }
@@ -311,12 +313,14 @@
 
   prototype.initPlayerListeners = function() {
 
-    this.spot.on('player_take_off',function(event) {
+    this.spot.on('player_takeoff',function(event) {
       this.progress();
       this.takeoff = this.newScore('Takeoff');
+      this.time_on_wave = 0;
+      this.timers.push(new Interval(proxy(this.updatetime_on_wave,this), 1000));
     },this, null, true);
 
-    this.spot.on('player_take_off_ended',function(event) {
+    this.spot.on('player_takeoff_ended',function(event) {
 
       if(event.quality >= 50) this.takeoff.grade('Super').add(2000).end();
       else if(event.quality >= 20) this.takeoff.grade('Good').add(1000).end();
@@ -400,6 +404,10 @@
       clearTimeout(this.kill_reset);
       this.kill_reset = setTimeout(proxy(function(){ this.kill_count = 0;},this), 2000);
     },this);
+  }
+
+  prototype.updatetime_on_wave = function() {
+    this.time_on_wave++;
   }
 
   prototype.newScore = function(text) {

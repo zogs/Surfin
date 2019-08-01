@@ -36,6 +36,7 @@
       this.drawTableSuccess();
       this.drawBoardSuccess();
       this.drawButtonSuccess();
+      this.unlockNextLevel();
     }
     else {
       this.drawTableRetry();
@@ -45,6 +46,35 @@
 
     this.x = STAGEWIDTH/2;
     this.y = STAGEHEIGHT/2 - 100*rY;
+  }
+
+  prototype.unlockNextLevel = function() {
+
+    console.log(SPOT.config);
+    let planet = SPOT.config.planet;
+    let level = SPOT.config.level;
+    let nextlevel = LEVELS.find(l => l.planet == planet && l.level == level+1);
+
+    if(nextlevel) {
+      USER.unlocked_levels.push(nextlevel.name);
+    }
+    else {
+      let currplanet = PLANETS.find(p => p.id == planet);
+      let nextplanet = PLANETS.find(p => p.order == currplanet.order+1);
+      let firstlevel = LEVELS.find(l => l.planet == nextplanet.id && l.level == 1);
+      if(nextplanet) {
+        USER.unlockPlanet(nextplanet);
+        USER.unlockLevel(firstlevel);
+        USER.currentPlanet = nextplanet.id;
+        USER.currentLevel = firstlevel.id;
+      }
+      else {
+        console.log('Well, you finished the game !');
+      }
+    }
+
+    console.log(USER);
+
   }
 
   prototype.drawBoard = function() {
@@ -197,8 +227,8 @@
 
     //draw title
     let title = new createjs.Bitmap(queue.getResult('successtxt'));
-    title.x = -400;
-    title.y = -220;
+    title.x = -400*rX;
+    title.y = -220*rY;
     let van = new createjs.Sprite(
       new createjs.SpriteSheet({
           images: [queue.getResult('astrovan')],

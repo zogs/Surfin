@@ -4,7 +4,6 @@ var conf = {
   alias: 'caladan2',
   planet: 'caladan',
   level: 2,
-  unlock: true,
   "init": {
     "type": "waving"
   },
@@ -28,6 +27,9 @@ var conf = {
     },
     "weapons": []
   },
+  "goals": [
+      { type: 'timed', current:0, aim: 5, name: 'Survivre 5 secondes ({n}s)' },
+  ],
   "waves": {
     "height": 250,
     "width": 0,

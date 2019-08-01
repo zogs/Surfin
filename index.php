@@ -36,10 +36,10 @@
 	<script src="commons/shaker.js" type="text/javascript"></script>
 	<script src="commons/variations.js" type="text/javascript"></script>
 	<script src="commons/particles.js" type="text/javascript"></script>
-	<script src="dist/config/levels.conf.js" type="text/javascript"></script>
-	<?php loadJsDir('dist/config/levels/'); ?>
-	<script src="dist/config/planets.conf.js" type="text/javascript"></script>
-	<?php loadJsDir('dist/config/planets/'); ?>
+	<script src="assets/config/levels.conf.js" type="text/javascript"></script>
+	<?php loadJsDir('assets/config/levels/'); ?>
+	<script src="assets/config/planets.conf.js" type="text/javascript"></script>
+	<?php loadJsDir('assets/config/planets/'); ?>
 	<script src="src/user.js" type="text/javascript"></script>
 	<script src="src/score_ui.js" type="text/javascript"></script>
 	<script src="src/scoreboard.js" type="text/javascript"></script>

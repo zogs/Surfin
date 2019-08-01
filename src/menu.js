@@ -22,15 +22,15 @@
     this.acti_cont = new createjs.Container();
     this.addChild(this.acti_cont);
 
-    this.init();
   }
 
   var prototype = createjs.extend(Menu, createjs.Container);
 
   prototype.open = function(e) {
 
+    this.init();
     this.status = 'opened';
-    SPOT.pause();
+    if(SPOT) SPOT.pause();
     createjs.Tween.get(this).to({rotation:0, alpha:1}, 777, createjs.Ease.quartOut);
 
     if(e) e.stopImmediatePropagation();
@@ -39,8 +39,9 @@
   prototype.close = function(e) {
 
     this.status = 'closed';
-    SPOT.resume();
-    createjs.Tween.get(this).to({rotation:40, alpha:0}, 777, createjs.Ease.quartOut);
+    if(SPOT) SPOT.resume();
+    createjs.Tween.get(this).to({rotation:40, alpha:0}, 777, createjs.Ease.quartOut)
+      .call(proxy(this.clear, this));
 
     if(e) e.stopImmediatePropagation();
   }
@@ -49,6 +50,14 @@
 
     if(this.status == 'closed') return this.open();
     if(this.status == 'opened') return this.close();
+  }
+
+  prototype.clear = function() {
+
+    this.bkg_cont.removeAllChildren();
+    this.nav_cont.removeAllChildren();
+    this.deco_cont.removeAllChildren();
+    this.acti_cont.removeAllChildren();
   }
 
   prototype.init = function() {
@@ -85,7 +94,7 @@
       previous = planet;
       this.nav_cont.addChild(planet);
       // click
-      if(config.unlock == true) {
+      if(USER.hasPlanet(config)) {
         planet.cursor = 'pointer';
         planet.on('click', function(e) {
             that.loadPlanet(planet.name);
@@ -116,8 +125,7 @@
     this.nav_cont.y = 190*rY;
 
 
-    let first = this.planets[0].name;
-    this.loadPlanet(first)
+    this.loadPlanet(USER.currentPlanet)
 
   }
 
@@ -128,7 +136,7 @@
     if(this.cplanet == name) return;
     this.cplanet = name;
 
-    let planet = this.planets.find(p => p.name == name);
+    let planet = this.planets.find(p => p.id == name);
 
     this.deco_cont.removeAllChildren();
     this.acti_cont.removeAllChildren();
@@ -177,7 +185,7 @@
       title.mouseEnabled = false;
       this.acti_cont.addChild(title);
 
-      if(level.unlock) {
+      if(USER.hasLevel(level)) {
         btn.on('click', proxy(this.loadLevel, this, [level]));
         new createjs.ButtonHelper(btn, "out", "over", "down");
       }
@@ -214,12 +222,16 @@
 
   }
 
-  prototype.loadLevel = function(level) {
+  prototype.loadLevel = function(level,args) {
 
+    //stop click propagation
+    if(args) args[0].stopImmediatePropagation();
     //clear previous spot
     if(SPOT) {
       this.removeLevel(SPOT);
     }
+    //close menu
+    this.close();
     //clear stage
     window.spot_cont.removeAllChildren();
     window.extra_cont.removeAllChildren();
@@ -227,13 +239,8 @@
     SPOT = new Spot(level);
     //add it
     window.spot_cont.addChild(SPOT);
-    //init spot
-    setTimeout(function() {
-      SPOT.init();
-    },100);
     // add menu
     //SCREENS.addMenuIcon();
-    this.close();
 
     //initCustomizer();
   }

@@ -4,7 +4,6 @@ var conf = {
   alias: 'zeguema2',
   planet: 'zeguema',
   level: 2,
-  unlock: true,
     init: {
       type: 'waving',
       // type: 'fixed',

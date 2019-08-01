@@ -4,7 +4,6 @@ var conf = {
   alias: 'flhoston1',
   planet: 'flhoston',
   level: 1,
-  unlock: true,
   init: {
     type: 'waving',
     // type: 'fixed',
