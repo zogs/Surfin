@@ -130,83 +130,81 @@
 
 	prototype.liftup = function(y) {
 
-		if(this.lifted) return;
-
 		this.cont.y = this.cont.y - y;
 		this.lifttotal += y;
 		this.liftamount = y;
-
 	}
 
 	prototype.liftdown = function() {
 
-		if(this.lifttotal == 0) return;
-
-		this.cont.y = this.cont.y + this.liftamount*2;
-		this.lifttotal -= this.liftamount*2;
-
-		if(this.lifttotal <=0) {
-			window.clearTimeout(this.lifted);
-			this.lifted = null;
-			return;
-		}
-
-		this.lifted = window.setTimeout(proxy(this.liftdown,this),50);
+		this.cont.y = this.cont.y + this.lifttotal;
+		this.lifttotal = 0;
+		this.liftamount = 0;
 	}
 
 	prototype.movePaddler = function(evt) {
 
 		var x = evt.stageX;
 		var y = evt.stageY;
+		var t = 1000;
 
 		//calcul angle
 		var angle = calculAngle(this.x,this.y,x,y);
+		//get direction
+		let direction = this.getPaddlingDirection(angle);
+		//do nothing on move up
+		//if(direction == 'up') return;
 		//set silhouette accordingly
-		this.setPaddlerSilhouette(angle);
+		this.setPaddlerSilhouette(direction);
+		//restrict angle according to the direction
+		if(direction == 'down') angle = 90; // down
+		if(direction == 'left') angle = 180; // left
+		if(direction == 'up') angle = 270; // up
+		if(direction == 'right') angle = 360; // right
+
 		//power of paddling
 		var power = this.skill.paddling * 100;
 		//perspective ajustment
-		if(this.paddling == 'up') power = power/2;
-		if(this.paddling == 'down') power = power/3;
-		//calcul the arrival point
-		var point = findPointFromAngle(this.x, this.y, angle, power);
+		if(direction == 'up') power = power/2;
+		if(direction == 'down') power = power/3;
 
 		//if a previous paddling is 50% progressed, add a extra power
-		if(this.paddling_progress > 50) {
-			this.paddling_force = this.paddling_force + this.skill.paddling + this.paddling_force*10/this.paddling_progress ;
-		}
-		else {
-			this.paddling_force = this.paddling_force + this.skill.paddling;
-		}
-		this.paddling_progress = 0;
-		//move the paddler
-		var tween = createjs.Tween.get(this, {override:true});
-			tween.to({ y:point.y, x:point.x, paddling_progress:100 },1000, createjs.Tween.quartOut).call(proxy(this.endMoving,this));
-			tween.addEventListener('change',proxy(this.paddlingProgress,this));
-
-			;
+		this.paddling_force = this.paddling_force + this.skill.paddling + this.paddling_progress/100;
+		t -= (t*(this.paddling_progress)/100)*1/2;
+		createjs.Tween.get(this, {override:true}).to({paddling_progress: 100}, t, createjs.Tween.quartOut).addEventListener('change', proxy(this.updatePaddlingProgress,this, [direction]));
 
 		//throw event
 		var e = new createjs.Event("paddler_paddling");
-			e.paddler = this;
-			this.spot.dispatchEvent(e);
+		e.paddler = this;
+		e.direction = direction;
+		e.force = this.paddling_force;
+		this.spot.dispatchEvent(e);
+
+		// move paddler only horizontaly
+		if(direction == 'left' || direction == 'right') {
+			//calcul the arrival point
+			var point = findPointFromAngle(this.x, this.y, angle, power);
+			//move the paddler
+			createjs.Tween.get(this).to({ y:point.y, x:point.x}, t, createjs.Tween.quartOut);
+		}
+
+
 	}
 
 	prototype.endMoving = function() {
-
 		this.isPaddling = false;
+		this.paddling_force = 0;
+		this.paddling_progress = 0;
+		this.silhouette.gotoAndPlay("wait");
 	}
 
-	prototype.paddlingProgress = function(evt) {
-
+	prototype.updatePaddlingProgress = function(direction) {
 		this.isPaddling = true;
-
+		//this.silhouette.gotoAndPlay(direction);
 		//resize paddler
-		this.resize();
-
+		//this.resize();
 		if(this.paddling_progress === 100) {
-			this.paddling_force = 0;
-			this.paddling_progress = 0;
+			this.endMoving();
 		}
 	}
 
@@ -235,28 +233,38 @@
 
 	prototype.duckWave = function(wave) {
 		SPOT.sea_cont.swapChildren(this,wave);
-		this.y = wave.y;
+		//this.y = wave.y;
 		this.alpha = 1;
 		this.isDucking = false;
 	}
 
-	prototype.setPaddlerSilhouette = function(angle) {
-
-
+	prototype.getPaddlingDirection = function(angle) {
 		if(angle >= 45 && angle < 135) {
-			this.paddling = 'down';
-			this.silhouette.gotoAndPlay("down");
+			return 'down';
 		}
 		if(angle >= 135 && angle < 225) {
-			this.paddling = 'left';
-			this.silhouette.gotoAndPlay("left");
+			return 'left';
 		}
 		if(angle >= 225 && angle < 315) {
-			this.paddling = 'up';
-			this.silhouette.gotoAndPlay("up");
+			return 'up';
 		}
 		if(angle >=315 || angle < 45) {
-			this.paddling = 'right';
+			return 'right';
+		}
+	}
+
+	prototype.setPaddlerSilhouette = function(direction) {
+
+		if(direction == 'down') {
+			this.silhouette.gotoAndPlay("down");
+		}
+		if(direction == 'left') {
+			this.silhouette.gotoAndPlay("left");
+		}
+		if(direction == 'up') {
+			this.silhouette.gotoAndPlay("up");
+		}
+		if(direction == 'right') {
 			this.silhouette.gotoAndPlay("right");
 		}
 
@@ -271,26 +279,26 @@
 		    	wait: 0,
 		    	waitright: 1,
 		    	waitleft: 6,
-		        left: {
-		            frames: [7,8,7,8,7,8],
-		            next: "waitleft",
-		            speed: 0.3
-		        },
-		        right: {
-		        	frames: [2,3,2,3,2,3],
-		        	next: "waitright",
-		        	speed: 0.3
-		        },
-		        up: {
-		        	frames: [9,10,9,10,9,10],
-		        	next: "wait",
-		        	speed: 0.3
-		        },
-		        down: {
-		        	frames: [4,5,4,5,4,5],
-		        	next: "wait",
-		        	speed: 0.3
-		        }
+	        left: {
+	            frames: [7,8,7,8,7,8],
+	            next: "waitleft",
+	            speed: 0.3
+	        },
+	        right: {
+	        	frames: [2,3,2,3,2,3],
+	        	next: "waitright",
+	        	speed: 0.3
+	        },
+	        up: {
+	        	frames: [9,10,9,10,9,10],
+	        	next: "wait",
+	        	speed: 0.3
+	        },
+	        down: {
+	        	frames: [4,5,4,5,4,5],
+	        	next: "wait",
+	        	speed: 0.3
+	        }
 		    }
 		});
 

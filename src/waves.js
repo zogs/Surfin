@@ -63,6 +63,7 @@ prototype.init = function(spot, config) {
 	this.breaking_timer = false;
 	this.cleaning_timer = false;
 	this.obstacle_timer = false;
+	this.obstaclefly_timer = false;
 	this.breaking_peak_left_timer = false;
 	this.breaking_peak_right_timer = false;
 	this.breaking_block_left_timer = false;
@@ -509,12 +510,6 @@ prototype.splashPointReached = function(point) {
 	if(this.direction===0) {
 		this.setDirection();
 		this.startShaking();
-
-
-		//init obstacles intervals
-		if(this.isPlayed) {
-			this.initObstaclesInterval();
-		}
 	}
 
 	//add particle
@@ -689,19 +684,14 @@ prototype.initBreak = function(center) {
 	this.initCleanOffscreenPoints();
 
 	//init intervals
-	this.initBreakingIntervals();
+	this.initBreakedIntervals();
 
-	//init variables
-	this.initVariablePameters();
 }
 
 prototype.initBreakedIntervals = function() {
 
-	if(this.breaked === true) {
 		this.initBreakingIntervals();
-		this.initObstaclesInterval();
 		this.initVariablePameters();
-	}
 }
 
 prototype.initBreakingIntervals = function() {
@@ -773,6 +763,8 @@ prototype.playerTakeOff = function(surfer) {
 	e.wave = this;
 	e.surfer = this.surfer;
 	this.spot.dispatchEvent(e);
+
+	this.initObstaclesInterval();
 
 	}
 
@@ -918,6 +910,7 @@ prototype.getTimers = function() {
 	if(this.breaking_timer instanceof Timer) timers.push(this.breaking_timer);
 	if(this.cleaning_timer instanceof Timer) timers.push(this.cleaning_timer);
 	if(this.obstacle_timer instanceof Timer) timers.push(this.obstacle_timer);
+	if(this.obstaclefly_timer instanceof Timer) timers.push(this.obstaclefly_timer);
 	if(this.breaking_peak_left_timer instanceof Timer) timers.push(this.breaking_peak_left_timer);
 	if(this.breaking_peak_right_timer instanceof Timer) timers.push(this.breaking_peak_right_timer);
 	if(this.breaking_block_left_timer instanceof Timer) timers.push(this.breaking_block_left_timer);
@@ -1385,13 +1378,13 @@ prototype.addRandomFloatObstacle = function() {
 prototype.initFlyObstaclesInterval = function() {
 
 	var time = this.config.obstacles.fly.interval + Math.random()*(this.config.obstacles.fly.interval_max - this.config.obstacles.fly.interval);
-	this.obstacle_timer = new Timer(proxy(this.continueFlyObstaclesInterval,this),time);
+	this.obstaclefly_timer = new Timer(proxy(this.continueFlyObstaclesInterval,this),time);
 }
 prototype.continueFlyObstaclesInterval = function() {
 
 	var time = this.config.obstacles.fly.interval + Math.random()*(this.config.obstacles.fly.interval_max - this.config.obstacles.fly.interval);
 	this.addRandomFlyObstacle();
-	this.obstacle_timer = new Timer(proxy(this.initFlyObstaclesInterval,this),time);
+	this.obstaclefly_timer = new Timer(proxy(this.initFlyObstaclesInterval,this),time);
 }
 prototype.addRandomFlyObstacle = function() {
 	if(this.breaked === false) return;

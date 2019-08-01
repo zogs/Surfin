@@ -581,51 +581,29 @@
 
 		if(this.paused) return;
 
-		this.managePaddlers();
+		this.liftPaddlers();
 		this.paralaxWaves();
 		this.paralaxFront();
 		this.drawDebug();
 	}
 
-	prototype.managePaddlers = function() {
+	prototype.liftPaddlers = function() {
 
 		// cancel if spot is not currently runing
 		if(this.runing === false) return;
-
 		// cancel if on pause
 		if(this.paused === true) return;
 
-		// manage relative position for each paddler
+		// lift paddler up and down the waves
 		for(var i=0,len=this.paddlers.length;i<len;++i) {
-
 			var paddler = this.paddlers[i];
-
-			//find lower indexed waves
-			var index = this.sea_cont.getChildIndex(paddler) - 1;
-			while(index >= 0) {
-
-				if(this.sea_cont.getChildAt(index) instanceof Wave) {
-
-					var wave = this.sea_cont.getChildAt(index);
-
-					//find if paddler superposed to wave
-					if(paddler.getY() < wave.y && paddler.getY() > wave.y - wave.params.height) {
-
-						paddler.liftup(1);
-					}
-
-					//if user is above wave
-					if(paddler.getY() < wave.y - wave.params.height) {
-
-						//swap index pos
-						this.sea_cont.swapChildren(paddler,wave);
-
-						//lower paddler pos
-						paddler.liftdown();
-					}
-				}
-				index--;
-			}
+			let wave = this.firstWaveBehindPaddler(paddler);
+      if(wave) {
+        paddler.liftup(1);
+      } else {
+        this.sea_cont.swapChildren(paddler, wave);
+        paddler.liftdown();
+      }
 		}
 	}
 
@@ -704,15 +682,16 @@
 
 	prototype.paddlerPaddling = function(event) {
 
-		var paddler = event.paddler;
-
-		if(paddler.isBot) this.botPaddling(paddler);
-		else if(paddler.isPlayer) this.playerPaddling(paddler);
+    let paddler = event.paddler;
+		if(paddler.isBot) this.botPaddling(event);
+		if(paddler.isPlayer) this.playerPaddling(event);
 	}
 
-	prototype.botPaddling = function(bot) {
+	prototype.botPaddling = function(event) {
 
 		if(this.runing === false) return;
+
+    let bot = event.paddler;
 
 		var index = this.sea_cont.getChildIndex(bot) - 1;
 		while(index>=0) {
@@ -769,15 +748,22 @@
 		return false;
 	}
 
-	prototype.playerPaddling = function(paddler) {
+	prototype.playerPaddling = function(event) {
 
+    let paddler = event.paddler;
+    let direction = event.direction;
+    let force = event.force;
+
+    // return if no trying to take wave
+    if(direction !== 'down') return;
+    // get wave he is trying to catch
 		var wave = this.firstWaveBehindPaddler(paddler);
 		//return if no wave
 		if(!wave) return;
 		//return if not ON wave
 		if(!this.isPaddlerOnWave(paddler,wave)) return;
 		//return if paddling force not enough
-		if(paddler.paddling_force <= wave.params.paddling_effort) return;
+		if(force <= wave.params.paddling_effort) return;
 
 		//calcul paddler position relative to the wave
 		var y = ( wave.params.height - (wave.getY() - paddler.getY() ));
