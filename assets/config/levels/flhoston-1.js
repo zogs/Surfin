@@ -33,7 +33,7 @@ var conf = {
     weapons: []
   },
   waves: {
-    height : 250,
+    height : 300,
     width : 0,
     real_height: 3,
     breaking: {

@@ -510,6 +510,7 @@ prototype.splashPointReached = function(point) {
 	if(this.direction===0) {
 		this.setDirection();
 		this.startShaking();
+		this.spot.controls.show();
 	}
 
 	//add particle
@@ -551,11 +552,9 @@ prototype.addScore = function(score) {
 }
 
 prototype.coming = function() {
-
 	//when it pass the beach line
 	if(this.beached === false && this.y > this.spot.planet.lines.beach) {
 		this.beached = true;
-
 		//dispatch event that wave reach the beach
 		if(this.played === false) {
 			var e = new createjs.Event("non_played_wave");
@@ -564,12 +563,10 @@ prototype.coming = function() {
 		}
 		return;
 	}
-
 	// break the wave when it reach the break line
 	if(this.breaked === false && this.y > this.spot.planet.lines.break) {
 			this.initBreak(STAGEWIDTH/2);
 	}
-
 	// stop resizing wave when peak line is reached
 	if(this.y >= this.spot.planet.lines.peak) {
 		//if wave is played, send event to freeze the spot
@@ -586,25 +583,20 @@ prototype.coming = function() {
 }
 
 prototype.getResizeCoef = function() {
-
 	return (this.y  - this.spot.planet.lines.horizon) / ( this.spot.planet.lines.peak - this.spot.planet.lines.horizon);
 }
 
 prototype.resize = function() {
-
 	//calcul the proportion
 	const coef = this.getResizeCoef();
-
 	//calcul wave height
 	let h = this.config.height * coef;
 	if(h > this.config.height) {
 		h = this.config.height;
 	}
-
 	//set new height
 	this.params.height = h;
 	this.cont.y = - h;
-
 	//resize width
 	//if not breaked
 	if(this.breaked === false) {
@@ -624,78 +616,49 @@ prototype.resize = function() {
 		this.params.shoulder.right.outer = this.config.shoulder.right.outer * coef;
 		this.params.shoulder.right.marge = this.config.shoulder.right.marge * coef;
 	}
-
 	//resize surfer
 	for(let i=0,len=this.surfers.length;i<len;++i) {
 		this.surfers[i].resize();
 	}
-
-	//resize lip
-	/*if(this.breaked === true) {
-		for(var i=0,len=this.peakpoints[0].length;i<len;++i) {
-			if(this.peakpoints[0][i].splashed != undefined) {
-				this.peakpoints[0][i].y = this.params.height;
-			}
-		}
-	}*/
-
 	//draw background
 	this.drawBackground();
-
 	//progressive alpha background
 	this.background.alpha = coef;
 	this.background_shadow.alpha = 1 - coef;
-
 	//resize background
 	this.resizeBackground(h);
-
 	//draw shpa
 	this.drawMask();
-
 }
 
 prototype.initWave = function(center) {
-
-	if(this.breaked === true) return;
-
 	//init the vanish points
 	this.initVanishPoints(center);
-
 	//add first breaking points
 	this.updateLeftShoulder(STAGEWIDTH/2 - this.config.width/2);
 	this.updateRightShoulder(STAGEWIDTH/2 + this.config.width/2);
-
 }
 
 prototype.initBreak = function(center) {
-
-	if(this.breaked === true) return;
-
 	//set status of the wave
 	this.status = 'run';
 	this.breaked = true;
-
 	//set wave breaking center
 	this.params.breaking_center = center;
-
+	// add the breaking peak
 	this.addPeak(center,this.config.breaking.width);
-
 	//init points cleaner
 	this.initCleanOffscreenPoints();
-
 	//init intervals
 	this.initBreakedIntervals();
-
 }
 
 prototype.initBreakedIntervals = function() {
-
 		this.initBreakingIntervals();
 		this.initVariablePameters();
 }
 
 prototype.initBreakingIntervals = function() {
-
 	//Breaking block interval
 	if(this.config.breaking.left.block_interval !== 0) {
 		this.initBreakingBlockLeftInterval();
@@ -706,17 +669,14 @@ prototype.initBreakingIntervals = function() {
 }
 
 prototype.initObstaclesInterval = function() {
-
 	//float obstacles
 	if(this.config.obstacles.float.interval !== 0) {
 		this.initFloatObstaclesInterval();
 	}
-
 	//fly obstacles
 	if(this.config.obstacles.fly.interval !== 0) {
 		this.initFlyObstaclesInterval();
 	}
-
 }
 
 prototype.initVariablePameters = function() {
@@ -748,7 +708,6 @@ prototype.initVariablePameters = function() {
 }
 
 prototype.playerTakeOff = function(surfer) {
-
 	this.surfed = true;
 	this.played = true;
 	this.surfer = surfer;
@@ -765,18 +724,14 @@ prototype.playerTakeOff = function(surfer) {
 	this.spot.dispatchEvent(e);
 
 	this.initObstaclesInterval();
-
 	}
 
 prototype.startShaking = function() {
-
 	this.shaking = true;
 	this.shake();
-
 }
 
 prototype.stopShaking = function() {
-
 	this.shaking = false;
 }
 
@@ -1122,33 +1077,24 @@ prototype.setDirection = function() {
 
 	//if no surfers, wave is staying straight
 	if(this.surfers.length === 0) return this.direction = CENTER;
-
 	//else set direction
 	if(this.surfer) {
 		if(this.surfer.x > this.params.breaking_center) {
 			this.direction = RIGHT;
-			//console.log('Wave is a right !');
-		}
-		else {
+		}	else {
 			this.direction = LEFT;
-			//console.log('Wave is a left !');
 		}
-	}
-	else {
+	}	else {
 		var surfer = this.surfers[0];
 		if(surfer.x > this.params.breaking_center) {
 			this.direction = RIGHT;
-			//console.log('Wave is a right !');
 		}
 		else {
 			this.direction = LEFT;
-			//console.log('Wave is a left !');
 		}
 	}
-
 	// recalcul suction either LEFT or RIGHT
 	this.suction = this.getSuction();
-
 }
 
 prototype.getSuction = function() {
@@ -1368,7 +1314,7 @@ prototype.addRandomFloatObstacle = function() {
 			else if(obs === 'trooper') this.addBeachTrooper();
 			else if(obs === 'drone') this.addDrone();
 			else if(obs === 'shark') this.addShark();
-			else if(obs === 'stars') this.addStarline();
+			else if(obs === 'stars') this.addRandomStarline();
 			else this.addPaddler();
 			return;
 		}
@@ -1461,22 +1407,27 @@ prototype.addRotatingStar = function() {
 	return obs;
 }
 
-prototype.addStarline = function(length = 5, spreadX = 100, spreadY = 100, sinScale = 10) {
+prototype.addStarline = function(length = 5, spaceX = 80, amplitude = 100, scale = 0.5) {
 
 	let first = this.addRotatingStar();
+	let fx = first.x;
+	let fy = this.params.height - Math.random()*this.params.height*2;
+	first.setXY(fx, fy);
 	let othersX = [];
 	let othersY = [];
+	let theta = 0;
 	for(let i=1; i<=length-1; i++) {
-		let dx = (this.direction === LEFT)? -i * spreadX : i*spreadX;
+		theta += scale;
+		let dx = (this.direction === LEFT)? -i * spaceX : i*spaceX;
 		let x = first.x + dx;
-		let y = first.y + Math.sin(Math.random()*sinScale + i/sinScale) * spreadY;
+		let y = first.y + Math.sin(theta) * amplitude;
 		othersX.push(x);
 		othersY.push(y);
 	}
 
 	let dy = 0;
-	let minY = Math.min(...othersY);
-	if(first.y + minY > this.y - this.params.height ) dy += (first.y+minY) - (this.y - this.params.height);
+	let maxY = Math.max(...othersY);
+	if(maxY > this.params.height ) dy = maxY - this.params.height;
 
 	first.setXY(first.x, first.y - dy);
 	for(let i=0; i<=othersX.length-1; i++) {
@@ -1487,12 +1438,12 @@ prototype.addStarline = function(length = 5, spreadX = 100, spreadY = 100, sinSc
 
 prototype.addRandomStarline = function() {
 
-	let length = Math.ceil(Math.random()*12) + 1;
-	let spreadX = 100 + Math.random()*100;
-	let spreadY = Math.random()*(this.params.height/2);
-	let sinScale = Math.ceil(Math.random()*10);
-	console.log(length, spreadX, spreadY, sinScale);
-	this.addStarline(length, spreadX, spreadY, sinScale);
+	let length = Math.ceil(Math.random()*12) + 4;
+	let spaceX = 100 + Math.random()*100;
+	let amplitude = 50 + Math.random()*(this.params.height/2);
+	let scale = Math.random();
+	//this.addStarline(length, spreadX, spreadY, scale);
+	this.addStarline(length, 80, amplitude, scale);
 }
 
 prototype.addDrone = function() {

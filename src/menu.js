@@ -94,10 +94,10 @@
       previous = planet;
       this.nav_cont.addChild(planet);
       // click
-      if(USER.hasPlanet(config)) {
+      if(USER.hasPlanet(config) || TEST === true) {
         planet.cursor = 'pointer';
         planet.on('click', function(e) {
-            that.loadPlanet(planet.name);
+            that.loadPlanet(config.id);
         });
       }
       //or lock
@@ -129,14 +129,14 @@
 
   }
 
-  prototype.loadPlanet = function(name, e) {
+  prototype.loadPlanet = function(id, e) {
 
     if(e) e.stopImmediatePropagation();
 
-    if(this.cplanet == name) return;
-    this.cplanet = name;
+    if(this.cplanet == id) return;
+    this.cplanet = id;
 
-    let planet = this.planets.find(p => p.id == name);
+    let planet = this.planets.find(p => p.id == id);
 
     this.deco_cont.removeAllChildren();
     this.acti_cont.removeAllChildren();
@@ -185,7 +185,7 @@
       title.mouseEnabled = false;
       this.acti_cont.addChild(title);
 
-      if(USER.hasLevel(level)) {
+      if(USER.hasLevel(level) || TEST === true) {
         btn.on('click', proxy(this.loadLevel, this, [level]));
         new createjs.ButtonHelper(btn, "out", "over", "down");
       }

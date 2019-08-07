@@ -39,6 +39,7 @@
 		this.spatterpoints = [];
 		this.collisions = [];
 		this.tweens = [];
+		this.timers = [];
 		this.trailsize = 1;
 		this.trailcoef = 3.2;
 		this.real_height = 1.5 * 1.6;
@@ -47,7 +48,6 @@
 		this.pumped = [];
 		this.time = 0;
 		this.speed = 0;
-		this.boost = false;
 		this.angle = 90;
 		this.angle_rad = Math.PI/2;
 		this.angles = [];
@@ -63,6 +63,7 @@
 		this.fallen = false;
 		this.surfing = false;
 		this.automove = false;
+		this.boosting = false;
 		this.ollie_cooldown = 1000;
 		this.auto_silhouette = true;
 		this.distanceMinToMouse = 400*rX;
@@ -79,8 +80,9 @@
 		this.aerial_end_point = null;
 		this.aerial_end_point_width = null;
 		this.aerial_particles_emitter = null;
-		this.control_velocities = {x:1,y:1};
+		this.control_velocities = new Victor(1,1);
 		this.time_scale = (TIME_SCALE) ? TIME_SCALE : 1;
+		this.imagePersistanceTimer = null;
 
 		this.skills = USER.skills;
 		this.disturbance = 0;
@@ -103,9 +105,9 @@
 		this.addChild(this.splash_anim);
 
 		this.trail_shape = new createjs.Shape();
-		this.trail_splash = new createjs.Shape();
+		this.speed_shape = new createjs.Shape();
 		this.trail_cont = new createjs.Container();
-		this.trail_cont.addChild(this.trail_shape, this.trail_splash);
+		this.trail_cont.addChild(this.trail_shape, this.speed_shape);
 		this.wave.trails_cont.addChild(this.trail_cont);
 
 		this.spatter_shape_inner = new createjs.Shape();
@@ -182,10 +184,10 @@
 	prototype.initEventsListener = function() {
 
 		//add new click event to jump ollie
-		window.Stage.on('click',function(event) {
-			//this.ollie();
-			this.lightSaberStrike();
-		},this);
+		//window.Stage.on('click',function(event) {
+		//	//this.ollie();
+		//	this.lightSaberStrike();
+		//},this);
 
 		//custom events
 		/*
@@ -326,16 +328,6 @@
 		ev.quality = quality;
 		this.dispatchEvent(ev);
 
-		window.Stage.addEventListener('stagemousedown', proxy(this.onBoost, this));
-		window.Stage.addEventListener('stagemouseup', proxy(this.offBoost,this));
-	}
-
-	prototype.onBoost = function() {
-		this.boost = true;
-	}
-
-	prototype.offBoost = function() {
-		this.boost = false;
 	}
 
 	prototype.setWave = function(wave) {
@@ -363,6 +355,14 @@
 		this.time_scale = scale;
 		this.tweens.map(t => t.timeScale = scale);
 		if(this.aerial_particles_emitter) this.aerial_particles_emitter.setTimeScale(scale);
+	}
+
+	prototype.addTimer = function(timer) {
+		this.timers.push(timer);
+	}
+
+	prototype.removeTimer = function(timer) {
+		this.timers.splice(this.timers.indexOf(timer), 1);
 	}
 
 	prototype.getSurferProportion = function() {
@@ -452,13 +452,14 @@
 	}
 
 	prototype.pause = function() {
-
 		this.particles_cont.children.map(p => p.pause());
+		this.timers.map(t => t.pause());
 	}
 
 	prototype.resume = function() {
 
 		this.particles_cont.children.map(p => p.resume());
+		this.timers.map(t => t.resume());
 	}
 
 	prototype.move = function() {
@@ -714,12 +715,6 @@
 		// add pump-pump to velocity
 		velocity = this.addPumpedInertia(velocity);
 
-		// add boost
-		if(this.boost) {
-			velocity.scaleX(2);
-			velocity.scaleY(2);
-		}
-
 		// set global velocity
 		this.velocity = velocity.clone();
 
@@ -902,7 +897,7 @@
 		// particles
 		this.initAerialParticles();
 		// persistance
-		//this.initImagePersistance(100);
+		//this.initImagePersistance(30);
 		// ???
 		this.velocity.magnitude(1);
 		// slow things down
@@ -1013,41 +1008,47 @@
 
 	prototype.initImagePersistance = function(frequency) {
 
-			this.imagePersistanceTimer = window.setInterval(proxy(this.drawPersistedImage,this), frequency);
+			if(this.imagePersistanceTimer === null) {
+				this.imagePersistanceTimer = new Interval(proxy(this.drawPersistedImage,this), frequency);
+				this.addTimer(this.imagePersistanceTimer);
+			} else {
+				this.stopImagePersistance();
+			}
 	}
 
 	prototype.stopImagePersistance = function() {
-
 		if(this.imagePersistanceTimer) {
+			this.imagePersistanceTimer.clear();
+			this.imagePersistanceTimer = null;
 			this.silhouette_cont.uncache();
-			window.clearInterval(this.imagePersistanceTimer);
+			this.removeTimer(this.imagePersistanceTimer);
 		}
 	}
 
 	prototype.drawPersistedImage = function() {
 
-		let w = 100;
-		this.silhouette_cont.cache(-w,-w,w*2,w*2);
+		let w = 300*rX;
+		let h = 300*rY;
+		this.silhouette_cont.filters = [ new createjs.ColorFilter(Math.random()*0.8+0.2,Math.random()*0.8+0.2,Math.random()*0.8+0.2,1,0,0,0,0) ];
+		this.silhouette_cont.cache(-w,-h,w*2,h*2);
+		w = this.silhouette_cont.cacheCanvas.width;
+		h = this.silhouette_cont.cacheCanvas.height;
 		let image = new createjs.Bitmap(this.silhouette_cont.cacheCanvas);
 		image.filters = [ new createjs.ColorFilter(0,0,0,1, Math.random()*255,Math.random()*255,Math.random()*255,0) ];
-		image.cache(0,0,w*2,w*2);
+		image.cache(0, 0, w, h);
 		image.scaleX = this.silhouette_cont.scaleX;
 		image.scaleY = this.silhouette_cont.scaleY;
-		image.x = this.x;
-		image.y = this.y;
-		image.regX = w;
-		image.regY = w;
-		image.rotation = this.silhouette_cont.rotation;
+		image.regX = w/2;
+		image.regY = h/2;
+		image.x = this.x - 120;
+		image.y = this.y - 110;
 		image.alpha = 1;
 
 		let index = this.wave.surfers_cont.getChildIndex(this);
 		this.wave.surfers_cont.addChildAt(image, index);
 
 		let lifespan = 800;
-		image.scaleX = 0;
-		image.scaleY = 0;
 		createjs.Tween.get(image).to({ alpha: 0}, lifespan).call(proxy(this.removePersistedImage,this,[image]));
-		createjs.Tween.get(image).to({ scaleX: this.silhouette_cont.scaleX, scaleY: this.silhouette_cont.scaleY}, lifespan/2, createjs.Ease.backOut);
 	}
 
 	prototype.removePersistedImage = function(image) {
@@ -1130,21 +1131,13 @@
 		//init landing particles
 		this.endAerialParticles();
 
-		this.stopImagePersistance();
+		//this.stopImagePersistance();
 
 		// remove spatter
 		this.clearSpatter();
 
 		// remove slow motion
 		window.switchSlowMo(1,1000);
-
-		// update aerial end point
-		this.aerial_end_point = this.location.clone();
-		this.trail_splash._width = 200;
-		this.trail_splash.alpha = 1;
-		this.trail_splash.x = this.aerial_end_point.x;
-		this.trail_splash.y = 0;
-		createjs.Tween.get(this.trail_splash).to({ _width: this.trail_splash._width/2}, 700, createjs.Ease.quartIn).to({ alpha: 0, y: -20}, 1000);
 
 		// landiing slowly
 		/*const default_time = 2000;
@@ -1159,11 +1152,12 @@
 		//handle trail size
 		this.resetTrailSize();
 		this.trailpoints[0].location.y = -120;
-		this.trailpoints[0].size = this.trailsize*10;
+		this.trailpoints[0].size = this.trailsize*6;
+		this.trailpoints.splice(1, 200);
 		Variation.prototype.applyOnce(this,'trailsize',{
-					min: this.trailsize*10,
+					min: this.trailsize*6,
 					max: this.trailsize,
-					time: 1000,
+					time: 2000,
 					loops: 1,
 					slope: 'up',
 					callback: proxy(this.resetTrailSize,this),
@@ -1720,12 +1714,24 @@
 		}
 	}
 
+	prototype.startBoost = function() {
+		this.boosting = true;
+		this.control_velocities.scale(2);
+		this.speed_shape.alpha = 0;
+		createjs.Tween.get(this.speed_shape).to({alpha: 1}, 200);
+	}
+
+	prototype.endBoost = function() {
+		this.control_velocities.scale(0.5);
+		createjs.Tween.get(this.speed_shape).to({alpha: 0}, 400)
+			.call(proxy(function() { this.boosting = false},this));
+	}
 
 	prototype.drawTrails = function() {
 
 		this.drawTrail();
 		this.drawSpatter();
-
+		this.drawSpeedtrail();
 	}
 
 	prototype.drawTrail = function() {
@@ -1759,11 +1765,9 @@
 		//const xmin = Math.min.apply(null,xs) - 100;
 		//const xmax = Math.max.apply(null,xs) + 100;
 
-		//draw shape of the trail
+		//draw top shape of the trail
 		this.trail_shape.graphics.clear();
-		this.trail_shape.graphics.beginFill("rgba(255,255,255,0.3)");
-
-		//this.trail_shape.graphics.beginRadialGradientFill(["rgba(255,255,255,1)","rgba(255,255,255,0)"], [0,1], this.x, this.y, 0, this.x, this.y, 600 );
+		this.trail_shape.graphics.beginRadialGradientFill(["rgba(255,255,255,1)","rgba(0,0,0,0.2)"], [0,1], this.x, this.y, 0, this.x, this.y, 180 );
 		for(let i=0; i<nb; ++i) {
 			let point = points[i];
 			var size = i*points[i].size + this.trailcoef*points[i].size;
@@ -1772,13 +1776,13 @@
 			this.trail_shape.graphics.lineTo(x,y);
 		}
 
-		// draw round section
+		// draw end round section
 		let last = points[points.length-1];
 		let x = last.x;
 		let y = last.y;
 		this.trail_shape.graphics.bezierCurveTo(x-size,y-size,x+size,y-size,x+size,y);
 
-
+		////draw bottom shape of the trail
 		for(let i=nb; i>0; --i) {
 			let point = points[i];
 			let size = i*points[i].size + this.trailcoef*points[i].size;
@@ -1789,19 +1793,9 @@
 
 		this.trail_shape.graphics.closePath();
 
-		// draw landing aerial splash
-		/*this.trail_splash.graphics.clear();
-		if(this.trail_splash._width) {
-			this.trail_splash.graphics.beginFill("rgba(255,255,255,0.5");
-			this.trail_splash.graphics.drawCircle(0, 0, this.trail_splash._width/2);
-		}
-		*/
-
-
+		//frame the trail inside the wave rectangle
 		this.trail_cont.mask = this.wave.shape_mask;
-		//this.trail_cont.cache(xmin,0,xmax-xmin,this.wave.params.height);
 		this.trail_cont.alpha = this.alpha;
-
 
 		// align trail with the board contact with the water
 		let dx = 0;
@@ -1809,6 +1803,45 @@
 		if(this.wave.direction === RIGHT) dx = -25;
 		this.trail_cont.x = dx;
 
+	}
+
+
+	prototype.drawSpeedtrail = function() {
+
+		if(this.boosting === false) return;
+
+		const nb = this.trailpoints.length - 1;
+		const points = [];
+		const suction = this.wave.suction.clone();
+		const ysize = 100;
+
+		//update points with the suction vector
+		for (let i = 0; i <= nb; ++i) {
+			//apply vector suction
+			let trail = this.trailpoints[i];
+			trail.location.add(suction);
+			//create xy Point
+			let x = trail.location.x + 5;
+			let y = trail.location.y;
+			let point = new createjs.Point(x,y);
+			point.angle = trail.angle_rad;
+			if(point.angle === 0) point.angle = Math.PI/2; //dont touch
+			points.push(point);
+		}
+
+		//draw shape of the trail
+		this.speed_shape.graphics.clear();
+		this.speed_shape.graphics.setStrokeStyle(ysize).beginRadialGradientStroke(["rgba(255,255,255,0.8)","rgba(255,255,255,0)"], [0,1], this.x, this.y, 0, this.x, this.y, 200);
+
+		for(let i=0; i<nb; ++i) {
+			let point = points[i];
+			let x = point.x ;
+			let y = point.y - 50 ;
+			this.speed_shape.graphics.lineTo(x,y);
+		}
+
+		if(this.wave.direction === LEFT) this.speed_shape.x = -10;
+		if(this.wave.direction === RIGHT) this.speed_shape.x = 10;
 	}
 
 	prototype.drawSpatter = function() {

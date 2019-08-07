@@ -34,6 +34,9 @@
 		this.frontground = new createjs.Container();
 		this.addChild(this.frontground);
 
+    this.control_cont = new createjs.Container();
+    this.addChild(this.control_cont);
+
 		this.overlay_veil = new createjs.Container();
 		this.addChild(this.overlay_veil);
 		this.drawOverlayVeil();
@@ -57,6 +60,7 @@
 	prototype.init = function(type) {
 
 		this.initScore();
+    this.initControl();
 		this.initMenuBtn();
 		if(this.name == 'home') this.initHomeScreen();
 
@@ -72,9 +76,21 @@
 		//do not draw MENU button when on Home
 		if(this.name == 'home') return;
 
-		let btn = new createjs.Bitmap(queue.getResult('btn_back'));
-		btn.x = STAGEWIDTH - btn.image.width;
-		btn.y = 10;
+    let h = 50;
+    let w = 50;
+    let y = 4;
+		let btn = new createjs.Shape();
+    btn.graphics
+      .setStrokeStyle(10,"round").beginStroke("rgba(0,0,0,0.4)")
+      .moveTo(0,y).lineTo(w, y)
+      .moveTo(0,h*1/3+y).lineTo(w, h*1/3+y)
+      .moveTo(0,h*2/3+y).lineTo(w, h*2/3+y)
+      .setStrokeStyle(10,"round").beginStroke("#FFF")
+      .moveTo(0,0).lineTo(w, 0)
+      .moveTo(0,h*1/3).lineTo(w, h*1/3)
+      .moveTo(0,h*2/3).lineTo(w, h*2/3);
+		btn.x = STAGEWIDTH - w*1.5;
+		btn.y = h/2;
 		btn.cursor = 'pointer';
 		btn.on('click', proxy(MENU.open,MENU));
 		this.overlay_cont.addChild(btn);
@@ -541,6 +557,9 @@
 		this.waves.map(function(wave) { createjs.Tween.removeTweens(wave); wave.selfRemove(); });
 		this.paddlers.map(function(paddler) { paddler.remove() });
 		this.score.selfRemove();
+    this.score = null;
+    this.controls.selfRemove();
+    this.controls = null;
 
     this.timers = [];
 		this.waves = [];
@@ -792,8 +811,13 @@
 		this.score_cont.addChild(this.score);
 		this.score_cont.alpha = 1;
 		SCORE = this.score;
-
 	}
+
+  prototype.initControl = function() {
+
+    this.controls = new ControlUI({spot: this});
+    this.control_cont.addChild(this.controls);
+  }
 
 	prototype.showScore = function() {
 		this.score.alpha = 1;
@@ -830,9 +854,6 @@
 	}
 
 	prototype.playerFalling = function(event) {
-
-		if(TEST) return;
-
 		//stop useless interval
 		this.wave.cleaning_timer.clear();
 		//freaze the wave after 6s
@@ -870,13 +891,11 @@
 	}
 
 	prototype.showScoreboard = function(e) {
-
 		this.overlay_cont.removeAllChildren();
 
 		let delay = new Timer(proxy(function() {
 			let scoreboard = new Scoreboard(this.score);
 			this.overlay_cont.addChild(scoreboard);
-
 			scoreboard.show();
 		},this),1000);
 

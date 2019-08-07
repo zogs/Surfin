@@ -28,7 +28,7 @@ var conf = {
     "weapons": []
   },
   "goals": [
-      { type: 'timed', current:0, aim: 5, name: 'Survivre 5 secondes ({n}s)' },
+      { type: 'catch', current:0, aim: 'star', count: 55, name: 'Collecter 55 étoiles ({n})' },
   ],
   "waves": {
     "height": 250,
@@ -41,24 +41,24 @@ var conf = {
       "splash_h_percent": 100,
       "splash_h_ease": 0.4,
       "left": {
-        "width": 20,
+        "width": 15,
         "width_max": 25,
         "width_interval": 1000,
         "width_pause": 0,
         "block_interval": 2000,
         "block_interval_max": 4000,
         "block_width": 80,
-        "block_width_max": 100
+        "block_width_max": 160
       },
       "right": {
-        "width": 20,
+        "width": 15,
         "width_max": 25,
         "width_interval": 1000,
         "width_pause": 0,
         "block_interval": 2000,
         "block_interval_max": 4000,
         "block_width": 80,
-        "block_width_max": 100
+        "block_width_max": 160
       }
     },
     "lip": {
@@ -80,8 +80,8 @@ var conf = {
     },
     "obstacles": {
       "float": {
-        "interval": 5000,
-        "interval_max": 8000,
+        "interval": 2000,
+        "interval_max": 5000,
         "objects": {
           "stars": {
             "percentage": 100
@@ -109,14 +109,14 @@ var conf = {
         "width": 1000,
         "inner": 300,
         "outer": 300,
-        "marge": 50,
+        "marge": 200,
         "slope": 0
       },
       "right": {
         "width": 1000,
         "inner": 300,
         "outer": 300,
-        "marge": 50,
+        "marge": 200,
         "slope": 0
       }
     }

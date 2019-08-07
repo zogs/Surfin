@@ -49,7 +49,7 @@ window.load = function() {
 		{id:'zeguema_back', src:imgdir+'spots/Zeguema_Beach/back.jpg'},
 		{id:'btn_startgame',src:imgdir+'buttons/btn_startgame.png'},
 		{id:'btn_level',src:imgdir+'buttons/btn_level.png'},
-		{id:'btn_back',src:imgdir+'buttons/btn_back.png'},
+		{id:'btn_burger',src:imgdir+'buttons/btn_burger.png'},
 		{id:'btn_menu',src:imgdir+'buttons/btn_menu.png'},
 		{id:'btn_menu_sm',src:imgdir+'buttons/btn_menu_sm.png'},
 		{id:'btn_retry',src:imgdir+'buttons/btn_retry.png'},
@@ -97,7 +97,8 @@ window.load = function() {
 		{id:'medal_silver', src:imgdir+'object/medal_silver.png'},
 		{id:'medal_bronze', src:imgdir+'object/medal_bronze.png'},
 		{id:'medal_empty', src:imgdir+'object/medal_empty.png'},
-		{id:'astroposeur', src:imgdir+'object/astroposeur.png'}
+		{id:'astroposeur', src:imgdir+'object/astroposeur.png'},
+		{id:'icon_boost', src:imgdir+'buttons/boost.png'}
 
 		]);
 
@@ -132,6 +133,7 @@ window.initialize = function() {
 	TIME_SCALE = 1;
 	SLOW_MOTION = false;
 	SPOT = null;
+	TEST = true;
 
 
 	// Containers
@@ -187,7 +189,7 @@ window.initialize = function() {
 	//MENU.open();
 
 	//SPOT
-	const config = LEVELS.find(s => s.alias == 'caladan1');
+	const config = LEVELS.find(s => s.alias == 'home');
 	MENU.loadLevel(config);
 
 
@@ -225,12 +227,13 @@ window.keyDownHandler = function(e)
 {
    switch(e.key)
    {
-    case 'b':  SPOT.getWave().addBlockBreaking(200); break;
-    case 'n':  SPOT.getWave().addBreakingPeak(50,500); break;
+    case 'b':  SPOT.controls.onBoost(); break;
+    case ',':  SPOT.getWave().addBlockBreaking(200); break;
+    case ',':  SPOT.getWave().addBreakingPeak(50,500); break;
     case 'm':  MENU.switch(); break;
     case 's':  window.loadSpot(null,'default'); break;
     case 'a':  SPOT.breakAllWaves(); break;
-    case 'p':  window.pause(); break;
+    case 'p':  SPOT.getWave().getSurfer().initImagePersistance(60); break;
     case ' ':  window.pause(); break;
     case 'f':  SPOT.getWave().getSurfer().fall(); break;
     case 'z':  SPOT.addPaddlerBot(); break;

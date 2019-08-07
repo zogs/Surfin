@@ -62,12 +62,9 @@
     this.addChild(this.score_cont);
 
     //display
-    this.total = new createjs.Text('0','bold '+Math.floor(30*rY)+'px Arial','#FFFFFF');
-    this.score_pt = new createjs.Point(20,20);
-    this.total.x = this.score_pt.x;
-    this.total.y = this.score_pt.y;
-    this.goals_pt = new createjs.Point(20, 60);
-    this.score_cont.addChild(this.total);
+    this.goals_pt = new createjs.Point(20, 20);
+    this.total = new createjs.Text('0','bold '+Math.floor(30*rY)+"px 'Blinker', sans-serif",'#FFFFFF');
+    //this.score_cont.addChild(this.total);
 
 
     //Ticker
@@ -94,9 +91,9 @@
 
     if(typeof this.spot.config.timelimit == 'undefined') return;
     this.countdown = this.spot.config.timelimit;
-    this.timer = new createjs.Text('00:00', Math.floor(60*rY)+'px Arial', '#FFFFFF');
+    this.timer = new createjs.Text('00:00', Math.floor(60*rY)+"px 'Blinker',sans-serif", '#FFFFFF');
     this.timer.x = STAGEWIDTH/2 - this.timer.getMeasuredWidth()/2;
-    this.timer.y = 20;
+    this.timer.y = 10;
     this.timer.alpha = 0.5;
     this.score_cont.addChild(this.timer);
     this.timer.text = this.formatCountdown(this.countdown);
@@ -149,17 +146,24 @@
   prototype.showGoals = function() {
 
     let pt = this.goals_pt.clone();
+    let pad = 4;
+    let dy = 30;
 
     for(let i=0,ln=this.goals.length-1;i<=ln;i++) {
 
       let goal = this.goals[i];
       let name = this.goalsNameFormatter(goal, 0);
-      let text = new createjs.Text(name, 'bold '+Math.floor(14*rY)+'px Arial', '#FFF');
-      text.x = pt.x;
-      text.y = pt.y;
-      this.score_cont.addChild(text);
+      let text = new createjs.Text(name, 'bold '+Math.floor(16*rY)+"px 'Blinker', sans-serif", '#545454');
+
+      let bkg = new createjs.Shape();
+      bkg.graphics.beginLinearGradientFill(['#FFFFFFCC','#FFFFFF55'],[0.65,1],0,0,text.getMeasuredWidth(),0)
+                  .drawRect(-pad,-pad,text.getMeasuredWidth()+2*pad*4, text.getMeasuredHeight()+2*pad);
+      bkg.x = text.x = pt.x;
+      bkg.y = text.y = pt.y;
+
+      this.score_cont.addChild(bkg, text);
       goal.text = text;
-      pt.y += 20;
+      pt.y += dy;
     }
 
     //console.log(this.goals);
@@ -301,7 +305,7 @@
 
   prototype.setGoalFilled = function(goal) {
 
-    goal.text.color = 'lightgreen';
+    goal.text.color = '#018d2f';
     goal.filled = true;
     this.goalsCheck();
   }
@@ -419,7 +423,7 @@
     let x = SPOT.wave.getX() + SPOT.wave.surfer.x;
     let y = (SPOT.wave.surfer.y <= 0)? SPOT.wave.surfer.y  - SPOT.wave.params.height - 100 : - SPOT.wave.params.height - 100;
     SPOT.wave.score_text_cont.addChild(score);
-    createjs.Tween.get(score).set({alpha:0, rotation:15, x:x, y:100}).to({y:y, alpha:1, rotation: -15}, 800, createjs.Ease.bounceOut);
+    createjs.Tween.get(score).set({alpha:0, rotation:10, x:x, y:100}).to({y:y, alpha:1, rotation: -10}, 800, createjs.Ease.bounceOut);
 
     return score;
   }
@@ -435,7 +439,7 @@
 
     let score = new PopScore('Backloop').add(1000);
     SPOT.wave.score_text_cont.addChild(score);
-    createjs.Tween.get(score).set({alpha:0, rotation:15, y:100, x: STAGEWIDTH/2}).to({y:-400, alpha:1, rotation: -15}, 500, createjs.Ease.backOut)
+    createjs.Tween.get(score).set({alpha:0, rotation:10, y:100, x: STAGEWIDTH/2}).to({y:-400, alpha:1, rotation: -10}, 500, createjs.Ease.backOut)
         .wait(500)
         //.call(proxy(score.grade,score,['Super']))
         //.wait(500)
@@ -628,14 +632,14 @@
       createjs.Tween.get(this.circle).set({scale: 0}).to({scale: 1}, 700, createjs.Ease.bounceOut).wait(300).to({alpha: 0}, 1000, createjs.Ease.quartOut);
 
       // text
-      this.text = new createjs.Text(text,'bold '+Math.floor(70*rY)+'px BubblegumSansRegular','#FFF'); //BubblegumSansRegular BoogalooRegular albaregular
+      this.text = new createjs.Text(text,'bold '+Math.floor(70*rY)+"px 'BubblegumSansRegular', sans-serif",'#FFF'); //BubblegumSansRegular BoogalooRegular albaregular
       this.text.regX = this.text.getMeasuredWidth()/2;
       this.text.regY = this.text.getMeasuredHeight()/2;
       this.addChild(this.text);
       createjs.Tween.get(this.text).set({y: 100, scale: 0, alpha: 0}).to({y: 0, alpha: 1, scale:1}, 800, createjs.Ease.elasticOut);
 
       // quality
-      this.quality = new createjs.Text('Wait for grade', 'bold '+Math.floor(70*rY)+'px BubblegumSansRegular', '#eaea49');
+      this.quality = new createjs.Text('Wait for grade', 'bold '+Math.floor(70*rY)+"px 'Blinker', sans-serif", '#eaea49');
       this.quality.regX = this.quality.getMeasuredWidth()/2;
       this.quality.regY = this.quality.getMeasuredHeight()/2;
       this.quality.x = - 300;
@@ -643,7 +647,7 @@
       this.addChild(this.quality);
 
       // score
-      this.subscore = new createjs.Text('0','italic '+Math.floor(36*rY)+'px BubblegumSansRegular','yellow');  //BubblegumSansRegular BoogalooRegular albaregular
+      this.subscore = new createjs.Text('0','italic '+Math.floor(36*rY)+"px 'Blinker', sans-serif",'yellow');  //BubblegumSansRegular BoogalooRegular albaregular
       this.subscore.regX = this.subscore.getMeasuredWidth()/2;
       this.subscore.regY = this.subscore.getMeasuredHeight()/2;
       this.subscore.x = 0;
@@ -755,7 +759,7 @@
         createjs.Tween.get(this.subscore).to({y: this.subscore.y+50}, 1000);
       }
 
-      createjs.Tween.get(this).wait(500).to({alpha: 0, rotation: 180}, 1500, createjs.Ease.quartIn);
+      createjs.Tween.get(this).wait(500).to({alpha: 0}, 1500, createjs.Ease.quartIn);
     }
 
 

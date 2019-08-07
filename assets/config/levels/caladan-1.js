@@ -15,7 +15,11 @@ var conf = {
     "spread": 200,
     "xshift": 10
   },
-  "scores": {},
+  timelimit: 30,
+  goals: [
+    { type: 'score', current:0, aim: 2000, name: 'Faire un score de 2000 points' },
+    { type: 'tube', current:0, aim: 5, name: 'Faire un tube de 5s ou + ({n})' },
+  ],
   "surfers": {
     "max": 1,
     "proportion": 1.5,
@@ -27,9 +31,6 @@ var conf = {
     },
     "weapons": []
   },
-  "goals": [
-      { type: 'timed', current:0, aim: 10, name: 'Survivre 10 secondes ({n}s)' },
-  ],
   "waves": {
     "height": 250,
     "width": 0,

@@ -9,9 +9,8 @@
 
 	<link rel="manifest" href="manifest.json">
 
-	<link rel="stylesheet" href="dist/font/Alba/stylesheet.css">
-	<link rel="stylesheet" href="dist/font/Boogaloo/stylesheet.css">
 	<link rel="stylesheet" href="dist/font/Bubblegum/stylesheet.css">
+	<link href="https://fonts.googleapis.com/css?family=Blinker&display=swap" rel="stylesheet">
 
 	<style type="text/css">
 			body { margin: 0; padding: 0; background: #000; }
@@ -41,6 +40,7 @@
 	<script src="assets/config/planets.conf.js" type="text/javascript"></script>
 	<?php loadJsDir('assets/config/planets/'); ?>
 	<script src="src/user.js" type="text/javascript"></script>
+	<script src="src/control_ui.js" type="text/javascript"></script>
 	<script src="src/score_ui.js" type="text/javascript"></script>
 	<script src="src/scoreboard.js" type="text/javascript"></script>
 	<script src="src/xpbar.js" type="text/javascript"></script>

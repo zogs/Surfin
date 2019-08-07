@@ -16,7 +16,7 @@ var conf = {
     spread : 0,
     xshift: 0,
   },
-  timelimit: 12,
+  timelimit: 30,
   goals: [
     { type: 'score', current:0, aim: 2000, name: 'Faire un score de 2000 points' },
     { type: 'tube', current:0, aim: 5, name: 'Faire un tube de 5s ou + ({n})' },
@@ -33,12 +33,13 @@ var conf = {
     weapons: []
   },
   waves: {
-    height : 250,
+    height : 275,
     width : 0,
     real_height: 3,
     breaking: {
       width: 180,
-      y_ease: 'quartIn',
+      y_speed: 1200,
+      y_ease: "quartIn",
       splash_h_percent: 100,
       splash_h_ease: 0.4,
       left: {

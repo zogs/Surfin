@@ -9,7 +9,7 @@
 		this.unlocked_levels = ["caladan2","caladan3","caladan4","caladan5",];
 		this.temp = {}; //temporary data
 		this.skills = {
-			speed: 0.1, //0 to 1
+			speed: 0.5, //0 to 1
 			aerial: 0.1, //0 to 1
 			agility: 0.1, //0 to 1
 			paddling: 0.1,
