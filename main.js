@@ -49,7 +49,6 @@ window.load = function() {
 		{id:'zeguema_back', src:imgdir+'spots/Zeguema_Beach/back.jpg'},
 		{id:'btn_startgame',src:imgdir+'buttons/btn_startgame.png'},
 		{id:'btn_level',src:imgdir+'buttons/btn_level.png'},
-		{id:'btn_burger',src:imgdir+'buttons/btn_burger.png'},
 		{id:'btn_menu',src:imgdir+'buttons/btn_menu.png'},
 		{id:'btn_menu_sm',src:imgdir+'buttons/btn_menu_sm.png'},
 		{id:'btn_retry',src:imgdir+'buttons/btn_retry.png'},
@@ -113,7 +112,7 @@ window.load = function() {
 
 
 
-	Justice.init();
+	//Justice.init();
 
 }
 

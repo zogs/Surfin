@@ -6,11 +6,13 @@
 	<meta name='apple-mobile-we-app-status-bar-style' content="black-translucent" />
 	<meta name="apple-mobile-web-app-capable" content="yes">
 	<meta name="mobile-web-app-capable" content="yes">
+	<meta name="theme-color" content="#674081">
 
 	<link rel="manifest" href="manifest.json">
 
 	<link rel="stylesheet" href="dist/font/Bubblegum/stylesheet.css">
 	<link href="https://fonts.googleapis.com/css?family=Blinker&display=swap" rel="stylesheet">
+
 
 	<style type="text/css">
 			body { margin: 0; padding: 0; background: #000; }
@@ -20,8 +22,7 @@
 	</head>
 
 	<body onload="load()">
-			<canvas id="canvas" width="1500" height="800"><!-- dont touch the dimension, it is use to calculate the proportion --></canvas>
-		</div>
+			<canvas id="canvas" width="1500" height="800">You need to activate javascript to play this game !</canvas>
 	</body>
 
 
