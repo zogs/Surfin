@@ -9,7 +9,7 @@ if (workbox) {
 
   // use image in cache and revalidate asynchronously
   workbox.routing.registerRoute(
-    /\.(?:png|jpg|jpeg|svg|gif)$/,
+    /\.(?:png|jpg|jpeg|svg|gif|wav|mp3)$/,
     new workbox.strategies.StaleWhileRevalidate({
       cacheName: 'image-cache',
     })
