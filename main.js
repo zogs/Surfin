@@ -383,8 +383,8 @@ window.browserResizeEnded = function() {
 window.resizeCanvas = function() {
 
 	if (USER.device.android || USER.device.ios) { //if android or ios
-		//hide address bar
-        document.body.style.height = (windowHeight + 50) + 'px';
+				//hide address bar
+        //document.body.style.height = (windowHeight + 50) + 'px';
         //enable Touch event
         createjs.Touch.enable(window.Stage);
     }
@@ -395,8 +395,17 @@ window.resizeCanvas = function() {
   document.getElementById('canvas').width = CURRENTX;
   document.getElementById('canvas').height = CURRENTY;
 
-	document.getElementById('canvas').style.width = CURRENTX+'px';
-	document.getElementById('canvas').style.height = CURRENTY+'px';
+	var windowWidth = window.innerWidth || document.documentElement.clientWidth || document.body.clientWidth;
+	var windowHeight = window.innerHeight || document.documentElement.clientHeight || document.body.clientHeight;
+
+	if(windowHeight > CURRENTY) {
+		windowHeight = CURRENTY;
+	}
+	if(windowWidth > CURRENTX) {
+		windowWidth = CURRENTX;
+	}
+	document.getElementById('canvas').style.width = windowWidth+'px';
+	document.getElementById('canvas').style.height = windowHeight+'px';
 
 	//scroll to top
 	window.setTimeout(function() { //rowsers don't fire if there is not short delay
