@@ -267,17 +267,15 @@ window.keyUpHandler = function(e)
 
 window.onMouseMove= function(e) {
 
-	// only mouse and 1st touch event
-	if(e.pointerID !== 0 || e.pointerID !== -1) {
-
-		MOUSE_X = e.stageX;
-		MOUSE_Y = e.stageY;
-
-		var pt = new createjs.Point(MOUSE_X,MOUSE_Y);
-		MOUSE_POINTS.unshift(pt);
-		MOUSE_POINTS = MOUSE_POINTS.slice(0,300);
-
+	// dont track move when event is a second touch
+	if(e.pointerID > 0) {
+		return;
 	}
+
+	MOUSE_X = e.stageX;
+	MOUSE_Y = e.stageY;
+	MOUSE_POINTS.unshift(new createjs.Point(MOUSE_X,MOUSE_Y));
+	MOUSE_POINTS = MOUSE_POINTS.slice(0,300);
 
 }
 

@@ -199,7 +199,6 @@
     skillsButton.addEventListener('click',function(e) {
       e.stopImmediatePropagation();
       e.stopPropagation();
-      e.preventDefault();
 
       var skillcont = that.getSkillCont([menu],skillStar);
       cont.addChild(skillcont);
@@ -315,7 +314,6 @@
       button.addEventListener('click', function(ev) {
         that.addSkillPoint(ev.currentTarget.skill);
         ev.stopPropagation();
-        ev.preventDefault();
       });
     }
 
@@ -344,7 +342,6 @@
       //stop ev
       ev.stopImmediatePropagation();
       ev.stopPropagation();
-      ev.preventDefault();
       ev.remove();
     });
     back.addChild(bkg,txt);

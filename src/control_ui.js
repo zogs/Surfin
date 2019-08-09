@@ -38,6 +38,7 @@
     this.boost.active = true;
     this.boost.alpha = 0;
     this.boost.on('click', proxy(this.onBoost,this));
+    this.boost.on('pressup', proxy(this.stopBoost, this));
     this.addChild(this.boost);
 
     this.show();
@@ -61,7 +62,12 @@
     }
   }
 
+  prototype.stopBoost = function(e) {
+    console.log('stopBoost');
+  }
+
   prototype.onBoost = function(e) {
+    console.log('startBoost');
     if(e) e.stopImmediatePropagation();
     if(e.pointerID <= 0) return; //only second touch event
 
