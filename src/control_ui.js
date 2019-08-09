@@ -36,9 +36,11 @@
     this.boost.addChild(icon);
     this.boost.cursor = 'pointer';
     this.boost.active = true;
+    this.boost.mouseChildren = false;
     this.boost.alpha = 0;
-    this.boost.on('click', proxy(this.onBoost,this));
-    this.boost.on('pressup', proxy(this.stopBoost, this));
+    this.boost.on('mousedown', proxy(this.onBoost,this));
+    window.Stage.on('pressup', proxy(this.stopBoost,this));
+
     this.addChild(this.boost);
 
     this.show();
@@ -70,6 +72,9 @@
     console.log('startBoost');
     if(e) e.stopImmediatePropagation();
     if(e.pointerID <= 0) return; //only second touch event
+
+
+    e.on('pressup', proxy(this.stopBoost, this));
 
     if(this.boost.active) {
       this.spot.getWave().getSurfer().startBoost();
