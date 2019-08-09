@@ -73,14 +73,7 @@
     if(e) e.stopImmediatePropagation();
     if(e.pointerID <= 0) return; //only second touch event
 
-
-    e.on('pressup', proxy(this.stopBoost, this));
-
-    if(this.boost.active) {
-      this.spot.getWave().getSurfer().startBoost();
-      setTimeout(proxy(this.stopBoost, this), 1000);
-      this.cooldown(this.boost, 2000);
-    }
+    this.spot.getWave().getSurfer().startBoost();
   }
 
   prototype.stopBoost = function(e) {
