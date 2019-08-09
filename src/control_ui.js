@@ -23,13 +23,13 @@
     let icon = new createjs.Bitmap(queue.getResult('icon_boost'));
     icon.regX = icon.image.width/2;
     icon.regY = icon.image.height/2;
-    icon.scale = 0.6;
+    icon.scale = 0.7;
     icon.alpha = 0.6;
     let btn = new createjs.Shape();
-    btn.graphics.beginFill('#FFF').drawCircle(0,0,55);
+    btn.graphics.beginFill('#FFF').drawCircle(0,0,70);
     btn.alpha = 0.8;
     let shadow = new createjs.Shape();
-    shadow.graphics.beginFill('#000').drawCircle(0,4,55);
+    shadow.graphics.beginFill('#000').drawCircle(0,4,70);
     shadow.alpha = 0.3;
     this.boost.addChild(shadow);
     this.boost.addChild(btn);
@@ -39,6 +39,8 @@
     this.boost.alpha = 0;
     this.boost.on('click', proxy(this.onBoost,this));
     this.addChild(this.boost);
+
+    this.show();
   }
 
   prototype.show = function() {
@@ -54,11 +56,15 @@
       }
     } else {
       this.boost.alpha = 0;
+      this.boost.x = STAGEWIDTH/2;
+      this.boost.y = STAGEHEIGHT - 80;
     }
   }
 
   prototype.onBoost = function(e) {
-    if(e) e.stopPropagation();
+    if(e) e.stopImmediatePropagation();
+    if(e.pointerID <= 0) return; //only second touch event
+
     if(this.boost.active) {
       this.spot.getWave().getSurfer().startBoost();
       setTimeout(proxy(this.stopBoost, this), 1000);

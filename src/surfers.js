@@ -35,6 +35,7 @@
 
 		this.location;
 		this.locations = [];
+		this.pathpoints = [];
 		this.trailpoints = [];
 		this.spatterpoints = [];
 		this.collisions = [];
@@ -104,11 +105,12 @@
 		this.splash_anim.gotoAndStop(0);
 		this.addChild(this.splash_anim);
 
-		this.trail_shape = new createjs.Shape();
-		this.speed_shape = new createjs.Shape();
-		this.trail_cont = new createjs.Container();
-		this.trail_cont.addChild(this.trail_shape, this.speed_shape);
-		this.wave.trails_cont.addChild(this.trail_cont);
+
+		this.trail_water_shape = new createjs.Shape();
+		this.wave.trails_cont.addChild(this.trail_water_shape);
+
+		this.trails_path_cont = new createjs.Container();
+		this.wave.trails_cont.addChild(this.trails_path_cont);
 
 		this.spatter_shape_inner = new createjs.Shape();
 		this.spatter_shape_outer = new createjs.Shape();
@@ -296,8 +298,8 @@
 			.call(proxy(this.endTakeOff,this));
 
 		// align trail with the board contact with the water
-		this.trail_cont.y = 0;
-		createjs.Tween.get(this.trail_cont).to({y : 50}, 2000, createjs.Ease.quartIn);
+		this.trail_water_shape.y = 0;
+		createjs.Tween.get(this.trail_water_shape).to({y : 50}, 2000, createjs.Ease.quartIn);
 
 		// init weapon
 		this.initWeapon();
@@ -849,11 +851,14 @@
 		}
 
 		// add point to trails array
-		this.trailpoints.unshift(point);
-		this.trailpoints = this.trailpoints.slice(0,100);
+		this.pathpoints.unshift(point);
+		this.pathpoints = this.pathpoints.slice(0,100);
 
 		// add point to spatters array
-		if(point.location.y < 0) {
+		if(point.location.y > 0) {
+			this.trailpoints.unshift(point);
+			this.trailpoints = this.trailpoints.slice(0,100);
+		} else {
 			this.spatterpoints.unshift(point);
 			this.spatterpoints = this.spatterpoints.slice(0,50);
 		}
@@ -1151,7 +1156,6 @@
 
 		//handle trail size
 		this.resetTrailSize();
-		this.trailpoints[0].location.y = -120;
 		this.trailpoints[0].size = this.trailsize*6;
 		this.trailpoints.splice(1, 200);
 		Variation.prototype.applyOnce(this,'trailsize',{
@@ -1717,24 +1721,40 @@
 	prototype.startBoost = function() {
 		this.boosting = true;
 		this.control_velocities.scale(2);
-		this.speed_shape.alpha = 0;
-		createjs.Tween.get(this.speed_shape).to({alpha: 1}, 200);
+		this.trails_path_cont.alpha = 0;
+		createjs.Tween.get(this.trails_path_cont).to({alpha: 1}, 200);
 	}
 
 	prototype.endBoost = function() {
 		this.control_velocities.scale(0.5);
-		createjs.Tween.get(this.speed_shape).to({alpha: 0}, 400)
+		createjs.Tween.get(this.trails_path_cont).to({alpha: 0}, 400)
 			.call(proxy(function() { this.boosting = false},this));
 	}
 
 	prototype.drawTrails = function() {
 
-		this.drawTrail();
-		this.drawSpatter();
-		this.drawSpeedtrail();
+		this.drawWaterTrail();
+		this.drawAerialTrail();
+
+		if(this.boosting === true) {
+			this.trails_path_cont.removeAllChildren();
+			this.drawPathTrail(["rgba(255,255,255,0.8)","rgba(255,255,255,0)"], 100, 0);
+		}
+
+		this.rainbow = true;
+		if(this.rainbow === true) {
+			this.trails_path_cont.removeAllChildren();
+			this.drawPathTrail(["rgba(255,0,0,0.8)","rgba(255,0,0,0)"], 15, -50, 400);
+			this.drawPathTrail(["rgba(255,127,0,0.8)","rgba(255,127,0,0)"], 15, -35, 400);
+			this.drawPathTrail(["rgba(255,255,0,0.8)","rgba(255,255,0,0)"], 15, -20, 400);
+			this.drawPathTrail(["rgba(0,255,0,0.8)","rgba(0,255,0,0)"], 15, -5, 400);
+			this.drawPathTrail(["rgba(0,0,255,0.8)","rgba(0,0,255,0)"], 15, 10, 400);
+			this.drawPathTrail(["rgba(75,0,130,0.8)","rgba(75,0,130,0)"], 15, 25, 400);
+			this.drawPathTrail(["rgba(148,0,211,0.8)","rgba(148,0,211,0)"], 15, 40, 400);
+		}
 	}
 
-	prototype.drawTrail = function() {
+	prototype.drawWaterTrail = function() {
 
 		const nb = this.trailpoints.length - 1;
 		const points = [];
@@ -1766,21 +1786,21 @@
 		//const xmax = Math.max.apply(null,xs) + 100;
 
 		//draw top shape of the trail
-		this.trail_shape.graphics.clear();
-		this.trail_shape.graphics.beginRadialGradientFill(["rgba(255,255,255,1)","rgba(0,0,0,0.2)"], [0,1], this.x, this.y, 0, this.x, this.y, 180 );
+		this.trail_water_shape.graphics.clear();
+		this.trail_water_shape.graphics.beginRadialGradientFill(["rgba(255,255,255,1)","rgba(0,0,0,0.2)"], [0,1], this.x, this.y, 0, this.x, this.y, 180 );
 		for(let i=0; i<nb; ++i) {
 			let point = points[i];
 			var size = i*points[i].size + this.trailcoef*points[i].size;
 			let x = point.x + size * Math.cos(point.angle + Math.PI/2);
 			let y = point.y + size * Math.sin(point.angle + Math.PI/2);
-			this.trail_shape.graphics.lineTo(x,y);
+			this.trail_water_shape.graphics.lineTo(x,y);
 		}
 
 		// draw end round section
 		let last = points[points.length-1];
 		let x = last.x;
 		let y = last.y;
-		this.trail_shape.graphics.bezierCurveTo(x-size,y-size,x+size,y-size,x+size,y);
+		this.trail_water_shape.graphics.bezierCurveTo(x-size,y-size,x+size,y-size,x+size,y);
 
 		////draw bottom shape of the trail
 		for(let i=nb; i>0; --i) {
@@ -1788,63 +1808,60 @@
 			let size = i*points[i].size + this.trailcoef*points[i].size;
 			let x = point.x + size * Math.cos(point.angle + Math.PI + Math.PI/2);
 			let y = point.y + size * Math.sin(point.angle + Math.PI + Math.PI/2);
-			this.trail_shape.graphics.lineTo(x,y);
+			this.trail_water_shape.graphics.lineTo(x,y);
 		}
 
-		this.trail_shape.graphics.closePath();
+		this.trail_water_shape.graphics.closePath();
 
 		//frame the trail inside the wave rectangle
-		this.trail_cont.mask = this.wave.shape_mask;
-		this.trail_cont.alpha = this.alpha;
+		this.trail_water_shape.mask = this.wave.shape_mask;
+		this.trail_water_shape.alpha = this.alpha;
 
 		// align trail with the board contact with the water
 		let dx = 0;
 		if(this.wave.direction === LEFT) dx = 25;
 		if(this.wave.direction === RIGHT) dx = -25;
-		this.trail_cont.x = dx;
+		this.trail_water_shape.x = dx;
 
 	}
 
 
-	prototype.drawSpeedtrail = function() {
+	prototype.drawPathTrail = function(colors, size, yo =0, length = 200) {
 
-		if(this.boosting === false) return;
-
-		const nb = this.trailpoints.length - 1;
+		const trail = new createjs.Shape();
+		const nb = this.pathpoints.length - 1;
 		const points = [];
-		const suction = this.wave.suction.clone();
-		const ysize = 100;
 
 		//update points with the suction vector
 		for (let i = 0; i <= nb; ++i) {
 			//apply vector suction
-			let trail = this.trailpoints[i];
-			trail.location.add(suction);
+			let trail = this.pathpoints[i];
 			//create xy Point
 			let x = trail.location.x + 5;
 			let y = trail.location.y;
 			let point = new createjs.Point(x,y);
-			point.angle = trail.angle_rad;
-			if(point.angle === 0) point.angle = Math.PI/2; //dont touch
 			points.push(point);
 		}
 
 		//draw shape of the trail
-		this.speed_shape.graphics.clear();
-		this.speed_shape.graphics.setStrokeStyle(ysize).beginRadialGradientStroke(["rgba(255,255,255,0.8)","rgba(255,255,255,0)"], [0,1], this.x, this.y, 0, this.x, this.y, 200);
+		trail.graphics.setStrokeStyle(size,'round').beginRadialGradientStroke(colors, [0,1], this.x, this.y, 0, this.x, this.y, length);
 
 		for(let i=0; i<nb; ++i) {
 			let point = points[i];
 			let x = point.x ;
-			let y = point.y - 50 ;
-			this.speed_shape.graphics.lineTo(x,y);
+			let y = point.y;
+			trail.graphics.lineTo(x,y);
 		}
 
-		if(this.wave.direction === LEFT) this.speed_shape.x = -10;
-		if(this.wave.direction === RIGHT) this.speed_shape.x = 10;
+		if(this.wave.direction === LEFT) trail.x = 5;
+		if(this.wave.direction === RIGHT) trail.x = -20;
+
+		trail.y = yo;
+
+		this.trails_path_cont.addChild(trail);
 	}
 
-	prototype.drawSpatter = function() {
+	prototype.drawAerialTrail = function() {
 
 		if(this.spatterpoints.length === 0) return;
 
@@ -1903,33 +1920,7 @@
 			this.spatter_shape_outer.graphics.quadraticCurveTo(x1,y1 + outerwidth,xc,yc + outerwidth);
 		}
 
-		/*
-		this.spatter_shape_inner.graphics.clear();
-		this.spatter_shape_outer.graphics.clear();
-		this.spatter_shape_inner.graphics.beginLinearGradientStroke([color1,'rgba(255,255,255,0)'], [0, 1],this.x,this.y,start.x,start.y).setStrokeStyle(thick*2/5,'round');
-		this.spatter_shape_outer.graphics.beginLinearGradientStroke([color2,'rgba(255,255,255,0)'], [0, 1],this.x,this.y,start.x,start.y).setStrokeStyle(thick,'round');
-
-		for(let i=0,len=points.length; i<len-1; ++i) {
-
-			let p1 = points[i],
-				p2 = points[i+1],
-				x1 = p1.location.x,
-				x2 = p2.location.x,
-				y1 = p1.location.y,
-				y2 = p2.location.y,
-				xc = ( x1 + x2 ) >> 1,
-				yc = ( y1 + y2 ) >> 1
-				;
-
-			this.spatter_shape_inner.graphics.quadraticCurveTo(x1,y1,xc,yc);
-			this.spatter_shape_outer.graphics.quadraticCurveTo(x1,y1,xc,yc);
-
-		}
-		*/
-
 		//draw ramp
-
-
 		const width = 200;
 		const height = actual.y - start.y;
 		const ch = height * 0.2;

@@ -153,7 +153,7 @@
 
       let goal = this.goals[i];
       let name = this.goalsNameFormatter(goal, 0);
-      let text = new createjs.Text(name, 'bold '+Math.floor(16*rY)+"px 'Blinker', sans-serif", '#545454');
+      let text = new createjs.Text(name, 'bold '+Math.floor(18*rY)+"px 'Blinker', sans-serif", '#545454');
 
       let bkg = new createjs.Shape();
       bkg.graphics.beginLinearGradientFill(['#FFFFFFCC','#FFFFFF55'],[0.65,1],0,0,text.getMeasuredWidth(),0)

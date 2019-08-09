@@ -188,7 +188,7 @@ window.initialize = function() {
 	//MENU.open();
 
 	//SPOT
-	const config = LEVELS.find(s => s.alias == 'home');
+	const config = LEVELS.find(s => s.alias == 'caladan1');
 	MENU.loadLevel(config);
 
 
@@ -267,12 +267,18 @@ window.keyUpHandler = function(e)
 
 window.onMouseMove= function(e) {
 
-	MOUSE_X = e.stageX;
-	MOUSE_Y = e.stageY;
+	// only mouse and 1st touch event
+	if(e.pointerID !== 0 || e.pointerID !== -1) {
 
-	var pt = new createjs.Point(MOUSE_X,MOUSE_Y);
-	MOUSE_POINTS.unshift(pt);
-	MOUSE_POINTS = MOUSE_POINTS.slice(0,300);
+		MOUSE_X = e.stageX;
+		MOUSE_Y = e.stageY;
+
+		var pt = new createjs.Point(MOUSE_X,MOUSE_Y);
+		MOUSE_POINTS.unshift(pt);
+		MOUSE_POINTS = MOUSE_POINTS.slice(0,300);
+
+	}
+
 }
 
 window.getMousePoint = function(n) {
@@ -387,6 +393,10 @@ window.resizeCanvas = function() {
         //document.body.style.height = (windowHeight + 50) + 'px';
         //enable Touch event
         createjs.Touch.enable(window.Stage);
+        //disable scroll
+        document.body.addEventListener('touchmove', function(event) {
+				  event.preventDefault();
+				}, false);
     }
 
   rX = CURRENTX / ORIGINX;
