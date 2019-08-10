@@ -1769,11 +1769,11 @@
 		for (let i = 0; i <= nb; ++i) {
 			//apply vector suction
 			let trail = this.trailpoints[i];
-			trail.location.add(suction);
 			//create xy Point
 			let x = trail.location.x + 5;
 			let y = trail.location.y;
-			let point = new createjs.Point(x,y);
+			let point = new Victor(x,y);
+			point.add(suction);
 			point.size = trail.size;
 			point.angle = trail.angle_rad;
 			if(point.angle === 0) point.angle = Math.PI/2; //dont touch

@@ -17,7 +17,7 @@ var conf = {
   },
   timelimit: 30,
   goals: [
-    { type: 'score', current:0, aim: 2000, name: 'Faire un score de 2000 points' },
+    { type: 'score', current:0, aim: 2000, name: 'Faire un score de 2000 points ({n})' },
     { type: 'tube', current:0, aim: 5, name: 'Faire un tube de 5s ou + ({n})' },
     { type: 'timed', current:0, aim: 20, name: 'Survivre 20 secondes ({n}s)' },
   ],

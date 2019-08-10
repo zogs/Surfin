@@ -199,10 +199,6 @@ window.initialize = function() {
 	//init Mouse move
 	window.Stage.addEventListener('stagemousemove',onMouseMove);
 
-	 //keyboard handlers
-	window.onkeyup = keyUpHandler;
-	window.onkeydown = keyDownHandler;
-
 	//resize event
 	window.onresize = browserResize;
 
@@ -222,7 +218,7 @@ window.tick = function(e) {
 	window.Stage.update(e);
 }
 
-window.keyDownHandler = function(e)
+window.defaultKeyDownHandler = function(e)
 {
    switch(e.key)
    {
@@ -260,7 +256,7 @@ window.keyDownHandler = function(e)
    }
 }
 
-window.keyUpHandler = function(e)
+window.defaultKeyUpHandler = function(e)
 {
 
 }

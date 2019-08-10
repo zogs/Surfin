@@ -246,6 +246,16 @@
     //initCustomizer();
   }
 
+  prototype.reloadLevel = function(e) {
+    e.stopImmediatePropagation();
+    let level = SPOT.config;
+    this.removeLevel(SPOT);
+    window.spot_cont.removeAllChildren();
+    window.extra_cont.removeAllChildren();
+    SPOT = new Spot(level);
+    window.spot_cont.addChild(SPOT);
+  }
+
   prototype.removeLevel = function(level) {
 
     if(SPOT === null) return;

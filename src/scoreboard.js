@@ -313,7 +313,7 @@
     this.cont_board.addChild(btn_retry);
 
     btn_menu.on('click', proxy(MENU.open, MENU), null, true);
-    btn_retry.on('click', proxy(SPOT.retry, SPOT), null, true);
+    btn_retry.on('click', proxy(MENU.reloadLevel, MENU), null, true);
   }
 
   prototype.drawButtonRetry = function() {
@@ -333,7 +333,7 @@
     this.cont_board.addChild(btn_retry);
 
     btn_menu.on('click', proxy(MENU.open, MENU), null, true);
-    btn_retry.on('click', proxy(SPOT.retry, SPOT), null, true);
+    btn_retry.on('click', proxy(MENU.reloadLevel, MENU), null, true);
   }
 
   prototype.show = function() {
@@ -349,6 +349,10 @@
     this.cont_overlay.alpha = 0;
     createjs.Tween.get(this.cont_overlay).to({alpha:1}, t*2, createjs.Ease.quartOut);
 
+  }
+
+  prototype.selfRemove = function() {
+    this.removeAllChildren();
   }
 
   window.Scoreboard = createjs.promote(Scoreboard, "Container");

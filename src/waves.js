@@ -511,7 +511,7 @@ prototype.splashPointReached = function(point) {
 	if(this.direction===0) {
 		this.setDirection();
 		this.startShaking();
-		this.spot.controls.show();
+		this.spot.controls.set();
 	}
 
 	//add particle

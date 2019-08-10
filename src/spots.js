@@ -17,9 +17,11 @@
 
 		this.score = null;
 		this.wave = null;
+    this.ticker = null;
 		this.runing = false;
     this.paused = false;
     this.played = false;
+    this.scoreboard = null;
 		this.time_scale = (TIME_SCALE) ? TIME_SCALE : 1;
 
 		this.background = new createjs.Container();
@@ -55,6 +57,10 @@
 		this.drawFrontground();
     this.drawExtra();
 
+		this.drawScore();
+    this.drawControls();
+		this.drawMenuBtn();
+
 		this.init();
 
 	}
@@ -63,9 +69,6 @@
 
 	prototype.init = function(type) {
 
-		this.initScore();
-    this.initControl();
-		this.initMenuBtn();
 		if(this.name == 'home') this.initHomeScreen();
 
 		if(this.config.init.type == undefined) return this.initStatic();
@@ -75,7 +78,7 @@
 
 	}
 
-	prototype.initMenuBtn = function() {
+	prototype.drawMenuBtn = function() {
 
 		//do not draw MENU button when on Home
 		if(this.name == 'home') return;
@@ -568,17 +571,21 @@
     this.timers = [];
 		this.waves = [];
 		this.paddlers = [];
-		this.removeAllEventListeners();
 		this.removeAllChildren();
+    this.removeEventListeners();
 	}
+
+  prototype.removeEventListeners = function() {
+
+    this.off('tick', this.ticker);
+		this.removeAllEventListeners();
+  }
 
 	prototype.initEventsListeners = function() {
 
-		this.addEventListener('tick',proxy(this.tick,this));
-
+		this.ticker = this.addEventListener('tick',proxy(this.tick,this), this);
 		this.on('player_takeoff',function(event) {
 			this.playerTakeOff(event.surfer,event.wave);
-			event.remove();
 		},this);
 
 		this.on('played_wave',function(event) {
@@ -805,7 +812,7 @@
 		return this;
 	}
 
-	prototype.initScore = function() {
+	prototype.drawScore = function() {
 
 		if(this.score) {
 			this.score.selfRemove();
@@ -817,7 +824,7 @@
 		SCORE = this.score;
 	}
 
-  prototype.initControl = function() {
+  prototype.drawControls = function() {
 
     this.controls = new ControlUI({spot: this});
     this.control_cont.addChild(this.controls);
@@ -896,15 +903,18 @@
 
 	prototype.showScoreboard = function(e) {
 		this.overlay_cont.removeAllChildren();
-
-		let delay = new Timer(proxy(function() {
-			let scoreboard = new Scoreboard(this.score);
-			this.overlay_cont.addChild(scoreboard);
-			scoreboard.show();
+		new Timer(proxy(function() {
+			this.scoreboard = new Scoreboard(this.score);
+			this.overlay_cont.addChild(this.scoreboard);
+			this.scoreboard.show();
 		},this),1000);
-
-
 	}
+
+  prototype.hideScoreboard = function(e) {
+    this.scoreboard.selfRemove();
+    this.overlay_cont.removeAllChildren();
+    this.scoreboard = null;
+  }
 
 	prototype.drawOverlayVeil = function() {
 
@@ -930,20 +940,14 @@
 
 	prototype.retry = function(e) {
 
-		clearTimeout(this.stopWaveTimeout);
+    if(this.scoreboard) this.hideScoreboard();
 
-		//reset wave
-		this.wave = null;
+    this.hideOverlayVeil();
 
-		//clear scene
-		this.overlay_cont.removeAllChildren();
-
-		//hide fall overlay
-		this.overlay_veil.alpha = 0;
+    this.controls.hide();
 
 		//reset this spot
 		this.init();
-		//this.launch();
 
 		e.stopPropagation();
 		e.remove();

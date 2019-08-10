@@ -38,15 +38,35 @@
     this.boost.active = true;
     this.boost.mouseChildren = false;
     this.boost.alpha = 0;
-    this.boost.on('mousedown', proxy(this.onBoost,this));
+    this.boost.on('mousedown', proxy(this.startBoost,this));
     window.Stage.on('pressup', proxy(this.stopBoost,this));
-
     this.addChild(this.boost);
 
-    this.show();
+
+   //keyboard handlers
+    window.onkeyup = proxy(this.onKeyup, this);
+    window.onkeydown = proxy(this.onKeypress, this);
+
+    this.set();
   }
 
-  prototype.show = function() {
+  prototype.onKeypress = function(e) {
+    switch(e.key)
+     {
+      case 'b':  this.startBoost(e); break;
+      default: window.defaultKeyDownHandler(e);
+     }
+  }
+
+  prototype.onKeyup = function(e) {
+    switch(e.key)
+     {
+      case 'b':  this.stopBoost(e); break;
+      default: window.defaultKeyUpHandler(e);
+     }
+  }
+
+  prototype.set = function() {
     if(this.spot.getWave()) {
       this.boost.alpha = 1;
       if(this.spot.getWave().direction === LEFT) {
@@ -54,26 +74,35 @@
         this.boost.x = STAGEWIDTH - 100;
         this.boost.y = STAGEHEIGHT - 100;;
       } else {
+        this.boost.scaleX = 1;
         this.boost.x = 100;
         this.boost.y = STAGEHEIGHT - 100;;
       }
     } else {
-      this.boost.alpha = 0;
-      this.boost.x = STAGEWIDTH/2;
-      this.boost.y = STAGEHEIGHT - 80;
+      this.hide();
     }
   }
 
-  prototype.onBoost = function(e) {
+  prototype.hide = function() {
+    this.boost.alpha = 0;
+    this.boost.x = STAGEWIDTH/2;
+    this.boost.y = STAGEHEIGHT - 80;
+  }
+
+  prototype.startBoost = function(e) {
     if(e) e.stopImmediatePropagation();
     if(e.pointerID <= 0) return;
+    if(this.boost.active === true) return;
     this.spot.getWave().getSurfer().startBoost();
+    this.boost.active = true;
   }
 
   prototype.stopBoost = function(e) {
     if(e) e.stopImmediatePropagation();
     if(e.pointerID <= 0) return;
+    if(this.boost.active === false) return;
     this.spot.getWave().getSurfer().endBoost();
+    this.boost.active = false;
   }
 
   prototype.cooldown = function(btn, time) {
@@ -94,8 +123,7 @@
   prototype.selfRemove = function() {
 
     this.removeAllChildren();
-
-    this.boost.off('click', this.onBoost);
+    this.boost.off('click', this.startBoost);
   }
 
 
