@@ -64,19 +64,15 @@
     }
   }
 
-  prototype.stopBoost = function(e) {
-    console.log('stopBoost');
-  }
-
   prototype.onBoost = function(e) {
-    console.log('startBoost');
     if(e) e.stopImmediatePropagation();
-    if(e.pointerID <= 0) return; //only second touch event
-
+    if(e.pointerID <= 0) return;
     this.spot.getWave().getSurfer().startBoost();
   }
 
   prototype.stopBoost = function(e) {
+    if(e) e.stopImmediatePropagation();
+    if(e.pointerID <= 0) return;
     this.spot.getWave().getSurfer().endBoost();
   }
 

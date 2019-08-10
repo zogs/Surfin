@@ -23,12 +23,15 @@
 		this.time_scale = (TIME_SCALE) ? TIME_SCALE : 1;
 
 		this.background = new createjs.Container();
+    this.background.mouseChildren = false;
 		this.addChild(this.background);
 
 		this.score_cont = new createjs.Container();
+    this.score_cont.mouseChildren = false;
 		this.addChild(this.score_cont);
 
 		this.sea_cont = new createjs.Container();
+    this.sea_cont.mouseChildren = false;
 		this.addChild(this.sea_cont);
 
 		this.frontground = new createjs.Container();
@@ -45,6 +48,7 @@
 		this.addChild(this.overlay_cont);
 
 		this.debug_cont = new createjs.Container();
+    this.debug_cont.mouseChildren = false;
 		this.addChild(this.debug_cont);
 
 		this.drawBackground();

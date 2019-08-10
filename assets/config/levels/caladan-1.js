@@ -13,12 +13,13 @@ var conf = {
     "frequency": 7000,
     "interval": 7000,
     "spread": 200,
-    "xshift": 10
+    "xshift": 0
   },
   timelimit: 30,
   goals: [
     { type: 'score', current:0, aim: 2000, name: 'Faire un score de 2000 points' },
     { type: 'tube', current:0, aim: 5, name: 'Faire un tube de 5s ou + ({n})' },
+    { type: 'timed', current:0, aim: 20, name: 'Survivre 20 secondes ({n}s)' },
   ],
   "surfers": {
     "max": 1,
@@ -33,7 +34,7 @@ var conf = {
   },
   "waves": {
     "height": 250,
-    "width": 0,
+    "width": 1500,
     "real_height": 3,
     "breaking": {
       "width": 180,

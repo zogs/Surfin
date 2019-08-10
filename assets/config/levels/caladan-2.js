@@ -13,7 +13,7 @@ var conf = {
     "frequency": 5000,
     "interval": 14000,
     "spread": 200,
-    "xshift": 10
+    "xshift": 0
   },
   "scores": {},
   "surfers": {
@@ -32,7 +32,7 @@ var conf = {
   ],
   "waves": {
     "height": 250,
-    "width": 0,
+    "width": 1000,
     "real_height": 3,
     "breaking": {
       "width": 180,
@@ -109,14 +109,14 @@ var conf = {
         "width": 1000,
         "inner": 300,
         "outer": 300,
-        "marge": 200,
+        "marge": 50,
         "slope": 0
       },
       "right": {
         "width": 1000,
         "inner": 300,
         "outer": 300,
-        "marge": 200,
+        "marge": 50,
         "slope": 0
       }
     }

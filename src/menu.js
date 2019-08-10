@@ -178,10 +178,11 @@
       );
       btn.x = ox + 180*i*rX;
       btn.y = oy;
+      btn.scaleY = 1.3;
       this.acti_cont.addChild(btn);
       let title = new createjs.Text('LEVEL '+(i+1), Math.floor(16*rY)+'px Arial', '#0f2d58');
       title.x = btn.x + 45*rX;
-      title.y = btn.y + 15*rY;
+      title.y = btn.y + 20*rY;
       title.mouseEnabled = false;
       this.acti_cont.addChild(title);
 

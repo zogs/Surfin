@@ -46,6 +46,7 @@ prototype.init = function(spot, config) {
 	this.movingX = 0;
 	this.time_scale = (TIME_SCALE) ? TIME_SCALE : 1;
 	this.boundaries = {};
+	this.mouseChildren = false;
 
 	//initiale suction force with no x value, later suction will be defined when direction is setted
 	this.suction = this.getSuction();
@@ -651,6 +652,9 @@ prototype.initBreak = function(center) {
 	this.initCleanOffscreenPoints();
 	//init intervals
 	this.initBreakedIntervals();
+	//fix to ajust witdh to the entire screen
+	createjs.Tween.get(this.params.shoulder.left).to({marge: 600}, 1000);
+	createjs.Tween.get(this.params.shoulder.right).to({marge: 600}, 1000);
 }
 
 prototype.initBreakedIntervals = function() {
@@ -1115,7 +1119,7 @@ prototype.moveWave = function() {
 	let surfer_pos = this.cont.localToGlobal(this.surfer.x,0);
 
 	// horizontal position the which the wave will be translate to a side of the screen
-	let delta = (STAGEWIDTH>>1) - surfer_pos.x; + (STAGEWIDTH*2/3 * this.direction)
+	let delta = (STAGEWIDTH/2) - surfer_pos.x; + (STAGEWIDTH*2/3 * this.direction)
 
 	if(this.direction === LEFT) {
 		delta += STAGEWIDTH / 2.5;

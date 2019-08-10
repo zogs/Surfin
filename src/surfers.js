@@ -67,9 +67,9 @@
 		this.boosting = false;
 		this.ollie_cooldown = 1000;
 		this.auto_silhouette = true;
-		this.distanceMinToMouse = 400*rX;
-		this.distanceMoyToMouse = 450*rX;
-		this.distanceMaxToMouse = 500*rX;
+		this.distanceMinToMouse = CURRENTX/2+100;
+		this.distanceMoyToMouse = CURRENTX/2+125;
+		this.distanceMaxToMouse = CURRENTX/2+150;
 		this.trailsize_origin = this.trailsize;
 		this.color_spatter_num = 0;
 		this.fall_reason = null;
@@ -84,6 +84,7 @@
 		this.control_velocities = new Victor(1,1);
 		this.time_scale = (TIME_SCALE) ? TIME_SCALE : 1;
 		this.imagePersistanceTimer = null;
+		this.mouseChildren = false;
 
 		this.skills = USER.skills;
 		this.disturbance = 0;
