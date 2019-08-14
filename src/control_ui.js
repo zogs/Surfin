@@ -35,7 +35,7 @@
     this.boost.addChild(btn);
     this.boost.addChild(icon);
     this.boost.cursor = 'pointer';
-    this.boost.active = false;
+    this.boost.pressed = false;
     this.boost.mouseChildren = false;
     this.boost.alpha = 0;
     this.boost.on('mousedown', proxy(this.startBoost,this));
@@ -92,21 +92,21 @@
   prototype.startBoost = function(e) {
     if(e) e.stopImmediatePropagation();
     if(e.pointerID !== undefined && e.pointerID <= 0) return;
-    if(this.boost.active === true) return;
+    if(this.boost.pressed === true) return;
     this.spot.getWave().getSurfer().startBoost();
-    this.boost.active = true;
+    this.boost.pressed = true;
   }
 
   prototype.stopBoost = function(e) {
     if(e) e.stopImmediatePropagation();
     if(e.pointerID !== undefined && e.pointerID <= 0) return;
-    if(this.boost.active === false) return;
+    if(this.boost.pressed === false) return;
     this.spot.getWave().getSurfer().endBoost();
-    this.boost.active = false;
+    this.boost.pressed = false;
   }
 
   prototype.cooldown = function(btn, time) {
-    btn.active = false;
+    btn.pressed = false;
     btn.alpha = 0.5;
     btn.cursor = 'none';
     btn.mouseEnabled = false;
@@ -114,7 +114,7 @@
   }
 
   prototype.endCooldown = function(btn) {
-    btn.active = true;
+    btn.pressed = true;
     btn.alpha = 1;
     btn.cursor = 'normal';
     btn.mouseEnabled = true;
