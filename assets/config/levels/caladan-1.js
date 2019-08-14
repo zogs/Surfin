@@ -15,7 +15,7 @@ var conf = {
     "spread": 200,
     "xshift": 0
   },
-  timelimit: 30,
+  timelimit: null,
   goals: [
     { type: 'score', current:0, aim: 2000, name: 'Faire un score de 2000 points ({n})' },
     { type: 'tube', current:0, aim: 5, name: 'Faire un tube de 5s ou + ({n})' },
@@ -54,13 +54,13 @@ var conf = {
       },
       "right": {
         "width": 20,
-        "width_max": 0,
+        "width_max": 30,
         "width_interval": 0,
         "width_pause": 1000,
         "block_interval": 2000,
-        "block_interval_max": 600,
-        "block_width": 100,
-        "block_width_max": 200
+        "block_interval_max": 3000,
+        "block_width": 20,
+        "block_width_max": 50
       }
     },
     "lip": {
@@ -94,9 +94,6 @@ var conf = {
           "bomb": {
             "percentage": 40
           },
-          "trooper": {
-            "percentage": 0
-          }
         }
       },
       "fly": {

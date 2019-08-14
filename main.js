@@ -42,7 +42,7 @@ window.load = function() {
 		{id:'spot_back_home',src:imgdir+'spots/default/homeback.jpg'},
 		{id:'spot_front_home',src:imgdir+'spots/default/homefront.png'},
 		{id:'spot_front',src:imgdir+'spots/default/beach.png'},
-		{id:'caladan_back', src:imgdir+'spots/Caladan_Peak/back.jpg'},
+		{id:'caladan_back', src:imgdir+'spots/Caladan_Peak/back2.jpg'},
 		{id:'flhoston_back', src:imgdir+'spots/Flhoston_Paradise/back.png'},
 		{id:'flhoston_back_reflect', src:imgdir+'spots/Flhoston_Paradise/shipreflect.png'},
 		{id:'pandora_back', src:imgdir+'spots/Pandora_Bay/back.jpg'},
@@ -159,7 +159,7 @@ window.initialize = function() {
 	SCREENS = new ScreenManager();
 
 	//BUILD LEVELS
-	PLANETS.sort(function(a,b) { return a.order - b.order }).map(function(p) {
+	PLANETS.filter(p => p.active == true).sort(function(a,b) { return a.order - b.order }).map(function(p) {
 		// adapt planet variables to resolution
 		resizePlanetConf(p);
 		// find levels of a planet
@@ -208,7 +208,16 @@ window.initialize = function() {
 
 	// set customizer
 	//initCustomizer();
+		let sheet = new createjs.SpriteSheet({
+        images: [queue.getResult('stormsurfer')],
+        frames: {width: 300, height: 300},
+        animations: {S:0,SE:1,SEE:2,SEEE:3,SEEEE:4,E:5,EN:6,ENN:7,ENNN:8,ENNNN:9,N:10,NW:11,NWW:12,NWWW:13,NWWWW:14,W:15,WS:16,WSS:17,WSSS:18,WSSSS:19}
+      });
 
+      let sprite = new createjs.Sprite(sheet);
+      sprite.gotoAndPlay('W');
+
+      window.Stage.addChild(sprite);
 }
 
 
@@ -241,6 +250,7 @@ window.defaultKeyDownHandler = function(e)
     case '\'':  SPOT.getWave().addBeachTrooper(); break;
     case '(':  SPOT.getWave().addRandomStarline(); break;
     case '-':  SPOT.getWave().addShark(); break;
+    case 'è':  SPOT.getWave().addStormtrooper(); break;
     case '1':  SPOT.getWave().addFlyingMultiplier(); break;
     case '2':  SPOT.getWave().addFlyingPrize(); break;
     case '3':  SPOT.getWave().addCigogne(); break;

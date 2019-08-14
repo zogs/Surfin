@@ -512,7 +512,9 @@ prototype.splashPointReached = function(point) {
 		this.setDirection();
 		this.startShaking();
 		this.spot.controls.set();
+		this.initObstaclesInterval();
 	}
+
 
 	//add particle
 	if(PERF > 10) {
@@ -727,8 +729,7 @@ prototype.playerTakeOff = function(surfer) {
 	e.surfer = this.surfer;
 	this.spot.dispatchEvent(e);
 
-	this.initObstaclesInterval();
-	}
+}
 
 prototype.startShaking = function() {
 	this.shaking = true;
@@ -798,19 +799,18 @@ prototype.addTestSurferBot = function(surfer) {
 
 	if(this.direction === LEFT) {
 		var direction = LEFT;
-		var takeX = this.shoulder_left.x;
+		var takeX = this.shoulder_left.x - 200;
 	} else {
 		var direction = RIGHT;
-		var takeX = this.shoulder_right.x;
+		var takeX = this.shoulder_right.x + 200;
 	}
-
 	var bot = new SurferBot({
 		wave:this,
 		spot:this.spot,
 		direction: direction,
 	});
 
-	bot.takeOff( takeX, 80);
+	bot.takeOff( takeX, Math.random()*(this.params.height*2/3) );
 	this.surfers_cont.addChild(bot);
 	this.surfers.unshift(bot);
 
@@ -1302,7 +1302,7 @@ prototype.continueFloatObstaclesInterval = function() {
 
 	var t = this.config.obstacles.float.interval + Math.random()*(this.config.obstacles.float.interval_max - this.config.obstacles.float.interval);
 	this.addRandomFloatObstacle();
-	this.obstacle_timer = new Timer(proxy(this.initFloatObstaclesInterval,this),t);
+	this.obstacle_timer = new Timer(proxy(this.continueFloatObstaclesInterval,this),t);
 }
 prototype.addRandomFloatObstacle = function() {
 	if(this.breaked === false) return;
@@ -1315,7 +1315,8 @@ prototype.addRandomFloatObstacle = function() {
 			if(obs === 'paddler') this.addPaddler();
 			else if(obs === 'photographer') this.addPhotographer();
 			else if(obs === 'bomb') this.addBomb();
-			else if(obs === 'trooper') this.addBeachTrooper();
+			else if(obs === 'beachtrooper') this.addBeachTrooper();
+			else if(obs === 'stormsurfer') this.addStormtrooper();
 			else if(obs === 'drone') this.addDrone();
 			else if(obs === 'shark') this.addShark();
 			else if(obs === 'stars') this.addRandomStarline();
@@ -1334,7 +1335,7 @@ prototype.continueFlyObstaclesInterval = function() {
 
 	var time = this.config.obstacles.fly.interval + Math.random()*(this.config.obstacles.fly.interval_max - this.config.obstacles.fly.interval);
 	this.addRandomFlyObstacle();
-	this.obstaclefly_timer = new Timer(proxy(this.initFlyObstaclesInterval,this),time);
+	this.obstaclefly_timer = new Timer(proxy(this.continueFlyObstaclesInterval,this),time);
 }
 prototype.addRandomFlyObstacle = function() {
 	if(this.breaked === false) return;
@@ -1401,6 +1402,12 @@ prototype.addCigogne = function() {
 
 prototype.addShark = function() {
 	var obs = new Shark({wave: this, spot: this.spot});
+	this.addObstacle(obs);
+	return obs;
+}
+
+prototype.addStormtrooper = function() {
+	var obs = new Stormtrooper({wave: this, spot: this.spot});
 	this.addObstacle(obs);
 	return obs;
 }

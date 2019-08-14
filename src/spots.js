@@ -651,7 +651,14 @@
 		this.surfer = surfer;
 		//stop spot timers
 		this.timers.map(t => t.clear());
+
+    this.on('goals_filled', proxy(this.playerSucceed, this), null, true);
 	}
+
+  prototype.playerSucceed = function() {
+
+    this.wave.addBlockBreaking(STAGEWIDTH);
+  }
 
 	prototype.addPaddler = function(x,y) {
 
@@ -907,7 +914,7 @@
 			this.scoreboard = new Scoreboard(this.score);
 			this.overlay_cont.addChild(this.scoreboard);
 			this.scoreboard.show();
-		},this),1000);
+		},this),1500);
 	}
 
   prototype.hideScoreboard = function(e) {

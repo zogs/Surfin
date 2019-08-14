@@ -35,7 +35,7 @@
     this.boost.addChild(btn);
     this.boost.addChild(icon);
     this.boost.cursor = 'pointer';
-    this.boost.active = true;
+    this.boost.active = false;
     this.boost.mouseChildren = false;
     this.boost.alpha = 0;
     this.boost.on('mousedown', proxy(this.startBoost,this));
@@ -91,7 +91,7 @@
 
   prototype.startBoost = function(e) {
     if(e) e.stopImmediatePropagation();
-    if(e.pointerID <= 0) return;
+    if(e.pointerID !== undefined && e.pointerID <= 0) return;
     if(this.boost.active === true) return;
     this.spot.getWave().getSurfer().startBoost();
     this.boost.active = true;
@@ -99,7 +99,7 @@
 
   prototype.stopBoost = function(e) {
     if(e) e.stopImmediatePropagation();
-    if(e.pointerID <= 0) return;
+    if(e.pointerID !== undefined && e.pointerID <= 0) return;
     if(this.boost.active === false) return;
     this.spot.getWave().getSurfer().endBoost();
     this.boost.active = false;

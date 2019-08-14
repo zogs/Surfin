@@ -89,7 +89,7 @@
 
   prototype.initCountdown = function() {
 
-    if(typeof this.spot.config.timelimit == 'undefined') return;
+    if(this.spot.config.timelimit == undefined || this.spot.config.timelimit == null) return;
     this.countdown = this.spot.config.timelimit;
     this.timer = new createjs.Text('00:00', Math.floor(60*rY)+"px 'Blinker',sans-serif", '#FFFFFF');
     this.timer.x = STAGEWIDTH/2 - this.timer.getMeasuredWidth()/2;
@@ -239,6 +239,8 @@
 
     if(count == total) {
       this.goals_filled = true;
+      let ev = new createjs.Event('goals_filled');
+      SPOT.dispatchEvent(ev);
     }
   }
 
@@ -282,8 +284,10 @@
   }
 
   prototype.updateGoalCatch = function(e) {
+
     let bonus = e.bonus;
     let goal = that.goals.find(g => g.type === 'catch' && g.aim == bonus);
+    console.log('updateGoalCatch', bonus, goal);
     if(typeof goal === 'undefined') return;
     if(goal.filled) return;
     goal.current += 1;
@@ -416,7 +420,6 @@
   }
 
   prototype.updateTimeOnWave = function() {
-    console.log('updateTimeOnWave');
     this.time_on_wave++;
   }
 

@@ -8,9 +8,14 @@
 	function Surfer(params) {
 
 		this.Container_constructor();
-		this.type = 'player';
-		this.img_takeoff = 'surfer_takeoff';
-		this.img_surfing = 'surfer';
+
+		let defaults = {
+			type: 'player',
+			img_takeoff: 'surfer_takeoff',
+			img_surfing: 'surfer',
+		}
+
+		params = Object.assign({}, defaults, params);
 
 		this.init(params);
 	}
@@ -29,7 +34,7 @@
 
 		this.wave = params.wave;
 		this.spot = params.spot;
-		this.config = params.config || this.spot.config.surfers;
+		this.config = Object.assign({}, this.spot.config.surfers, params);
 		this.x = params.x;
 		this.y = params.y;
 
@@ -52,6 +57,7 @@
 		this.angle = 90;
 		this.angle_rad = Math.PI/2;
 		this.angles = [];
+		this.bearing = 'S';
 		this.status = 'wait';
 		this.tubing = false;
 		this.tubeTime = 0;
@@ -262,7 +268,7 @@
 
 		const speed = 0.2 + this.getSkill('takeoff');
 		const takeoff = new createjs.SpriteSheet({
-			images: [queue.getResult(this.img_takeoff)],
+			images: [queue.getResult(this.config.img_takeoff)],
 			frames: {width:parseInt(300*rX), height:parseInt(300*rY)},
 			animations: {
 				takeoff: [0,3,false,speed],
@@ -273,7 +279,6 @@
 		this.silhouette_cont.removeAllChildren();
 		this.silhouette_cont.addChild(animation);
 		this.silhouette_cont.alpha = 1;
-
 
 		const event = new createjs.Event("takeoff");
 			event.wave = this.wave;
@@ -400,12 +405,12 @@
 	}
 
 	prototype.isPlayer = function() {
-		if(this.type=='player') return true;
+		if(this.config.type=='player') return true;
 		return false;
 	}
 
 	prototype.isBot = function() {
-		if(this.type=='bot') return true;
+		if(this.config.type=='bot') return true;
 		return false;
 	}
 
@@ -704,7 +709,7 @@
 		//velocity.scale(y_coef);
 
 		// surfer get more speed when angled to the bottom ( from x1 to x1.5)
-		let angle_coef = (this.angle_rad > 0 )? 1 + (this.angle_rad / Math.PI/2)/2 : 1;
+		let angle_coef = (this.angle_rad > 0)? 1 + (this.angle_rad / Math.PI/2)/2 : 1;
 		velocity.scale(angle_coef);
 
 		// scale with wave config surfer's velocity coef (from x0 to ...)
@@ -897,6 +902,7 @@
 
 		// set current status
 		this.status = 'aerial';
+		this.rainbow = true;
 		// hide trail
 		this.saveTrailSize();
 		this.trailsize = 0;
@@ -934,7 +940,7 @@
 
 		this.tweens.map(function(t) { if( t != null) t.paused = true; } );
 		createjs.Tween.removeTweens(this);
-		this.tweens = null;
+		this.tweens = [];
 	}
 
 	prototype.selfRemove = function() {
@@ -1141,6 +1147,7 @@
 
 		// remove spatter
 		this.clearSpatter();
+		this.rainbow = false;
 
 		// remove slow motion
 		window.switchSlowMo(1,1000);
@@ -1469,6 +1476,7 @@
 
 	prototype.checkTrajectory = function() {
 
+		/*
 		if(this.angles[5] === undefined) return;
 
 		var delta = Math.abs(this.angle - this.angles[5])%360;
@@ -1479,6 +1487,7 @@
 			//init fall
 			this.fall('bad trajectory');
 		}
+		*/
 	}
 
 	prototype.hit = function(zone, x, y, radius) {
@@ -1531,7 +1540,7 @@
 	}
 
 	prototype.checkHitSurfers = function() {
-
+		/*
 		const len = this.wave.surfers.length;
 
 		if(len <= 1) return;
@@ -1550,6 +1559,7 @@
 				}
 			}
 		}
+		*/
 	}
 
 	prototype.hitSurfer = function(surfer) {
@@ -1720,6 +1730,7 @@
 	}
 
 	prototype.startBoost = function() {
+		if(this.boosting === true) return;
 		this.boosting = true;
 		this.control_velocities.scale(2);
 		this.trails_path_cont.alpha = 0;
@@ -1727,9 +1738,10 @@
 	}
 
 	prototype.endBoost = function() {
+		if(this.boosting === false) return;
+		this.boosting = false;
 		this.control_velocities.scale(0.5);
 		createjs.Tween.get(this.trails_path_cont).to({alpha: 0}, 400)
-			.call(proxy(function() { this.boosting = false},this));
 	}
 
 	prototype.drawTrails = function() {
@@ -1739,10 +1751,9 @@
 
 		if(this.boosting === true) {
 			this.trails_path_cont.removeAllChildren();
-			this.drawPathTrail(["rgba(255,255,255,0.8)","rgba(255,255,255,0)"], 100, 0);
+			this.drawPathTrail(["rgba(255,255,255,0.8)","rgba(255,255,255,0)"], 100, 0, 200, "butt");
 		}
 
-		this.rainbow = true;
 		if(this.rainbow === true) {
 			this.trails_path_cont.removeAllChildren();
 			this.drawPathTrail(["rgba(255,0,0,0.8)","rgba(255,0,0,0)"], 15, -50, 400);
@@ -1827,7 +1838,7 @@
 	}
 
 
-	prototype.drawPathTrail = function(colors, size, yo =0, length = 200) {
+	prototype.drawPathTrail = function(colors, size, yo =0, length = 200, caps = 'round') {
 
 		const trail = new createjs.Shape();
 		const nb = this.pathpoints.length - 1;
@@ -1845,7 +1856,7 @@
 		}
 
 		//draw shape of the trail
-		trail.graphics.setStrokeStyle(size,'round').beginRadialGradientStroke(colors, [0,1], this.x, this.y, 0, this.x, this.y, length);
+		trail.graphics.setStrokeStyle(size,caps).beginRadialGradientStroke(colors, [0,1], this.x, this.y, 0, this.x, this.y, length);
 
 		for(let i=0; i<nb; ++i) {
 			let point = points[i];
@@ -2106,6 +2117,8 @@
 			return;
 		}
 
+		if(Math.sqrt(this.velocity.x*this.velocity.x) == 0) return;
+
 		this.angle_rad = Math.atan2(this.locations[0].y - this.locations[1].y,this.locations[0].x - this.locations[1].x);
 		this.angle = Math.degrees(this.angle_rad);
 
@@ -2115,7 +2128,7 @@
 	prototype.initSilhouette = function() {
 
 		let surfer_sprite = new createjs.SpriteSheet({
-			images: [queue.getResult(this.img_surfing)],
+			images: [queue.getResult(this.config.img_surfing)],
 			frames: {width: parseInt(300*rX), height: parseInt(300*rY)},
 			animations: {
 				S: 0,
@@ -2151,13 +2164,18 @@
 
 		if(this.auto_silhouette === false) return;
 
-		if(this.locations[0] === undefined || this.locations[1] === undefined) return new this.silhouette.gotoAndStop('S');
+		if(this.locations[0] === undefined || this.locations[1] === undefined) return this.silhouette.gotoAndStop('S');
 
 		var rad = Math.atan2(this.locations[1].x-this.locations[0].x,this.locations[1].y-this.locations[0].y);
 		var deg = -1*Math.degrees(rad);
 
-		var bearing = this.getSurferBearing(deg);
-		return this.silhouette.gotoAndStop(bearing);
+		this.bearing = this.getSurferBearing(deg);
+
+		if(this.locations[0].isEqualTo(this.locations[1])) {
+			if(this.wave.direction === LEFT) return this.silhouette.gotoAndStop('W');
+			if(this.wave.direction === RIGHT) return this.silhouette.gotoAndStop('E');
+		}
+		return this.silhouette.gotoAndStop(this.bearing);
 
 	}
 

@@ -338,8 +338,8 @@
 
   prototype.show = function() {
 
-    let y = 100*rX;
-    let t = 800*rY;
+    let y = 100*rY;
+    let t = 1200;
     this.cont_board.y -= y;
     createjs.Tween.get(this.cont_board).to({ y: this.cont_board.y + y, alpha: 1}, t, createjs.Ease.backOut);
 

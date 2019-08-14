@@ -32,10 +32,26 @@
 
     }
 
+    BeachTrooper.prototype.initialPosition = function() {
+
+      let x = this.wave.params.breaking_center + (200 - Math.random() * 400);
+      let y = this.wave.params.height/2 + (this.wave.params.height/4 - Math.random()*this.wave.params.height*2/4);
+
+      if(this.wave.direction === RIGHT) {
+        x = this.wave.obstacle_cont.globalToLocal(STAGEWIDTH,0).x;
+      }
+      if(this.wave.direction === LEFT) {
+        x = this.wave.obstacle_cont.globalToLocal(0,0).x;
+      }
+
+      this.setXY(x,y)
+    }
+
     BeachTrooper.prototype.drawBonus = function() {
 
       var bonus = new createjs.Shape();
         bonus.graphics.beginFill('green').drawCircle(0,0,50*rX);
+        bonus.hitzone = 'body';
         bonus.y = -35*rY;
         bonus.x = 25*rX;
         bonus.alpha = 0.5;
@@ -50,8 +66,8 @@
 
     BeachTrooper.prototype.bonusHitted = function() {
 
-      SCORE.add(200).say('Stromtrooper kill !', 500);
-      createjs.Tween.get(this).to({alpha:0}, 300);
+      //SCORE.add(200).say('Stromtrooper kill !', 500);
+      createjs.Tween.get(this).to({alpha:0}, 200);
     }
 
     BeachTrooper.prototype.malusHitted = function() {

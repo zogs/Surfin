@@ -57,6 +57,7 @@
 
     Shark.prototype.move = function() {
       this.x -= this.speed;
+      console.log(this.x, this.y);
     }
     Shark.prototype.initialPosition = function() {
 

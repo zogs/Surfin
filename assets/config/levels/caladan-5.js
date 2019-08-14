@@ -92,9 +92,6 @@ var conf = {
           "bomb": {
             "percentage": 40
           },
-          "trooper": {
-            "percentage": 0
-          }
         }
       },
       "fly": {

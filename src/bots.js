@@ -4,14 +4,13 @@
 
 (function() {
 
-	function SurferBot(config) {
+	function SurferBot(params) {
 
-		this.Surfer_constructor(config);
-		this.type = 'bot';
-		this.img_surfing = 'stormsurfer';
-		this.img_takeoff = 'stormsurfer_takeoff';
-		this.initBot(config);
-		this.init(config);
+		params.type = 'bot';
+		params.img_surfing = 'stormsurfer';
+		params.img_takeoff = 'stormsurfer_takeoff';
+		this.Surfer_constructor(params);
+		this.initBot(params);
 
 	}
 
@@ -23,17 +22,16 @@
 		//on bot fall
 		this.on('fallen',function(event) {
 			this.selfRemove();
-		},this,true);
+		},this,null,true);
 
 
 		this.on('takeoff', function(event) {
 			this.initVirtualMouse();
-			this.initLightSaber();
-		},this,true);
+			//this.initLightSaber();
+		},this,null,true);
 	}
 
 	prototype.initBot = function(config) {
-
 
 		this.direction = (config.direction == 1)? 1 : -1;
 		this.saber_color = 'red';
@@ -68,7 +66,6 @@
 
 
 	prototype.initVirtualMouse = function() {
-
 		this.vMouse = new createjs.Shape();
 		this.vMouse.graphics.beginFill(createjs.Graphics.getHSL(Math.random()*360, 100, 50)).drawCircle(0,0,2);
 		this.vMouse.y = 0;
@@ -80,6 +77,7 @@
 		//this.initMouseMoveX();
 		//this.initMouseJump();
 		this.initSaberStrike();
+
 	}
 
 	prototype.initMouseRest = function() {
@@ -186,7 +184,6 @@
 
 		//remove surfer elements
 		this.removeAllTweens();
-		this.timer.clear();
 		this.removeAllEventListeners('tick');
 		this.removeAllChildren();
 
@@ -199,10 +196,8 @@
 	}
 
 	prototype.removeVirtualMouse = function() {
-
 		createjs.Tween.removeTweens(this.vMouse);
 		this.removeChild(this.vMouse);
-		this.vMouse = null;
 	}
 
 	window.SurferBot = createjs.promote(SurferBot, 'Surfer');

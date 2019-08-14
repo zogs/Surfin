@@ -1,9 +1,9 @@
 var conf = {
-  id: 1,
-  name: 'flhoston1',
-  alias: 'flhoston1',
+  id: 2,
+  name: 'flhoston2',
+  alias: 'flhoston2',
   planet: 'flhoston',
-  level: 1,
+  level: 2,
   init: {
     type: 'waving',
     // type: 'fixed',
@@ -16,10 +16,10 @@ var conf = {
     spread : 0,
     xshift: 0,
   },
-  timelimit: 45,
+  timelimit: 90,
   goals: [
-    { type: 'score', current:0, aim: 2000, name: 'Faire un score de 2000 points' },
-    { type: 'tube', current:0, aim: 10, name: 'Faire un tube de 10s ou + ({n})' },
+    { type: 'score', current:0, aim: 2000, name: 'Faire un score de 5000 points' },
+    { type: 'catch', current:0, aim: 'beachtrooper', count: 5, name: 'Renverser 5 Stormtrooper en boué ({n})' },
   ],
   surfers: {
     max: 1,
@@ -59,8 +59,8 @@ var conf = {
         width_pause: 1000,
         block_interval: 2000,
         block_interval_max: 600,
-        block_width: 100,
-        block_width_max: 200,
+        block_width: 50,
+        block_width_max: 100,
       }
     },
     lip: {
@@ -79,10 +79,11 @@ var conf = {
     suction: {x: 5, y: 4},
     obstacles: {
       'float': {
-        'interval': 2000,
-        'interval_max': 4000,
+        'interval': 1000,
+        'interval_max': 1000,
         'objects' : {
-          'beachtrooper': {percentage: 100},
+          'stormsurfer': {percentage: 80},
+          'beachtrooper': {percentage: 20},
         },
       },
       'fly': {
