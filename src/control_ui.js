@@ -39,7 +39,7 @@
     this.boost.mouseChildren = false;
     this.boost.alpha = 0;
     this.boost.on('mousedown', proxy(this.startBoost,this));
-    window.Stage.on('pressup', proxy(this.stopBoost,this));
+    this.boost.on('pressup', proxy(this.stopBoost,this));
     this.addChild(this.boost);
 
 
