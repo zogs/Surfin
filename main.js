@@ -397,10 +397,6 @@ window.resizeCanvas = function() {
         //document.body.style.height = (windowHeight + 50) + 'px';
         //enable Touch event
         createjs.Touch.enable(window.Stage);
-        //disable scroll
-        document.body.addEventListener('touchmove', function(event) {
-				  event.preventDefault();
-				}, false);
     }
 
   rX = CURRENTX / ORIGINX;
