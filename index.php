@@ -15,8 +15,8 @@
 
 
 	<style type="text/css">
-			body { margin: 0; padding: 0; background: #000; }
-			canvas { display:block; margin:0 auto; background: #000; }
+			body { margin: 0; padding: 0; background: #000; touch-action: none;}
+			canvas { display:block; margin:0 auto; background: #000;}
 	</style>
 
 	</head>
