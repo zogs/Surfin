@@ -188,7 +188,7 @@ window.initialize = function() {
 	//MENU.open();
 
 	//SPOT
-	const config = LEVELS.find(s => s.alias == 'caladan1');
+	const config = LEVELS.find(s => s.alias == 'home');
 	MENU.loadLevel(config);
 
 

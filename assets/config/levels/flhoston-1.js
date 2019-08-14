@@ -18,7 +18,7 @@ var conf = {
   },
   timelimit: 45,
   goals: [
-    { type: 'score', current:0, aim: 2000, name: 'Faire un score de 2000 points' },
+    { type: 'score', current:0, aim: 2000, name: 'Faire un score de 2000 points ({n})' },
     { type: 'tube', current:0, aim: 10, name: 'Faire un tube de 10s ou + ({n})' },
   ],
   surfers: {

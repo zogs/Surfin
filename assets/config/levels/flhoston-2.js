@@ -18,7 +18,7 @@ var conf = {
   },
   timelimit: 90,
   goals: [
-    { type: 'score', current:0, aim: 2000, name: 'Faire un score de 5000 points' },
+    { type: 'score', current:0, aim: 2000, name: 'Faire un score de 5000 points ({n})' },
     { type: 'catch', current:0, aim: 'beachtrooper', count: 5, name: 'Renverser 5 Stormtrooper en boué ({n})' },
   ],
   surfers: {
