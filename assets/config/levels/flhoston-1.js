@@ -5,7 +5,7 @@ var conf = {
   planet: 'flhoston',
   level: 1,
   init: {
-    type: 'waving',
+    type: 'waiting',
     // type: 'fixed',
   },
   series: {

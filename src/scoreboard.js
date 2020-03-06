@@ -338,13 +338,14 @@
 
   prototype.show = function() {
 
-    let y = 100*rY;
-    let t = 1200;
+    let y = -400*rY;
+    let t = 600;
     this.cont_board.y -= y;
-    createjs.Tween.get(this.cont_board).to({ y: this.cont_board.y + y, alpha: 1}, t, createjs.Ease.backOut);
+    this.cont_board.scale = 0.9;
+    createjs.Tween.get(this.cont_board).to({ y: this.cont_board.y + y, alpha: 1, scale: 1}, t, createjs.Ease.backOut);
 
     this.cont_table.y -= y;
-    createjs.Tween.get(this.cont_table).wait(100).to({y: this.cont_table.y + y, alpha: 1}, t, createjs.Ease.backOut);
+    createjs.Tween.get(this.cont_table).wait(200).to({y: this.cont_table.y + y, alpha: 1}, t, createjs.Ease.backOut);
 
     this.cont_overlay.alpha = 0;
     createjs.Tween.get(this.cont_overlay).to({alpha:1}, t*2, createjs.Ease.quartOut);

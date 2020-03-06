@@ -63,8 +63,6 @@
 		this.tubeTime = 0;
 		this.tubeMinimumTime = 1000;
 		this.tubeDepths = [];
-		this.weapons = [];
-		this.weapon_points = [];
 		this.riding = false;
 		this.falling = false;
 		this.fallen = false;
@@ -158,8 +156,17 @@
 		this.debug_cont.alpha = 0;
 		this.addChild(this.debug_cont);
 
+		this.weapons = {};
 		this.weapon_cont = new createjs.Container();
 		this.addChild(this.weapon_cont);
+
+		if(this.isPlayer()) {
+			this.weapons.shield = new Shield();
+			this.weapon_cont.addChild(this.weapons.shield);
+
+			this.weapons.hadoken = new Hadoken({direction: this.wave.direction});
+			this.weapon_cont.addChild(this.weapons.hadoken);
+		}
 
 		this.virtualMouse = new createjs.Shape();
 		this.virtualMouse.graphics.beginFill('pink').drawCircle(0,0,3);
@@ -182,11 +189,11 @@
 	prototype.tick = function() {
 
 		this.getAngle();
+		this.detectAboveLipPoint();
 		this.move();
 		this.stock();
 		this.checkFall();
 		this.drawTrails();
-		this.drawWeapon();
 		this.drawDebug();
 	}
 
@@ -199,11 +206,17 @@
 		//},this);
 
 		//custom events
-		/*
+
 		this.on('takeoff',function(event) {
-			//this is triggered by wave.playerTakeOff()
+			if(this.isPlayer()) {
+				var ev = new createjs.Event('player_takeoff');
+				ev.surfer = event.surfer;
+				ev.wave = event.wave;
+				ev.quality = event.quality;
+				this.spot.dispatchEvent(ev);
+			}
 		},this);
-		*/
+
 
 		this.on('takeoff_ended',function(event) {
 			if(this.isPlayer()) {
@@ -307,9 +320,6 @@
 		this.trail_water_shape.y = 0;
 		createjs.Tween.get(this.trail_water_shape).to({y : 50}, 2000, createjs.Ease.quartIn);
 
-		// init weapon
-		this.initWeapon();
-
 		return this;
 	}
 
@@ -327,7 +337,7 @@
 		this.auto_silhouette = true;
 		this.riding = true;
 
-		const point = this.findLipPointUnder();
+		const point = this.point_under;
 		const quality = (point === null)? 0 : point.breaking_percent;
 
 		const ev = new createjs.Event("takeoff_ended");
@@ -619,7 +629,7 @@
 		return this.wave.foreground_cont.globalToLocal(mouse.x,mouse.y);
 	}
 
-	prototype.findLipPointUnder = function() {
+	prototype.detectAboveLipPoint = function() {
 
 		//if there is no lip point at the moment
 		if(this.wave.allpoints == null || this.wave.allpoints.length == 0) return null;
@@ -634,20 +644,15 @@
 		}
 
 		// if there is no point return the most LEFT or RIGHT
+		let peak = null, pindex = null;
 		if( this.wave.isLEFT()) {
-			const peak = this.wave.findTheLeftPeak();
-			const i = 0;
+			peak = this.wave.findTheLeftPeak();
+			return peak.points[0];
 		}
 		else {
-			const peak = this.wave.findTheRightPeak();
-			const i = peak.points.length-1;
+			peak = this.wave.findTheRightPeak();
+			return peak.points[peak.points.length-1];
 		}
-
-		if(typeof peak == 'undefined') {
-			return null;
-		}
-
-		return peak.points[i];
 	}
 
 
@@ -658,11 +663,14 @@
 		// return this.moveFromLerp();
 		// return this.moveOnWaveOLD();
 	}
-
+	/*
+		Move surfer from mouse position, breakpoint point and various influencing parameters
+		( this is overcomplicated, should be simplified or rewrited)
+	 */
 	prototype.moveFromVelocities = function() {
 
 		// get which lip point surfer is under
-		const point_under = this.findLipPointUnder();
+		const point_under = this.point_under;
 
 		let breaking_width = 5;
 		let breaking_percent = 0;
@@ -709,23 +717,24 @@
 		//velocity.scale(y_coef);
 
 		// surfer get more speed when angled to the bottom ( from x1 to x1.5)
-		let angle_coef = (this.angle_rad > 0)? 1 + (this.angle_rad / Math.PI/2)/2 : 1;
-		velocity.scale(angle_coef);
+		//let angle_coef = (this.angle_rad > 0)? 1 + (this.angle_rad / Math.PI/2)/2 : 1;
+		//velocity.scale(angle_coef);
 
 		// scale with wave config surfer's velocity coef (from x0 to ...)
-		velocity.scaleX(this.config.velocities.x);
-		velocity.scaleY(this.config.velocities.y);
+		//velocity.scaleX(this.config.velocities.x);
+		//velocity.scaleY(this.config.velocities.y);
 
 		// scale with controls coef (from x0 to x1)
 		velocity.scaleX(this.control_velocities.x);
 		velocity.scaleY(this.control_velocities.y);
 
 		// add pump-pump to velocity
-		velocity = this.addPumpedInertia(velocity);
+		//velocity = this.addPumpedInertia(velocity);
 
 		// set global velocity
 		this.velocity = velocity.clone();
 
+//console.log(velocity.x, point_under);
 		// apply velocity to position
 		this.location.add(velocity);
 
@@ -891,7 +900,7 @@
 		if(this.status=='aerial') return;
 
 		// fall if done too soon
-		var point = this.findLipPointUnder();
+		var point = this.point_under;
 		if(point.breaking_percent === null || point.breaking_percent < 0) {
 			return this.fall('aerial too late');
 		}
@@ -1739,9 +1748,17 @@
 
 	prototype.endBoost = function() {
 		if(this.boosting === false) return;
-		this.boosting = false;
 		this.control_velocities.scale(0.5);
-		createjs.Tween.get(this.trails_path_cont).to({alpha: 0}, 400)
+		createjs.Tween.get(this.trails_path_cont).to({alpha: 0}, 200)
+			.call(proxy(function() { this.boosting = false }, this))
+	}
+
+	prototype.shieldToggle = function() {
+		this.weapons.shield.toggle();
+	}
+
+	prototype.hadokenFire = function() {
+		this.weapons.hadoken.fire(this.wave.direction);
 	}
 
 	prototype.drawTrails = function() {
@@ -1960,89 +1977,6 @@
 			this.spatter_cont.alpha = 1;
 			this.color_spatter_num = 0;
 		},this));
-	}
-
-	prototype.initWeapon = function() {
-
-		this.weapons = this.config.weapons || [];
-
-		if(this.weapons.indexOf('saberlight') != -1) {
-			this.initSaberlight();
-		}
-	}
-
-	prototype.drawWeapon = function() {
-
-		if(this.weapons.indexOf('saberlight') != -1) {
-			this.drawLightSaber();
-		}
-	}
-
-
-	prototype.initSaberlight = function() {
-
-		this.saber_length = 0;
-		this.saber_color = (this.isBot())? 'red' : 'green';
-		this.saber_angle = 0;
-		this.saber_start = new createjs.Shape();
-		this.saber_start.graphics.beginStroke('white').drawCircle(0,0,20);
-		this.saber_start.x = -30;
-		this.saber_start.y = -15;
-		this.saber_middle = new createjs.Shape();
-		this.saber_middle.graphics.beginStroke('white').drawCircle(0,0,15);
-		this.saber_end = new createjs.Shape();
-		this.saber_end.graphics.beginStroke('white').drawCircle(0,0,10);
-		this.saber_trail = this.saber_end.clone();
-		this.weapon_points.push(this.saber_start,this.saber_middle,this.saber_end,this.saber_trail);
-
-		createjs.Tween.get(this).wait(1500).to({saber_length: 120}, 1000);
-	}
-
-	prototype.drawLightSaber = function() {
-
-		this.weapon_cont.removeAllChildren();
-
-		let length = this.saber_length;
-		let angle = this.angle_rad + this.saber_angle;
-
-		this.saber_middle.x = this.saber_start.x + length/2 * Math.cos(angle);
-		this.saber_middle.y = this.saber_start.y + length/2 * Math.sin(angle);
-
-		this.saber_trail.x = this.saber_end.x;
-		this.saber_trail.y = this.saber_end.y;
-
-		this.saber_end.x = this.saber_start.x + length * Math.cos(angle);
-		this.saber_end.y = this.saber_start.y + length * Math.sin(angle);
-
-		let saber = new createjs.Shape();
-		saber.graphics.beginStroke(this.saber_color).setStrokeStyle(8)
-								.moveTo(this.saber_start.x,this.saber_start.y).lineTo(this.saber_end.x,this.saber_end.y)
-								.beginStroke('white').setStrokeStyle(4)
-								.moveTo(this.saber_start.x,this.saber_start.y).lineTo(this.saber_end.x,this.saber_end.y)
-								;
-
-		var blurFilter = new createjs.BlurFilter(5, 5, 1);
-		saber.filters = [blurFilter];
-		var bounds = blurFilter.getBounds();
-		saber.cache(this.saber_start.x - length, this.saber_start.y - length, length*2, length*2);
-
-		let trail = new createjs.Shape();
-		trail.graphics.beginFill(this.saber_color)
-								.moveTo(this.saber_start.x, this.saber_start.y)
-								.lineTo(this.saber_end.x, this.saber_end.y)
-								.lineTo(this.saber_trail.x, this.saber_trail.y)
-								.closePath();
-		trail.alpha = 0.3;
-
-		this.weapon_cont.addChild(saber, trail);
-
-	}
-
-	prototype.lightSaberStrike = function() {
-
-		let amp = Math.PI/2;
-		let time = 300;
-		createjs.Tween.get(this).to({saber_angle: amp},time*2/5).to({saber_angle:-amp},time*2/5).to({saber_angle: 0},time*1/5);
 	}
 
 	prototype.drawDebug = function() {

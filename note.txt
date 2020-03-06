@@ -1,0 +1,39 @@
+**SPACESURFER**
+
+Synopsis:
+Astroboy est un surfer sur Terre. Mais l'océan est trop pollué et les plages surpeuplées. Il décide donc de partir en AstroVan surfer les vagues sur d'autres planètes.
+
+
+Scénario:
+Il devra parcourir différents spots sur plusieurs planètes pour découvrir de nouvelles techniques et de nouveaux pouvoirs. Ses rencontres avec des cultures exotiques lui apporteront une vision différente du surf et de la vie. Que se passera-t-il lors de son retour sur terre ?
+
+
+Planètes:
+- pandora
+- caladan
+- flhoston paradize
+- zeguema
+- dune ?
+- kashikkk ? naboo ? Coruscant ?
+- gargantua ?
+
+
+Pouvoirs
+- Boost => Dune ?
+- Bouclier => Naboo ?
+- Attack =>
+
+
+
+Déroulé:
+- Plan sur des plages sales, des vagues surpeuplées, texte décrivant les conditions de surf sur terre. Décollage de l'Astrovan
+- Première planète : découverte des controles de base (gauche, droite, aerial, collecte d'items)
+- Deuxième planète : difficulté accrue + premiers obstacles => premier pouvoir Boost
+- Troisième planète : nombreux obstacles + premiers ennemis
+- Quatrième planète : ennemis attacks => second pouvoir Bouclier
+- Cinquième planète : obstacles + ennemis + vagues difficiles
+- Sixième planète : ennemis invisibles => troisième pouvoir Attack
+- Septième planète : obstacles + ennemis attacks + vagues difficiles = carnage
+- Retour sur Terre : netoyage de l'ocean + colorisation des locaux
+
+

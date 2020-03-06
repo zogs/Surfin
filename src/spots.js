@@ -63,6 +63,8 @@
 
 		this.init();
 
+    this.addEventListener('tick',proxy(this.tick,this));
+
 	}
 
 	var prototype = createjs.extend(Spot, createjs.Container);
@@ -74,7 +76,7 @@
 		if(this.config.init.type == undefined) return this.initStatic();
 		if(this.config.init.type === 'static') return this.initStatic();
 		if(this.config.init.type === 'waving') return this.initWaving();
-		if(this.config.init.type === 'ready?') return this.initWhenReady();
+		if(this.config.init.type === 'waiting') return this.initWhenReady();
 
 	}
 
@@ -199,12 +201,11 @@
 
 		if(!this.wave) return;
 
-		let dx = (this.front1.y - this.planet.lines.horizon) / (this.wave.y - this.wave.params.height/2 - this.planet.lines.horizon);
-
+		let dx = (this.front1.y - this.planet.lines.horizon) / (this.wave.y - this.wave.params.height/2 - this.planet.lines.horizon) * 0.5;
 		this.front1.x += this.wave.movingX * dx;
 		this.front2.x += this.wave.movingX * dx;
 
-		if(this.wave.direction === LEFT) {
+		if(this.wave.isLEFT()) {
 			if(this.front1.x > STAGEWIDTH + this.front1.image.width/2) { this.front1.x = this.front2.x - this.front1.image.width; }
 			if(this.front2.x > STAGEWIDTH + this.front2.image.width/2) { this.front2.x = this.front1.x - this.front2.image.width;}
 		}
@@ -459,69 +460,61 @@
 	}
 
 	prototype.initWhenReady = function() {
-    //console.log('initWhenReady');
+
+    // reset/init
+    this.runing = true;
 		this.removeAllWaves();
 		this.initEventsListeners();
 
+    // init wave
 		var wave = this.addWave();
 		this.setWave(wave);
 
-		var x = STAGEWIDTH/2
-		var y = wave.params.height*1/3;
-		var paddler = this.addPaddler(x + wave.getX(), wave.y - wave.params.height + y);
-		paddler.removeAllListeners();
+    // init paddler
+		var x = STAGEWIDTH/2;
+  	var y = wave.params.height*1/3;
+    var paddler = new Paddler({
+      spot: this,
+      x: x + wave.getX(),
+      y: y + wave.getY() - wave.params.height,
+      fixedsize: 0.6,
+      nolift: true,
+    });
+    this.sea_cont.addChild(paddler);
+    this.paddlers.push(paddler);
 
+    // show text
+    var cont = new createjs.Container();
+		var ready = new createjs.Text("Ready ?", Math.floor(64*rY)+'px BubblegumSansRegular', 'rgba(0,0,0,0.5)');
+    ready.x = paddler.localToGlobal(0,0).x;
+    ready.y = paddler.localToGlobal(0,0).y - 200;
+    ready.regX = ready.getMeasuredWidth()/2;
+    ready.regY = ready.getMeasuredHeight()/2;
+    cont.addChild(ready);
+    var taphere = new createjs.Text('Tap to paddle', 'bold '+Math.floor(16*rY)+'px Helvetica', 'rgba(0,0,0,0.5)');
+    taphere.x = paddler.localToGlobal(0,0).x - 25 ;
+    taphere.y = ready.y + 31;
+    taphere.regX = taphere.getMeasuredWidth()/2;
+    taphere.regY = taphere.getMeasuredHeight()/2;
+    cont.addChild(taphere);
+    var helper = new createjs.Text('Tap here and glide right or left', Math.floor(15*rY)+'px Helvetica', 'rgba(255,255,255,0.6');
+    helper.x = paddler.localToGlobal(0,0).x;
+    helper.y = wave.y + 10;
+    helper.regX = helper.getMeasuredWidth()/2;
+    helper.regY = helper.getMeasuredHeight()/2;
+    cont.addChild(helper);
+    this.overlay_cont.addChild(cont);
 
-		var surfer = new Surfer({
-			x: x,
-			y: y,
-			wave: wave,
-			spot: this,
-		});
+    // animate wave ripples
+    var animatingWave = this.addEventListener('tick', proxy(wave.animateRipples, wave));
 
-    var count = 3;
-		var readyButton = new createjs.Container();
-    var bkg = new createjs.Shape();
-    var txt = new createjs.Text('Click '+count+' times',Math.floor(22*rY)+'px Helvetica');
-    var bound = txt.getBounds();
-    var pad = {x: 40, y: 15};
-    bkg.graphics.beginFill('#FFF').drawRoundRect(-bound.x/2 - pad.x, -bound.y - pad.y, bound.width + pad.x*2, bound.height + pad.y*2, 5);
-    readyButton.x = paddler.localToGlobal(0,0).x;
-    readyButton.y = paddler.localToGlobal(0,0).y + 100;
-    readyButton.regX = txt.getMeasuredWidth()/2;
-    readyButton.regY = txt.getMeasuredHeight()/2;
-    readyButton.cursor = 'pointer';
-    readyButton.addChild(bkg,txt);
-    this.overlay_cont.addChild(readyButton);
+    // on take off, remove text and animation
+    this.on('player_takeoff', function(e) {
+      this.runing = false; //fix
+      this.overlay_cont.removeChild(cont);
+      this.removeEventListener('tick', animatingWave);
 
-    var time = wave.config.breaking.y_speed;
-
-    readyButton.on('click',proxy(function() {
-
-    		count--;
-    		txt.text = 'Click '+count+' times';
-				paddler.silhouette.gotoAndPlay('down');
-
-    		if(count > 0) return;
-
-				window.switchSlowMo(0.2, 0);
-				wave.initBreak(STAGEWIDTH/2);
-
-				window.switchSlowMo(1, time)
-				setTimeout(proxy(
-					function() {
-						wave.playerTakeOff(surfer);
-						this.removePaddler(paddler);
-					},this)
-				,time*1/4);
-
-				this.overlay_cont.removeChild(readyButton);
-
-    	},this));
-
-
-
-
+    })
 	}
 
 	prototype.initRunMode = function() {
@@ -914,7 +907,7 @@
 			this.scoreboard = new Scoreboard(this.score);
 			this.overlay_cont.addChild(this.scoreboard);
 			this.scoreboard.show();
-		},this),1500);
+		},this),1000);
 	}
 
   prototype.hideScoreboard = function(e) {
@@ -1041,7 +1034,10 @@
 	prototype.pause = function() {
 
     this.paused = true;
-    this.waves.map(w => { w.pause(); w.coming_tween.paused = true; });
+    this.waves.map(w => {
+      w.pause();
+      if(w.coming_tween) w.coming_tween.paused = true;
+    });
     this.timers.map(t => t.pause());
 		this.score.pause();
 	}
@@ -1049,7 +1045,10 @@
 	prototype.resume = function() {
 
     this.paused = false;
-		this.waves.map(w => { w.coming_tween.paused = false; w.resume(); });
+		this.waves.map(w => {
+      w.resume();
+      if(w.coming_tween) w.coming_tween.paused = false;
+    });
 		this.timers.map(t => t.resume());
 		this.score.resume();
 	}

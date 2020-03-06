@@ -26,6 +26,7 @@ window.load = function() {
 
 	window.Stage = new createjs.Stage('canvas');
 	window.Stage.enableMouseOver(10);
+	window.CanvasContainer = document.getElementById('container');
 
 	window.resizeCanvas();
 
@@ -97,7 +98,15 @@ window.load = function() {
 		{id:'medal_bronze', src:imgdir+'object/medal_bronze.png'},
 		{id:'medal_empty', src:imgdir+'object/medal_empty.png'},
 		{id:'astroposeur', src:imgdir+'object/astroposeur.png'},
-		{id:'icon_boost', src:imgdir+'buttons/boost.png'}
+		{id:'icon_boost', src:imgdir+'buttons/boost.png'},
+		{id:'icon_shield', src:imgdir+'buttons/shield.png'},
+		{id:'icon_hadoken', src:imgdir+'buttons/fire.png'},
+		{id:'redspouf', src:imgdir+'object/spouf_red.png'},
+		{id:'bluespouf', src:imgdir+'object/spouf_blue.png'},
+		{id:'spindash', src:imgdir+'object/spindash.png'},
+		{id:'shockwave', src:imgdir+'object/shockwave.png'},
+		{id:'waterball', src:imgdir+'object/waterball.png'},
+		{id:'waterballsprinkle', src:imgdir+'object/waterballsprinkle.png'},
 
 		]);
 
@@ -144,6 +153,8 @@ window.initialize = function() {
 	window.Stage.addChild(window.border_cont);
 	window.menu_cont = new createjs.Container();
 	window.Stage.addChild(window.menu_cont);
+	window.dial_cont = new createjs.Container();
+	window.Stage.addChild(window.dial_cont);
 	window.pause_cont = new createjs.Container();
 	window.Stage.addChild(window.pause_cont);
 
@@ -205,19 +216,120 @@ window.initialize = function() {
 	//window event
   window.addEventListener('blur', window.onWindowPassive);
   window.addEventListener('focus', window.onWindowActive);
-
 	// set customizer
 	//initCustomizer();
-		let sheet = new createjs.SpriteSheet({
-        images: [queue.getResult('stormsurfer')],
-        frames: {width: 300, height: 300},
-        animations: {S:0,SE:1,SEE:2,SEEE:3,SEEEE:4,E:5,EN:6,ENN:7,ENNN:8,ENNNN:9,N:10,NW:11,NWW:12,NWWW:13,NWWWW:14,W:15,WS:16,WSS:17,WSSS:18,WSSSS:19}
+	//
+
+	/*
+	let surfer_sprite = new createjs.SpriteSheet({
+			images: [queue.getResult('surfer')],
+			frames: {width: parseInt(300*rX), height: parseInt(300*rY)},
+			animations: {
+				S: 0,
+				SE: 1,
+				SEE: 2,
+				SEEE: 3,
+				SEEEE: 4,
+				E: 5,
+				EN: 6,
+				ENN: 7,
+				ENNN: 8,
+				ENNNN: 9,
+				N: 10,
+				NW: 11,
+				NWW: 12,
+				NWWW: 13,
+				NWWWW: 14,
+				W: 15,
+				WS: 16,
+				WSS: 17,
+				WSSS: 18,
+				WSSSS: 19
+			}
+		});
+
+		let x = 700;
+		let y = 400;
+		let surfer = new createjs.Sprite(surfer_sprite,'W');
+		surfer.x = x - 100;
+		surfer.y = 300;
+		surfer.scale = 0.8;
+
+		this.Stage.addChild(surfer);
+
+		// SHIELD
+		let shield = new Shield();
+		shield.x = x;
+		shield.y = y;
+		this.Stage.addChild(shield);
+		window.Shield = shield;
+
+
+		// HADOKEN
+		let hadoken = new Hadoken({direction:-1});
+		hadoken.x = x - 50;
+		hadoken.y = y;
+		this.Stage.addChild(hadoken);
+
+		window.setInterval(function() {
+			hadoken.fire();
+		},1000);
+		*/
+
+
+	/*
+	SPOUF SPRITE
+	var sheet = new createjs.SpriteSheet({
+          images: [queue.getResult('redspouf')],
+          frames: {width:parseInt(64*rX), height:parseInt(64*rY), regX: parseInt(32*rX), regY: parseInt(32*rY)},
+          framerate: 40,
+          animations: {
+            spouf: [0, 16, true],
+          }
       });
 
-      let sprite = new createjs.Sprite(sheet);
-      sprite.gotoAndPlay('W');
+	let spouf = new createjs.Sprite(sheet);
+  spouf.scaleX = spouf.scaleY = 1;
+  spouf.gotoAndPlay('spouf');
+  spouf.x = 200;
+  spouf.y = 200;
+ 	this.Stage.addChild(spouf);
+	 */
 
-      window.Stage.addChild(sprite);
+
+	// DASH SPRITE
+	/*
+	var sheet = new createjs.SpriteSheet({
+          images: [queue.getResult('spindash')],
+          frames: {width:parseInt(64*rX), height:parseInt(64*rY), regX: parseInt(32*rX), regY: parseInt(32*rY)},
+          framerate: 40,
+          animations: {
+            spin: [0, 7, true],
+          }
+      });
+
+	let dash = new createjs.Sprite(sheet);
+  dash.scaleX = dash.scaleY = 1;
+  dash.gotoAndPlay('spin');
+  dash.x = 200;
+  dash.y = 200;
+ 	this.Stage.addChild(dash);
+	*/
+
+
+	 /* DIALOG TEST
+	let dialog = new Dialog([
+		new Text('NOW ALL YOU HAVE TO DO')
+		], [
+		new Button('S T A R T  G A M E', function() { this.close() })
+		], {
+			x: 600,
+			y: 300,
+			lifetime: 800, call: function() { this.close() }
+		});
+	dialog.open();
+	window.dial_cont.addChild(dialog);
+	*/
 }
 
 
@@ -261,7 +373,8 @@ window.defaultKeyDownHandler = function(e)
     case 'w':  switchSlowMo(0.1,500); break;
     case 'g':  SPOT.removeAllPaddlers().getWave().breakAndFollow(); break;
     case '+':  SPOT.score.add(1000); break;
-    case '*':  SPOT.score.testScore();
+    case '/':  SPOT.getWave().getSurfer().shieldToggle(); break;
+    case '*':  SPOT.getWave().getSurfer().hadokenFire(); break;
     default: console.log('Key "'+e.key+'" have no handler.');
    }
 }

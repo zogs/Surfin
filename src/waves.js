@@ -723,12 +723,6 @@ prototype.playerTakeOff = function(surfer) {
 
 	if(this.spot.runing === false) this.initBreak(surfer.x);
 
-	//throw event
-	var e = new createjs.Event("player_takeoff");
-	e.wave = this;
-	e.surfer = this.surfer;
-	this.spot.dispatchEvent(e);
-
 }
 
 prototype.startShaking = function() {
@@ -958,12 +952,14 @@ prototype.findTheLeftPeak = function() {
 	for(let i=0,len=this.peaks.length; i<len; ++i) {
 		if(this.peaks[i].points.length !== 0) return this.peaks[i];
 	}
+	console.log('no left peak');
 }
 
 prototype.findTheRightPeak = function() {
 	for(let i=this.peaks.length-1; i>=0; i--) {
 		if(this.peaks[i].points.length !== 0) return this.peaks[i];
 	}
+		console.log('no right peak');
 }
 
 prototype.findTheLeftSplash = function() {

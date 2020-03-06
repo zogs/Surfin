@@ -17,6 +17,7 @@
 		this.x = params.x;
 		this.y = params.y;
 		this.spot = params.spot;
+		this.config = params;
 
 		this.paddling_force = 0;
 		this.paddling_progress = 0;
@@ -107,6 +108,7 @@
 
 	prototype.getScaleByPosition = function() {
 
+		if(this.config.fixedsize) return this.config.fixedsize;
 		return (this.y - this.spot.planet.lines.horizon) / (this.spot.planet.lines.peak - this.spot.planet.lines.horizon);
 	}
 
@@ -116,6 +118,8 @@
 	}
 
 	prototype.resize = function() {
+
+		if(this.config.noresize) return;
 
 		this.scale = this.getScaleByPosition() * this.getScaleByWaveSize();
 
@@ -130,12 +134,16 @@
 
 	prototype.liftup = function(y) {
 
+		if(this.config.nolift) return;
+
 		this.cont.y = this.cont.y - y;
 		this.lifttotal += y;
 		this.liftamount = y;
 	}
 
 	prototype.liftdown = function() {
+
+		if(this.config.nolift) return;
 
 		this.cont.y = this.cont.y + this.lifttotal;
 		this.lifttotal = 0;

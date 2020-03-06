@@ -641,7 +641,7 @@
       createjs.Tween.get(this.circle).set({scale: 0}).to({scale: 1}, 700, createjs.Ease.bounceOut).wait(300).to({alpha: 0}, 1000, createjs.Ease.quartOut);
 
       // text
-      this.text = new createjs.Text(text,'bold '+Math.floor(70*rY)+"px 'BubblegumSansRegular', sans-serif",'#FFF'); //BubblegumSansRegular BoogalooRegular albaregular
+      this.text = new createjs.Text(text,'bold '+Math.floor(70*rY)+"px 'BubblegumSansRegular', sans-serif",'rgba(4,40,60,0.45)'); //BubblegumSansRegular BoogalooRegular albaregular
       this.text.regX = this.text.getMeasuredWidth()/2;
       this.text.regY = this.text.getMeasuredHeight()/2;
       this.addChild(this.text);
@@ -653,6 +653,7 @@
       this.quality.regY = this.quality.getMeasuredHeight()/2;
       this.quality.x = - 300;
       this.quality.alpha = 0;
+      this.quality.outline = 0.5;
       this.addChild(this.quality);
 
       // score
@@ -679,14 +680,15 @@
 
     prototype.grade = function(quality) {
 
-      this.quality.text = quality;
+      this.quality.text = quality.toLowerCase();
       this.quality.regX = this.quality.getMeasuredWidth()/2;
       this.quality.regY = this.quality.getMeasuredHeight()/2;
-      if(quality == 'Super') this.quality.color = '#f7d05d';
-      if(quality == 'Good') this.quality.color = '#499249';
-      if(quality == 'Bad') this.quality.color = '#a73f3f';
-      createjs.Tween.get(this.quality).set({alpha:0}).to({alpha:1, x:-25}, 500, createjs.Ease.quadInOut).to({x: 25},800).to({x: 300, alpha: 0},500);
-      createjs.Tween.get(this.text).to({alpha: 0, x: 300}, 500, createjs.Ease.quadInOut)
+      if(quality == 'Super') this.quality.color = 'rgba(247,208,93,0.5)';
+      if(quality == 'Good') this.quality.color = 'rgba(73,146,73,0.5)';
+      if(quality == 'Bad') this.quality.color = 'rgba(167,63,63,0.5)';
+      let direction = SPOT.wave.isLEFT() ? 1 : -1;
+      createjs.Tween.get(this.quality).set({alpha:0}).to({alpha:1, x:-25*direction}, 500, createjs.Ease.quadInOut).to({x: 25},800).to({x: 300*direction, alpha: 0},500);
+      createjs.Tween.get(this.text).to({alpha: 0, x: 300*direction}, 500, createjs.Ease.quadInOut)
 
       return this;
     }

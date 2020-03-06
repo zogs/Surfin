@@ -12,6 +12,7 @@
 
 	<link rel="stylesheet" href="dist/font/Bubblegum/stylesheet.css">
 	<link href="https://fonts.googleapis.com/css?family=Blinker&display=swap" rel="stylesheet">
+	<link href="https://fonts.googleapis.com/css?family=BenchNine:300&display=swap" rel="stylesheet">
 
 
 	<style type="text/css">
@@ -22,7 +23,9 @@
 	</head>
 
 	<body onload="load()">
-			<canvas id="canvas" width="1500" height="800">You need to activate javascript to play this game !</canvas>
+			<div id="container">
+				<canvas id="canvas" width="1500" height="800">You need to activate javascript to play this game !</canvas>
+			</div>
 	</body>
 
 
@@ -53,6 +56,7 @@
 	<script src="src/screens.js" type="text/javascript"></script>
 	<script src="src/objects.js" type="text/javascript"></script>
 	<script src="src/menu.js" type="text/javascript"></script>
+	<script src="src/dialog.js" type="text/javascript"></script>
 	<?php loadJsDir('src/objects/'); ?>
 	<script src="src/customizer.js" type="text/javascript"></script>
 	<script src="main.js" type="text/javascript"></script>
