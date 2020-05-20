@@ -19,9 +19,9 @@
 
     this.removeAllChildren();
 
-    this.initButtonBoost();
-    this.initButtonShield();
-    this.initButtonHadoken();
+    if(USER.hasPower('boost')) this.initButtonBoost();
+    if(USER.hasPower('shield')) this.initButtonShield();
+    if(USER.hasPower('hadoken')) this.initButtonHadoken();
 
    //keyboard handlers
     window.onkeyup = proxy(this.onKeyup, this);
@@ -160,7 +160,8 @@
 
   prototype.startBoost = function(e) {
     if(e) e.stopImmediatePropagation();
-    if(e.pointerID !== undefined && e.pointerID <= 0) return;
+    if(e && e.pointerID && e.pointerID <= 0) return;
+    if(this.boost == undefined) return;
     if(this.boost.pressed === true) return;
     this.spot.getWave().getSurfer().startBoost();
     this.boost.pressed = true;
@@ -168,7 +169,8 @@
 
   prototype.stopBoost = function(e) {
     if(e) e.stopImmediatePropagation();
-    if(e.pointerID !== undefined && e.pointerID <= 0) return;
+    if(e && e.pointerID && e.pointerID <= 0) return;
+    if(this.boost == undefined) return;
     if(this.boost.pressed === false) return;
     this.spot.getWave().getSurfer().endBoost();
     this.boost.pressed = false;
@@ -176,31 +178,35 @@
 
   prototype.startShield = function(e) {
     if(e) e.stopImmediatePropagation();
-    if(e.pointerID !== undefined && e.pointerID <= 0) return;
+    if(e && e.pointerID && e.pointerID <= 0) return;
+    if(this.shield == undefined) return;
     if(this.shield.pressed === true) return;
-    this.spot.getWave().getSurfer().weapons.shield.open();
+    this.spot.getWave().getSurfer().shieldToggle();
     this.shield.pressed = true;
   }
 
   prototype.stopShield = function(e) {
     if(e) e.stopImmediatePropagation();
-    if(e.pointerID !== undefined && e.pointerID <= 0) return;
+    if(e && e.pointerID && e.pointerID <= 0) return;
+    if(this.shield == undefined) return;
     if(this.shield.pressed === false) return;
-    this.spot.getWave().getSurfer().weapons.shield.close();
+    this.spot.getWave().getSurfer().shieldToggle();
     this.shield.pressed = false;
   }
 
   prototype.startHadoken = function(e) {
     if(e) e.stopImmediatePropagation();
-    if(e.pointerID !== undefined && e.pointerID <= 0) return;
+    if(e && e.pointerID && e.pointerID <= 0) return;
+    if(this.hadoken == undefined) return;
     if(this.hadoken.pressed === true) return;
-    this.spot.getWave().getSurfer().weapons.hadoken.fire();
+    this.spot.getWave().getSurfer().hadokenFire();
     this.hadoken.pressed = true;
   }
 
   prototype.stopHadoken = function(e) {
     if(e) e.stopImmediatePropagation();
-    if(e.pointerID !== undefined && e.pointerID <= 0) return;
+    if(e && e.pointerID && e.pointerID <= 0) return;
+    if(this.hadoken == undefined) return;
     if(this.hadoken.pressed === false) return;
     //this.spot.getWave().getSurfer().weapons.hadoken.close();
     this.hadoken.pressed = false;

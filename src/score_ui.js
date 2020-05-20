@@ -1,5 +1,7 @@
 (function() {
 
+  _CACHED = {};
+
   function ScoreUI(params) {
 
     this.Container_constructor();
@@ -26,7 +28,7 @@
       'hit photographer' : ['Damn it, you will pay for this camera !'],
     }
 
-    if(!this.goals) this.goals = [
+    if(this.goals === null) this.goals = [
       { type: 'timed', current:0, aim: 20, name: 'Survivre 20 secondes ({n}s)' },
       { type: 'score', current:0, aim: 2000, name: 'Faire un score de 2000 points' },
       { type: 'trick', current:0, aim: 'Backflip', count: 2, name: 'Faire 2 backflip ({n})' },
@@ -72,12 +74,14 @@
 
     this.init();
 
+
   }
 
   var prototype = createjs.extend(ScoreUI, createjs.Container);
 
   //add EventDispatcher
   createjs.EventDispatcher.initialize(prototype);
+
 
   prototype.init = function() {
 
@@ -237,11 +241,17 @@
       if(this.goals[i].filled === true) count++;
     }
 
-    if(count == total) {
-      this.goals_filled = true;
-      let ev = new createjs.Event('goals_filled');
-      SPOT.dispatchEvent(ev);
+    if(count === total) {
+      this.goalsAccomplished();
     }
+  }
+
+  prototype.goalsAccomplished = function() {
+    this.goals_filled = true;
+    let pop = this.popInfo('Success !');
+    createjs.Tween.get(pop).to({y: -STAGEHEIGHT/2}, 2000, createjs.Ease.quartOut);
+    let ev = new createjs.Event('goals_filled');
+    SPOT.dispatchEvent(ev);
   }
 
   prototype.updateGoalTime = function() {
@@ -284,10 +294,8 @@
   }
 
   prototype.updateGoalCatch = function(e) {
-
-    let bonus = e.bonus;
-    let goal = that.goals.find(g => g.type === 'catch' && g.aim == bonus);
-    console.log('updateGoalCatch', bonus, goal);
+    let name = e.object.config.name;
+    let goal = that.goals.find(g => g.type === 'catch' && g.aim == name);
     if(typeof goal === 'undefined') return;
     if(goal.filled) return;
     goal.current += 1;
@@ -328,7 +336,7 @@
 
     this.spot.on('player_takeoff',function(event) {
       this.progress();
-      this.takeoff = this.newScore('Takeoff');
+      this.takeoff = this.popInfo('Take off !');
       this.time_on_wave = 0;
       this.timers.push(new Interval(proxy(this.updateTimeOnWave,this), 1000));
     },this, null, true);
@@ -343,7 +351,8 @@
     },this, null, true);
 
     this.spot.on('surfer_aerial_start',function(event) {
-      this.aerial = this.newScore(event.trick.name).add(event.trick.score).growth(20);
+      console.log(event.trick.name);
+      this.aerial = this.popInfo(event.trick.name).add(event.trick.score).growth(20);
     },this);
 
     this.spot.on('surfer_aerial_end',function(event) {
@@ -354,7 +363,7 @@
     },this);
 
     this.spot.on('surfer_tube_in',function(event) {
-      this.tube = this.newScore('Tuuube !').add(100).growth(50);
+      this.tube = this.popInfo('T u b e !!!').add(100).growth(50);
     },this);
 
     this.spot.on('surfer_tube_out',function(event) {
@@ -380,21 +389,21 @@
     },this, null, true);
 
     this.spot.on('bonus_hitted',function(event) {
-      let bonus = event.bonus;
-      if(bonus == 'photo') {
-        let score = this.newScore("Nice pic !").add(500).end();
+      let name = event.object.name;
+      if(name == 'photo') {
+        let score = this.popInfo("Nice pic !").add(500).end();
         this.addScore(score);
       }
-      if(bonus == 'drone') {
-        let score = this.newScore("Great pic !").add(1000).end();
+      if(name == 'drone') {
+        let score = this.popInfo("Great pic !").add(1000).end();
         this.addScore(score);
       }
-      if(bonus == 'multiplier') {
-        let score = this.newScore("[TO DO...]").add(0).end();
+      if(name == 'multiplier') {
+        let score = this.popInfo("[TO DO...]").add(0).end();
         this.addScore(score);
       }
-      if(bonus == 'prize') {
-        let score = this.newScore("Bonus !").add(event.obstacle.aim).end();
+      if(name == 'prize') {
+        let score = this.popInfo("Bonus !").add(event.obstacle.aim).end();
         this.addScore(score);
       }
     },this);
@@ -402,13 +411,13 @@
     this.spot.on('kill',function(event) {
       let score;
       if(event.target === 'surfer') {
-        if(event.player === event.killed) score = this.newScore("Paf...").end();
+        if(event.player === event.killed) score = this.popInfo("Paf...").end();
         if(event.player === event.killer) {
           this.kill_count++;
-          if(this.kill_count === 1) score = this.newScore('Kill!').add(100).end();
-          if(this.kill_count === 2) score = this.newScore('Kill!').add(500).end();
-          if(this.kill_count === 3) score = this.newScore('Kill!').add(1000).end();
-          if(this.kill_count > 3) score = this.newScore('Kill!').add(1000).end();
+          if(this.kill_count === 1) score = this.popInfo('Kill!').add(100).end();
+          if(this.kill_count === 2) score = this.popInfo('Kill!').add(500).end();
+          if(this.kill_count === 3) score = this.popInfo('Kill!').add(1000).end();
+          if(this.kill_count > 3) score = this.popInfo('Kill!').add(1000).end();
         }
         this.addScore(score);
       }
@@ -423,16 +432,16 @@
     this.time_on_wave++;
   }
 
-  prototype.newScore = function(text) {
+  prototype.popInfo = function(text, size, color) {
 
-    if(this.disabled === true) return new PopScore('~disable~');
+    if(this.disabled === true) return new Pop('~disable~');
 
-    let score = new PopScore(text);
+    let score = new Pop(text, size, color);
     let pos = SPOT.wave.surfer.localToGlobal(0,0);
     let x = SPOT.wave.getX() + SPOT.wave.surfer.x;
-    let y = (SPOT.wave.surfer.y <= 0)? SPOT.wave.surfer.y  - SPOT.wave.params.height - 100 : - SPOT.wave.params.height - 100;
+    let y = (SPOT.wave.surfer.y <= 0)? SPOT.wave.surfer.y  - SPOT.wave.params.height - 70*rY : - SPOT.wave.params.height - 70*rY;
     SPOT.wave.score_text_cont.addChild(score);
-    createjs.Tween.get(score).set({alpha:0, rotation:10, x:x, y:100}).to({y:y, alpha:1, rotation: -10}, 800, createjs.Ease.bounceOut);
+    createjs.Tween.get(score).set({alpha:0, rotation:5, x:x, y:100}).to({y:y, alpha:1, rotation: -5}, 400, createjs.Ease.bounceOut);
 
     return score;
   }
@@ -446,7 +455,7 @@
 
   prototype.testScore = function() {
 
-    let score = new PopScore('Backloop').add(1000);
+    let score = new Pop('Backloop').add(1000);
     SPOT.wave.score_text_cont.addChild(score);
     createjs.Tween.get(score).set({alpha:0, rotation:10, y:100, x: STAGEWIDTH/2}).to({y:-400, alpha:1, rotation: -10}, 500, createjs.Ease.backOut)
         .wait(500)
@@ -620,34 +629,105 @@
 
 (function() {
 
-    function PopScore(text) {
+    function Pop(text, size, color, border) {
 
       this.Container_constructor();
 
-      this.timers = [];
-      this.sliding = false;
-
-      this.init(text);
+      this.init(text, size, color);
     }
-    var prototype = createjs.extend(PopScore, createjs.Container);
+    var prototype = createjs.extend(Pop, createjs.Container);
 
-    prototype.init = function(text = 'score') {
+    prototype.init = function(text, size, color, border) {
 
-      // circle
-      this.circle = new createjs.Shape();
-      this.circle.graphics.beginFill('yellow').drawCircle(0,0,2000);
-      this.circle.alpha = 0;
-      this.addChild(this.circle);
-      createjs.Tween.get(this.circle).set({scale: 0}).to({scale: 1}, 700, createjs.Ease.bounceOut).wait(300).to({alpha: 0}, 1000, createjs.Ease.quartOut);
+      this.text = text ? text : null;
+      this.size = size ? size : 50;
+      this.color = color ? color : '#f7f7f7';
+      this.border = border ? border : 'rgba(0,0,0,0.6)';
+      this.sliding = false;
+      this.timers = [];
+      this.font = 'sans-serif';
+      //this.font = 'SurfingCapital, sans-serif';
+      this.useCache = false;
 
+      if(text === undefined) return;
+
+      this.drawContent();
+
+      // particles
+      this.particles_cont = new createjs.Container();
+      this.addChild(this.particles_cont);
+      this.launchParticles();
+    }
+
+    prototype.drawContent = function() {
+      this.removeAllChildren();
+      this.drawText();
+      this.drawScore();
+      //this.drawQuality();
+    }
+
+    prototype.getTextContent = function() {
+
+      if(_CACHED[this.text]) {
+        return _CACHED[this.text];
+      }
+      else {
+        console.warn('You should pre-generate text content "'+this.text+'" for Pop()');
+        return this.generateCachedText();
+      }
+    }
+
+    prototype.generateCachedText = function(text, size, color, border) {
+
+      text = text ? text : this.text;
+      size = size ? size : this.size;
+      color = color ? color : this.color;
+      border = border ? border : this.border;
+
+      let cont = new createjs.Container();
       // text
-      this.text = new createjs.Text(text,'bold '+Math.floor(70*rY)+"px 'BubblegumSansRegular', sans-serif",'rgba(4,40,60,0.45)'); //BubblegumSansRegular BoogalooRegular albaregular
-      this.text.regX = this.text.getMeasuredWidth()/2;
-      this.text.regY = this.text.getMeasuredHeight()/2;
-      this.addChild(this.text);
-      createjs.Tween.get(this.text).set({y: 100, scale: 0, alpha: 0}).to({y: 0, alpha: 1, scale:1}, 800, createjs.Ease.elasticOut);
+      let outline = new createjs.Text(text, Math.floor(size*rY)+"px "+this.font, border);
+      outline.regX = outline.getMeasuredWidth()/2;
+      outline.regY = outline.getMeasuredHeight()/2;
+      outline.outline = 5;
+      cont.addChild(outline);
+      // text
+      let fill = new createjs.Text(text, Math.floor(size*rY)+"px "+this.font, color);
+      fill.regX = fill.getMeasuredWidth()/2;
+      fill.regY = fill.getMeasuredHeight()/2;
+      cont.addChild(fill);
+      // padding
+      let pad = 12;
 
-      // quality
+      if(this.useCache) {
+        // generate cache
+        cont.cache(-outline.getMeasuredWidth()/2-pad, -outline.getMeasuredHeight()/2-pad, outline.getMeasuredWidth()+pad*2, outline.getMeasuredHeight()+pad*2);
+        // save cache
+        _CACHED[text] = cont;
+      }
+
+      return cont;
+    }
+
+    prototype.drawText = function() {
+
+      this.text_cont = this.getTextContent();
+      this.addChild(this.text_cont);
+    }
+
+    prototype.drawScore = function() {
+
+      this.subscore = new createjs.Text('0','italic '+Math.floor(36*rY)+"px 'Blinker', sans-serif",'yellow');  //BubblegumSansRegular BoogalooRegular albaregular
+      this.subscore.regX = this.subscore.getMeasuredWidth()/2;
+      this.subscore.regY = this.subscore.getMeasuredHeight()/2;
+      this.subscore.x = 0;
+      this.subscore.y = this.text_cont.height/2 + 5;
+      this.subscore.alpha = 0;
+      this.addChild(this.subscore);
+    }
+
+    prototype.drawQuality = function() {
+
       this.quality = new createjs.Text('Wait for grade', 'bold '+Math.floor(70*rY)+"px 'Blinker', sans-serif", '#eaea49');
       this.quality.regX = this.quality.getMeasuredWidth()/2;
       this.quality.regY = this.quality.getMeasuredHeight()/2;
@@ -655,31 +735,10 @@
       this.quality.alpha = 0;
       this.quality.outline = 0.5;
       this.addChild(this.quality);
-
-      // score
-      this.subscore = new createjs.Text('0','italic '+Math.floor(36*rY)+"px 'Blinker', sans-serif",'yellow');  //BubblegumSansRegular BoogalooRegular albaregular
-      this.subscore.regX = this.subscore.getMeasuredWidth()/2;
-      this.subscore.regY = this.subscore.getMeasuredHeight()/2;
-      this.subscore.x = 0;
-      this.subscore.y = this.text.getMeasuredHeight()/2 + 5;
-      this.subscore.alpha = 0;
-      this.addChild(this.subscore);
-
-            //center
-      let center = new createjs.Shape();
-      center.graphics.beginFill('red').drawCircle(0,0,5);
-      center.alpha = 0;
-      this.addChild(center);
-
-      // particles
-      this.particles_cont = new createjs.Container();
-      this.addChild(this.particles_cont);
-      this.launchParticles();
-
     }
 
     prototype.grade = function(quality) {
-
+      return this;
       this.quality.text = quality.toLowerCase();
       this.quality.regX = this.quality.getMeasuredWidth()/2;
       this.quality.regY = this.quality.getMeasuredHeight()/2;
@@ -688,7 +747,7 @@
       if(quality == 'Bad') this.quality.color = 'rgba(167,63,63,0.5)';
       let direction = SPOT.wave.isLEFT() ? 1 : -1;
       createjs.Tween.get(this.quality).set({alpha:0}).to({alpha:1, x:-25*direction}, 500, createjs.Ease.quadInOut).to({x: 25},800).to({x: 300*direction, alpha: 0},500);
-      createjs.Tween.get(this.text).to({alpha: 0, x: 300*direction}, 500, createjs.Ease.quadInOut)
+      createjs.Tween.get(this.text_cont).to({alpha: 0, x: 300*direction}, 500, createjs.Ease.quadInOut)
 
       return this;
     }
@@ -744,7 +803,7 @@
 
       createjs.Tween.get(this.subscore).to({scale: 1.5}, 500, createjs.Ease.bounceOut).wait(500).to({alpha: 0}, 500);
 
-      createjs.Tween.get(this).wait(1000).set({sliding: true});
+      createjs.Tween.get(this).wait(400).set({sliding: true});
 
       return this;
 
@@ -761,10 +820,6 @@
         this.stopGrowth();
       }
 
-      this.text.color = 'red';
-      this.quality.color = 'red';
-      this.subscore.color = 'red';
-
       if(this.subscore.alpha !== 0) {
         createjs.Tween.get(this.subscore).to({scale:1.2},200).to({scale: 0.5, alpha: 0}, 800, createjs.Ease.quartIn);
         createjs.Tween.get(this.subscore).to({y: this.subscore.y+50}, 1000);
@@ -780,20 +835,23 @@
       this.emitter = new ParticleEmitter({
         x: 0,
         y: 0,
-        density: 5 + Math.random()*5,
+        density: 2 + Math.random()*5,
+        duration: 300,
+        frequency: 100,
         callback : proxy(this.removeParticles,this),
         magnitude: 20,
         magnitudemax : 25,
         angle: - Math.PI/2,
         spread: Math.PI/2,
         size: 8,
-        scaler: 0.2,
-        fader: 0.1,
+        scaler: 0.1,
+        fader: 0.02,
         rotate: 0.1,
         rotatemax: 10,
+        friction: 0.5,
         //tweens: [[{alpha:0},2000]],
-        forces: [vec2.fromValues(0,0.5)],
-        shapes: [{shape:'star',fill:'yellow',stroke:0.1,strokeColor:'yellow',percentage:100}]
+        forces: [vec2.fromValues(0,3)],
+        shapes: [{shape:'star',fill:'yellow',stroke:1,strokeColor:'#b0aa00',percentage:100}]
       });
 
       this.particles_cont.addChild(this.emitter);
@@ -804,6 +862,6 @@
       this.particles_cont.removeChild(this.emitter);
     }
 
-    window.PopScore = createjs.promote(PopScore, "Container");
+    window.Pop = createjs.promote(Pop, "Container");
 
 }());

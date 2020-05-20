@@ -10,19 +10,22 @@
 
 	<link rel="manifest" href="manifest.json">
 
+	<link rel="stylesheet" href="dist/font/SurfinCapital/stylesheet.css">
 	<link rel="stylesheet" href="dist/font/Bubblegum/stylesheet.css">
 	<link href="https://fonts.googleapis.com/css?family=Blinker&display=swap" rel="stylesheet">
 	<link href="https://fonts.googleapis.com/css?family=BenchNine:300&display=swap" rel="stylesheet">
+	<link href="https://fonts.googleapis.com/css?family=Work+Sans:600&display=swap" rel="stylesheet">
 
 
 	<style type="text/css">
-			body { margin: 0; padding: 0; background: #000; }
+			body { margin: 0; padding: 0; background: #000; color:white; font-family:'SurfingCapital';}
 			canvas { display:block; margin:0 auto; background: #000;}
 	</style>
 
 	</head>
 
 	<body onload="load()">
+		<h1>AstroSurfer </h1>
 			<div id="container">
 				<canvas id="canvas" width="1500" height="800">You need to activate javascript to play this game !</canvas>
 			</div>
@@ -30,7 +33,6 @@
 
 
 	<script src="lib/createjs/easeljs-1.1.js"></script>
-	<script src="lib/justice.mapped.min.js"></script>
 	<script src="lib/gl-matrix-min.js"></script>
 	<script src="lib/victor/victor.min.js"></script>
 	<script src="lib/victor/victor_custom.js"></script>
@@ -39,16 +41,17 @@
 	<script src="commons/shaker.js" type="text/javascript"></script>
 	<script src="commons/variations.js" type="text/javascript"></script>
 	<script src="commons/particles.js" type="text/javascript"></script>
+	<script src="src/spots.js" type="text/javascript"></script>
 	<script src="assets/config/levels.conf.js" type="text/javascript"></script>
 	<?php loadJsDir('assets/config/levels/'); ?>
 	<script src="assets/config/planets.conf.js" type="text/javascript"></script>
 	<?php loadJsDir('assets/config/planets/'); ?>
+	<script src="src/scene.js" type="text/javascript"></script>
 	<script src="src/user.js" type="text/javascript"></script>
 	<script src="src/control_ui.js" type="text/javascript"></script>
 	<script src="src/score_ui.js" type="text/javascript"></script>
 	<script src="src/scoreboard.js" type="text/javascript"></script>
 	<script src="src/xpbar.js" type="text/javascript"></script>
-	<script src="src/spots.js" type="text/javascript"></script>
 	<script src="src/waves.js" type="text/javascript"></script>
 	<script src="src/surfers.js" type="text/javascript"></script>
 	<script src="src/paddlers.js" type="text/javascript"></script>
@@ -57,7 +60,9 @@
 	<script src="src/objects.js" type="text/javascript"></script>
 	<script src="src/menu.js" type="text/javascript"></script>
 	<script src="src/dialog.js" type="text/javascript"></script>
-	<?php loadJsDir('src/objects/'); ?>
+	<?php loadJsDir('src/enemy/'); ?>
+	<?php loadJsDir('src/weapon/'); ?>
+	<?php loadJsDir('src/bonus/'); ?>
 	<script src="src/customizer.js" type="text/javascript"></script>
 	<script src="main.js" type="text/javascript"></script>
 	<script>

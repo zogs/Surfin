@@ -29,6 +29,7 @@
 		this.velocity = params.velocity || new vec2.fromValues(0,0);
 		this.forces = params.forces || [];
 		this.acceleration = params.acceleration || new vec2.fromValues(0,0);
+		this.friction = params.friction || 0;
 		this.scaler = params.scaler || 0;
 		this.color = params.color || '#FFF';
 		this.size = params.size || 10;
@@ -105,9 +106,9 @@
 			vec2.add(this.acceleration,this.acceleration,this.forces[i]);
 		}
 
+		vec2.scale(this.acceleration, this.acceleration, (1 - this.friction));
+
 		vec2.add(this.velocity,this.velocity,this.acceleration);
-
-
 		vec2.add(this.position,this.position,this.velocity);
 
 		this.x = this.position[0];
@@ -139,6 +140,7 @@
 		this.params.velocity = params.velocity || null;
 		this.params.forces = params.forces || [];
 		this.params.angle = params.angle || 0;
+		this.params.friction = params.friction || 0;
 		this.params.magnitude = params.magnitude || 10;
 		this.params.magnitudemax = params.magnitudemax || this.params.magnitude;
 		this.params.spread = params.spread || 0;
@@ -221,7 +223,7 @@
 
 		for(let i=0; i < n; i++) {
 			let particule = this.createParticle();
-			this.particles_cont.addChild(particule);
+			this.particles_cont.addChildAt(particule,0);
 		}
 	}
 
@@ -262,6 +264,7 @@
 			forces: this.params.forces,
 			tweens: this.params.tweens,
 			shapes: this.params.shapes,
+			friction: this.params.friction,
 		});
 	}
 

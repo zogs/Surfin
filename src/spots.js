@@ -3,17 +3,26 @@
 	function Spot(config) {
 
 		this.Container_constructor();
+    this.init(config);
+  }
 
-		this.id = config.id;
-		this.name = config.name;
+	var prototype = createjs.extend(Spot, createjs.Container);
+
+  prototype.init = function(config) {
+
+		this.config = cloneObject(config);
+    this.adaptConfigToScreensize();
+
+		this.id = this.config.id;
+		this.name = this.config.name;
 		this.planet = PLANETS.find(p => p.id == config.planet);
-		this.level = config.level;
-		this.config = config;
+		this.level = this.config.level;
 
 		this.waves = [];
 		this.surfers = [];
 		this.paddlers = [];
 		this.timers = [];
+    this.dialogs = [];
 
 		this.score = null;
 		this.wave = null;
@@ -21,8 +30,10 @@
 		this.runing = false;
     this.paused = false;
     this.played = false;
+    this.dialog = null;
     this.scoreboard = null;
 		this.time_scale = (TIME_SCALE) ? TIME_SCALE : 1;
+    this.retrying = config.retrying ? true : false;
 
 		this.background = new createjs.Container();
     this.background.mouseChildren = false;
@@ -39,6 +50,9 @@
 		this.frontground = new createjs.Container();
 		this.addChild(this.frontground);
 
+    this.extra_cont = new createjs.Container();
+    this.addChild(this.extra_cont);
+
     this.control_cont = new createjs.Container();
     this.addChild(this.control_cont);
 
@@ -48,6 +62,9 @@
 
 		this.overlay_cont = new createjs.Container();
 		this.addChild(this.overlay_cont);
+
+    this.dialogs_cont = new createjs.Container();
+    this.addChild(this.dialogs_cont);
 
 		this.debug_cont = new createjs.Container();
     this.debug_cont.mouseChildren = false;
@@ -61,24 +78,111 @@
     this.drawControls();
 		this.drawMenuBtn();
 
-		this.init();
+		this.initSpot();
+    this.initStory();
+
+    USER.visitLevel(this.id);
+    USER.currentLevel = this.id;
 
     this.addEventListener('tick',proxy(this.tick,this));
 
 	}
 
-	var prototype = createjs.extend(Spot, createjs.Container);
 
-	prototype.init = function(type) {
+	prototype.initSpot = function(type) {
 
-		if(this.name == 'home') this.initHomeScreen();
-
-		if(this.config.init.type == undefined) return this.initStatic();
-		if(this.config.init.type === 'static') return this.initStatic();
-		if(this.config.init.type === 'waving') return this.initWaving();
-		if(this.config.init.type === 'waiting') return this.initWhenReady();
+    /* default init strategy */
+		this.initWhenReady();
 
 	}
+
+  prototype.initStory = function() {
+
+    // add story message if USER have not yet visited this spot
+    if(this.config.story && USER.notVisited(this.id)) {
+      this.config.story.map((s) => {
+        let lines = s.lines;
+        let btns = (s.buttons) ? s.buttons : [{name: "CONTINUE", action: "continueStory"}];
+        let buttons = btns.reduce((arr,b) => {
+          arr.push(new Button(b.name, proxy(this[b.action], this)));
+          return arr;
+        }, []);
+        let texts = lines.reduce((arr,text) => {
+          arr.push(new Text(text));
+          return arr;
+        }, []);
+        let options = Object.assign({}, {x: STAGEWIDTH/2, y: STAGEHEIGHT/2}, s.options);
+        let dialog = new Dialog(texts, buttons, options);
+        this.dialogs.push(dialog);
+      })
+    }
+
+    // show goals message if needed
+    if(this.config.goals && this.retrying === false) this.dialogs.push(this.dialogGoals());
+
+    // display first message
+    if(this.dialogs.length > 0) {
+      this.dialog = this.dialogs[0];
+      this.openDialog(this.dialog);
+    }
+  }
+
+  prototype.continueStory = function() {
+    this.closeDialog(this.dialog);
+    this.dialog = this.dialogs[this.dialogs.indexOf(this.dialog) + 1];
+    if(this.dialog === undefined) return;
+    this.openDialog(this.dialog);
+  }
+
+  prototype.openDialog = function(dialog) {
+
+    dialog.open();
+    this.dialogs_cont.addChild(dialog);
+  }
+
+  prototype.closeDialog = function(dialog) {
+    dialog.close();
+    this.dialogs_cont.removeChild(dialog);
+  }
+
+  prototype.closeStory = function() {
+
+    this.closeDialog(this.dialog);
+    this.dialog = null;
+  }
+
+  prototype.dialogGoals = function() {
+
+    let font_title = '18px "Work Sans", Arial';
+    let font_goal = 'italic 16px Helvetica, Arial';
+
+    let lines = [
+        new Text("Objectifs :", font_title),
+        new Text(''),
+        ];
+    let goals = this.config.goals.reduce((arr, g) => {
+      let name = '\u2022 '+ g.name.replace(/(\(.*\))/g, '');
+      name = name.toLowerCase();
+      arr.push(new Text(name, font_goal))
+      return arr;
+    }, []);
+
+    let texts = [...lines, ...goals];
+
+    return new Dialog(texts
+      , [
+        new Button("Commencer", proxy(this.closeStory, this)),
+      ], {
+        x: STAGEWIDTH/2,
+        y: STAGEHEIGHT/2,
+        dy: 0,
+      })
+  }
+
+  prototype.gotoNextLevel = function() {
+
+    SCENE.gotoNextLevel();
+  }
 
 	prototype.drawMenuBtn = function() {
 
@@ -110,7 +214,7 @@
 		this.background.removeAllChildren();
 
 		const defaultbkg = new createjs.Shape();
-		defaultbkg.graphics.beginFill('#0d4e6d').drawRect(0,0,STAGEWIDTH,STAGEHEIGHT);
+		defaultbkg.graphics.beginFill('#000').drawRect(0,0,STAGEWIDTH,STAGEHEIGHT);
 		this.background.addChild(defaultbkg);
 
 		const skyimage = new createjs.Bitmap(queue.getResult(this.planet.images.background));
@@ -370,74 +474,6 @@
 
 	}
 
-
-	prototype.initHomeScreen = function() {
-
-		//hide score
-		this.score_cont.alpha = 0;
-
-		// add doggo
-    const dog = new createjs.Sprite(
-      new createjs.SpriteSheet({
-          images: [queue.getResult('dog')],
-          frames: {width:parseInt(64*rX), height:parseInt(64*rY), regX: parseInt(16*rX), regY: parseInt(16*rY)},
-          framerate: 10,
-          animations: {
-            sit: [0,1, 'sit'],
-          }
-      })
-    );
-    dog.x = 430*rX;
-    dog.y = STAGEHEIGHT - 150*rY;
-    dog.scale = 1;
-    dog.gotoAndPlay('sit');
-    window.extra_cont.addChild(dog);
-
-    // add ptero
-
-    const ptero = new createjs.Sprite(
-      new createjs.SpriteSheet({
-          images: [queue.getResult('ptero')],
-          frames: {width:parseInt(128*rX), height:parseInt(128*rY), regX: parseInt(64*rX), regY: parseInt(64*rY)},
-          framerate: 4,
-          animations: {
-            fly: [0,9, 'fly'],
-          }
-      })
-    );
-    let pad = 128;
-    ptero.x = -pad * rX;
-    ptero.y = 150 * rY;
-    ptero.scale = 1;
-    ptero.gotoAndPlay('fly');
-    window.extra_cont.addChild(ptero);
-    createjs.Tween.get(ptero, {loop: true}).to({x: STAGEWIDTH+pad*rX}, 10000).wait(2000).set({scaleX:-1}).to({x:-pad*rX},10000).wait(2000).set({scaleX:1});
-    createjs.Tween.get(ptero, {loop: true}).to({y: 200*rY}, 2000).to({y: 150*rY}, 2000);
-
-
-    // add button
-    const sprite = new createjs.Sprite(
-      new createjs.SpriteSheet({
-          images: [queue.getResult('btn_startgame')],
-          frames: {width:parseInt(700*rX), height:parseInt(280*rY), regX: parseInt(350*rX), regY: parseInt(140*rY)},
-          framerate: 1,
-          animations: {
-            out: [0],
-            over: [1],
-            down: [2],
-          }
-      })
-    );
-    const btn = new createjs.ButtonHelper(sprite, "out", "over", "down");
-    sprite.x = STAGEWIDTH/2;
-    sprite.y = STAGEHEIGHT - 100*rY;
-    window.extra_cont.addChild(sprite);
-    sprite.addEventListener('click', function(e) {
-      MENU.open();
-    });
-
-	}
-
 	prototype.initStatic = function() {
     //console.log('initStatic');
 		this.removeAllWaves();
@@ -485,15 +521,14 @@
 
     // show text
     var cont = new createjs.Container();
-		var ready = new createjs.Text("Ready ?", Math.floor(64*rY)+'px BubblegumSansRegular', 'rgba(0,0,0,0.5)');
+    var ready = new Pop('Ready ?').getTextContent();
     ready.x = paddler.localToGlobal(0,0).x;
     ready.y = paddler.localToGlobal(0,0).y - 200;
-    ready.regX = ready.getMeasuredWidth()/2;
-    ready.regY = ready.getMeasuredHeight()/2;
     cont.addChild(ready);
+
     var taphere = new createjs.Text('Tap to paddle', 'bold '+Math.floor(16*rY)+'px Helvetica', 'rgba(0,0,0,0.5)');
     taphere.x = paddler.localToGlobal(0,0).x - 25 ;
-    taphere.y = ready.y + 31;
+    taphere.y = ready.y + 50;
     taphere.regX = taphere.getMeasuredWidth()/2;
     taphere.regY = taphere.getMeasuredHeight()/2;
     cont.addChild(taphere);
@@ -521,9 +556,6 @@
 
 		this.removeAllWaves();
 		this.initEventsListeners();
-
-		// add weapon to config
-		this.config.surfers.weapons = ['saberlight'];
 
 		// add Wave
 		var wave = this.addWave();
@@ -645,12 +677,14 @@
 		//stop spot timers
 		this.timers.map(t => t.clear());
 
-    this.on('goals_filled', proxy(this.playerSucceed, this), null, true);
+    this.on('goals_filled', proxy(this.levelSucceeded, this), null, true);
 	}
 
-  prototype.playerSucceed = function() {
+  prototype.levelSucceeded = function() {
 
     this.wave.addBlockBreaking(STAGEWIDTH);
+    this.wave.removeObstaclesInterval();
+    setTimeout(() => { this.wave.obstacles.map(o => o.die())}, 1200);
   }
 
 	prototype.addPaddler = function(x,y) {
@@ -875,7 +909,7 @@
 
 	prototype.stopWaveAfterFall = function() {
 
-		this.wave.removeAllEventListeners('tick');
+		this.wave.pause();
 	}
 
 	prototype.removeAllOverlays = function() {
@@ -898,7 +932,7 @@
 
 		this.overlay_cont.removeAllChildren();
 
-		this.init();
+		this.initSpot();
 	}
 
 	prototype.showScoreboard = function(e) {
@@ -947,7 +981,7 @@
     this.controls.hide();
 
 		//reset this spot
-		this.init();
+		this.initSpot();
 
 		e.stopPropagation();
 		e.remove();
@@ -1052,6 +1086,47 @@
 		this.timers.map(t => t.resume());
 		this.score.resume();
 	}
+
+  prototype.adaptConfigToScreensize = function() {
+    //series
+    this.config.series.spread *= rX;
+    this.config.series.xshift *= rX;
+    //surfers
+    this.config.surfers.x *= rX;
+    this.config.surfers.y *= rY;
+    this.config.surfers.velocities.x *= rX;
+    this.config.surfers.velocities.y *= rY;
+    //waves
+    this.config.waves.height *= rY;
+    this.config.waves.width *= rX;
+    this.config.waves.breaking.width *= rX;
+    this.config.waves.breaking.x_speed *= rX;
+    this.config.waves.breaking.x_speed_max *= rX;
+    this.config.waves.breaking.y_speed *= rY;
+    this.config.waves.breaking.left.width *= rX;
+    this.config.waves.breaking.left.width_max *= rX;
+    this.config.waves.breaking.left.block_width *= rX;
+    this.config.waves.breaking.left.block_width_max *= rX;
+    this.config.waves.breaking.right.width *= rX;
+    this.config.waves.breaking.right.width_max *= rX;
+    this.config.waves.breaking.right.block_width *= rX;
+    this.config.waves.breaking.right.block_width_max *= rX;
+    this.config.waves.lip.thickness *= rY;
+    this.config.waves.lip.cap.width *= rX;
+    this.config.waves.lip.cap.height *= rY;
+    this.config.waves.suction.x *= rX;
+    this.config.waves.suction.y *= rY;
+    this.config.waves.shoulder.left.width *= rX;
+    this.config.waves.shoulder.left.inner *= rX;
+    this.config.waves.shoulder.left.outer *= rX;
+    this.config.waves.shoulder.left.marge *= rX;
+    this.config.waves.shoulder.left.slope *= rX;
+    this.config.waves.shoulder.right.width *= rX;
+    this.config.waves.shoulder.right.inner *= rX;
+    this.config.waves.shoulder.right.outer *= rX;
+    this.config.waves.shoulder.right.marge *= rX;
+    this.config.waves.shoulder.right.slope *= rX;
+  }
 
 	prototype.drawDebug = function() {
 

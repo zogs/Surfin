@@ -17,11 +17,39 @@ let CURRENTY;
 let rX;
 let rY;
 
+let PROGRESSBAR;
+
+window.loadingProgress = function(e) {
+  PROGRESSBAR.scaleX = e.progress;
+  window.Stage.update();
+}
+
+window.beforeLoadingAssets = function() {
+  let cont = new createjs.Container();
+  let title = new createjs.Text("Chargement en cours...", '18px Helvetica, sans-serif', 'white');
+  title.x = CURRENTX/2 - title.getMeasuredWidth()/2;
+  let border = new createjs.Shape();
+  border.graphics.beginStroke('#ddd').setStrokeStyle(2).drawRect(0,0, 500, 25);
+  border.x = CURRENTX/2 - 250;
+  border.y = 25;
+  let bar = new createjs.Shape();
+  bar.graphics.beginFill('#fff').drawRect(0,0, 500, 25);
+  bar.x = CURRENTX/2 - 250;
+  bar.y = 25;
+  bar.scaleX = 0.5;
+  cont.addChild(title);
+  cont.addChild(border);
+  cont.addChild(bar);
+  cont.y = 250;
+  window.Stage.addChild(cont);
+  window.Stage.update();
+  PROGRESSBAR = bar;
+}
+
 window.load = function() {
 
 	CURRENTX = 1280
 	CURRENTY = 720;
-
 	USER = new User();
 
 	window.Stage = new createjs.Stage('canvas');
@@ -30,9 +58,12 @@ window.load = function() {
 
 	window.resizeCanvas();
 
+  window.beforeLoadingAssets();
+
 	let imgdir = 'dist/img/'+CURRENTX+'x'+CURRENTY+'/';
 	queue = new createjs.LoadQueue();
 	queue.addEventListener('complete',initialize);
+  queue.addEventListener('progress',loadingProgress);
 	queue.loadManifest([
 		{id:'bg_paradize',src:imgdir+'spots/default/full.jpg'},
 		{id:'wave',src:imgdir+'waves/wave1.jpg'},
@@ -48,6 +79,16 @@ window.load = function() {
 		{id:'flhoston_back_reflect', src:imgdir+'spots/Flhoston_Paradise/shipreflect.png'},
 		{id:'pandora_back', src:imgdir+'spots/Pandora_Bay/back.jpg'},
 		{id:'zeguema_back', src:imgdir+'spots/Zeguema_Beach/back.jpg'},
+		{id:'namek_back', src:imgdir+'spots/Namek/back.jpg'},
+		{id:'namek_front', src:imgdir+'spots/Namek/front.png'},
+		{id:'naboo_back', src:imgdir+'spots/Naboo/back.jpg'},
+		{id:'naboo_coast', src:imgdir+'spots/Naboo/coast.png'},
+    {id:'arrakis_back', src:imgdir+'spots/Arrakis/arrakis_back.jpg'},
+    {id:'arrakis_sunreflect', src:imgdir+'spots/Arrakis/sunreflect.png'},
+    {id:'terre_back', src:imgdir+'spots/Terre/back.jpg'},
+    {id:'terre_front', src:imgdir+'spots/Terre/front.png'},
+    {id:'terre_cargo', src:imgdir+'spots/Terre/cargo.png'},
+    {id:'terre_astrovan', src:imgdir+'spots/Terre/astrovan.png'},
 		{id:'btn_startgame',src:imgdir+'buttons/btn_startgame.png'},
 		{id:'btn_level',src:imgdir+'buttons/btn_level.png'},
 		{id:'btn_menu',src:imgdir+'buttons/btn_menu.png'},
@@ -56,24 +97,22 @@ window.load = function() {
 		{id:'btn_retry_sm',src:imgdir+'buttons/btn_retry_sm.png'},
 		{id:'btn_close',src:imgdir+'buttons/btn_close.png'},
 		{id:'btn_skills',src:imgdir+'buttons/btn_skills.png'},
-		{id:'dog',src:imgdir+'object/spacedog.png'},
-		{id:'bomb',src:imgdir+'object/astro_bomb.png'},
-		{id:'boom',src:imgdir+'object/astro_boom.png'},
-		{id:'surfer_splash',src:imgdir+'object/splash.png'},
-		{id:'surfer',src:imgdir+'surfer/astrosurfer_moves.png'},
-		{id:'surfer_takeoff',src:imgdir+'surfer/astrosurfer_takeoff.png'},
-		{id:'stormsurfer',src:imgdir+'surfer/surfer_stormtrooper.png'},
-		{id:'stormsurfer_takeoff',src:imgdir+'surfer/takeoff_stormtrooper.png'},
+		{id:'dog',src:imgdir+'ui/spacedog.png'},
+		{id:'bomb',src:imgdir+'enemy/astro_bomb.png'},
+		{id:'boom',src:imgdir+'enemy/astro_boom.png'},
+		{id:'surfer_splash',src:imgdir+'ui/splash.png'},
+    {id:'astrosurfer',src:imgdir+'surfer/astrosurfer.png'},
+		{id:'stormsurfer',src:imgdir+'surfer/stormsurfer.png'},
 		{id:'paddler',src:imgdir+'surfer/astropaddler.png'},
-		{id:'photographer',src:imgdir+'object/photographer.png'},
-		{id:'cigogne',src:imgdir+'object/cigogne.png'},
-		{id:'drone',src:imgdir+'object/drone.png'},
-		{id:'wash',src:imgdir+'object/wash.png'},
-		{id:'sprite_beachtrooper',src:imgdir+'object/beachtrooper.png'},
+		{id:'photographer',src:imgdir+'bonus/photographer.png'},
+		{id:'cigogne',src:imgdir+'bonus/cigogne.png'},
+		{id:'drone',src:imgdir+'bonus/drone.png'},
+		{id:'star', src:imgdir+'bonus/star.png'},
+		{id:'wash',src:imgdir+'ui/wash.png'},
+		{id:'sprite_beachtrooper',src:imgdir+'enemy/beachtrooper.png'},
 		{id:'washed_text',src:imgdir+'washed.png'},
-		{id:'star', src:imgdir+'object/star.png'},
-		{id:'shark', src:imgdir+'object/shark.png'},
-		{id:'ptero', src:imgdir+'object/ptero.png'},
+		{id:'shark', src:imgdir+'enemy/shark.png'},
+		{id:'ptero', src:imgdir+'enemy/ptero.png'},
 		{id:'spacetablet', src:imgdir+'bkg/tablet.png'},
 		{id:'scoretable', src:imgdir+'bkg/scoretable.png'},
 		{id:'scoreboard', src:imgdir+'bkg/scoreboard.png'},
@@ -81,35 +120,43 @@ window.load = function() {
 		{id:'flhoston', src:imgdir+'planets/flhoston.png'},
 		{id:'kashykkk', src:imgdir+'planets/kashykkk.png'},
 		{id:'pandora', src:imgdir+'planets/pandora.png'},
+    {id:'arrakis', src:imgdir+'planets/arrakis.png'},
 		{id:'zeguema', src:imgdir+'planets/zeguema.png'},
+    {id:'terre', src:imgdir+'planets/terre.png'},
 		{id:'gargantua', src:imgdir+'planets/gargantua.png'},
+		{id:'namek', src:imgdir+'planets/namek.png'},
+		{id:'naboo', src:imgdir+'planets/naboo.png'},
 		{id:'default', src:imgdir+'planets/default.png'},
 		{id:'lock', src:imgdir+'planets/lock.png'},
-		{id:'astrovan', src:imgdir+'object/astrovan.png'},
-		{id:'cocktail', src:imgdir+'object/cocktail.png'},
-		{id:'coffee', src:imgdir+'object/coffee.png'},
-		{id:'drinkshadow', src:imgdir+'object/drinkshadow.png'},
-		{id:'successtxt', src:imgdir+'object/successtxt.png'},
-		{id:'tryagaintxt', src:imgdir+'object/tryagaintxt.png'},
-		{id:'failed', src:imgdir+'object/failed.png'},
-		{id:'valid', src:imgdir+'object/valid.png'},
-		{id:'medal_gold', src:imgdir+'object/medal_gold.png'},
-		{id:'medal_silver', src:imgdir+'object/medal_silver.png'},
-		{id:'medal_bronze', src:imgdir+'object/medal_bronze.png'},
-		{id:'medal_empty', src:imgdir+'object/medal_empty.png'},
-		{id:'astroposeur', src:imgdir+'object/astroposeur.png'},
+		{id:'astrovan', src:imgdir+'ui/astrovan.png'},
+		{id:'cocktail', src:imgdir+'ui/cocktail.png'},
+		{id:'coffee', src:imgdir+'ui/coffee.png'},
+		{id:'drinkshadow', src:imgdir+'ui/drinkshadow.png'},
+		{id:'successtxt', src:imgdir+'ui/successtxt.png'},
+		{id:'tryagaintxt', src:imgdir+'ui/tryagaintxt.png'},
+		{id:'failed', src:imgdir+'ui/failed.png'},
+		{id:'valid', src:imgdir+'ui/valid.png'},
+		{id:'medal_gold', src:imgdir+'ui/medal_gold.png'},
+		{id:'medal_silver', src:imgdir+'ui/medal_silver.png'},
+		{id:'medal_bronze', src:imgdir+'ui/medal_bronze.png'},
+		{id:'medal_empty', src:imgdir+'ui/medal_empty.png'},
+		{id:'astroposeur', src:imgdir+'ui/astroposeur.png'},
 		{id:'icon_boost', src:imgdir+'buttons/boost.png'},
 		{id:'icon_shield', src:imgdir+'buttons/shield.png'},
 		{id:'icon_hadoken', src:imgdir+'buttons/fire.png'},
-		{id:'redspouf', src:imgdir+'object/spouf_red.png'},
-		{id:'bluespouf', src:imgdir+'object/spouf_blue.png'},
-		{id:'spindash', src:imgdir+'object/spindash.png'},
-		{id:'shockwave', src:imgdir+'object/shockwave.png'},
-		{id:'waterball', src:imgdir+'object/waterball.png'},
-		{id:'waterballsprinkle', src:imgdir+'object/waterballsprinkle.png'},
+		{id:'redspouf', src:imgdir+'ui/spouf_red.png'},
+		{id:'bluespouf', src:imgdir+'ui/spouf_blue.png'},
+		{id:'spindash', src:imgdir+'ui/spindash.png'},
+		{id:'shockwave', src:imgdir+'bonus/shockwave.png'},
+		{id:'waterball', src:imgdir+'bonus/waterball.png'},
+    {id:'spice', src:imgdir+'bonus/spice.png'},
+		{id:'waterballsprinkle', src:imgdir+'bonus/waterballsprinkle.png'},
+    {id:'sprite_guldo', src:imgdir+'enemy/guldo.png'},
+    {id:'sprite_jeese', src:imgdir+'enemy/jeese.png'},
+    {id:'sprite_reacum', src:imgdir+'enemy/reacum.png'},
+    {id:'sprite_paddle', src:imgdir+'enemy/paddle.png'},
 
 		]);
-
 	createjs.Sound.alternateExtensions = ["mp3"];
  	createjs.Sound.registerSound("dist/sounds/yeah.mp3", "bravo");
  	createjs.Sound.registerSound("dist/sounds/pickup.wav", "pickup");
@@ -118,8 +165,6 @@ window.load = function() {
  	createjs.Sound.registerSound("dist/sounds/plouf.mp3", "plouf");
  	createjs.Sound.registerSound("dist/sounds/gasp.wav", "gasp");
 	createjs.Sound.volume = 0.1;
-
-
 
 	//Justice.init();
 
@@ -143,6 +188,8 @@ window.initialize = function() {
 	SPOT = null;
 	TEST = true;
 
+  // clear Stage
+  window.Stage.removeAllChildren();
 
 	// Containers
 	window.spot_cont = new createjs.Container();
@@ -162,8 +209,17 @@ window.initialize = function() {
 	border.graphics.beginStroke('#000').setStrokeStyle(10).moveTo(0,0).lineTo(STAGEWIDTH,0).lineTo(STAGEWIDTH,STAGEHEIGHT).lineTo(0,STAGEHEIGHT).closePath();
 	window.border_cont.addChild(border);
 
+  // pre-generate pops
+  // THIS IS TOO SLOWWWWW
+  /*
+  new Pop().generateCachedText('Ready ?', 80);
+  new Pop().generateCachedText('Take off !', 60);
+  new Pop().generateCachedText('T u b e !!!');
+  new Pop().generateCachedText('Aerial');
+  new Pop().generateCachedText('Success !', 80, '#90fc8d');
+  */
 
-
+  //USER
 	//USER.load();
 
 	//SCREEN
@@ -173,34 +229,24 @@ window.initialize = function() {
 	PLANETS.filter(p => p.active == true).sort(function(a,b) { return a.order - b.order }).map(function(p) {
 		// adapt planet variables to resolution
 		resizePlanetConf(p);
-		// find levels of a planet
-		let levels = LEVELS.filter(l => l.planet == p.id);
-		//##temp## fill empty planet with default levels
-		if(levels.length==0) levels = [];
-		// adapt level variables to resolution
-		levels.map(l => resizeLevelConf(l));
-		//order levels
-		levels = levels.sort(function(a,b) { return a.level - b.level });
-		// assign levels to planet
-		p.levels = levels;
 	});
 
 	//unlock first level
 	let planet = PLANETS.find(p => p.order == 1);
-	let level = planet.levels.find(p => p.level == 1);
-	USER.unlockPlanet(planet);
+	let level = planet.levels[0];
+	USER.unlockPlanet(planet.id);
 	USER.unlockLevel(level);
 	USER.currentPlanet = planet.id;
-	USER.currentLevel = level.id;
+	USER.currentLevel = level;
 
 	//MENU
 	MENU = new Menu(PLANETS);
 	this.menu_cont.addChild(MENU);
 	//MENU.open();
 
-	//SPOT
-	const config = LEVELS.find(s => s.alias == 'home');
-	MENU.loadLevel(config);
+	//SCENE
+  SCENE = new Scene();
+	SCENE.loadLevel('Home');
 
 
 	//init onEnterFrame
@@ -219,63 +265,6 @@ window.initialize = function() {
 	// set customizer
 	//initCustomizer();
 	//
-
-	/*
-	let surfer_sprite = new createjs.SpriteSheet({
-			images: [queue.getResult('surfer')],
-			frames: {width: parseInt(300*rX), height: parseInt(300*rY)},
-			animations: {
-				S: 0,
-				SE: 1,
-				SEE: 2,
-				SEEE: 3,
-				SEEEE: 4,
-				E: 5,
-				EN: 6,
-				ENN: 7,
-				ENNN: 8,
-				ENNNN: 9,
-				N: 10,
-				NW: 11,
-				NWW: 12,
-				NWWW: 13,
-				NWWWW: 14,
-				W: 15,
-				WS: 16,
-				WSS: 17,
-				WSSS: 18,
-				WSSSS: 19
-			}
-		});
-
-		let x = 700;
-		let y = 400;
-		let surfer = new createjs.Sprite(surfer_sprite,'W');
-		surfer.x = x - 100;
-		surfer.y = 300;
-		surfer.scale = 0.8;
-
-		this.Stage.addChild(surfer);
-
-		// SHIELD
-		let shield = new Shield();
-		shield.x = x;
-		shield.y = y;
-		this.Stage.addChild(shield);
-		window.Shield = shield;
-
-
-		// HADOKEN
-		let hadoken = new Hadoken({direction:-1});
-		hadoken.x = x - 50;
-		hadoken.y = y;
-		this.Stage.addChild(hadoken);
-
-		window.setInterval(function() {
-			hadoken.fire();
-		},1000);
-		*/
-
 
 	/*
 	SPOUF SPRITE
@@ -343,10 +332,9 @@ window.defaultKeyDownHandler = function(e)
 {
    switch(e.key)
    {
-    case 'b':  SPOT.controls.onBoost(); break;
     case ',':  SPOT.getWave().addBlockBreaking(200); break;
     case ',':  SPOT.getWave().addBreakingPeak(50,500); break;
-    case 'm':  MENU.switch(); break;
+    case 'm':  MENU.toggle(); break;
     case 's':  window.loadSpot(null,'default'); break;
     case 'a':  SPOT.breakAllWaves(); break;
     case 'p':  SPOT.getWave().getSurfer().initImagePersistance(60); break;
@@ -355,33 +343,40 @@ window.defaultKeyDownHandler = function(e)
     case 'z':  SPOT.addPaddlerBot(); break;
     case 'r':  SPOT.getWave().addTestSurferBot(); break;
     case 'u':  console.log(USER); break;
-    case 'o':  SPOT.getWave().addRandomObstacle(); break;
-    case '&':  SPOT.getWave().addPaddler(); break;
-    case 'é':  SPOT.getWave().addPhotographer(); break;
-    case '"':  SPOT.getWave().addBomb(); break;
-    case '\'':  SPOT.getWave().addBeachTrooper(); break;
-    case '(':  SPOT.getWave().addRandomStarline(); break;
-    case '-':  SPOT.getWave().addShark(); break;
-    case 'è':  SPOT.getWave().addStormtrooper(); break;
-    case '1':  SPOT.getWave().addFlyingMultiplier(); break;
-    case '2':  SPOT.getWave().addFlyingPrize(); break;
-    case '3':  SPOT.getWave().addCigogne(); break;
-    case '4':  SPOT.getWave().addDrone(); break;
+    case '1':  SPOT.getWave().addRandomObstacle(); break;
+    case '2':  SPOT.getWave().addPaddler(); break;
+    case '3':  SPOT.getWave().addPhotographer(); break;
+    case '4':  SPOT.getWave().addBomb(); break;
+    case '5':  SPOT.getWave().addBeachTrooper(); break;
+    case '6':  SPOT.getWave().addRandomStarline(); break;
+    case '7':  SPOT.getWave().addShark(); break;
+    case '8':  SPOT.getWave().addStormtrooper(); break;
+    case '&':  SPOT.getWave().addFlyingMultiplier(); break;
+    case 'é':  SPOT.getWave().addFlyingPrize(); break;
+    case '"':  SPOT.getWave().addCigogne(); break;
+    case '\'':  SPOT.getWave().addDrone(); break;
     case 'k':  SPOT.getWave().getSurfer().updateLifebar(0.2); break;
     case 't':  switchTestMode(); break;
     case 'd':  switchDebugMode(); break;
     case 'w':  switchSlowMo(0.1,500); break;
     case 'g':  SPOT.removeAllPaddlers().getWave().breakAndFollow(); break;
     case '+':  SPOT.score.add(1000); break;
-    case '/':  SPOT.getWave().getSurfer().shieldToggle(); break;
-    case '*':  SPOT.getWave().getSurfer().hadokenFire(); break;
+    case '/':  SPOT.controls.startShield(); break;
+    case '*':  SPOT.controls.startHadoken(); break;
+    case '-':  SPOT.controls.startBoost(); break;
     default: console.log('Key "'+e.key+'" have no handler.');
    }
 }
 
 window.defaultKeyUpHandler = function(e)
 {
-
+   switch(e.key)
+   {
+    case '/':  SPOT.controls.stopShield(); break;
+    case '*':  SPOT.controls.stopHadoken(); break;
+    case '-':  SPOT.controls.stopBoost(); break;
+    default: '';
+   }
 }
 
 window.onMouseMove= function(e) {
@@ -581,46 +576,4 @@ resizePlanetConf = function(planet) {
 	planet.lines.beach *= rY;
 	planet.lines.obstacle *= rY;
 	return planet;
-}
-
-resizeLevelConf = function(level) {
-	//series
-	level.series.spread *= rX;
-	level.series.xshift *= rX;
-	//surfers
-	level.surfers.x *= rX;
-	level.surfers.y *= rY;
-	level.surfers.velocities.x *= rX;
-	level.surfers.velocities.y *= rY;
-	//waves
-	level.waves.height *= rY;
-	level.waves.width *= rX;
-	level.waves.breaking.width *= rX;
-	level.waves.breaking.x_speed *= rX;
-	level.waves.breaking.x_speed_max *= rX;
-	level.waves.breaking.y_speed *= rY;
-	level.waves.breaking.left.width *= rX;
-	level.waves.breaking.left.width_max *= rX;
-	level.waves.breaking.left.block_width *= rX;
-	level.waves.breaking.left.block_width_max *= rX;
-	level.waves.breaking.right.width *= rX;
-	level.waves.breaking.right.width_max *= rX;
-	level.waves.breaking.right.block_width *= rX;
-	level.waves.breaking.right.block_width_max *= rX;
-	level.waves.lip.thickness *= rY;
-	level.waves.lip.cap.width *= rX;
-	level.waves.lip.cap.height *= rY;
-	level.waves.suction.x *= rX;
-	level.waves.suction.y *= rY;
-	level.waves.shoulder.left.width *= rX;
-	level.waves.shoulder.left.inner *= rX;
-	level.waves.shoulder.left.outer *= rX;
-	level.waves.shoulder.left.marge *= rX;
-	level.waves.shoulder.left.slope *= rX;
-	level.waves.shoulder.right.width *= rX;
-	level.waves.shoulder.right.inner *= rX;
-	level.waves.shoulder.right.outer *= rX;
-	level.waves.shoulder.right.marge *= rX;
-	level.waves.shoulder.right.slope *= rX;
-	return level;
 }

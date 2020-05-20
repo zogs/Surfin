@@ -7,8 +7,7 @@
 	function SurferBot(params) {
 
 		params.type = 'bot';
-		params.img_surfing = 'stormsurfer';
-		params.img_takeoff = 'stormsurfer_takeoff';
+		params.img = 'stormsurfer';
 		this.Surfer_constructor(params);
 		this.initBot(params);
 
@@ -16,42 +15,71 @@
 
 	var prototype = createjs.extend(SurferBot, Surfer);
 
+
+	prototype.initSilhouette = function() {
+
+		let sprite = new createjs.SpriteSheet({
+			images: [queue.getResult(this.config.img)],
+			frames: {width: parseInt(256*rX), height: parseInt(256*rY)},
+			framerate: 5,
+			animations: {
+				S: 0,
+				SE: 1,
+				SEE: 2,
+				SEEE: 3,
+				SEEEE: 4,
+				E: 5,
+				EN: 6,
+				ENN: 7,
+				ENNN: 8,
+				ENNNN: 9,
+				N: 10,
+				NW: 11,
+				NWW: 12,
+				NWWW: 13,
+				NWWWW: 14,
+				W: 15,
+				WS: 16,
+				WSS: 17,
+				WSSS: 18,
+				WSSSS: 19,
+				takeoff: [20,24, false],
+				fall: [25,31, false, 2]
+			}
+		});
+
+		this.silhouette = new createjs.Sprite(sprite,'S');
+		this.silhouette_width = 256*rX;
+		this.silhouette_height = 256*rY;
+		this.silhouette_cont.addChild(this.silhouette);
+	}
+
 	prototype.initEventsListener = function() {
 		//override and clear parent function
 
 		//on bot fall
 		this.on('fallen',function(event) {
 			this.selfRemove();
-		},this,null,true);
+		},this,true);
 
 
 		this.on('takeoff', function(event) {
 			this.initVirtualMouse();
-			//this.initLightSaber();
-		},this,null,true);
+		},this,true);
 	}
 
 	prototype.initBot = function(config) {
 
-		this.direction = (config.direction == 1)? 1 : -1;
-		this.saber_color = 'red';
-		this.saber_length_default = this.saber_length;
-		this.saber_length = 0;
-		this.minMouseX = 200 * -this.direction;
+		this.direction = (config.direction === LEFT)? 1 : -1;
+		this.minMouseX = STAGEWIDTH/2 * -this.direction;
 		this.skills = {
-			speed: 0.5, //0 to 1
-			aerial: 0.2, //0 to 1
+			speed: 0.1, //0 to 1
+			aerial: 0.1, //0 to 1
 			agility: 1, //0 to 1
 			paddling: 0.1,
 			takeoff: 0,
 			force: 0
 		}
-
-	}
-
-	prototype.initLightSaber = function() {
-
-		createjs.Tween.get(this).wait(1000).to({saber_length: this.saber_length_default}, 800);
 	}
 
 	/**
@@ -76,8 +104,6 @@
 		this.initMouseRest();
 		//this.initMouseMoveX();
 		//this.initMouseJump();
-		this.initSaberStrike();
-
 	}
 
 	prototype.initMouseRest = function() {
@@ -139,8 +165,6 @@
 		//call next jump delay
 		this.jumpTimeout = window.setTimeout(proxy(this.initMouseJump,this,[true]),Math.random()*10000 + 5000);
 
-
-
 		if(jump === true) {
 			//cancel jump if surfer is too close of the tube
 			if( this.wave.direction === LEFT && this.x > this.wave.boundaries[LEFT] -150 ) return console.info('jump canceled');
@@ -157,40 +181,17 @@
 
 	}
 
-	prototype.initSaberStrike = function() {
-
-		this.saberTimeout = window.setTimeout(proxy(this.initSaberStrike,this), 500 + Math.random()*2000);
-
-		//TODO: detecter la presence d'ennemi dans la zone proche
-		//strike fi close to the player
-		//var dist = get2dDistance(this.x,this.y,this.wave.player.x,this.wave.player.y);
-		//if(dist < 100) {
-			this.lightSaberStrike();
-		//}
-	}
-
-	prototype.removeSaberStrike = function() {
-
-		window.clearTimeout(this.saberTimeout);
-	}
-
 	prototype.removeJumping = function() {
-
 		window.clearTimeout(this.jumpTimeout);
 	}
 
-
 	prototype.selfRemove = function() {
-
-		//remove surfer elements
-		this.removeAllTweens();
-		this.removeAllEventListeners('tick');
-		this.removeAllChildren();
-
 		//remove bot element
 		this.removeJumping();
 		this.removeVirtualMouse();
-		this.removeSaberStrike();
+		//remove surfer elements
+		this.removeAllTweens();
+		this.removeAllEventListeners();
 		//remove bot from within the wave
 		this.wave.removeBot(this);
 	}

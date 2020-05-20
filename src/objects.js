@@ -1,6 +1,6 @@
 (function() {
 
-  function Obstacle(config) {
+  function Obstacle(config = {}) {
 
     this.Container_constructor();
     this.init(config);
@@ -11,28 +11,48 @@
   createjs.EventDispatcher.initialize(prototype);
 
   //init
-  prototype.init = function(config) {
-    this.config = config || {};
-    this.wave = this.config.wave;
-    this.spot = this.config.spot;
+  prototype.init = function(config = {}) {
+
+    this.config = config;
+    this.wave = this.config.wave || null;
+    this.spot = this.config.spot || null;
+    this.direction = this.config.direction || 1;
+    this.actualDirection = this.direction === LEFT ? 1 : -1;
+    this.container = this.config.container || this.wave.obstacle_cont;
     this.img = this.config.img != undefined ? this.config.img : 'paddler';
     this.config.name = config.name || 'paddler';
 
+    this.amplitude = config.amplitude || 0;
+    this.high_min = config.high_min || 50 + 50 * rY;
+    this.high_max = config.high_max || Math.random() * STAGEHEIGHT*1/2;
+    this.high = this.high_min + Math.random() * (this.high_max - this.high_min);
+
+    this.time = 0;
+    this.phase = Math.random() * 1000;
+    this.reverse = config.reverse || false;
+    this.actualScale = 1;
+    this.config.scale = config.scale || 1;
+    this.config.meter_height = config.meter_height || 0.80;
+    this.config.pixel_height = config.pixel_height || 190;
+
     this.location = new Victor();
+    this.active = true;
     this.ducking = false;
     this.hitted = false;
     this.bodies = [];
     this.bonuses = [];
     this.maluses = [];
-    this.duck_y = this.wave.params.height / 5;
-    this.speedX = this.config.speedX || 0.5;
-    this.speedY = this.config.speedY || 0.5;
+    this.speedX = this.config.speedX || 10;
+    this.speedY = this.config.speedY || 0;
+    this.velocity = null;
 
     this.image_cont = new createjs.Container();
     this.addChild(this.image_cont);
     this.debug_cont = new createjs.Container();
     this.debug_cont.alpha = 0;
     this.addChild(this.debug_cont);
+
+    this.resize();
 
     this.drawImage();
     this.drawMalus();
@@ -61,15 +81,22 @@
 
   prototype.initialPosition = function() {
 
-    let x = this.wave.params.breaking_center + (200 - Math.random() * 400);
-    let y = Math.random()*this.wave.params.height;
+    let x, y;
+    if(this.wave) {
+      x = this.wave.params.breaking_center + (200 - Math.random() * 400);
+      y = Math.random()*this.wave.params.height;
+      if(this.direction === RIGHT) {
+        x = this.wave.obstacle_cont.globalToLocal(STAGEWIDTH,0).x;
+        if(this.reverse) x = this.wave.obstacle_cont.globalToLocal(0,0).x;
+      }
+      if(this.direction === LEFT) {
+        x = this.wave.obstacle_cont.globalToLocal(0,0).x;
+        if(this.reverse) x = this.wave.obstacle_cont.globalToLocal(STAGEWIDTH,0).x;
+      }
+    }
 
-    if(this.wave.direction === RIGHT) {
-      x = this.wave.obstacle_cont.globalToLocal(STAGEWIDTH,0).x;
-    }
-    if(this.wave.direction === LEFT) {
-      x = this.wave.obstacle_cont.globalToLocal(0,0).x;
-    }
+    if(this.config.x !== undefined) x = this.config.x;
+    if(this.config.y !== undefined) y = this.config.y;
 
     this.setXY(x,y)
   }
@@ -77,6 +104,8 @@
   prototype.tick = function() {
 
     if(PAUSED) return;
+    if(this.wave && this.wave.paused) return;
+
     this.move();
     this.checkRemove();
     this.onEnterFrame();
@@ -85,10 +114,46 @@
 
   prototype.move = function() {
 
-    const move = new Victor(this.wave.getSuction().x, this.wave.getSuction().y);
-    this.location.add(move);
-    this.x = this.location.x;
-    //this.y = this.location.y;
+      let x = 0;
+
+      //compense la vitesse de la vague
+      if(this.wave) x = -this.wave.movingX;
+
+      //vitesse reelle
+      let speedX = this.speedX;
+
+      //ajout direction de la vague
+      speedX *= (this.direction === LEFT)? 1 : -1;
+
+      //reverse direction if needed
+      if(this.reverse) speedX *= -1;
+
+      //vitesse horizontale
+      x += speedX;
+
+      // vitesse vertical
+      let y = 0;
+
+      y += this.speedY;
+
+      // sinusoide verticale
+      this.time += 1;
+      if(this.amplitude !== 0) y += this.amplitude * Math.sin(this.time/10 + this.phase);
+
+      this.velocity = new Victor(x,y);
+      this.location.add(this.velocity);
+      this.x = this.location.x;
+      this.y = this.location.y;
+
+  }
+
+  prototype.resize = function() {
+    if(this.wave) {
+      this.actualScale *= this.wave.scaleToFit(this.config.pixel_height, this.config.meter_height);
+    }
+    if(this.config.scale) {
+      this.actualScale *= this.config.scale;
+    }
   }
 
   prototype.setXY = function(x,y) {
@@ -97,6 +162,69 @@
     this.location = new Victor(x,y);
   }
 
+  prototype.checkRemove = function() {
+
+    let coord = this.localToGlobal(0,0);
+    if(coord.x < -STAGEWIDTH/2) this.selfRemove();
+    if(coord.x > STAGEWIDTH*1.5) this.selfRemove();
+  }
+
+  prototype.hitBonus = function(surfer) {
+
+    if(this.active === false) return;
+    let j = this.bonuses.length;
+    while(j--) {
+      const bonus = this.bonuses[j];
+      const radius = bonus.hitradius == undefined ? bonus.graphics.command.radius : malus.hitradius;
+      const zone = typeof bonus.hitzone == 'undefined' ? 'board' : bonus.hitzone;
+      const x = this.x + bonus.x;
+      const y = this.y + bonus.y;
+
+      if(bonus.hitted === true) continue;
+      if(bonus.disabled === true) continue;
+
+      if(surfer.hit(zone,x,y,radius)) {
+        bonus.hitted = true;
+        this.bonusHitted(surfer, bonus);
+        return true;
+      }
+    }
+    return false;
+  }
+
+  prototype.hitMalus = function(surfer) {
+
+    if(this.active === false) return;
+    let i = this.maluses.length;
+    while(i--) {
+      const malus = this.maluses[i];
+      const radius = malus.hitradius == undefined ? malus.graphics.command.radius : malus.hitradius;
+      const zone = malus.hitzone == undefined ? 'board' : malus.hitzone;
+      const x = this.x + malus.x;
+      const y = this.y + malus.y;
+
+      if(malus.hitted === true) continue;
+      if(malus.disabled === true) continue;
+
+      if(surfer.hit(zone,x,y,radius)) {
+        malus.hitted = true;
+        this.malusHitted(surfer, malus);
+        return true;
+      }
+    }
+    return false;
+  }
+
+  prototype.selfRemove = function() {
+
+    this.removeListeners();
+    if(this.wave) this.wave.removeObstacle(this);
+    else this.container.removeChild(this);
+  }
+
+  /*
+    This method should be override by final class
+  */
   prototype.drawImage = function() {
 
     var sheet = new createjs.SpriteSheet({
@@ -112,14 +240,16 @@
     });
 
     this.sprite = new createjs.Sprite(sheet);
-    this.sprite.scale = 0.5;
     this.sprite.x = 75 * rX;
     this.sprite.y = -75 * rY;
-    this.sprite.scaleX *= this.wave.direction === LEFT ? -1 : 1;
+    this.sprite.scaleX *= this.direction === LEFT ? -1 : 1;
     this.sprite.gotoAndPlay('up');
     this.image_cont.addChild(this.sprite);
   }
 
+  /*
+    This method should be override by final class
+  */
   prototype.drawBonus = function() {
 
     var bonus = new createjs.Shape();
@@ -130,6 +260,9 @@
       this.bonuses.push(bonus);
   }
 
+  /*
+    This method should be override by final class
+  */
   prototype.drawMalus = function() {
 
     var malus = new createjs.Shape();
@@ -139,103 +272,59 @@
       this.maluses.push(malus);
   }
 
+  /*
+    This method should be override by final class
+  */
   prototype.drawDebug = function() {
     this.debug_cont.alpha = (DEBUG===1)? 1 : 0;
   }
 
-  prototype.hitBonus = function(surfer) {
-
-    if(this.disabled === true) return;
-    if(this.bonusDisabled === true) return;
-    let j = this.bonuses.length;
-    while(j--) {
-      const bonus = this.bonuses[j];
-      const radius = bonus.graphics.command.radius;
-      const zone = typeof bonus.hitzone == 'undefined' ? 'board' : bonus.hitzone;
-      const x = this.x + bonus.x;
-      const y = this.y + bonus.y;
-
-      if(bonus.hitted === true) continue;
-
-      if(surfer.hit(zone,x,y,radius)) {
-        bonus.hitted = true;
-        this.bonusHitted(surfer, bonus);
-        return true;
-      }
-    }
-    return false;
-  }
-
-  prototype.hitMalus = function(surfer) {
-
-    if(this.disabled === true) return;
-    if(this.malusDisabled === true) return;
-    let i = this.maluses.length;
-    while(i--) {
-      const malus = this.maluses[i];
-      const radius = malus.graphics.command.radius;
-      const zone = typeof malus.hitzone == 'undefined' ? 'board' : malus.hitzone;
-      const x = this.x + malus.x;
-      const y = this.y + malus.y;
-
-      if(malus.hitted === true) continue;
-
-      if(surfer.hit(zone,x,y,radius)) {
-        malus.hitted = true;
-        this.malusHitted(surfer, malus);
-        return true;
-      }
-    }
-    return false;
-  }
-
 
   /*
-  prototype.resize = function() {
-
-    //only resize when object is coming to the wave ( not "on" the wave)
-    if(this.y < this.wave.params.height) return;
-
-    var scale = 1.5 * (this.wave.y - this.wave.params.height/2 - this.wave.spot.getHorizon()) / (this.wave.spot.getPeak() - this.wave.spot.getHorizon());
-    this.scaleX = this.scaleX * scale;
-    this.scaleY = this.scaleY * scale;
-  }
+    This method should be override by final class
   */
-
-  prototype.checkRemove = function() {
-
-    if(this.ducking == true) return;
-
-    if(this.y < this.duck_y) {
-      this.ducking = true;
-      createjs.Tween.get(this)
-        .to({ alpha: 0}, 300)
-        .call(proxy(this.selfRemove,this));
-    }
-  }
-
-  prototype.selfRemove = function() {
-
-    this.removeListeners();
-    this.wave.removeObstacle(this);
-  }
-
   prototype.onEnterFrame = function() {
-
+    /* empty by default */
   }
 
+  /*
+    This method should be override by final class
+  */
   prototype.onInit = function() {
-
+    /* empty by default */
   }
 
+  /*
+    This method should be override by final class
+  */
   prototype.bonusHitted = function() {
 
-    this.disable = true;
+    this.active = false;
   }
 
+  /*
+    This method should be override by final class
+  */
   prototype.malusHitted = function() {
 
-    this.disable = true;
+    this.active = false;
+  }
+
+  /*
+    This method should be override by final class
+  */
+  prototype.die = function() {
+
+    this.active = false;
+    createjs.Tween.get(this).to({alpha: 0}, 500).call(() => this.selfRemove());
+  }
+
+  /*
+    This method should be override by final class
+  */
+  prototype.shooted = function(where, what) {
+
+    console.log('Obstacle is shooted. No handler...');
   }
 
   //assign Obstacle to window's scope & promote
@@ -246,16 +335,7 @@
 
 (function() {
 
-    function FlyObstacle(config) {
-
-      this.speed = config.speed || 10;
-      this.amp = config.amp || 0;
-      this.high_min = config.high_min || 50 * rY;
-      this.high_max = config.high_max || Math.random() * STAGEHEIGHT*1/3;
-      this.high = this.high_min + Math.random() * (this.high_max - this.high_min);
-      this.time = 0;
-      this.phase = Math.random() * 1000;
-      this.reverse = config.reverse || false;
+    function FlyObstacle(config = {}) {
 
       this.Obstacle_constructor(config);
     }
@@ -264,70 +344,34 @@
     FlyObstacle.prototype.constructor = FlyObstacle;
     window.FlyObstacle = createjs.promote(FlyObstacle, "Obstacle");
 
-    FlyObstacle.prototype.move = function() {
-
-      //compense la vitesse de la vague
-      let x = (- this.wave.movingX);
-
-      //vitesse reelle
-      let speed = this.speed;
-
-      //ajout direction de la vague
-      speed *= (this.wave.isLEFT())? 1 : -1;
-
-      //reverse direction if needed
-      if(this.reverse) speed *= -1;
-
-      //vitesse horizontale
-      x += speed;
-
-      // sinusoide verticale
-      this.time += .1;
-      let y = (this.amp === 0)? 0 : this.amp * Math.sin(this.time + this.phase);
-
-      const moving = new Victor(x,y);
-      this.location.add(moving);
-      this.x = this.location.x;
-      this.y = this.location.y;
-
-    }
 
     FlyObstacle.prototype.initialPosition = function() {
 
-      let x = this.wave.params.breaking_center + (200 - Math.random() * 400);
-      let y = this.spot.planet.lines.break - this.wave.params.height - this.wave.params.height - this.high;
-
-      if(this.wave.isLEFT()) {
-        if(this.reverse) x = this.wave.shoulder_left.x + STAGEWIDTH*2;
-        else x = this.wave.shoulder_left.x - STAGEWIDTH/2;
+      let x, y;
+      if(this.wave) {
+        x = this.wave.params.breaking_center + (200 - Math.random() * 400);
+        y = this.spot.planet.lines.break - this.wave.params.height - this.wave.params.height - this.high;
+        if(this.wave.direction === RIGHT) {
+          x = this.wave.obstacle_cont.globalToLocal(STAGEWIDTH,0).x;
+          if(this.reverse) x = this.wave.obstacle_cont.globalToLocal(0,0).x;
+        }
+        if(this.wave.direction === LEFT) {
+          x = this.wave.obstacle_cont.globalToLocal(0,0).x;
+          if(this.reverse) x = this.wave.obstacle_cont.globalToLocal(STAGEWIDTH,0).x;
+        }
       }
-      if(this.wave.isRIGHT()) {
-        if(this.reverse) x = this.wave.shoulder_right.x - STAGEWIDTH*2;
-        else x = this.wave.shoulder_right.x + STAGEWIDTH/2;
-      }
 
-      let direction = (this.speed < 0)? -1 : 1;
-      x *= direction;
+      if(this.config.x !== undefined) x = this.config.x;
+      if(this.config.y !== undefined) y = this.config.y;
 
       this.setXY(x,y);
     }
 
     FlyObstacle.prototype.checkRemove = function() {
 
-      let remove = false;
-      if(this.wave.isLEFT()) {
-        if(this.reverse && this.x < this.wave.shoulder_left.x - STAGEWIDTH) remove = true;
-        else if(this.x > this.wave.shoulder_left.x + STAGEWIDTH * 2) remove = true;
-      }
-
-      if(this.wave.isRIGHT()) {
-        if(this.reverse && this.x > this.wave.shoulder_right.x + STAGEWIDTH) remove = true;
-        else if(this.x < this.wave.shoulder_right.x - STAGEWIDTH * 2) remove = true;
-      }
-
-      if(remove === true) {
-        this.selfRemove();
-      }
+      let coord = this.localToGlobal(0,0);
+      if(coord.x < -STAGEWIDTH/2) this.selfRemove();
+      if(coord.x > STAGEWIDTH*1.5) this.selfRemove();
     }
 
 

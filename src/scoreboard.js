@@ -36,7 +36,7 @@
       this.drawTableSuccess();
       this.drawBoardSuccess();
       this.drawButtonSuccess();
-      this.unlockNextLevel();
+      SCENE.unlockNextLevel();
     }
     else {
       this.drawTableRetry();
@@ -48,34 +48,6 @@
     this.y = STAGEHEIGHT/2 - 100*rY;
   }
 
-  prototype.unlockNextLevel = function() {
-
-    console.log(SPOT.config);
-    let planet = SPOT.config.planet;
-    let level = SPOT.config.level;
-    let nextlevel = LEVELS.find(l => l.planet == planet && l.level == level+1);
-
-    if(nextlevel) {
-      USER.unlocked_levels.push(nextlevel.name);
-    }
-    else {
-      let currplanet = PLANETS.find(p => p.id == planet);
-      let nextplanet = PLANETS.find(p => p.order == currplanet.order+1);
-      let firstlevel = LEVELS.find(l => l.planet == nextplanet.id && l.level == 1);
-      if(nextplanet) {
-        USER.unlockPlanet(nextplanet);
-        USER.unlockLevel(firstlevel);
-        USER.currentPlanet = nextplanet.id;
-        USER.currentLevel = firstlevel.id;
-      }
-      else {
-        console.log('Well, you finished the game !');
-      }
-    }
-
-    console.log(USER);
-
-  }
 
   prototype.drawBoard = function() {
 
@@ -298,27 +270,31 @@
 
   prototype.drawButtonSuccess = function() {
 
-    let btn_menu = new createjs.Bitmap(queue.getResult('btn_menu'));
-    btn_menu.mouseEnabled = true;
-    btn_menu.cursor = 'pointer';
-    btn_menu.x = 100*rX;
-    btn_menu.y = 130*rY;
-    let btn_retry = new createjs.Bitmap(queue.getResult('btn_retry_sm'));
-    btn_retry.mouseEnabled = true;
-    btn_retry.cursor = 'pointer';
-    btn_retry.x = -120*rX;
-    btn_retry.y = 135*rY;
+    let next_level = new Button('NEXT LEVEL', proxy(SCENE.gotoNextLevel, SCENE));
+    next_level.x = 220*rX;
+    next_level.y = 180*rY;
+    this.cont_board.addChild(next_level);
 
-    this.cont_board.addChild(btn_menu);
-    this.cont_board.addChild(btn_retry);
+    let retry = new ButtonSecondary('RETRY', proxy(SCENE.reloadLevel, SCENE));
+    retry.x = 0*rX;
+    retry.y = 180*rY;
+    this.cont_board.addChild(retry);
 
-    btn_menu.on('click', proxy(MENU.open, MENU), null, true);
-    btn_retry.on('click', proxy(MENU.reloadLevel, MENU), null, true);
   }
 
   prototype.drawButtonRetry = function() {
 
-    let btn_retry = new createjs.Bitmap(queue.getResult('btn_retry'));
+    let menu = new ButtonSecondary('MENU', proxy(MENU.open, MENU));
+    menu.x = 0*rX;
+    menu.y = 180*rY;
+    this.cont_board.addChild(menu);
+
+    let retry = new Button('RETRY', proxy(SCENE.reloadLevel, SCENE));
+    retry.x = 220*rX;
+    retry.y = 180*rY;
+    this.cont_board.addChild(retry);
+
+    /*let btn_retry = new createjs.Bitmap(queue.getResult('btn_retry'));
     btn_retry.mouseEnabled = true;
     btn_retry.cursor = 'pointer';
     btn_retry.x = 100*rX;
@@ -334,6 +310,7 @@
 
     btn_menu.on('click', proxy(MENU.open, MENU), null, true);
     btn_retry.on('click', proxy(MENU.reloadLevel, MENU), null, true);
+    */
   }
 
   prototype.show = function() {

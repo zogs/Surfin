@@ -20,12 +20,18 @@ var planet = {
       extra: [
         {
           asset: 'flhoston_back_reflect',
-          x: 1050,
-          y: 290,
+          x: 910,
+          y: 270,
           alpha:0.5
         }
       ]
     },
+    levels: [
+      'Flhoston0',
+      'Flhoston1',
+      'Flhoston2_0',
+      'Flhoston2',
+    ],
     lines: {
       horizon: 300,
       break: 550,

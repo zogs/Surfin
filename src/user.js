@@ -3,13 +3,15 @@
 		this.level = 1;
 		this.xp = 0;
 		this.points = 0;
-		this.currentPlanet = "caladan";
-		this.currentLevel = "caladan1";
+		this.currentPlanet = "";
+		this.currentLevel = "";
 		this.unlocked_planets = [];
-		this.unlocked_levels = ["caladan2","caladan3","caladan4","caladan5",];
+		this.unlocked_levels = [];
+		this.unlocked_powers = ["boost", "shield", "hadoken"];
+		this.visited_levels = [];
 		this.temp = {}; //temporary data
 		this.skills = {
-			speed: 0.5, //0 to 1
+			speed: 0.1, //0 to 1
 			aerial: 0.1, //0 to 1
 			agility: 0.1, //0 to 1
 			paddling: 0.1,
@@ -28,17 +30,46 @@
 			return false;
 		}
 
+		this.hasPower = function(power) {
+			if(this.unlocked_powers.indexOf(power) !== -1) return true;
+			return false;
+		}
+
 		this.hasLevel = function(level) {
 			if(this.unlocked_levels.indexOf(level.name) !== -1) return true;
 			return false;
 		}
 
 		this.unlockPlanet = function(planet) {
-			this.unlocked_planets.push(planet.name);
+			if(this.unlocked_planets.indexOf(planet) === -1) this.unlocked_planets.push(planet);
 		}
 
 		this.unlockLevel = function(level) {
-			this.unlocked_levels.push(level.name);
+			if(this.unlocked_levels.indexOf(level) === -1) this.unlocked_levels.push(level);
+		}
+
+		this.visitLevel = function(level) {
+			if(this.visited_levels.indexOf(level) === -1) this.visited_levels.push(level);
+		}
+
+		this.hasVisited = function(level) {
+			return this.visited_levels.indexOf(level) !== -1 ? true : false;
+		}
+
+		this.notVisited = function(level) {
+			return this.visited_levels.indexOf(level) === -1 ? true : false;
+		}
+
+		this.resetVisits = function() {
+			this.visited_levels = [];
+		}
+
+		this.resetUnlockLevels = function() {
+			this.unlocked_levels = [];
+		}
+
+		this.resetUnlockPlanet = function() {
+			this.unlocked_planets = [];
 		}
 
 		this.setLevel = function(level) {

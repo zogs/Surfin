@@ -68,7 +68,6 @@ class Dialog extends createjs.Container {
   }
 
   close() {
-    console.log('close');
     this.alpha = 0;
     this.mouseEnabled = false;
     if(this.htmlElement) this.htmlElement.style.pointerEvents = 'none';
@@ -284,15 +283,15 @@ class Dialog extends createjs.Container {
       super();
       var defaults = {
         text: text,
-        font: 'normal 14px "Neon 80s", Helvetica',
+        font: 'normal 18px "Work Sans", Helvetica',
         width: null,
         height: null,
-        color: '#454545',
+        color: '#626262',
         paddingTop: 5,
         paddingBottom: 5,
         paddingLeft: 10,
         paddingRight: 10,
-        textAlign: 'left',
+        textAlign: 'center',
       };
 
       this.params = extend(defaults,params);
@@ -403,14 +402,14 @@ class Dialog extends createjs.Container {
         height: null,
         font: '30px "BenchNine", Arial',
         radius: 10,
-        paddings: [15, 20, 15, 20],
+        paddings: [20, 60, 20, 60],
         color: 'white',
         backgroundColor: "#b64576",
         borderWidth: 1,
         borderColor: '#e2b1c6',
         float: 'center',
         x: 0,
-        y: 65,
+        y: 50 * rY,
       };
 
       this.params = extend(defaults,params);
@@ -419,7 +418,6 @@ class Dialog extends createjs.Container {
     }
 
     init() {
-
       this.drawButton();
     }
 
@@ -442,10 +440,10 @@ class Dialog extends createjs.Container {
       this.back = back;
 
       // init event
-      this.addEventListener("click", proxy(this.clicked, this));
-      this.addEventListener("mousedown", proxy(this.down, this));
-      this.addEventListener("mouseover", proxy(this.over, this));
-      this.addEventListener("mouseout", proxy(this.out, this));
+      this.on("click", this.click);
+      this.on("mousedown", this.down);
+      this.on("mouseover", this.over);
+      this.on("mouseout", this.out);
 
       this.cursor = "pointer";
 
@@ -469,6 +467,7 @@ class Dialog extends createjs.Container {
       shadow.regY = h/2;
       shadow.x = 2;
 
+      container.y = -5;
       container.addChild(shadow);
       container.addChild(text);
 
@@ -477,7 +476,6 @@ class Dialog extends createjs.Container {
     }
 
     drawBackground(w,h) {
-
       let container = new createjs.Container();
       let pad = this.params.paddings;
       let bg = new createjs.Shape();
@@ -500,21 +498,32 @@ class Dialog extends createjs.Container {
       return container;
     }
 
-    clicked() {
-      if(this.callback === null) this.nullCallback();
-      this.callback();
+    click(e) {
+      e.preventDefault();
+      e.stopPropagation();
+      e.stopImmediatePropagation();
+      /* actual click is handle by down() and up() functions */
+    }
+
+    up(e) {
+      e.stopImmediatePropagation();
+      this.off("pressup", this.up);
       this.scaleX = this.scaleY = 1;
+      if(this.callback === null) return this.nullCallback();
+      else return this.callback();
     }
 
-    down() {
+    down(e) {
+      e.stopImmediatePropagation();
       this.scaleX = this.scaleY -= 0.05;
+      this.on("pressup", this.up);
     }
 
-    over() {
+    over(e) {
       this.front.y -= 1;
     }
 
-    out() {
+    out(e) {
       this.front.y += 1;
       this.scaleX = this.scaleY = 1;
     }
@@ -524,6 +533,51 @@ class Dialog extends createjs.Container {
       console.error("Button has been clicked but there is no handler");
     }
   }
+
+class ButtonSecondary extends Button {
+
+  constructor(text = 'SECONDARY', callback = null, params) {
+
+      var defaults = {
+        width: null,
+        height: null,
+        font: '30px "BenchNine", Arial',
+        radius: 10,
+        paddings: [15, 40, 15, 40],
+        color: 'white',
+        backgroundColor: "#b64576",
+        borderWidth: 1,
+        borderColor: '#e2b1c6',
+        float: 'center',
+        x: 0,
+        y: 50,
+      };
+      super(text, callback, defaults);
+    }
+
+    drawBackground(w,h) {
+      let container = new createjs.Container();
+      let pad = this.params.paddings;
+      let bg = new createjs.Shape();
+      bg.graphics
+        .setStrokeStyle(this.params.borderWidth)
+        .beginLinearGradientStroke(["#cdcdcd","#FFF","#cdcdcd"], [0, 0.5, 1], 0-pad[3], 0, w+pad[1]*2, 0)
+        .beginLinearGradientFill(["#ededed","#dadada"], [0, 1], 0, 0, 0, h)
+        .drawRoundRectComplex(0-pad[3], 0-pad[0], w + pad[1]*2, h + pad[2]*2 , this.params.radius, this.params.radius, this.params.radius, this.params.radius);
+      bg.regX = w/2;
+      bg.regY = h/2 + 5;
+      let shadow = new createjs.Shape();
+      shadow.graphics.setStrokeStyle(0).beginFill('#AAA').drawRoundRectComplex(0-pad[3], 0-pad[0], w + pad[1]*2, h + pad[2]*2 , this.params.radius, this.params.radius, this.params.radius, this.params.radius);
+      shadow.regX = w/2;
+      shadow.regY = h/2 + 5;
+      shadow.y = 8;
+
+      container.addChild(shadow);
+      container.addChild(bg);
+
+      return container;
+    }
+}
 
 class Image extends createjs.Container {
 

@@ -11,8 +11,7 @@
 
 		let defaults = {
 			type: 'player',
-			img_takeoff: 'surfer_takeoff',
-			img_surfing: 'surfer',
+			img: 'astrosurfer',
 		}
 
 		params = Object.assign({}, defaults, params);
@@ -27,7 +26,6 @@
 	prototype.gravity = new Victor(0,7);
 	prototype.hitbox_proportion = 70;
 	prototype.hitboard_proportion = 30;
-	prototype.height = 300;
 
 	//init
 	prototype.init = function(params) {
@@ -48,7 +46,8 @@
 		this.timers = [];
 		this.trailsize = 1;
 		this.trailcoef = 3.2;
-		this.real_height = 1.5 * 1.6;
+		this.config.meter_height = 1.2;
+		this.config.pixel_height = 160*rY; //average pixel height of character
 		this.velocity = new Victor();
 		this.velocities = [];
 		this.pumped = [];
@@ -59,6 +58,7 @@
 		this.angles = [];
 		this.bearing = 'S';
 		this.status = 'wait';
+		this.paused = false;
 		this.tubing = false;
 		this.tubeTime = 0;
 		this.tubeMinimumTime = 1000;
@@ -94,21 +94,6 @@
 		this.disturbance = 0;
 		this.disturbance_max = 20;
 
-		const sprite_splash = new createjs.SpriteSheet({
-			images: [queue.getResult('surfer_splash')],
-			frames: {width:parseInt(200*rX), height:parseInt(150*rY), regX: parseInt(100*rX), regY: parseInt(75*rY)},
-			framerate: 1,
-			animations: {
-				hide: 1,
-				splash: [1,12,false],
-			}
-		});
-		this.splash_anim = new createjs.Sprite(sprite_splash);
-		this.splash_anim.y = -20*rY;
-		this.splash_anim.x = 0;
-		this.splash_anim.alpha = 0.4;
-		this.splash_anim.gotoAndStop(0);
-		this.addChild(this.splash_anim);
 
 
 		this.trail_water_shape = new createjs.Shape();
@@ -131,6 +116,10 @@
 		this.addChild(this.silhouette_cont);
 		this.initSilhouette();
 
+		this.splash_cont = new createjs.Container();
+		this.addChild(this.splash_cont);
+		this.initSplash();
+
 		this.hitbox = new createjs.Shape();
 		this.hitbox.graphics.beginFill('orange').drawCircle(0,0,1);
 		this.hitbox.alpha = 0;
@@ -144,7 +133,7 @@
 		this.addChild(this.hitboard);
 
 		this.lifebar = new createjs.Shape();
-		this.lifebar.graphics.clear().beginStroke('white').setStrokeStyle(10).moveTo(0,0).lineTo(100,0);
+		this.lifebar.graphics.clear().beginStroke('rgba(255,255,255,0.5)').setStrokeStyle(5).moveTo(0,0).lineTo(100,0);
 		this.lifebar.alpha = 0;
 		this.lifebar_cont = new createjs.Container();
 		this.lifebar_cont.x = -50*rX;
@@ -160,13 +149,6 @@
 		this.weapon_cont = new createjs.Container();
 		this.addChild(this.weapon_cont);
 
-		if(this.isPlayer()) {
-			this.weapons.shield = new Shield();
-			this.weapon_cont.addChild(this.weapons.shield);
-
-			this.weapons.hadoken = new Hadoken({direction: this.wave.direction});
-			this.weapon_cont.addChild(this.weapons.hadoken);
-		}
 
 		this.virtualMouse = new createjs.Shape();
 		this.virtualMouse.graphics.beginFill('pink').drawCircle(0,0,3);
@@ -181,12 +163,19 @@
 
 		this.resize();
 
+		this.weapons.shield = new Shield({color: this.spot.planet.colors.wave[1][0], scale: this.config.actualScale });
+		this.weapon_cont.addChild(this.weapons.shield);
+
+		this.weapons.hadoken = new Hadoken({direction: this.wave.direction, fire_container: this.wave.obstacle_cont, scale: this.config.actualScale});
+		this.weapon_cont.addChild(this.weapons.hadoken);
 	}
 
 	//public methods
 
 
 	prototype.tick = function() {
+
+		if(this.paused) return;
 
 		this.getAngle();
 		this.detectAboveLipPoint();
@@ -198,12 +187,6 @@
 	}
 
 	prototype.initEventsListener = function() {
-
-		//add new click event to jump ollie
-		//window.Stage.on('click',function(event) {
-		//	//this.ollie();
-		//	this.lightSaberStrike();
-		//},this);
 
 		//custom events
 
@@ -253,22 +236,15 @@
 			if(this.isPlayer()) this.spot.dispatchEvent('player_fallen');
 		},this,true);
 
-		this.on('paddler_malus_hitted', function(event) {
-			this.fall('hit paddler');
-		},this);
-
-		this.on('photo_malus_hitted', function(event) {
-			this.fall('hit photographer');
-		},this);
-
-		this.on('bomb_malus_hitted', function(event) {
-			this.fall('hit bomb');
+		this.spot.on('malus_hitted', function(event) {
+			this.hitMalus(event.object);
 		},this);
 
 		this.on('surfing',function(event) {
 			this.spot.dispatchEvent('surfer_surfing');
 		});
 	}
+
 
 	prototype.takeOff = function(x,y) {
 
@@ -278,58 +254,39 @@
 		this.locations.push(this.location);
 
 		this.auto_silhouette = false;
-
-		const speed = 0.2 + this.getSkill('takeoff');
-		const takeoff = new createjs.SpriteSheet({
-			images: [queue.getResult(this.config.img_takeoff)],
-			frames: {width:parseInt(300*rX), height:parseInt(300*rY)},
-			animations: {
-				takeoff: [0,3,false,speed],
-			}
-		});
-
-		const animation = new createjs.Sprite(takeoff,'takeoff');
-		this.silhouette_cont.removeAllChildren();
-		this.silhouette_cont.addChild(animation);
-		this.silhouette_cont.alpha = 1;
-
-		const event = new createjs.Event("takeoff");
-			event.wave = this.wave;
-			event.surfer = this;
-			this.dispatchEvent(event);
+		this.silhouette.gotoAndPlay('takeoff');
 
 		// set velocities to zero
 		this.control_velocities.x = 0;
 		this.control_velocities.y = 0;
 		// calc time from skill
-		const default_time = 2000;
+		const default_time = 1500;
 		const time = default_time * (1 - this.getSkill('takeoff')/2);
 		// tween it slowly to normal config
 		createjs.Tween.get(this.control_velocities)
-			.to({ y: 0.5 }, time / 2)
+			.to({ y: 1 }, time / 2)
 			.call(proxy(function(){
+				if(this.falling === true) return;
 				this.auto_silhouette = true;
-				this.silhouette_cont.removeAllChildren();
-				this.silhouette_cont.addChild(this.silhouette);
 			},this))
 			.to({ x: 1 }, time / 2)
 			.set({ y: 1 })
-			.call(proxy(this.endTakeOff,this));
+			.call(proxy(function() {
+				if(this.falling === true) return;
+				this.endTakeOff();
+			}, this));
 
 		// align trail with the board contact with the water
 		this.trail_water_shape.y = 0;
-		createjs.Tween.get(this.trail_water_shape).to({y : 50}, 2000, createjs.Ease.quartIn);
+		createjs.Tween.get(this.trail_water_shape).to({y : 50 * this.config.actualScale}, 2000, createjs.Ease.quartIn);
+
+		// dispatch takeoff event
+		const event = new createjs.Event("takeoff");
+			event.wave = this.wave;
+			event.surfer = this;
+			this.dispatchEvent(event);
 
 		return this;
-	}
-
-	prototype.getSkill = function(comp) {
-
-		if(this.skills[comp] === undefined) {
-			console.error(comp + " is not a skill competence...");
-			return 1;
-		}
-		return this.skills[comp];
 	}
 
 	prototype.endTakeOff = function() {
@@ -346,6 +303,15 @@
 		ev.quality = quality;
 		this.dispatchEvent(ev);
 
+	}
+
+	prototype.getSkill = function(comp) {
+
+		if(this.skills[comp] === undefined) {
+			console.error(comp + " is not a skill competence...");
+			return 1;
+		}
+		return this.skills[comp];
 	}
 
 	prototype.setWave = function(wave) {
@@ -385,14 +351,17 @@
 
 	prototype.getSurferProportion = function() {
 
-		var c = (this.real_height / this.wave.params.real_height) * this.wave.getResizeCoef();
+		var c = (this.real_height / this.wave.params.real_height);
 		return c;
 	}
 
 	prototype.resize = function() {
 
-		let scale = this.wave.getResizeCoef() * this.getSurferProportion();
-		this.height = this.silhouette_height*scale;
+		let scale = this.wave.scaleToFit(this.config.pixel_height, this.config.meter_height);
+		scale *= this.wave.getResizeCoef();
+
+		this.height = this.config.pixel_height * scale;
+		this.config.actualScale = scale;
 
 		this.silhouette_cont.scaleX = scale;
 		this.silhouette_cont.scaleY = scale;
@@ -402,6 +371,7 @@
 		this.hitbox.scale = this.hitbox_radius = scale * this.hitbox_proportion;
 		this.hitboard.scale = this.hitboard_radius = scale * this.hitboard_proportion;
 		this.hitboard.y = this.silhouette_height/4 * scale;
+
 	}
 
 	prototype.getVanishPoint = function() {
@@ -470,12 +440,14 @@
 	}
 
 	prototype.pause = function() {
+		this.paused = true;
 		this.particles_cont.children.map(p => p.pause());
 		this.timers.map(t => t.pause());
 	}
 
 	prototype.resume = function() {
 
+		this.paused = false;
 		this.particles_cont.children.map(p => p.resume());
 		this.timers.map(t => t.resume());
 	}
@@ -536,6 +508,7 @@
 
 		//set silhouette
 		this.setSurferSilhouette();
+
 	}
 
 	prototype.initRide = function() {
@@ -683,6 +656,9 @@
 
 		// get horizontal velocity from lip position
 		let vX = breaking_width * ( 0.5 + breaking_percent/100 ) * distance_idx;
+
+		// add a bit of speed
+		vX *= 2;
 
 		// get mouse position
 		const mouse = this.getMousePoint(0);
@@ -900,14 +876,13 @@
 		if(this.status=='aerial') return;
 
 		// fall if done too soon
-		var point = this.point_under;
-		if(point.breaking_percent === null || point.breaking_percent < 0) {
+		if(this.point_under.breaking_percent === null || this.point_under.breaking_percent < 0) {
 			return this.fall('aerial too late');
 		}
-		if(point.breaking_percent > this.aerial_takeoff_limit) {
+		if(this.point_under.breaking_percent > this.aerial_takeoff_limit) {
 			return this.fall('aerial too soon');
 		}
-		this.aerial_quality_takeoff = point.breaking_percent / this.aerial_takeoff_limit;
+		this.aerial_quality_takeoff = this.point_under.breaking_percent / this.aerial_takeoff_limit;
 
 		// set current status
 		this.status = 'aerial';
@@ -1243,78 +1218,48 @@
 		if(DEBUG) console.log('fall because: ', reason);
 
 		var e = new createjs.Event('fall');
-			e.surfer = this;
-			e.reason = reason;
-			this.dispatchEvent(e);
+		e.surfer = this;
+		e.reason = reason;
+		this.dispatchEvent(e);
 
-		//this.showFallPlouf();
-		//this.ploufinterval = window.setInterval(proxy(this.showFallPlouf,this),200);
+		this.auto_silhouette = false;
+		this.silhouette.gotoAndPlay('fall');
+		setTimeout(() => {
+				this.splash.gotoAndPlay('splash');
+				this.splash.on('animationend', (ev) => {
+					this.fallFinished();
+				})
+		},500);
 
-		createjs.Tween.get(this.silhouette_cont)
-		.to({rotation:360*this.wave.direction*-1,alpha:0,scale:0.5},1500)
-		;
-
-		this.splash_anim.gotoAndPlay('splash');
-
-    createjs.Sound.play("gasp");
-		setTimeout(function() {
-    	createjs.Sound.play("plouf");
-		},600);
-
-		this.on('stop',proxy(this.fallFinished, this), this, true);
+		if(this.isPlayer()) {
+	    createjs.Sound.play("gasp");
+			setTimeout(function() {
+	    	createjs.Sound.play("plouf");
+			},600);
+		}
 	}
 
 	prototype.fallFinished = function() {
 
 		this.fallen = true;
 
-		//send fall event
 		var e = new createjs.Event('fallen');
-			e.surfer = this;
-			this.dispatchEvent(e);
+		e.surfer = this;
+		this.dispatchEvent(e);
 
-		//window.clearInterval(this.ploufinterval);
-		window.Stage.removeAllEventListeners('stagemousedown');
-		window.Stage.removeAllEventListeners('stagemouseup');
+		if(this.isPlayer()) {
+			window.Stage.removeAllEventListeners('stagemousedown');
+			window.Stage.removeAllEventListeners('stagemouseup');
+		}
 	}
 
 	prototype.slowUntilStop = function()
 	{
 			this.velocity.scale(0.8);
 			this.location.add(this.velocity);
-
 			if(this.y < 0) {
 				this.location.add(this.gravity.clone());
 			}
-
-			if(this.velocity.lengthSq() < 1) {
-				this.dispatchEvent('stop');
-			}
-
-	}
-
-	prototype.showFallPlouf = function() {
-
-		var plouf = new createjs.Container();
-		var img = new createjs.Bitmap(queue.getResult('wash'));
-		img.x = -40;
-		img.y = -20;
-
-		plouf.addChild(img);
-
-		plouf.x = this.x + 50*this.wave.direction*-1;
-		plouf.y = this.y;
-		plouf.scaleX = plouf.scaleY = this.silhouette_cont.scaleX;
-		plouf.rotation = Math.random(10)*(Math.random(2)-1);
-		this.wave.surfers_cont.addChild(plouf);
-
-		var c = this.silhouette_cont.scaleX*3;
-		createjs.Tween.get(plouf)
-		.to({scaleX:c, scaleY:c, alpha:0, y:plouf.y-50},600)
-		;
-
-		this.fallParticles();
-
 	}
 
 	prototype.fallParticles = function() {
@@ -1533,23 +1478,40 @@
 	}
 
 	prototype.hitWeapon = function(x,y,radius) {
-
-		for(let i=0,len=this.weapon_points.length-1; i<len; i++) {
-			const point = this.weapon_points[i];
-			const minDistance = radius + point.graphics.command.radius;
-			const xDist = x - this.x - point.x;
-			const yDist = y - this.y - point.y;
-			const distance = Math.sqrt(xDist*xDist + yDist*yDist);
+		for(let i=0,len=this.weapons.hadoken.fireballs.length-1; i<=len; i++) {
+			let ball = this.weapons.hadoken.fireballs[i];
+			let ballCoord = ball.localToGlobal(0,0);
+			let objCoord = this.wave.obstacle_cont.localToGlobal(x,y);
+			let minDistance = radius + ball.conf.radius;
+			let xDist = objCoord.x - ballCoord.x;
+			let yDist = objCoord.y - ballCoord.y;
+			let distance = Math.sqrt(xDist*xDist + yDist*yDist);
 			if(distance < minDistance) {
 				return true;
 			}
+			return false;
 		}
 
 		return false;
 	}
 
+	prototype.hitMalus = function(obj) {
+
+		if(this.weapons.shield.isActive) return;
+
+		if(obj.config.name == 'paddler') return this.fall('hit paddler');
+		if(obj.config.name == 'photo') return this.fall('hit photographe');
+		if(obj.config.name == 'bomb') return this.fall('hit bomb');
+		if(obj.config.name == 'jeese') return this.fall('hit by jeese');
+		if(obj.config.name == 'guldo') return this.fall('hit by guldo');
+		if(obj.config.name == 'reacum') return this.fall('hit by reacum');
+		if(obj.config.name == 'paddletrooper') return this.fall('hit by paddletrooper');
+		if(obj.config.name == 'stormsurfer') return ;//this.fall('hit by stormsurfer');
+		console.log('Malus hitted with no handling : ', obj);
+	}
+
 	prototype.checkHitSurfers = function() {
-		/*
+
 		const len = this.wave.surfers.length;
 
 		if(len <= 1) return;
@@ -1568,7 +1530,6 @@
 				}
 			}
 		}
-		*/
 	}
 
 	prototype.hitSurfer = function(surfer) {
@@ -1662,32 +1623,24 @@
 
 	prototype.checkHitObstacles = function() {
 
-		//no hit when surfer is ollying
+		//no hit when surfer is ollying [no actual use for now]
 		if(this.isOllieing() === true) return;
 
-		//test all waves obstacles
+		//test all obstacles
 		for(var i=0,l=this.wave.obstacles.length;i<l;++i) {
 			var obstacle = this.wave.obstacles[i];
 
 			if(obstacle.hitBonus(this)) {
 				//launch event
-				var ev = new createjs.Event('bonus_hitted');
-				ev.obstacle = obstacle;
-				ev.bonus = obstacle.config.name;
-				this.dispatchEvent(ev);
 				var ev = new createjs.Event('bonus_hitted'); // we need to recreate event as we re-dispatch it
-				ev.obstacle = obstacle;
-				ev.bonus = obstacle.config.name;
+				ev.object = obstacle;
 				this.spot.dispatchEvent(ev);
 			}
 
 			if(obstacle.hitMalus(this)) {
 				//launch event
-				var ev = new createjs.Event(obstacle.config.name+'_malus_hitted');
-				ev.obstacle = obstacle;
-				this.dispatchEvent(ev);
-				var ev = new createjs.Event(obstacle.config.name+'_malus_hitted'); // we need to recreate event as we re-dispatch it
-				ev.obstacle = obstacle;
+				var ev = new createjs.Event('malus_hitted'); // we need to recreate event as we re-dispatch it
+				ev.object = obstacle;
 				this.spot.dispatchEvent(ev);
 			}
 		}
@@ -1704,7 +1657,7 @@
 				for(let i=0,len=obstacle.bodies.length-1; i<=len; i++) {
 					let body = obstacle.bodies[i];
 					if(this.hit('weapon', body.x, body.y, body.graphics.command.radius)) {
-						console.log('body shot');
+						obstacle.shooted('body');
 					}
 				}
 			}
@@ -1716,8 +1669,7 @@
 					let pt = malus.localToLocal(0,0,this.wave.foreground_cont);
 					if(malus.shotable) {
 						if(this.hit('weapon', pt.x, pt.y, malus.graphics.command.radius)) {
-							console.log('malus shot');
-							malus.onShoted();
+							obstacle.shooted('malus', malus);
 							break;
 						}
 					}
@@ -1768,18 +1720,18 @@
 
 		if(this.boosting === true) {
 			this.trails_path_cont.removeAllChildren();
-			this.drawPathTrail(["rgba(255,255,255,0.8)","rgba(255,255,255,0)"], 100, 0, 200, "butt");
+			this.drawPathTrail(["rgba(255,255,255,0.8)","rgba(255,255,255,0)"], 100 * this.config.actualScale, 0, 200, "butt");
 		}
 
 		if(this.rainbow === true) {
 			this.trails_path_cont.removeAllChildren();
-			this.drawPathTrail(["rgba(255,0,0,0.8)","rgba(255,0,0,0)"], 15, -50, 400);
-			this.drawPathTrail(["rgba(255,127,0,0.8)","rgba(255,127,0,0)"], 15, -35, 400);
-			this.drawPathTrail(["rgba(255,255,0,0.8)","rgba(255,255,0,0)"], 15, -20, 400);
-			this.drawPathTrail(["rgba(0,255,0,0.8)","rgba(0,255,0,0)"], 15, -5, 400);
-			this.drawPathTrail(["rgba(0,0,255,0.8)","rgba(0,0,255,0)"], 15, 10, 400);
-			this.drawPathTrail(["rgba(75,0,130,0.8)","rgba(75,0,130,0)"], 15, 25, 400);
-			this.drawPathTrail(["rgba(148,0,211,0.8)","rgba(148,0,211,0)"], 15, 40, 400);
+			this.drawPathTrail(["rgba(255,0,0,0.8)","rgba(255,0,0,0)"], 15, -50 * this.config.actualScale, 400);
+			this.drawPathTrail(["rgba(255,127,0,0.8)","rgba(255,127,0,0)"], 15, -35 * this.config.actualScale, 400);
+			this.drawPathTrail(["rgba(255,255,0,0.8)","rgba(255,255,0,0)"], 15, -20 * this.config.actualScale, 400);
+			this.drawPathTrail(["rgba(0,255,0,0.8)","rgba(0,255,0,0)"], 15, -5 * this.config.actualScale, 400);
+			this.drawPathTrail(["rgba(0,0,255,0.8)","rgba(0,0,255,0)"], 15, 10 * this.config.actualScale, 400);
+			this.drawPathTrail(["rgba(75,0,130,0.8)","rgba(75,0,130,0)"], 15, 25 * this.config.actualScale, 400);
+			this.drawPathTrail(["rgba(148,0,211,0.8)","rgba(148,0,211,0)"], 15, 40 * this.config.actualScale, 400);
 		}
 	}
 
@@ -2061,9 +2013,10 @@
 
 	prototype.initSilhouette = function() {
 
-		let surfer_sprite = new createjs.SpriteSheet({
-			images: [queue.getResult(this.config.img_surfing)],
-			frames: {width: parseInt(300*rX), height: parseInt(300*rY)},
+		let sprite = new createjs.SpriteSheet({
+			images: [queue.getResult(this.config.img)],
+			frames: {width: parseInt(256*rX), height: parseInt(256*rY)},
+			framerate: 5,
 			animations: {
 				S: 0,
 				SE: 1,
@@ -2084,15 +2037,37 @@
 				WS: 16,
 				WSS: 17,
 				WSSS: 18,
-				WSSSS: 19
+				WSSSS: 19,
+				takeoff: [20,23, false],
+				fall: [24,31, false, 2]
 			}
 		});
 
-		this.silhouette = new createjs.Sprite(surfer_sprite,'S');
-		this.silhouette_width = 300*rX;
-		this.silhouette_height = 300*rY;
-
+		this.silhouette = new createjs.Sprite(sprite,'S');
+		this.silhouette_width = 256*rX;
+		this.silhouette_height = 256*rY;
+		this.silhouette_cont.addChild(this.silhouette);
 	}
+
+	prototype.initSplash = function() {
+
+		let sprite = new createjs.SpriteSheet({
+			images: [queue.getResult('surfer_splash')],
+			frames: {width:parseInt(200*rX), height:parseInt(150*rY), regX: parseInt(100*rX), regY: parseInt(75*rY)},
+			framerate: 20,
+			animations: {
+				hide: 1,
+				splash: [1,12,false],
+			}
+		});
+		this.splash = new createjs.Sprite(sprite);
+		this.splash.y = 0*rY;
+		this.splash.x = 0;
+		this.splash.alpha = 0.4;
+		this.splash.gotoAndStop(0);
+		this.addChild(this.splash);
+	}
+
 
 	prototype.setSurferSilhouette = function() {
 

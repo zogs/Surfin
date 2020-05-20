@@ -25,5 +25,8 @@ var planet = {
       beach: 580,
       obstacle: 750,
     },
+    levels: [
+      "Gargantua1",
+    ]
 }
 PLANETS.push(planet);

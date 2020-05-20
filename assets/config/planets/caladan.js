@@ -10,7 +10,7 @@ var planet = {
     colors: {
       sea: {top: "#2c78f5",bottom: "#1e3bb3"},
       wave: [["#0d1544",0,0],["#3a52b8",0,50],["#2943ae",0,100]],
-      lip: {top: "#233993", bottom: "#a9b3f1"},
+      lip: {top: "#233993", bottom: "#a9b3f188"},
       splash: {top: "#FFF", bottom: "#FFF"},
       sand: {"hue": 11, "sat":-71, "lum":0, "con": 0, "alpha":1},
     },
@@ -25,5 +25,8 @@ var planet = {
       beach: 650,
       obstacle: 800,
     },
+    levels: [
+      'Caladan1',
+    ]
 }
 PLANETS.push(planet);

@@ -22,6 +22,7 @@
     this.acti_cont = new createjs.Container();
     this.addChild(this.acti_cont);
 
+
   }
 
   var prototype = createjs.extend(Menu, createjs.Container);
@@ -46,7 +47,7 @@
     if(e) e.stopImmediatePropagation();
   }
 
-  prototype.switch = function() {
+  prototype.toggle = function() {
 
     if(this.status == 'closed') return this.open();
     if(this.status == 'opened') return this.close();
@@ -138,6 +139,15 @@
 
     let planet = this.planets.find(p => p.id == id);
 
+    if(planet.id == 'home') {
+      planet = this.planets.find(p => p.id === 'arrakis')
+    }
+    if(planet.id == 'terre') {
+      planet = this.planets.find(p => p.id === 'namek')
+    }
+
+    USER.currentPlanet = planet.id;
+
     this.deco_cont.removeAllChildren();
     this.acti_cont.removeAllChildren();
     this.deco_cont.alpha = 0;
@@ -166,8 +176,13 @@
     //levels
     let ox = 330*rX;
     let oy = subtitle.y + 80*rY;
+    let nb = 0;
     for(let i=0,ln=planet.levels.length; i<ln; i++) {
       let level = planet.levels[i];
+      //skip if level is a story level
+      if(level.slice(-1) === '0') continue;
+
+
       let btn = new createjs.Sprite(
         new createjs.SpriteSheet({
             images: [queue.getResult('btn_level')],
@@ -176,18 +191,19 @@
             animations: { out: [0], over: [1], down: [2], lock: [3] }
         })
       );
-      btn.x = ox + 180*i*rX;
+      btn.x = ox + 180*nb*rX;
       btn.y = oy;
       btn.scaleY = 1.3;
       this.acti_cont.addChild(btn);
-      let title = new createjs.Text('LEVEL '+(i+1), Math.floor(16*rY)+'px Arial', '#0f2d58');
+      let title = new createjs.Text('LEVEL '+(nb+1), Math.floor(16*rY)+'px Arial', '#0f2d58');
       title.x = btn.x + 45*rX;
       title.y = btn.y + 20*rY;
       title.mouseEnabled = false;
       this.acti_cont.addChild(title);
+      nb++;
 
       if(USER.hasLevel(level) || TEST === true) {
-        btn.on('click', proxy(this.loadLevel, this, [level]));
+        btn.on('click', proxy(SCENE.loadLevel, SCENE, [level]));
         new createjs.ButtonHelper(btn, "out", "over", "down");
       }
       else {
@@ -221,47 +237,6 @@
     createjs.Tween.get(this.deco_cont).wait(100).to({alpha: 1}, 800);
     createjs.Tween.get(this.acti_cont).wait(100).to({alpha: 1}, 800);
 
-  }
-
-  prototype.loadLevel = function(level,args) {
-
-    //stop click propagation
-    if(args) args[0].stopImmediatePropagation();
-    //clear previous spot
-    if(SPOT) {
-      this.removeLevel(SPOT);
-    }
-    //close menu
-    this.close();
-    //clear stage
-    window.spot_cont.removeAllChildren();
-    window.extra_cont.removeAllChildren();
-    //create spot with new config
-    SPOT = new Spot(level);
-    //add it
-    window.spot_cont.addChild(SPOT);
-    // add menu
-    //SCREENS.addMenuIcon();
-
-    //initCustomizer();
-  }
-
-  prototype.reloadLevel = function(e) {
-    e.stopImmediatePropagation();
-    let level = SPOT.config;
-    this.removeLevel(SPOT);
-    window.spot_cont.removeAllChildren();
-    window.extra_cont.removeAllChildren();
-    SPOT = new Spot(level);
-    window.spot_cont.addChild(SPOT);
-  }
-
-  prototype.removeLevel = function(level) {
-
-    if(SPOT === null) return;
-    SPOT.remove();
-    window.spot_cont.removeChild(SPOT);
-    SPOT = null;
   }
 
   prototype.loadNews = function(infos) {
