@@ -25,7 +25,6 @@
 	</head>
 
 	<body onload="load()">
-		<h1>AstroSurfer </h1>
 			<div id="container">
 				<canvas id="canvas" width="1500" height="800">You need to activate javascript to play this game !</canvas>
 			</div>
