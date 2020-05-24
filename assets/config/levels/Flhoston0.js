@@ -23,7 +23,7 @@
       timelimit: null,
       goals: false,
       surfers: {
-        max: 0,
+        max: 1,
         proportion: 1.5,
         "x": 750,
         "y": 470,
@@ -44,7 +44,7 @@
           splash_h_percent: 100,
           splash_h_ease: 0.4,
           left: {
-            width: 20,
+            width: 28,
             width_max: 30,
             width_interval: 0,
             width_pause: 0,
@@ -54,8 +54,8 @@
             block_width_max: 200,
           },
           right: {
-            width: 20,
-            width_max: 0,
+            width: 28,
+            width_max: 30,
             width_interval: 0,
             width_pause: 1000,
             block_interval: 2000,
@@ -80,9 +80,12 @@
         suction: {x: 5, y: 4},
         obstacles: {
           'float': {
-            'interval': 5000,
+            'interval': 2500,
             'interval_max': 10000,
             'objects' : {
+              'beachtrooper': { percentage: 30 },
+              'bomb': { percentage: 30 },
+              'shark': { percentage: 30 },
             },
           },
           'fly': {

@@ -218,7 +218,8 @@
 		this.background.addChild(defaultbkg);
 
 		const skyimage = new createjs.Bitmap(queue.getResult(this.planet.images.background));
-		skyimage.y = - skyimage.image.height + this.planet.lines.horizon;
+    const defaultimageheight = 500 * rY;
+		skyimage.y = this.planet.lines.horizon - defaultimageheight;
 		this.background.addChild(skyimage);
 
 		const seagradient = new createjs.Shape();

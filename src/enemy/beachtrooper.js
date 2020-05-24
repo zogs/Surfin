@@ -1,6 +1,6 @@
 (function() {
 
-    function BeachTrooper(config = {}) {
+    function Beachtrooper(config = {}) {
 
       config.img = 'beachtrooper';
       config.name = 'beachtrooper';
@@ -10,11 +10,11 @@
       this.Obstacle_constructor(config);
 
     }
-    BeachTrooper.prototype = Object.create(Obstacle.prototype);
-    BeachTrooper.prototype.constructor = BeachTrooper;
-    window.BeachTrooper = createjs.promote(BeachTrooper, "Obstacle");
+    Beachtrooper.prototype = Object.create(Obstacle.prototype);
+    Beachtrooper.prototype.constructor = Beachtrooper;
+    window.Beachtrooper = createjs.promote(Beachtrooper, "Obstacle");
 
-    BeachTrooper.prototype.drawImage = function() {
+    Beachtrooper.prototype.drawImage = function() {
 
       var sheet = new createjs.SpriteSheet({
           images: [queue.getResult('sprite_beachtrooper')],
@@ -37,7 +37,7 @@
 
     }
 
-    BeachTrooper.prototype.drawBonus = function() {
+    Beachtrooper.prototype.drawBonus = function() {
 
       var bonus = new createjs.Shape();
         bonus.graphics.beginFill('green').drawCircle(0,0,80*rX*this.actualScale);
@@ -47,17 +47,17 @@
         this.bonuses.push(bonus);
     }
 
-    BeachTrooper.prototype.drawMalus = function() {
+    Beachtrooper.prototype.drawMalus = function() {
 
       /* no malus */
     }
 
-    BeachTrooper.prototype.bonusHitted = function() {
+    Beachtrooper.prototype.bonusHitted = function() {
 
       this.die();
     }
 
-    BeachTrooper.prototype.die = function() {
+    Beachtrooper.prototype.die = function() {
 
       this.sprite.gotoAndPlay('fall');
       this.sprite.on('animationend', (ev) => {
@@ -67,13 +67,13 @@
       this.active = false;
     }
 
-    BeachTrooper.prototype.malusHitted = function() {
+    Beachtrooper.prototype.malusHitted = function() {
 
       this.wave.surfer.fall('laser_hit');
 
     }
 
-    BeachTrooper.prototype.onEnterFrame = function() {
+    Beachtrooper.prototype.onEnterFrame = function() {
       return;
       var distance = get2dDistance(this.x,this.y,this.wave.surfer.x,this.wave.surfer.y);
 
@@ -84,7 +84,7 @@
       }
     }
 
-    BeachTrooper.prototype.fire = function() {
+    Beachtrooper.prototype.fire = function() {
 
       if(this.fired === true) return;
       this.fired = true;
@@ -131,7 +131,7 @@
 
     }
 
-    BeachTrooper.prototype.cancelShot = function() {
+    Beachtrooper.prototype.cancelShot = function() {
 
       let laser = this.laser;
       let trooper = this.parent.parent;

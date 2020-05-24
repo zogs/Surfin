@@ -886,7 +886,8 @@
 
 		// set current status
 		this.status = 'aerial';
-		this.rainbow = true;
+		// enable trails
+		//this.rainbow = true;
 		// hide trail
 		this.saveTrailSize();
 		this.trailsize = 0;
@@ -1131,7 +1132,9 @@
 
 		// remove spatter
 		this.clearSpatter();
-		this.rainbow = false;
+
+		// remove trails
+		if(this.rainbow) this.rainbow = false;
 
 		// remove slow motion
 		window.switchSlowMo(1,1000);

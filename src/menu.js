@@ -137,13 +137,16 @@
     if(this.cplanet == id) return;
     this.cplanet = id;
 
-    let planet = this.planets.find(p => p.id == id);
+    let planet;
 
-    if(planet.id == 'home') {
+    if(id == 'home') {
       planet = this.planets.find(p => p.id === 'arrakis')
     }
-    if(planet.id == 'terre') {
+    else if(id == 'terre') {
       planet = this.planets.find(p => p.id === 'namek')
+    }
+    else {
+      planet = this.planets.find(p => p.id == id);
     }
 
     USER.currentPlanet = planet.id;

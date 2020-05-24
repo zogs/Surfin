@@ -40,8 +40,8 @@
           splash_h_percent: 100,
           splash_h_ease: 0.4,
           left: {
-            width: 20,
-            width_max: 30,
+            width: 32,
+            width_max: 34,
             width_interval: 0,
             width_pause: 0,
             block_interval: 0,
@@ -50,8 +50,8 @@
             block_width_max: 200,
           },
           right: {
-            width: 20,
-            width_max: 0,
+            width: 32,
+            width_max: 34,
             width_interval: 0,
             width_pause: 1000,
             block_interval: 2000,

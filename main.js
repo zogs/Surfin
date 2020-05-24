@@ -226,13 +226,17 @@ window.initialize = function() {
 	SCREENS = new ScreenManager();
 
 	//BUILD LEVELS
-	PLANETS.filter(p => p.active == true).sort(function(a,b) { return a.order - b.order }).map(function(p) {
+	let planets = PLANETS
+    // keep only active planets
+    .filter(p => p.active == true)
+    // order them
+    .sort(function(a,b) { return a.order - b.order })
 		// adapt planet variables to resolution
-		resizePlanetConf(p);
-	});
+    .map(function(p) { resizePlanetConf(p); return p; });
+
 
 	//unlock first level
-	let planet = PLANETS.find(p => p.order == 1);
+	let planet = planets.find(p => p.order == 1);
 	let level = planet.levels[0];
 	USER.unlockPlanet(planet.id);
 	USER.unlockLevel(level);
@@ -240,13 +244,13 @@ window.initialize = function() {
 	USER.currentLevel = level;
 
 	//MENU
-	MENU = new Menu(PLANETS);
+	MENU = new Menu(planets);
 	this.menu_cont.addChild(MENU);
 	//MENU.open();
 
 	//SCENE
   SCENE = new Scene();
-	SCENE.loadLevel('Home');
+	SCENE.loadLevel('Flhoston0');
 
 
 	//init onEnterFrame
