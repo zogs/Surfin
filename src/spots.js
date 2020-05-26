@@ -153,17 +153,17 @@
 
   prototype.dialogGoals = function() {
 
-    let font_title = '18px "Work Sans", Arial';
+    let font_title = '20px "Work Sans", Arial';
     let font_goal = 'italic 16px Helvetica, Arial';
 
     let lines = [
-        new Text("Objectifs :", font_title),
+        new Text("Objectifs", font_title),
         new Text(''),
         ];
     let goals = this.config.goals.reduce((arr, g) => {
       let name = '\u2022 '+ g.name.replace(/(\(.*\))/g, '');
       name = name.toLowerCase();
-      arr.push(new Text(name, font_goal))
+      arr.push(new Text(name, font_goal, {textAlign: 'left'}))
       return arr;
     }, []);
 
@@ -190,7 +190,7 @@
 		if(this.name == 'home') return;
 
     let h = 50;
-    let w = 50;
+    let w = 45;
     let y = 4;
 		let btn = new createjs.Shape();
     btn.graphics
@@ -201,13 +201,20 @@
       .setStrokeStyle(10,"round").beginStroke("#FFF")
       .moveTo(0,0).lineTo(w, 0)
       .moveTo(0,h*1/3).lineTo(w, h*1/3)
-      .moveTo(0,h*2/3).lineTo(w, h*2/3);
-		btn.x = STAGEWIDTH - w*1.5;
-		btn.y = h/2;
+      .moveTo(0,h*2/3).lineTo(w, h*2/3)
+      .setStrokeStyle(0).beginStroke(0).beginFill('rgba(255,255,255,0.2)').drawCircle(w/2,h/3,w*0.9)
+      ;
+		btn.x = STAGEWIDTH - w*1.8;
+		btn.y = h;
 		btn.cursor = 'pointer';
-		btn.on('click', proxy(MENU.open,MENU));
+		btn.on('click', this.clickMenuButton);
 		this.overlay_cont.addChild(btn);
 	}
+
+  prototype.clickMenuButton = function(e) {
+    e.stopImmediatePropagation();
+    MENU.open();
+  }
 
 	prototype.drawBackground = function() {
 
@@ -218,8 +225,7 @@
 		this.background.addChild(defaultbkg);
 
 		const skyimage = new createjs.Bitmap(queue.getResult(this.planet.images.background));
-    const defaultimageheight = 500 * rY;
-		skyimage.y = this.planet.lines.horizon - defaultimageheight;
+		skyimage.y = this.planet.lines.horizon - skyimage.image.height;
 		this.background.addChild(skyimage);
 
 		const seagradient = new createjs.Shape();

@@ -81,7 +81,7 @@
     let startx = 0;
     let starty = 0;
     let previous = null;
-    let padding = 50*rY;
+    let padding = 40*rY;
     for(let i=0,ln=this.planets.length; i<ln; i++) {
       let config = this.planets[i];
       if(config.active == false) continue;
@@ -123,7 +123,7 @@
     }
     this.nav_cont.scale = 0.35;
     this.nav_cont.x = 183*rX;
-    this.nav_cont.y = 190*rY;
+    this.nav_cont.y = 80*rY;
 
 
     this.loadPlanet(USER.currentPlanet)
@@ -224,7 +224,7 @@
         })
       );
     btn.x = 1265 * rX;
-    btn.y = 350 * rY;
+    btn.y = 150 * rY;
     new createjs.ButtonHelper(btn, "out","over","down");
     this.acti_cont.addChild(btn);
     btn.on('click', proxy(this.close, this));

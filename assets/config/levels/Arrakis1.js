@@ -8,6 +8,9 @@
       planet: 'arrakis',
       story: [
       ],
+      init: {
+        type: 'waiting',
+      },
       series: {
         length :  3,
         speed : 20000,
@@ -32,7 +35,7 @@
         weapons: []
       },
       waves: {
-        height : 260,
+        height : 275,
         width : 0,
         real_height: 3,
         breaking: {
@@ -46,10 +49,10 @@
             width_max: 25,
             width_interval: 0,
             width_pause: 0,
-            block_interval: 0,
-            block_interval_max: 0,
-            block_width: 100,
-            block_width_max: 200,
+            block_interval: 600,
+            block_interval_max: 1000,
+            block_width: 40,
+            block_width_max: 60,
           },
           right: {
             width: 22,

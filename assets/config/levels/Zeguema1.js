@@ -6,6 +6,9 @@
       id: 'Zeguema1',
       name: 'Zeguema 1',
       planet: 'zeguema',
+      init: {
+        type: 'waiting',
+      },
       series: {
         length :  3,
         speed : 20000,
@@ -31,7 +34,7 @@
         weapons: []
       },
       waves: {
-        height : 250,
+        height : 280,
         width : 0,
         real_height: 3,
         breaking: {
@@ -45,10 +48,10 @@
             width_max: 30,
             width_interval: 0,
             width_pause: 0,
-            block_interval: 0,
-            block_interval_max: 0,
-            block_width: 100,
-            block_width_max: 200,
+            block_interval: 500,
+            block_interval_max: 1500,
+            block_width: 80,
+            block_width_max: 350,
           },
           right: {
             width: 20,
@@ -77,8 +80,8 @@
         suction: {x: 5, y: 4},
         obstacles: {
           'float': {
-            'interval': 0,
-            'interval_max': 1000,
+            'interval': 1000,
+            'interval_max': 2000,
             'objects' : {
               'paddler' : {percentage: 30},
               'photographer' : {percentage: 30},

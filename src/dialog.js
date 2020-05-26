@@ -400,7 +400,7 @@ class Dialog extends createjs.Container {
       var defaults = {
         width: null,
         height: null,
-        font: '30px "BenchNine", Arial',
+        font: '36px "BenchNine", Arial',
         radius: 10,
         paddings: [20, 60, 20, 60],
         color: 'white',

@@ -12,6 +12,9 @@
             buttons: [{name: "Allez à l'eau", action: "continueStory" }],
           },
       ],
+      init: {
+        type: 'waiting',
+      },
       series: {
         length :  3,
         speed : 20000,
@@ -23,7 +26,7 @@
       timelimit: null,
       goals: false,
       surfers: {
-        max: 1,
+        max: 0,
         proportion: 1.5,
         "x": 750,
         "y": 470,

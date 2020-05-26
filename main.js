@@ -75,8 +75,9 @@ window.load = function() {
 		{id:'spot_front_home',src:imgdir+'spots/default/homefront.png'},
 		{id:'spot_front',src:imgdir+'spots/default/beach.png'},
 		{id:'caladan_back', src:imgdir+'spots/Caladan_Peak/back2.jpg'},
-		{id:'flhoston_back', src:imgdir+'spots/Flhoston_Paradise/back.png'},
+		{id:'flhoston_back', src:imgdir+'spots/Flhoston_Paradise/back.jpg'},
 		{id:'flhoston_back_reflect', src:imgdir+'spots/Flhoston_Paradise/shipreflect.png'},
+    {id:'flhoston_back_islands', src:imgdir+'spots/Flhoston_Paradise/islands.png'},
 		{id:'pandora_back', src:imgdir+'spots/Pandora_Bay/back.jpg'},
 		{id:'zeguema_back', src:imgdir+'spots/Zeguema_Beach/back.jpg'},
 		{id:'namek_back', src:imgdir+'spots/Namek/back.jpg'},
@@ -250,7 +251,7 @@ window.initialize = function() {
 
 	//SCENE
   SCENE = new Scene();
-	SCENE.loadLevel('Flhoston0');
+	SCENE.loadLevel('Home');
 
 
 	//init onEnterFrame

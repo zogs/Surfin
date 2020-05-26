@@ -3,11 +3,15 @@
   function ControlUI(params) {
 
     this.spot = params.spot;
+    const defaults = {
+      iconScale: 0.4,
+      iconAlpha: 0.6,
+      buttonSize: 60,
+    }
+    this.config = Object.assign({}, defaults, params);
 
     this.Container_constructor();
-
     this.init();
-
   }
 
   var prototype = createjs.extend(ControlUI, createjs.Container);
@@ -35,13 +39,13 @@
     let icon = new createjs.Bitmap(queue.getResult('icon_boost'));
     icon.regX = icon.image.width/2;
     icon.regY = icon.image.height/2;
-    icon.scale = 0.7;
-    icon.alpha = 0.6;
+    icon.scale = this.config.iconScale;
+    icon.alpha = this.config.iconAlpha;
     let btn = new createjs.Shape();
-    btn.graphics.beginFill('#FFF').drawCircle(0,0,70);
+    btn.graphics.beginFill('#FFF').drawCircle(0,0,this.config.buttonSize);
     btn.alpha = 0.8;
     let shadow = new createjs.Shape();
-    shadow.graphics.beginFill('#000').drawCircle(0,4,70);
+    shadow.graphics.beginFill('#000').drawCircle(0,4,this.config.buttonSize);
     shadow.alpha = 0.3;
     this.boost.addChild(shadow);
     this.boost.addChild(btn);
@@ -60,13 +64,13 @@
     let icon = new createjs.Bitmap(queue.getResult('icon_shield'));
     icon.regX = icon.image.width/2;
     icon.regY = icon.image.height/2;
-    icon.scale = 0.7;
-    icon.alpha = 0.6;
+    icon.scale = this.config.iconScale;
+    icon.alpha = this.config.iconAlpha;
     let btn = new createjs.Shape();
-    btn.graphics.beginFill('#FFF').drawCircle(0,0,70);
+    btn.graphics.beginFill('#FFF').drawCircle(0,0,this.config.buttonSize);
     btn.alpha = 0.8;
     let shadow = new createjs.Shape();
-    shadow.graphics.beginFill('#000').drawCircle(0,4,70);
+    shadow.graphics.beginFill('#000').drawCircle(0,4,this.config.buttonSize);
     shadow.alpha = 0.3;
     this.shield.addChild(shadow);
     this.shield.addChild(btn);
@@ -85,13 +89,13 @@
     let icon = new createjs.Bitmap(queue.getResult('icon_hadoken'));
     icon.regX = icon.image.width/2;
     icon.regY = icon.image.height/2;
-    icon.scale = 0.7;
-    icon.alpha = 0.6;
+    icon.scale = this.config.iconScale;
+    icon.alpha = this.config.iconAlpha;
     let btn = new createjs.Shape();
-    btn.graphics.beginFill('#FFF').drawCircle(0,0,70);
+    btn.graphics.beginFill('#FFF').drawCircle(0,0,this.config.buttonSize);
     btn.alpha = 0.8;
     let shadow = new createjs.Shape();
-    shadow.graphics.beginFill('#000').drawCircle(0,4,70);
+    shadow.graphics.beginFill('#000').drawCircle(0,4,this.config.buttonSize);
     shadow.alpha = 0.3;
     this.hadoken.addChild(shadow);
     this.hadoken.addChild(btn);

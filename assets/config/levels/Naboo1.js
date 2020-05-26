@@ -6,6 +6,9 @@
       id: 'Naboo1',
       name: 'Naboo 1',
       planet: 'naboo',
+      init: {
+        type: 'waiting',
+      },
       series: {
         length :  3,
         speed : 20000,
@@ -44,10 +47,10 @@
             width_max: 34,
             width_interval: 0,
             width_pause: 0,
-            block_interval: 0,
-            block_interval_max: 0,
-            block_width: 100,
-            block_width_max: 200,
+            block_interval: 1000,
+            block_interval_max: 3000,
+            block_width: 140,
+            block_width_max: 280,
           },
           right: {
             width: 32,
@@ -76,8 +79,8 @@
         suction: {x: 5, y: 4},
         obstacles: {
           'float': {
-            'interval': 2000,
-            'interval_max': 4000,
+            'interval': 500,
+            'interval_max': 1000,
             'objects' : {
               'beachtrooper': {percentage: 100},
             },

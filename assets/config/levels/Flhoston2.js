@@ -44,10 +44,10 @@
             width_max: 30,
             width_interval: 0,
             width_pause: 0,
-            block_interval: 2000,
+            block_interval: 1000,
             block_interval_max: 3000,
-            block_width: 80,
-            block_width_max: 120,
+            block_width: 100,
+            block_width_max: 200,
           },
           right: {
             width: 28,
@@ -76,12 +76,11 @@
         suction: {x: 5, y: 4},
         obstacles: {
           'float': {
-            'interval': 2500,
-            'interval_max': 10000,
+            'interval': 1000,
+            'interval_max': 1500,
             'objects' : {
-              'beachtrooper': { percentage: 30 },
-              'bomb': { percentage: 30 },
-              'shark': { percentage: 30 },
+              'beachtrooper': { percentage: 50 },
+              'bomb': { percentage: 50 },
             },
           },
           'fly': {

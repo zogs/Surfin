@@ -14,6 +14,9 @@
         "spread": 200,
         "xshift": 0
       },
+      init: {
+        type: 'waiting',
+      },
       timelimit: null,
       goals: [
         { type: 'score', current:0, aim: 2000, name: 'Faire un score de 2000 points ({n})' },
@@ -32,7 +35,7 @@
         "weapons": []
       },
       "waves": {
-        "height": 250,
+        "height": 290,
         "width": 1500,
         "real_height": 3,
         "breaking": {
@@ -81,17 +84,14 @@
         },
         "obstacles": {
           "float": {
-            "interval": 0,
-            "interval_max": 1000,
+            "interval": 1000,
+            "interval_max": 3000,
             "objects": {
               "paddler": {
                 "percentage": 30
               },
               "photographer": {
                 "percentage": 30
-              },
-              "bomb": {
-                "percentage": 40
               },
             }
           },

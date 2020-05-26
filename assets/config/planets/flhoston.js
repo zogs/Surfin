@@ -23,6 +23,12 @@ var planet = {
           x: 910,
           y: 270,
           alpha:0.5
+        },
+        {
+          asset: 'flhoston_back_islands',
+          x: 69,
+          y: 240,
+          alpha:1
         }
       ]
     },

@@ -6,6 +6,9 @@
       id: 'Namek1',
       name: 'Namek 1',
       planet: 'namek',
+      init: {
+        type: 'waiting',
+      },
       series: {
         length :  3,
         speed : 20000,
@@ -30,7 +33,7 @@
         weapons: []
       },
       waves: {
-        height : 300,
+        height : 270,
         width : 0,
         real_height: 3,
         breaking: {
@@ -44,10 +47,10 @@
             width_max: 32,
             width_interval: 0,
             width_pause: 0,
-            block_interval: 0,
-            block_interval_max: 0,
-            block_width: 100,
-            block_width_max: 200,
+            block_interval: 500,
+            block_interval_max: 1000,
+            block_width: 50,
+            block_width_max: 100,
           },
           right: {
             width: 30,
@@ -76,7 +79,7 @@
         suction: {x: 5, y: 4},
         obstacles: {
           'float': {
-            'interval': 4000,
+            'interval': 3000,
             'interval_max': 6000,
             'objects' : {
               'guldo': {percentage: 33},
