@@ -270,7 +270,7 @@
 
   prototype.drawButtonSuccess = function() {
 
-    let next_level = new Button('NEXT LEVEL', proxy(SCENE.gotoNextLevel, SCENE));
+    let next_level = new Button('MENU', proxy(MENU.open, MENU));
     next_level.x = 220*rX;
     next_level.y = 180*rY;
     this.cont_board.addChild(next_level);
@@ -279,38 +279,19 @@
     retry.x = 0*rX;
     retry.y = 180*rY;
     this.cont_board.addChild(retry);
-
   }
 
   prototype.drawButtonRetry = function() {
-
-    let menu = new ButtonSecondary('MENU', proxy(MENU.open, MENU));
-    menu.x = 0*rX;
-    menu.y = 180*rY;
-    this.cont_board.addChild(menu);
 
     let retry = new Button('RETRY', proxy(SCENE.reloadLevel, SCENE));
     retry.x = 220*rX;
     retry.y = 180*rY;
     this.cont_board.addChild(retry);
 
-    /*let btn_retry = new createjs.Bitmap(queue.getResult('btn_retry'));
-    btn_retry.mouseEnabled = true;
-    btn_retry.cursor = 'pointer';
-    btn_retry.x = 100*rX;
-    btn_retry.y = 130*rY;
-    let btn_menu = new createjs.Bitmap(queue.getResult('btn_menu_sm'));
-    btn_menu.mouseEnabled = true;
-    btn_menu.cursor = 'pointer';
-    btn_menu.x = -120*rX;
-    btn_menu.y = 135*rY;
-
-    this.cont_board.addChild(btn_menu);
-    this.cont_board.addChild(btn_retry);
-
-    btn_menu.on('click', proxy(MENU.open, MENU), null, true);
-    btn_retry.on('click', proxy(MENU.reloadLevel, MENU), null, true);
-    */
+    let menu = new ButtonSecondary('MENU', proxy(MENU.open, MENU));
+    menu.x = 0*rX;
+    menu.y = 180*rY;
+    this.cont_board.addChild(menu);
   }
 
   prototype.show = function() {

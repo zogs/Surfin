@@ -17,7 +17,7 @@ class Dialog extends createjs.Container {
       call: null,
       onload: null,
       radius: 0,
-      paddings: [30,60,30,60],
+      paddings: [30,100,30,100],
       backgroundColor: '#FFF',
       borderColor: '#FAFAFA',
       borderWidth: 1,
@@ -544,7 +544,7 @@ class ButtonSecondary extends Button {
         font: '30px "BenchNine", Arial',
         radius: 10,
         paddings: [15, 40, 15, 40],
-        color: 'white',
+        color: '#888',
         backgroundColor: "#b64576",
         borderWidth: 1,
         borderColor: '#e2b1c6',
@@ -553,6 +553,27 @@ class ButtonSecondary extends Button {
         y: 50,
       };
       super(text, callback, defaults);
+    }
+
+    drawText(w,h) {
+      let container = new createjs.Container();
+      let text = new createjs.Text(this.text, this.params.font, this.params.color);
+      text.mouseEnabled = false;
+      text.textAlign = 'center';
+      text.regX = 0;
+      text.regY = h/2;
+      let shadow = new createjs.Text(this.text, this.params.font, 'rgba(0,0,0,0.1)');
+      shadow.mouseEnabled = false;
+      shadow.textAlign = 'center';
+      shadow.regX = 0;
+      shadow.regY = h/2;
+      shadow.x = 2;
+
+      container.y = -5;
+      container.addChild(shadow);
+      container.addChild(text);
+
+      return container;
     }
 
     drawBackground(w,h) {

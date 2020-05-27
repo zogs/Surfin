@@ -1111,10 +1111,10 @@ prototype.moveWave = function() {
 	let surfer_pos = this.cont.localToGlobal(this.surfer.x,0);
 
 	// horizontal position the which the wave will be translate to a side of the screen
-	let delta = (STAGEWIDTH/2) - surfer_pos.x; + (STAGEWIDTH*2/3 * this.direction)
+	let delta = (STAGEWIDTH/2) - surfer_pos.x;
 
 	if(this.direction === LEFT) {
-		delta += STAGEWIDTH / 2.5;
+		delta += STAGEWIDTH / 2;
 		this.movingX = delta/this.params.breaking.left.width;
 	}
 	if(this.direction === RIGHT) {

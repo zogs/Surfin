@@ -948,7 +948,7 @@
 			this.scoreboard = new Scoreboard(this.score);
 			this.overlay_cont.addChild(this.scoreboard);
 			this.scoreboard.show();
-		},this),1000);
+		},this),200);
 	}
 
   prototype.hideScoreboard = function(e) {

@@ -96,7 +96,6 @@ window.load = function() {
 		{id:'btn_menu_sm',src:imgdir+'buttons/btn_menu_sm.png'},
 		{id:'btn_retry',src:imgdir+'buttons/btn_retry.png'},
 		{id:'btn_retry_sm',src:imgdir+'buttons/btn_retry_sm.png'},
-		{id:'btn_close',src:imgdir+'buttons/btn_close.png'},
 		{id:'btn_skills',src:imgdir+'buttons/btn_skills.png'},
 		{id:'dog',src:imgdir+'ui/spacedog.png'},
 		{id:'bomb',src:imgdir+'enemy/astro_bomb.png'},
@@ -247,12 +246,10 @@ window.initialize = function() {
 	//MENU
 	MENU = new Menu(planets);
 	this.menu_cont.addChild(MENU);
-	//MENU.open();
 
 	//SCENE
   SCENE = new Scene();
-	SCENE.loadLevel('Home');
-
+	SCENE.loadLevel('Flhoston1');
 
 	//init onEnterFrame
 	createjs.Ticker.timingMode = createjs.Ticker.TIMEOUT;

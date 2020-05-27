@@ -132,24 +132,24 @@
       this.hadoken.alpha = 1;
       if(this.spot.getWave().direction === LEFT) {
         this.boost.scaleX = -1;
-        this.boost.x = STAGEWIDTH - 100;
-        this.boost.y = STAGEHEIGHT - 100;;
-        this.shield.scaleX = -1;
-        this.shield.x = STAGEWIDTH - 100;
-        this.shield.y = STAGEHEIGHT - 300;;
         this.hadoken.scaleX = -1;
-        this.hadoken.x = STAGEWIDTH - 100;
-        this.hadoken.y = STAGEHEIGHT - 500;;
+        this.shield.scaleX = -1;
+        this.boost.x = STAGEWIDTH - 150;
+        this.boost.y = STAGEHEIGHT/2;
+        this.hadoken.x = this.boost.x + 50;
+        this.hadoken.y = this.boost.y - 140;
+        this.shield.x = this.boost.x + 50;
+        this.shield.y = this.boost.y + 140;
       } else {
         this.boost.scaleX = 1;
-        this.boost.x = 100;
-        this.boost.y = STAGEHEIGHT - 100;
-        this.shield.scaleX = 1;
-        this.shield.x = 100;
-        this.shield.y = STAGEHEIGHT - 300;
         this.hadoken.scaleX = 1;
-        this.hadoken.x = 100;
-        this.hadoken.y = STAGEHEIGHT - 500;
+        this.shield.scaleX = 1;
+        this.boost.x = 150;
+        this.boost.y = STAGEHEIGHT/2;
+        this.hadoken.x = this.boost.x - 50;
+        this.hadoken.y = this.boost.y - 140;
+        this.shield.x = this.boost.x - 50;
+        this.shield.y = this.boost.y + 140;
       }
     } else {
       this.hide();

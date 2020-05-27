@@ -21,7 +21,7 @@
       },
       timelimit: null,
       goals: [
-        { type: 'score', current:0, aim: 2000, name: 'Faire un score de 2000 points ({n})' },
+        { type: 'score', current:0, aim: 20000, name: 'Faire un score de 20000 points ({n})' },
       ],
       surfers: {
         max: 1,
@@ -45,14 +45,14 @@
           splash_h_percent: 100,
           splash_h_ease: 0.4,
           left: {
-            width: 28,
-            width_max: 30,
+            width: 20,
+            width_max: 23,
             width_interval: 2000,
             width_pause: 1000,
             block_interval: 1000,
-            block_interval_max: 3000,
-            block_width: 80,
-            block_width_max: 160,
+            block_interval_max: 6000,
+            block_width: 40,
+            block_width_max: 500,
           },
           right: {
             width: 28,

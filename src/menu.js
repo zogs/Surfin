@@ -215,18 +215,27 @@
     }
 
     //close button
-    let btn = new createjs.Sprite(
-        new createjs.SpriteSheet({
-            images: [queue.getResult('btn_close')],
-            frames: {width:parseInt(71*rX), height:parseInt(71*rY)},
-            framerate: 1,
-            animations: { out: [0], over: [1], down: [2] }
-        })
-      );
-    btn.x = 1265 * rX;
-    btn.y = 150 * rY;
-    new createjs.ButtonHelper(btn, "out","over","down");
+    let w = 40;
+    let h = 40;
+    let y = 4;
+    let btn = new createjs.Shape();
+    btn.graphics
+      .setStrokeStyle(10,'round').beginStroke("rgba(0,0,0,0.4)")
+      .moveTo(0, 0+y).lineTo(w,h+y)
+      .moveTo(0, h+y).lineTo(w,0+y)
+      .setStrokeStyle(10,'round').beginStroke("#fff")
+      .moveTo(0, 0).lineTo(w,h)
+      .moveTo(0, h).lineTo(w,0)
+      .setStrokeStyle(0).beginStroke(0).beginFill('rgba(255,255,255,0.2)').drawCircle(w/2,h/2,w);
+      ;
+    btn.x = (1295-w/2) * rX;
+    btn.y = (130-h/2) * rY;
+    btn.alpha = 0.4;
+    btn.cursor = 'pointer';
     this.acti_cont.addChild(btn);
+
+    btn.on('mouseover', function() { this.alpha = 1 })
+    btn.on('mouseout', function() { this.alpha = 0.4 })
     btn.on('click', proxy(this.close, this));
 
 

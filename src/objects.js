@@ -34,6 +34,7 @@
     this.config.scale = config.scale || 1;
     this.config.meter_height = config.meter_height || 0.80;
     this.config.pixel_height = config.pixel_height || 190;
+    this.config.objectWidth = config.objectWidth || 200;
 
     this.location = new Victor();
     this.active = true;
@@ -86,11 +87,11 @@
       x = this.wave.params.breaking_center + (200 - Math.random() * 400);
       y = Math.random()*this.wave.params.height;
       if(this.direction === RIGHT) {
-        x = this.wave.obstacle_cont.globalToLocal(STAGEWIDTH,0).x;
+        x = this.wave.obstacle_cont.globalToLocal(STAGEWIDTH,0).x + this.config.objectWidth;
         if(this.reverse) x = this.wave.obstacle_cont.globalToLocal(0,0).x;
       }
       if(this.direction === LEFT) {
-        x = this.wave.obstacle_cont.globalToLocal(0,0).x;
+        x = this.wave.obstacle_cont.globalToLocal(0,0).x - this.config.objectWidth;
         if(this.reverse) x = this.wave.obstacle_cont.globalToLocal(STAGEWIDTH,0).x;
       }
     }

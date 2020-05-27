@@ -23,7 +23,7 @@
       ],
       surfers: {
         max: 1,
-        proportion: 1.5,
+        proportion: 3,
         "x": 750,
         "y": 470,
         velocities: {
@@ -33,9 +33,9 @@
         weapons: []
       },
       waves: {
-        height : 240,
+        height : 310,
         width : 0,
-        real_height: 4,
+        real_height: 3.5,
         breaking: {
           width: 180,
           y_speed: 1200,
@@ -43,19 +43,19 @@
           splash_h_percent: 100,
           splash_h_ease: 0.4,
           left: {
-            width: 32,
-            width_max: 34,
-            width_interval: 0,
-            width_pause: 0,
+            width: 20,
+            width_max: 25,
+            width_interval: 2000,
+            width_pause: 500,
             block_interval: 1000,
-            block_interval_max: 3000,
-            block_width: 140,
-            block_width_max: 280,
+            block_interval_max: 5000,
+            block_width: 50,
+            block_width_max: 500,
           },
           right: {
-            width: 32,
-            width_max: 34,
-            width_interval: 0,
+            width: 25,
+            width_max: 302,
+            width_interval: 2000,
             width_pause: 1000,
             block_interval: 2000,
             block_interval_max: 600,
@@ -80,7 +80,7 @@
         obstacles: {
           'float': {
             'interval': 500,
-            'interval_max': 1000,
+            'interval_max': 3000,
             'objects' : {
               'beachtrooper': {percentage: 100},
             },
