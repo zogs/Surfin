@@ -10,6 +10,8 @@
 
       this.Obstacle_constructor(config);
 
+      this.shotable = this.bonuses;
+
     }
     Beachtrooper.prototype = Object.create(Obstacle.prototype);
     Beachtrooper.prototype.constructor = Beachtrooper;
@@ -62,7 +64,7 @@
 
       this.sprite.gotoAndPlay('fall');
       this.sprite.on('animationend', (ev) => {
-        createjs.Tween.get(this.sprite).to({alpha: 0}, 500)
+        createjs.Tween.get(this.sprite).to({alpha: 0}, 300)
           .call(() => this.selfRemove())
       })
       this.active = false;
@@ -105,15 +107,11 @@
       start.y = laser.y;
       start.hitzone = 'body';
       start.laser = laser;
-      start.shotable = true;
-      start.onShoted = this.cancelShot;
 
       var end = start.clone();
       end.x = laser.x;
       end.hitzone = 'none';
       end.laser = laser;
-      end.shotable = true;
-      end.onShoted = this.cancelShot;
 
       laser.start = start;
       laser.end = end;

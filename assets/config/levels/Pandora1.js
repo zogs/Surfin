@@ -17,9 +17,9 @@
         spread : 0,
         xshift: 0,
       },
-      timelimit: 30,
+      //timelimit: 30,
       goals: [
-        { type: 'score', current:0, aim: 2000, name: 'Faire un score de 2000 points' },
+        { type: 'score', current:0, aim: 20000, name: 'Faire un score de 20000 points' },
         { type: 'tube', current:0, aim: 5, name: 'Faire un tube de 5s ou + ({n})' },
       ],
       surfers: {
@@ -43,7 +43,7 @@
           y_ease: "quartIn",
           splash_h_percent: 100,
           splash_h_ease: 0.4,
-          left: {
+          unroll: {
             width: 25,
             width_max: 28,
             width_interval: 0,
@@ -53,16 +53,6 @@
             block_width: 50,
             block_width_max: 90,
           },
-          right: {
-            width: 25,
-            width_max: 28,
-            width_interval: 0,
-            width_pause: 1000,
-            block_interval: 2000,
-            block_interval_max: 600,
-            block_width: 100,
-            block_width_max: 200,
-          }
         },
         lip: {
           thickness: 10,
@@ -81,12 +71,10 @@
         obstacles: {
           'float': {
             'interval': 2000,
-            'interval_max': 4000,
+            'interval_max': 3000,
             'objects' : {
-              'paddler' : {percentage: 30},
-              'photographer' : {percentage: 30},
-              'bomb': {percentage: 40},
-              'trooper': {percentage: 0},
+              'Toruk' : {percentage: 90},
+              'TorukAttack' : {percentage: 10},
             },
           },
           'fly': {
@@ -100,20 +88,11 @@
           }
         },
         shoulder : {
-          left : {
-            width: 1000,
-            inner: 300,
-            outer: 300,
-            marge: 50,
-            slope: 0
-          },
-          right : {
-            width: 1000,
-            inner: 300,
-            outer: 300,
-            marge: 50,
-            slope: 0
-          }
+          width: 1000,
+          inner: 300,
+          outer: 300,
+          marge: 50,
+          slope: 0
         }
       },
     }

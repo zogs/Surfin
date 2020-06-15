@@ -106,7 +106,11 @@ prototype.init = function(spot, config) {
 	this.background_cont = new createjs.Container();
 	this.cont.addChild(this.background_cont);
 
+	// weapon cont
+	this.weapon_cont = new createjs.Container();
+	this.addChild(this.weapon_cont);
 
+	// wave foreground
 	this.foreground_cont = new createjs.Container();
 	this.cont.addChild(this.foreground_cont);
 
@@ -179,7 +183,7 @@ prototype.init = function(spot, config) {
 		this.shape_mask = new createjs.Shape();
 
 		//Ticker
-		this.addEventListener('tick',proxy(this.tick,this));
+		this.ticker = this.on('tick', this.tick, this);
 
 		this.initWave(STAGEWIDTH/2);
 
@@ -217,7 +221,7 @@ prototype.mergeCollidingPeaks = function() {
 		if(second === undefined) break;
 
 		if( first.points.length !== 0 && second.points.length !==0 &&
-			first.boundaries[RIGHT] >= second.boundaries[LEFT] - this.params.breaking.left.width) {
+			first.boundaries[RIGHT] >= second.boundaries[LEFT] - this.params.breaking.unroll.width) {
 
 			//remove last point to make a nice visual merge
 			first.points.splice(first.points.length-1,1);
@@ -245,7 +249,7 @@ prototype.mergeCollidingPeaks = function() {
 		if(second === undefined) break;
 
 		if( first.points.length !==0 && second.points.length !==0 &&
-			first.boundaries[RIGHT] >= second.boundaries[LEFT] - this.params.breaking.left.width) {
+			first.boundaries[RIGHT] >= second.boundaries[LEFT] - this.params.breaking.unroll.width) {
 
 			first.points.splice(first.points.length-1,1);
 			var merged = first.points.concat(second.points);
@@ -280,11 +284,11 @@ prototype.continuousBreaking = function() {
 		if(peak.points.length === 0) continue;
 
 		// add left point
-		let lx = peak.points[0].x - this.params.breaking.left.width;
+		let lx = peak.points[0].x - this.params.breaking.unroll.width;
 		const left = this.createLipPoint({x:lx, direction: LEFT, peak: peak});
 		peak.points.unshift(left);
 		// add right point
-		let rx = peak.points[peak.points.length-1].x + this.params.breaking.right.width;
+		let rx = peak.points[peak.points.length-1].x + this.params.breaking.unroll.width;
 		const right = this.createLipPoint({x:rx, direction: RIGHT, peak: peak});
 		peak.points.push(right);
 
@@ -360,17 +364,17 @@ prototype.createPeakPoints = function(peak) {
 	//add left points
 	let width = peak.width /2;
 	while( width > 0) {
-		point = this.createLipPoint({x: points[0].x - this.params.breaking.left.width, direction: LEFT, peak: peak});
+		point = this.createLipPoint({x: points[0].x - this.params.breaking.unroll.width, direction: LEFT, peak: peak});
 		points.unshift(point);
-		width = width - this.params.breaking.left.width;
+		width = width - this.params.breaking.unroll.width;
 	}
 
 	// add right points
 	width = peak.width /2;
 	while( width > 0) {
-		point = this.createLipPoint({x: points[points.length-1].x + this.params.breaking.right.width, direction: RIGHT, peak: peak});
+		point = this.createLipPoint({x: points[points.length-1].x + this.params.breaking.unroll.width, direction: RIGHT, peak: peak});
 		points.push(point);
-		width = width - this.params.breaking.right.width;
+		width = width - this.params.breaking.unroll.width;
 	}
 
 	return points;
@@ -383,7 +387,7 @@ prototype.createLipPoint = function(params) {
 	const delay = params.delay === undefined ? this.config.lip.cap.lifetime : this.config.lip.cap.lifetime + params.delay;
 	const direction = params.direction ? params.direction : RIGHT;
 	const x = params.x === undefined ? 0 : params.x;
-	const width = (this.direction === LEFT)? this.params.breaking.left.width : this.params.breaking.right.width;
+	const width = (this.direction === LEFT)? this.params.breaking.unroll.width : this.params.breaking.unroll.width;
 	const peak = params.peak === undefined ? null : params.peak;
 	const breaking_y = (this.params.breaking.splash_h_percent < 100)? this.params.height * this.params.breaking.splash_h_percent/100 : this.params.height;
 	const bounce_y = (this.isPlayed())? breaking_y + Math.random() * breaking_y / 3 : breaking_y + Math.random() * breaking_y / 4;
@@ -577,7 +581,7 @@ prototype.getResizeCoef = function() {
 }
 
 prototype.scaleToFit = function(pixel_height, meter_height) {
-	return ((meter_height * this.params.height) / this.config.real_height) / pixel_height;
+	return ((meter_height * this.config.height) / this.config.real_height) / pixel_height;
 }
 
 prototype.resize = function() {
@@ -601,15 +605,12 @@ prototype.resize = function() {
 		this.shoulder_left.x = STAGEWIDTH/2 - w/2;
 		this.shoulder_right.x = STAGEWIDTH/2 + w/2;
 		//set new shoulders proportion
-		this.params.shoulder.left.width = this.config.shoulder.left.width * coef;
-		this.params.shoulder.left.inner = this.config.shoulder.left.inner * coef;
-		this.params.shoulder.left.outer = this.config.shoulder.left.outer * coef;
-		this.params.shoulder.left.marge = this.config.shoulder.left.marge * coef;
-		this.params.shoulder.right.width = this.config.shoulder.right.width * coef;
-		this.params.shoulder.right.inner = this.config.shoulder.right.inner * coef;
-		this.params.shoulder.right.outer = this.config.shoulder.right.outer * coef;
-		this.params.shoulder.right.marge = this.config.shoulder.right.marge * coef;
+		this.params.shoulder.width = this.config.shoulder.width * coef;
+		this.params.shoulder.inner = this.config.shoulder.inner * coef;
+		this.params.shoulder.outer = this.config.shoulder.outer * coef;
+		this.params.shoulder.marge = this.config.shoulder.marge * coef;
 	}
+
 	//resize surfer
 	for(let i=0,len=this.surfers.length;i<len;++i) {
 		this.surfers[i].resize();
@@ -617,8 +618,8 @@ prototype.resize = function() {
 	//draw background
 	this.drawBackground();
 	//progressive alpha background
-	this.background.alpha = coef;
-	this.background_shadow.alpha = 1 - coef;
+	this.background.alpha = coef - 0.2;
+	this.background_shadow.alpha = 1 - coef - 0.2;
 	//resize background
 	this.resizeBackground(h);
 	//draw shpa
@@ -646,8 +647,7 @@ prototype.initBreak = function(center) {
 	//init intervals
 	this.initBreakedIntervals();
 	//fix to ajust witdh to the entire screen
-	createjs.Tween.get(this.params.shoulder.left).to({marge: 600}, 1000);
-	createjs.Tween.get(this.params.shoulder.right).to({marge: 600}, 1000);
+	createjs.Tween.get(this.params.shoulder).to({marge: 600}, 1000);
 }
 
 prototype.initBreakedIntervals = function() {
@@ -657,10 +657,10 @@ prototype.initBreakedIntervals = function() {
 
 prototype.initBreakingIntervals = function() {
 	//Breaking block interval
-	if(this.config.breaking.left.block_interval !== 0) {
+	if(this.config.breaking.unroll.block_interval !== 0) {
 		this.initBreakingBlockLeftInterval();
 	}
-	if(this.config.breaking.right.block_interval !== 0) {
+	if(this.config.breaking.unroll.block_interval !== 0) {
 		this.initBreakingBlockRightInterval();
 	}
 }
@@ -683,25 +683,25 @@ prototype.removeObstaclesInterval = function() {
 
 prototype.initVariablePameters = function() {
 
-	if(this.config.breaking.left.width_interval !== 0) {
-		if(this.params.breaking.left.width instanceof Variation) this.params.breaking.left.width.destroy();
-		this.params.breaking.left.width = new Variation({
-			min: this.config.breaking.left.width,
-			max: this.config.breaking.left.width_max,
-			time: this.config.breaking.left.width_interval,
-			wait: this.config.breaking.left.width_pause,
+	if(this.config.breaking.unroll.width_interval !== 0) {
+		if(this.params.breaking.unroll.width instanceof Variation) this.params.breaking.unroll.width.destroy();
+		this.params.breaking.unroll.width = new Variation({
+			min: this.config.breaking.unroll.width,
+			max: this.config.breaking.unroll.width_max,
+			time: this.config.breaking.unroll.width_interval,
+			wait: this.config.breaking.unroll.width_pause,
 			slope: 'both',
 			loops : true,
 			ease: createjs.Tween.cubicInOut,
 		})
 	}
-	if(this.config.breaking.right.width_interval !== 0) {
-		if(this.params.breaking.right.width instanceof Variation) this.params.breaking.right.width.destroy();
-		this.params.breaking.right.width = new Variation({
-			min: this.config.breaking.right.width,
-			max: this.config.breaking.right.width_max,
-			time: this.config.breaking.right.width_interval,
-			wait: this.config.breaking.right.width_pause,
+	if(this.config.breaking.unroll.width_interval !== 0) {
+		if(this.params.breaking.unroll.width instanceof Variation) this.params.breaking.unroll.width.destroy();
+		this.params.breaking.unroll.width = new Variation({
+			min: this.config.breaking.unroll.width,
+			max: this.config.breaking.unroll.width_max,
+			time: this.config.breaking.unroll.width_interval,
+			wait: this.config.breaking.unroll.width_pause,
 			slope: 'both',
 			loops : true,
 			ease: createjs.Tween.cubicInOut,
@@ -780,9 +780,8 @@ prototype.addSurferBot = function(bot) {
 
 	bot.takeOff(bot.x,bot.y);
 	this.surfers_cont.addChild(bot);
-	this.surfers.unshift(bot);
+	this.surfers.push(bot);
 	this.spot.dispatchEvent('bot_takeoff');
-
 }
 
 prototype.addTestSurferBot = function(surfer) {
@@ -803,13 +802,6 @@ prototype.addTestSurferBot = function(surfer) {
 	bot.takeOff( x, this.params.height*1/3 );
 	this.surfers_cont.addChild(bot);
 	this.surfers.push(bot);
-
-}
-
-prototype.removeBot = function(bot) {
-
-	this.surfers_cont.removeChild(bot);
-	this.surfers.splice(this.surfers.indexOf(bot),1);
 
 }
 
@@ -870,31 +862,31 @@ prototype.getTimers = function() {
 }
 
 prototype.initBreakingBlockLeftInterval = function() {
-	var t = this.config.breaking.left.block_interval + Math.random()*(this.config.breaking.left.block_interval_max - this.config.breaking.left.block_interval);
-	var w = this.config.breaking.left.block_width + Math.random()*(this.config.breaking.left.block_width_max - this.config.breaking.left.block_width);
+	var t = this.config.breaking.unroll.block_interval + Math.random()*(this.config.breaking.unroll.block_interval_max - this.config.breaking.unroll.block_interval);
+	var w = this.config.breaking.unroll.block_width + Math.random()*(this.config.breaking.unroll.block_width_max - this.config.breaking.unroll.block_width);
 	if(this.breaking_block_left_timer instanceof Timer) this.breaking_block_left_timer.clear();
 	this.breaking_block_left_timer = new Timer(proxy(this.continueBreakingBlockLeftInterval,this),t);
 }
 
 prototype.continueBreakingBlockLeftInterval = function() {
 	if(this.config == null) return;
-	var t = this.config.breaking.left.block_interval + Math.random()*(this.config.breaking.left.block_interval_max - this.config.breaking.left.block_interval);
-	var w = this.config.breaking.left.block_width + Math.random()*(this.config.breaking.left.block_width_max - this.config.breaking.left.block_width);
+	var t = this.config.breaking.unroll.block_interval + Math.random()*(this.config.breaking.unroll.block_interval_max - this.config.breaking.unroll.block_interval);
+	var w = this.config.breaking.unroll.block_width + Math.random()*(this.config.breaking.unroll.block_width_max - this.config.breaking.unroll.block_width);
 	this.initBlockBreakingLeft(w);
 	if(this.isRIGHT()) return;
 	this.breaking_block_left_timer = new Timer(proxy(this.continueBreakingBlockLeftInterval,this),t);
 }
 
 prototype.initBreakingBlockRightInterval = function() {
-	var t = this.config.breaking.right.block_interval + Math.random()*(this.config.breaking.right.block_interval_max - this.config.breaking.right.block_interval);
-	var w = this.config.breaking.right.block_width + Math.random()*(this.config.breaking.right.block_width_max - this.config.breaking.right.block_width);
+	var t = this.config.breaking.unroll.block_interval + Math.random()*(this.config.breaking.unroll.block_interval_max - this.config.breaking.unroll.block_interval);
+	var w = this.config.breaking.unroll.block_width + Math.random()*(this.config.breaking.unroll.block_width_max - this.config.breaking.unroll.block_width);
 	this.breaking_block_right_timer = new Timer(proxy(this.continueBreakingBlockRightInterval,this),t);
 }
 
 prototype.continueBreakingBlockRightInterval = function() {
 	if(this.config == null) return;
-	var t = this.config.breaking.right.block_interval + Math.random()*(this.config.breaking.right.block_interval_max - this.config.breaking.right.block_interval);
-	var w = this.config.breaking.right.block_width + Math.random()*(this.config.breaking.right.block_width_max - this.config.breaking.right.block_width);
+	var t = this.config.breaking.unroll.block_interval + Math.random()*(this.config.breaking.unroll.block_interval_max - this.config.breaking.unroll.block_interval);
+	var w = this.config.breaking.unroll.block_width + Math.random()*(this.config.breaking.unroll.block_width_max - this.config.breaking.unroll.block_width);
 	this.initBlockBreakingRight(w);
 	if(this.isLEFT()) return;
 	this.breaking_block_right_timer = new Timer(proxy(this.continueBreakingBlockRightInterval,this),t);
@@ -925,10 +917,10 @@ prototype.initBlockBreakingLeft = function(width) {
 
 	var peak = this.findTheLeftPeak();
 	while( width > 0 ) {
-		var x = peak.points[0].x - this.params.breaking.left.width;
+		var x = peak.points[0].x - this.params.breaking.unroll.width;
 		var point = this.createLipPoint({x:x, direction: LEFT, peak: peak});
 		peak.points.unshift(point);
-		width = width - this.params.breaking.left.width;
+		width = width - this.params.breaking.unroll.width;
 	}
 }
 
@@ -937,10 +929,10 @@ prototype.initBlockBreakingRight = function(width) {
 
 	var peak = this.findTheRightPeak();
 	while( width > 0) {
-		var x = peak.points[peak.points.length-1].x + this.params.breaking.right.width;
+		var x = peak.points[peak.points.length-1].x + this.params.breaking.unroll.width;
 		var point = this.createLipPoint({x:x, direction: RIGHT, peak: peak});
 		peak.points.push(point);
-		width = width - this.params.breaking.right.width;
+		width = width - this.params.breaking.unroll.width;
 	}
 }
 
@@ -972,8 +964,8 @@ prototype.findTheRightSplash = function() {
 
 prototype.initBreakingPeakRightInterval = function() {
 
-	var t = this.config.breaking.right.peak_interval + Math.random()*(this.config.breaking.right.peak_interval_max - this.config.breaking.right.peak_interval);
-	var w = this.config.breaking.right.peak_width + Math.random()*(this.config.breaking.right.peak_width_max - this.config.breaking.right.peak_width);
+	var t = this.config.breaking.unroll.peak_interval + Math.random()*(this.config.breaking.unroll.peak_interval_max - this.config.breaking.unroll.peak_interval);
+	var w = this.config.breaking.unroll.peak_width + Math.random()*(this.config.breaking.unroll.peak_width_max - this.config.breaking.unroll.peak_width);
 
 	this.breaking_peak_right_timer = new Timer(proxy(this.continueBreakingPeakRightInterval,this),t);
 
@@ -982,8 +974,8 @@ prototype.initBreakingPeakRightInterval = function() {
 prototype.continueBreakingPeakRightInterval = function() {
 
 	if(this.config == null) return;
-	var t = this.config.breaking.right.peak_interval + Math.random()*(this.config.breaking.right.peak_interval_max - this.config.breaking.right.peak_interval);
-	var w = this.config.breaking.right.peak_width + Math.random()*(this.config.breaking.right.peak_width_max - this.config.breaking.right.peak_width);
+	var t = this.config.breaking.unroll.peak_interval + Math.random()*(this.config.breaking.unroll.peak_interval_max - this.config.breaking.unroll.peak_interval);
+	var w = this.config.breaking.unroll.peak_width + Math.random()*(this.config.breaking.unroll.peak_width_max - this.config.breaking.unroll.peak_width);
 
 	this.initBreakingPeakRight(w);
 
@@ -992,8 +984,8 @@ prototype.continueBreakingPeakRightInterval = function() {
 
 prototype.initBreakingPeakLeftInterval = function() {
 
-	var t = this.config.breaking.left.peak_interval + Math.random()*(this.config.breaking.left.peak_interval_max - this.config.breaking.left.peak_interval);
-	var w = this.config.breaking.left.peak_width + Math.random()*(this.config.breaking.left.peak_width_max - this.config.breaking.left.peak_width);
+	var t = this.config.breaking.unroll.peak_interval + Math.random()*(this.config.breaking.unroll.peak_interval_max - this.config.breaking.unroll.peak_interval);
+	var w = this.config.breaking.unroll.peak_width + Math.random()*(this.config.breaking.unroll.peak_width_max - this.config.breaking.unroll.peak_width);
 
 	this.breaking_peak_left_timer = new Timer(proxy(this.continueBreakingPeakLeftInterval,this),t);
 
@@ -1002,8 +994,8 @@ prototype.initBreakingPeakLeftInterval = function() {
 prototype.continueBreakingPeakLeftInterval = function() {
 
 	if(this.config == null) return;
-	var t = this.config.breaking.left.peak_interval + Math.random()*(this.config.breaking.left.peak_interval_max - this.config.breaking.left.peak_interval);
-	var w = this.config.breaking.left.peak_width + Math.random()*(this.config.breaking.left.peak_width_max - this.config.breaking.left.peak_width);
+	var t = this.config.breaking.unroll.peak_interval + Math.random()*(this.config.breaking.unroll.peak_interval_max - this.config.breaking.unroll.peak_interval);
+	var w = this.config.breaking.unroll.peak_width + Math.random()*(this.config.breaking.unroll.peak_width_max - this.config.breaking.unroll.peak_width);
 
 	this.initBreakingPeakLeft(w);
 
@@ -1115,11 +1107,11 @@ prototype.moveWave = function() {
 
 	if(this.direction === LEFT) {
 		delta += STAGEWIDTH / 2;
-		this.movingX = delta/this.params.breaking.left.width;
+		this.movingX = delta/this.params.breaking.unroll.width;
 	}
 	if(this.direction === RIGHT) {
 		delta += -STAGEWIDTH / 2.5;
-		this.movingX = delta/this.params.breaking.right.width;
+		this.movingX = delta/this.params.breaking.unroll.width;
 	}
 
 	this.movingX *= this.time_scale;
@@ -1148,7 +1140,7 @@ prototype.oldmoveWave = function() {
 		var pt = this.cont.localToGlobal(this.vanish_left.x,0);
 		//calcul lateral movement from y position
 		var coef = ( 100*this.y/ this.spot.planet.lines.peak) / 100;
-		var xwidth = this.params.breaking.left.width * 1/coef;
+		var xwidth = this.params.breaking.unroll.width * 1/coef;
 		//move wave normally when well positioned
 		if(pt.x >= (STAGEWIDTH-100)) this.cont.x += xwidth;
 		//else move quicker
@@ -1159,7 +1151,7 @@ prototype.oldmoveWave = function() {
 		var pt = this.cont.localToGlobal(this.vanish_right.x,0);
 		//calcul lateral movement from y position
 		var coef = ( 100*this.y/ this.spot.planet.lines.peak) / 100;
-		var xwidth = this.params.breaking.right.width * 1/coef;
+		var xwidth = this.params.breaking.unroll.width * 1/coef;
 		//move wave normally when well positioned
 		if(pt.x <= 100) this.cont.x -= xwidth;
 		//else move quicker
@@ -1168,14 +1160,19 @@ prototype.oldmoveWave = function() {
 
 }
 
-prototype.selfRemove = function() {
+prototype.removeSurfer = function(surfer) {
+	this.surfers.splice(this.surfers.indexOf(surfer),1);
+	this.surfers_cont.removeChild(surfer);
+	surfer.selfRemove();
+}
 
-	this.surfers.map(s => s.selfRemove());
+prototype.selfRemove = function() {
 	this.allpoints.map(p => createjs.Tween.removeTweens(p));
 	this.getTimers().map(function(t) {
 	 t.clear();
 	});
-	this.removeAllEventListeners('tick');
+	this.off('tick', this.ticker);
+	this.surfers.map(s => this.removeSurfer(s));
 	this.cont.removeAllChildren();
 	this.removeAllChildren();
 	this.stopShaking();
@@ -1324,8 +1321,7 @@ prototype.addRandomFloatObstacle = function() {
 			else {
 				let id = name.charAt(0).toUpperCase() + name.slice(1);
 				if(typeof window[id] !== 'undefined') {
-					let obj = new window[id]({wave: this, spot: this.spot, direction: this.direction});
-					return this.addObstacle(obj);
+					return this.addObstacle(id);
 				} else {
 					console.error("Obstacle named '"+id+"' does not exist.");
 				}
@@ -1346,8 +1342,7 @@ prototype.addRandomFlyObstacle = function() {
 			else {
 				let id = name.charAt(0).toUpperCase() + name.slice(1);
 				if(typeof window[id] !== 'undefined') {
-					let obj = new window[id]({wave: this, spot: this.spot, direction: this.direction});
-					return this.addObstacle(obj);
+					return this.addObstacle(id);
 				} else {
 					console.error("Obstacle named '"+id+"' does not exist.");
 				}
@@ -1358,8 +1353,9 @@ prototype.addRandomFlyObstacle = function() {
 }
 
 
-prototype.addObstacle = function(obs) {
-	if(typeof obs === undefined) var obs = new Obstacle({wave: this, spot: this.spot, direction: this.direction});
+prototype.addObstacle = function(id) {
+	if(typeof id === undefined) var obs = new Obstacle({wave: this, spot: this.spot, direction: this.direction});
+	else var obs = new window[id]({wave: this, spot: this.spot, direction: this.direction});
 	this.obstacles.push(obs);
 	this.obstacle_cont.addChild(obs);
 }
@@ -1415,7 +1411,6 @@ prototype.addRandomStarline = function() {
 }
 
 prototype.removeObstacle = function(obs) {
-	obs.removeListeners();
 	this.obstacles.splice(this.obstacles.indexOf(obs),1);
 	this.obstacle_cont.removeChild(obs);
 }
@@ -1580,7 +1575,7 @@ prototype.drawSplash = function () {
 		//var color = createjs.Graphics.getHSL(Math.random()*360,100,50);
 		this.splash_gfx.beginLinearGradientFill([this.spot.planet.colors.splash.top,this.spot.planet.colors.splash.bottom],[0,1], 0, this.params.height / 10, 0, this.params.height).beginStroke('rgba(0,0,0,0.2').setStrokeStyle(1);
 		this.splash_gfx.moveTo(points[0].x, points[0].splash_y);
-		//this.splash_gfx.moveTo(points[0].x - this.params.breaking.left.width, points[0].splash_y);
+		//this.splash_gfx.moveTo(points[0].x - this.params.breaking.unroll.width, points[0].splash_y);
 		//this.splash_gfx.lineTo(points[0].x,points[0].splash_y);
 
 		if(PERF==0) {
@@ -1630,17 +1625,17 @@ prototype.drawMask = function() {
 	const right = this.shoulder_right;
 
 	//minor shoulder variations
-	//if(this.breaked === true && this.params.shoulder.left.slope === null) this.params.shoulder.left.slope = new Variation({min:-50,max:50});
-	//if(this.breaked === true && this.params.shoulder.right.slope === null) this.params.shoulder.right.slope = new Variation({min:-50,max:50});
+	//if(this.breaked === true && this.params.shoulder.slope === null) this.params.shoulder.slope = new Variation({min:-50,max:50});
+	//if(this.breaked === true && this.params.shoulder.slope === null) this.params.shoulder.slope = new Variation({min:-50,max:50});
 
 	//draw the shape of the wave
 	this.shape_mask.graphics
 		.clear()
 		.beginFill('#FFFFFF')
-		.moveTo(left.x - this.params.shoulder.left.width - this.params.shoulder.left.marge, this.params.height)
-		.bezierCurveTo(left.x - this.params.shoulder.left.width + this.params.shoulder.left.outer - this.params.shoulder.left.marge, this.params.height + this.params.shoulder.left.slope,left.x - this.params.shoulder.left.inner - this.params.shoulder.left.marge,0,left.x - this.params.shoulder.left.marge,0)
-		.lineTo(right.x + this.params.shoulder.right.marge,0)
-		.bezierCurveTo(right.x + this.params.shoulder.right.inner + this.params.shoulder.right.marge,0,right.x + this.params.shoulder.right.width + this.params.shoulder.right.marge - this.params.shoulder.right.outer,this.params.height + this.params.shoulder.right.slope,right.x + this.params.shoulder.right.width + this.params.shoulder.right.marge ,this.params.height)
+		.moveTo(left.x - this.params.shoulder.width - this.params.shoulder.marge, this.params.height)
+		.bezierCurveTo(left.x - this.params.shoulder.width + this.params.shoulder.outer - this.params.shoulder.marge, this.params.height + this.params.shoulder.slope,left.x - this.params.shoulder.inner - this.params.shoulder.marge,0,left.x - this.params.shoulder.marge,0)
+		.lineTo(right.x + this.params.shoulder.marge,0)
+		.bezierCurveTo(right.x + this.params.shoulder.inner + this.params.shoulder.marge,0,right.x + this.params.shoulder.width + this.params.shoulder.marge - this.params.shoulder.outer,this.params.height + this.params.shoulder.slope,right.x + this.params.shoulder.width + this.params.shoulder.marge ,this.params.height)
 		.closePath()
 		;
 

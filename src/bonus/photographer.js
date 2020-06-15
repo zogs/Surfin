@@ -1,7 +1,7 @@
 
 (function() {
 
-    function Photografer(config) {
+    function Photographer(config) {
 
       config.img = 'photographer';
       config.name = 'photo';
@@ -11,11 +11,11 @@
       this.Obstacle_constructor(config);
 
     }
-    Photografer.prototype = Object.create(Obstacle.prototype);
-    Photografer.prototype.constructor = Photografer;
-    window.Photografer = createjs.promote(Photografer, "Obstacle");
+    Photographer.prototype = Object.create(Obstacle.prototype);
+    Photographer.prototype.constructor = Photographer;
+    window.Photographer = createjs.promote(Photographer, "Obstacle");
 
-    Photografer.prototype.drawImage = function() {
+    Photographer.prototype.drawImage = function() {
 
       var sheet = new createjs.SpriteSheet({
           images: [queue.getResult(this.img)],
@@ -34,7 +34,7 @@
 
     }
 
-    Photografer.prototype.drawBonus = function() {
+    Photographer.prototype.drawBonus = function() {
 
       var bonus = new createjs.Shape();
       bonus.graphics.beginFill('green').drawCircle(0,0,60*rX);
@@ -45,7 +45,7 @@
       this.bonuses.push(bonus);
     }
 
-    Photografer.prototype.drawMalus = function() {
+    Photographer.prototype.drawMalus = function() {
 
       var malus = new createjs.Shape();
         malus.graphics.beginFill('red').drawCircle(0,0,20*rX);
@@ -56,12 +56,12 @@
         this.maluses.push(malus);
     }
 
-    Photografer.prototype.bonusHitted = function() {
+    Photographer.prototype.bonusHitted = function() {
 
       this.sprite.gotoAndPlay('flash');
     }
 
-    Photografer.prototype.malusHitted = function() {
+    Photographer.prototype.malusHitted = function() {
 
       console.log('photographer malus');
     }

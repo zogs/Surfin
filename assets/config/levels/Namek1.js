@@ -42,7 +42,7 @@
           y_ease: 'quartIn',
           splash_h_percent: 100,
           splash_h_ease: 0.4,
-          left: {
+          unroll: {
             width: 30,
             width_max: 32,
             width_interval: 0,
@@ -52,16 +52,6 @@
             block_width: 50,
             block_width_max: 100,
           },
-          right: {
-            width: 30,
-            width_max: 32,
-            width_interval: 0,
-            width_pause: 1000,
-            block_interval: 4000,
-            block_interval_max: 4000,
-            block_width: 100,
-            block_width_max: 200,
-          }
         },
         lip: {
           thickness: 10,
@@ -95,20 +85,11 @@
           }
         },
         shoulder : {
-          left : {
-            width: 1000,
-            inner: 300,
-            outer: 300,
-            marge: 50,
-            slope: 0
-          },
-          right : {
-            width: 1000,
-            inner: 300,
-            outer: 300,
-            marge: 50,
-            slope: 0
-          }
+          width: 1000,
+          inner: 300,
+          outer: 300,
+          marge: 50,
+          slope: 0
         }
       },
     }

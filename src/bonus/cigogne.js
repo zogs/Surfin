@@ -7,8 +7,8 @@
       config.img = 'cigogne';
       config.meter_height = 1.2;
       config.pixel_height = 120*rY;
-      config.high_min = 200;
-      config.high_max = 400;
+      config.ymin = 200;
+      config.ymax = 400;
       config.speed = 20;
       config.reverse = true;
 

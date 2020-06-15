@@ -157,7 +157,7 @@
 		this.virtualMouse.y = this.wave.y - this.wave.params.height + this.y;
 		this.virtualMouse.alpha = 0;
 
-		this.addEventListener('tick',proxy(this.tick,this));
+		this.ticker = this.on('tick', this.tick, this);
 
 		this.initEventsListener();
 
@@ -166,7 +166,7 @@
 		this.weapons.shield = new Shield({color: this.spot.planet.colors.wave[1][0], scale: this.config.actualScale });
 		this.weapon_cont.addChild(this.weapons.shield);
 
-		this.weapons.hadoken = new Hadoken({direction: this.wave.direction, fire_container: this.wave.obstacle_cont, scale: this.config.actualScale});
+		this.weapons.hadoken = new Hadoken({direction: this.wave.direction, surfer: this, ball_container: this.wave.weapon_cont, scale: this.config.actualScale});
 		this.weapon_cont.addChild(this.weapons.hadoken);
 	}
 
@@ -243,6 +243,26 @@
 		this.on('surfing',function(event) {
 			this.spot.dispatchEvent('surfer_surfing');
 		});
+		this.on('tube_in', function(event) {
+			if(this.isPlayer()) this.spot.dispatchEvent('surfer_tube_in');
+		})
+		this.on('tube_out', function(event) {
+			if(this.isPlayer()) this.spot.dispatchEvent('surfer_tube_out');
+		})
+		this.on('bonus_hitted', function(event) {
+			if(this.isPlayer()) {
+				let ev = new createjs.Event('bonus_hitted')
+				ev.object = event.object;
+				this.spot.dispatchEvent(ev);
+			}
+		})
+		this.on('malus_hitted', function(event) {
+			if(this.isPlayer()) {
+				let ev = new createjs.Event('malus_hitted')
+				ev.object = event.object;
+				this.spot.dispatchEvent(ev);
+			}
+		})
 	}
 
 
@@ -929,11 +949,15 @@
 	}
 
 	prototype.selfRemove = function() {
-
-		this.removeAllTweens();
-		this.removeAllEventListeners('tick');
 		this.removeAllChildren();
+		this.selfRemoveListeners();
+		this.weapons.hadoken.selfRemove();
+		this.weapons.shield.selfRemove();
+	}
 
+	prototype.selfRemoveListeners = function() {
+		this.removeAllTweens();
+		this.off('tick', this.ticker);
 	}
 
 	prototype.initTricks = function() {
@@ -1218,7 +1242,7 @@
 
 		this.fall_reason = reason;
 
-		if(DEBUG) console.log('fall because: ', reason);
+		console.log('fall because: ', reason);
 
 		var e = new createjs.Event('fall');
 		e.surfer = this;
@@ -1402,7 +1426,7 @@
 			if(this.tubeTime < this.tubeMinimumTime) return;
 
 			this.tubing = true;
-			this.spot.dispatchEvent('surfer_tube_in');
+			this.dispatchEvent('tube_in');
 		}
 	}
 
@@ -1420,10 +1444,10 @@
 
 
 		//dispath event
-		let event = new createjs.Event('surfer_tube_out');
+		let event = new createjs.Event('tube_out');
 		event.tubeTime = this.tubeTime;
 		event.tubeDeep = this.tubeDeep;
-		this.spot.dispatchEvent(event);
+		this.dispatchEvent(event);
 
 		//empty the tube
 		this.tubeDepths = [];
@@ -1481,8 +1505,9 @@
 	}
 
 	prototype.hitWeapon = function(x,y,radius) {
-		for(let i=0,len=this.weapons.hadoken.fireballs.length-1; i<=len; i++) {
+		for(let i=0,len=this.weapons.hadoken.fireballs.length; i<len; ++i) {
 			let ball = this.weapons.hadoken.fireballs[i];
+			if(ball.impacted === true) continue;
 			let ballCoord = ball.localToGlobal(0,0);
 			let objCoord = this.wave.obstacle_cont.localToGlobal(x,y);
 			let minDistance = radius + ball.conf.radius;
@@ -1490,9 +1515,8 @@
 			let yDist = objCoord.y - ballCoord.y;
 			let distance = Math.sqrt(xDist*xDist + yDist*yDist);
 			if(distance < minDistance) {
-				return true;
+				return ball;
 			}
-			return false;
 		}
 
 		return false;
@@ -1509,6 +1533,11 @@
 		if(obj.config.name == 'guldo') return this.fall('hit by guldo');
 		if(obj.config.name == 'reacum') return this.fall('hit by reacum');
 		if(obj.config.name == 'paddletrooper') return this.fall('hit by paddletrooper');
+		if(obj.config.name == 'banshee') return this.fall('hit by banshee');
+		if(obj.config.name == 'stingbat') return this.fall('hit by stingbat');
+		if(obj.config.name == 'toruk') return this.fall('hit by toruk');
+		if(obj.config.name == 'arachnid') return this.fall('hit by arachnid');
+		if(obj.config.name == 'seafish') return this.fall('hit by seafish');
 		if(obj.config.name == 'stormsurfer') return ;//this.fall('hit by stormsurfer');
 		console.log('Malus hitted with no handling : ', obj);
 	}
@@ -1629,6 +1658,7 @@
 		//no hit when surfer is ollying [no actual use for now]
 		if(this.isOllieing() === true) return;
 
+
 		//test all obstacles
 		for(var i=0,l=this.wave.obstacles.length;i<l;++i) {
 			var obstacle = this.wave.obstacles[i];
@@ -1637,14 +1667,14 @@
 				//launch event
 				var ev = new createjs.Event('bonus_hitted'); // we need to recreate event as we re-dispatch it
 				ev.object = obstacle;
-				this.spot.dispatchEvent(ev);
+				this.dispatchEvent(ev);
 			}
 
 			if(obstacle.hitMalus(this)) {
 				//launch event
 				var ev = new createjs.Event('malus_hitted'); // we need to recreate event as we re-dispatch it
 				ev.object = obstacle;
-				this.spot.dispatchEvent(ev);
+				this.dispatchEvent(ev);
 			}
 		}
 	}
@@ -1653,41 +1683,16 @@
 
 		// destroy obstacles
 		for(let i=0,len = this.wave.obstacles.length; i<len; i++) {
-			let obstacle = this.wave.obstacles[i];
+			const obstacle = this.wave.obstacles[i];
 
-			//destroy obstacle by shoting their body
-			if(obstacle.bodies.length !== 0) {
-				for(let i=0,len=obstacle.bodies.length-1; i<=len; i++) {
-					let body = obstacle.bodies[i];
-					if(this.hit('weapon', body.x, body.y, body.graphics.command.radius)) {
-						obstacle.shooted('body');
+			if(obstacle.active && obstacle.shotable !== null) {
+				const zones = (Array.isArray(obstacle.shotable))? obstacle.shotable : [obstacle.shotable];
+				for(let j=0,ln=zones.length; j<ln; ++j) {
+					const zone = zones[j]
+					const hitted = this.hit('weapon', obstacle.x, obstacle.y, zone.graphics.command.radius);
+					if(hitted) {
+						obstacle.shooted(hitted)
 					}
-				}
-			}
-
-			//cancel malus by shoting at it
-			if(obstacle.maluses.length !== 0) {
-				for(let i=0,len=obstacle.maluses.length-1; i<=len; i++) {
-					let malus = obstacle.maluses[i];
-					let pt = malus.localToLocal(0,0,this.wave.foreground_cont);
-					if(malus.shotable) {
-						if(this.hit('weapon', pt.x, pt.y, malus.graphics.command.radius)) {
-							obstacle.shooted('malus', malus);
-							break;
-						}
-					}
-				}
-			}
-		}
-
-		// hit others surfers
-		for(let j=0; j<this.wave.surfers.length; ++j) {
-			let surfer = this.wave.surfers[j];
-			if(this == surfer) continue;
-			if(this.hit('weapon', surfer.x, surfer.y, surfer.hitbox_radius)) {
-				if( ! this.hasCollision(surfer)) {
-					console.log('surfer shot');
-					this.shotSurfer(surfer);
 				}
 			}
 		}

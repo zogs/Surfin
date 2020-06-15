@@ -8,8 +8,8 @@
       config.meter_height = 1;
       config.pixel_height = 100*rY;
       config.amplitude = Math.random() * 2;
-      config.high_min = 100;
-      config.high_max = 300;
+      config.ymin = 100;
+      config.ymax = 300;
       config.speed = 5;
 
       this.FlyObstacle_constructor(config);

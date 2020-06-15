@@ -33,7 +33,7 @@ window.beforeLoadingAssets = function() {
   border.x = CURRENTX/2 - 250;
   border.y = 25;
   let bar = new createjs.Shape();
-  bar.graphics.beginFill('#fff').drawRect(0,0, 500, 25);
+  bar.graphics.beginFill('rgba(255,255,255,0.5)').drawRect(0,0, 500, 25);
   bar.x = CURRENTX/2 - 250;
   bar.y = 25;
   bar.scaleX = 0.5;
@@ -103,7 +103,8 @@ window.load = function() {
 		{id:'surfer_splash',src:imgdir+'ui/splash.png'},
     {id:'astrosurfer',src:imgdir+'surfer/astrosurfer.png'},
 		{id:'stormsurfer',src:imgdir+'surfer/stormsurfer.png'},
-		{id:'paddler',src:imgdir+'surfer/astropaddler.png'},
+		{id:'astropaddler',src:imgdir+'surfer/astropaddler.png'},
+    {id:'paddler',src:imgdir+'surfer/shadowpaddler.png'},
 		{id:'photographer',src:imgdir+'bonus/photographer.png'},
 		{id:'cigogne',src:imgdir+'bonus/cigogne.png'},
 		{id:'drone',src:imgdir+'bonus/drone.png'},
@@ -113,6 +114,12 @@ window.load = function() {
 		{id:'washed_text',src:imgdir+'washed.png'},
 		{id:'shark', src:imgdir+'enemy/shark.png'},
 		{id:'ptero', src:imgdir+'enemy/ptero.png'},
+    {id:'banshee', src:imgdir+'enemy/banshee.png'},
+    {id:'stingbat', src:imgdir+'enemy/stingbat.png'},
+    {id:'toruk', src:imgdir+'enemy/toruk.png'},
+    {id:'arachnid', src:imgdir+'enemy/arachnid.png'},
+    {id:'arachfly', src:imgdir+'enemy/arachfly.png'},
+    {id:'seafish', src:imgdir+'enemy/seafish.png'},
 		{id:'spacetablet', src:imgdir+'bkg/tablet.png'},
 		{id:'scoretable', src:imgdir+'bkg/scoretable.png'},
 		{id:'scoreboard', src:imgdir+'bkg/scoreboard.png'},
@@ -249,7 +256,7 @@ window.initialize = function() {
 
 	//SCENE
   SCENE = new Scene();
-	SCENE.loadLevel('Flhoston1');
+	SCENE.loadLevel('Pandora1');
 
 	//init onEnterFrame
 	createjs.Ticker.timingMode = createjs.Ticker.TIMEOUT;
@@ -346,13 +353,13 @@ window.defaultKeyDownHandler = function(e)
     case 'r':  SPOT.getWave().addTestSurferBot(); break;
     case 'u':  console.log(USER); break;
     case '1':  SPOT.getWave().addRandomObstacle(); break;
-    case '2':  SPOT.getWave().addPaddler(); break;
-    case '3':  SPOT.getWave().addPhotographer(); break;
-    case '4':  SPOT.getWave().addBomb(); break;
-    case '5':  SPOT.getWave().addBeachTrooper(); break;
+    case '2':  SPOT.getWave().addOstacle('Paddler'); break;
+    case '3':  SPOT.getWave().addOBstacle('Photographer'); break;
+    case '4':  SPOT.getWave().addObstacle('Bomb'); break;
+    case '5':  SPOT.getWave().addObstacle('Beachtrooper'); break;
     case '6':  SPOT.getWave().addRandomStarline(); break;
-    case '7':  SPOT.getWave().addShark(); break;
-    case '8':  SPOT.getWave().addStormtrooper(); break;
+    case '7':  SPOT.getWave().addOstacle('Shark'); break;
+    case '8':  SPOT.getWave().addOstacle('Stormtrooper'); break;
     case '&':  SPOT.getWave().addFlyingMultiplier(); break;
     case 'é':  SPOT.getWave().addFlyingPrize(); break;
     case '"':  SPOT.getWave().addCigogne(); break;

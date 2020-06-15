@@ -32,6 +32,7 @@
     this.played = false;
     this.dialog = null;
     this.scoreboard = null;
+    this.countSerie = 0;
 		this.time_scale = (TIME_SCALE) ? TIME_SCALE : 1;
     this.retrying = config.retrying ? true : false;
 
@@ -83,8 +84,6 @@
 
     USER.visitLevel(this.id);
     USER.currentLevel = this.id;
-
-    this.addEventListener('tick',proxy(this.tick,this));
 
 	}
 
@@ -332,7 +331,8 @@
 		// launch a new serie timer
 		let serie_timer = new Timer(proxy(this.addSerie,this),this.config.series.interval, proxy(this.removeTimer, this));
 		this.timers.push(serie_timer);
-
+    // increment
+    this.countSerie++;
 	}
 
 	prototype.addWave = function(coef) {
@@ -346,6 +346,7 @@
 			config.x = (this.config.series.xshift/100 * STAGEWIDTH) + this.config.series.spread/2 - Math.random()*this.config.series.spread;
 
 		var wave = new Wave({spot: this, config: config});
+    wave.name = 'serie'+this.countSerie+'wave0';
 		this.sea_cont.addChild(wave);
 		this.waves.push(wave);
 
@@ -359,7 +360,6 @@
 
 		// launch the rest with delay
 		for(let i=2; i <= this.config.series.length; ++i) {
-
 			// calcul delay
 			let delay = (i-1) * this.config.series.frequency;
 			// launch timer
@@ -382,6 +382,7 @@
 
 		//create Wave at horizon point
 		var wave = new Wave({spot: this, config: config});
+    wave.name = 'serie'+this.countSerie+ 'wave'+nb;
 
 		//add to scene
 		this.sea_cont.addChildAt(wave,0);
@@ -391,7 +392,7 @@
 		var tween = createjs.Tween.get(wave);
 		tween.to({y: this.planet.lines.beach + this.config.waves.height}, this.config.series.speed)
 		tween.call(proxy(this.removeWave,this,[wave]))
-		tween.addEventListener('change',proxy(wave.coming,wave));
+		tween.on('change',wave.coming,wave);
 		wave.coming_tween = tween;
 
 		// if last wave of serie, add next wave
@@ -406,14 +407,15 @@
 
 	}
 
-	prototype.addInitialSerie = function() {
+	prototype.addInitialSerie = function(startAt = 0.4) {
 
     //console.log('addInitialSerie');
+    // increment
+    this.countSerie = 1;
+    // init var
 		let speed = this.config.series.speed;
 		let length = this.config.series.length;
 		let frequency = this.config.series.frequency;
-
-		let startAt = 0.3;
 
 		// launch first wave at advanced position
 		this.addInitialWave(speed * startAt, 1);
@@ -456,6 +458,7 @@
 
 		// create wave
 		let wave = new Wave({spot: this, config: config});
+    wave.name = 'serie'+this.countSerie+'wave'+nb;
 
 		// set tween
 		let tween  = createjs.Tween.get(wave);
@@ -471,7 +474,7 @@
 		if(wave.y >= this.planet.lines.break) return;
 
 		// add to scene
-		this.sea_cont.addChildAt(wave);
+		this.sea_cont.addChildAt(wave,0);
 
 		// add to array
 		this.waves.unshift(wave);
@@ -487,7 +490,10 @@
 		this.initEventsListeners();
 		let wave = this.addWave(1);
 		this.setWave(wave);
-		this.addPaddler(this.config.surfers.x, this.config.surfers.y);
+
+    if(this.config.player !== false) {
+		  this.addPaddler(this.config.surfers.x, this.config.surfers.y);
+    }
 
 	}
 
@@ -497,13 +503,33 @@
 		this.runing = true;
 		this.removeAllWaves();
 		this.initEventsListeners();
-		this.addInitialSerie();
+		this.addInitialSerie(0.3);
 		//this.addSerie();
-		this.addPaddler(this.config.surfers.x, this.config.surfers.y);
+    //
+		if(this.config.player !== false) {
+      this.addPaddler(this.config.surfers.x, this.config.surfers.y);
+    }
+
+    /*if(this.config.surfers.max > 0) {
+      for(let i=0; i < this.config.surfers.max; i++) {
+        let bot = this.addPaddlerBot();
+      }
+    }*/
+
+    //this.addPaddler(500, 440);
+    this.addPaddlerBot(400, 420)
+    this.addPaddlerBot(430, 500)
+    //this.addPaddlerBot(550, 410)
+    //this.addPaddlerBot(600, 430)
+    //this.addPaddlerBot(610, 430)
+    //this.addPaddlerBot(650, 380)
+    //this.addPaddlerBot(750, 450)
+    //this.addPaddlerBot(780, 460)
+    this.addPaddlerBot(800, 400)
 	}
 
 	prototype.initWhenReady = function() {
-
+    //console.log('initWhenReady')
     // reset/init
     this.runing = true;
 		this.removeAllWaves();
@@ -520,11 +546,12 @@
       spot: this,
       x: x + wave.getX(),
       y: y + wave.getY() - wave.params.height,
-      fixedsize: 0.6,
+      //fixedsize: 0.6,
       nolift: true,
     });
     this.sea_cont.addChild(paddler);
     this.paddlers.push(paddler);
+    paddler.resize();
 
     // show text
     var cont = new createjs.Container();
@@ -548,7 +575,7 @@
     this.overlay_cont.addChild(cont);
 
     // animate wave ripples
-    var animatingWave = this.addEventListener('tick', proxy(wave.animateRipples, wave));
+    var animatingWave = this.on('tick', wave.animateRipples, wave);
 
     // on take off, remove text and animation
     this.on('player_takeoff', function(e) {
@@ -615,7 +642,7 @@
 
 	prototype.initEventsListeners = function() {
 
-		this.ticker = this.addEventListener('tick',proxy(this.tick,this), this);
+		this.ticker = this.on('tick', this.tick, this);
 		this.on('player_takeoff',function(event) {
 			this.playerTakeOff(event.surfer,event.wave);
 		},this);
@@ -696,8 +723,6 @@
 
 	prototype.addPaddler = function(x,y) {
 
-		if(this.config.surfers.max == 0) return;
-
 		var paddler = new Paddler({
 			spot: this,
 			x: x,
@@ -707,17 +732,15 @@
 		this.sea_cont.addChild(paddler);
 		this.paddlers.push(paddler);
 
+    paddler.resize();
+
 		return paddler;
 	}
 
 	prototype.addPaddlerBot = function(x,y) {
 
 		var x = x || STAGEWIDTH/4 + Math.random()*(STAGEWIDTH/2);
-		var y = y || Math.random()*(this.planet.lines.peak - this.planet.lines.horizon - 100) + this.planet.lines.horizon;
-
-
-		var x = MOUSE_X;
-		var y = MOUSE_Y;
+		var y = y || Math.random()*(this.planet.lines.peak - this.planet.lines.horizon - 50) + this.planet.lines.horizon;
 
 		var bot = new PaddlerBot({
 			spot: this,
@@ -728,7 +751,9 @@
 		this.sea_cont.addChild(bot);
 		this.paddlers.push(bot);
 
-		//console.log(this.paddlers);
+    bot.resize();
+
+		return bot;
 	}
 
 
@@ -745,56 +770,42 @@
 		if(this.runing === false) return;
 
     let bot = event.paddler;
+    let wave = event.wave;
 
-		var index = this.sea_cont.getChildIndex(bot) - 1;
-		while(index>=0) {
+		if(bot.paddling_attempt >= 2) {
 
-			var wave = this.sea_cont.getChildAt(index);
+			let surfer = new SurferBot({
+				wave: wave,
+				spot: this,
+				x: ( bot.getX() - wave.getX() ),
+				y: ( wave.params.height - ( wave.getY() - bot.getY() )),
+				direction: (bot.getX() <= STAGEWIDTH/2)? 1 : -1
+			});
 
-			if(wave instanceof Wave) {
-
-				if(bot.y <= wave.y - wave.params.height/3 && bot.y > wave.y - wave.params.height) {
-
-					if(bot.paddling_attempt >= 2) {
-
-						var x = ( bot.getX() - wave.getX() );
-						var y = ( wave.params.height - ( wave.getY() - bot.getY() ));
-
-						var direction = (bot.getX() <= STAGEWIDTH/2)? 1 : -1;
-
-						var surfer = new SurferBot({
-							x: x,
-							y: y,
-							wave: wave,
-							spot: this,
-							direction: direction
-						});
-						wave.addSurferBot(surfer);
-
-
-						bot.clearPaddler();
-						this.sea_cont.removeChild(bot);
-						this.paddlers.splice(this.paddlers.indexOf(bot),1);
-
-						break;
-					}
-				}
-			}
-
-			index--;
+			wave.addSurferBot(surfer);
+      this.removePaddler(bot);
 		}
 	}
 
-	prototype.firstWaveBehindPaddler = function(paddler) {
-
-		var index = this.sea_cont.getChildIndex(paddler) - 1;
+	prototype.getWaveBehindPaddler = function(paddler) {
+		let index = this.sea_cont.getChildIndex(paddler);
 		while(index>=0) {
-			var wave = this.sea_cont.getChildAt(index);
+			let wave = this.sea_cont.getChildAt(index);
 			if(wave instanceof Wave) return wave;
 			index--;
 		}
 		return false;
 	}
+
+  prototype.getWaveBeforePaddler = function(paddler) {
+    let index = this.sea_cont.getChildIndex(paddler);
+    while(index<=this.sea_cont.numChildren + 1) {
+      let wave = this.sea_cont.getChildAt(index);
+      if(wave instanceof Wave) return wave;
+      index++;
+    }
+    return false;
+  }
 
 	prototype.isPaddlerOnWave = function(paddler,wave) {
 		if(paddler.getY() < wave.getY() && paddler.getY() > (wave.getY() - wave.params.height)) return true;
@@ -810,7 +821,7 @@
     // return if no trying to take wave
     if(direction !== 'down') return;
     // get wave he is trying to catch
-		var wave = this.firstWaveBehindPaddler(paddler);
+		var wave = this.getWaveBehindPaddler(paddler);
 		//return if no wave
 		if(!wave) return;
 		//return if not ON wave
@@ -1040,7 +1051,9 @@
 	}
 
 	prototype.removeWave = function(wave) {
-		//console.log('removeWave');
+		//console.log('removeWave', wave.name, wave.id);
+    wave.coming_tween.off('change', wave.coming, wave);
+    wave.coming_tween = null;
 		createjs.Tween.removeTweens(wave);
 		wave.selfRemove();
 		this.sea_cont.removeChild(wave);
@@ -1051,6 +1064,7 @@
 	prototype.removeAllWaves = function() {
 		this.timers.map(t => t.clear());
     this.timers = [];
+    this.waves.map(w => w.coming_tween.off('change', w.coming, w));
 		this.waves.map(w => createjs.Tween.removeTweens(w));
 		this.waves.map(w => w.selfRemove());
 		this.waves = [];
@@ -1110,32 +1124,33 @@
     this.config.waves.breaking.x_speed *= rX;
     this.config.waves.breaking.x_speed_max *= rX;
     this.config.waves.breaking.y_speed *= rY;
-    this.config.waves.breaking.left.width *= rX;
-    this.config.waves.breaking.left.width_max *= rX;
-    this.config.waves.breaking.left.block_width *= rX;
-    this.config.waves.breaking.left.block_width_max *= rX;
-    this.config.waves.breaking.right.width *= rX;
-    this.config.waves.breaking.right.width_max *= rX;
-    this.config.waves.breaking.right.block_width *= rX;
-    this.config.waves.breaking.right.block_width_max *= rX;
+    this.config.waves.breaking.unroll.width *= rX;
+    this.config.waves.breaking.unroll.width_max *= rX;
+    this.config.waves.breaking.unroll.block_width *= rX;
+    this.config.waves.breaking.unroll.block_width_max *= rX;
     this.config.waves.lip.thickness *= rY;
     this.config.waves.lip.cap.width *= rX;
     this.config.waves.lip.cap.height *= rY;
     this.config.waves.suction.x *= rX;
     this.config.waves.suction.y *= rY;
-    this.config.waves.shoulder.left.width *= rX;
-    this.config.waves.shoulder.left.inner *= rX;
-    this.config.waves.shoulder.left.outer *= rX;
-    this.config.waves.shoulder.left.marge *= rX;
-    this.config.waves.shoulder.left.slope *= rX;
-    this.config.waves.shoulder.right.width *= rX;
-    this.config.waves.shoulder.right.inner *= rX;
-    this.config.waves.shoulder.right.outer *= rX;
-    this.config.waves.shoulder.right.marge *= rX;
-    this.config.waves.shoulder.right.slope *= rX;
+    this.config.waves.shoulder.width *= rX;
+    this.config.waves.shoulder.inner *= rX;
+    this.config.waves.shoulder.outer *= rX;
+    this.config.waves.shoulder.marge *= rX;
+    this.config.waves.shoulder.slope *= rX;
   }
 
 	prototype.drawDebug = function() {
+
+/*    let tick = createjs.Ticker.getTicks();
+    if(tick % 10 == 0 ||1 == 1) {
+      console.clear();
+      for(let i=0; i < this.sea_cont.numChildren; i++) {
+        let obj = this.sea_cont.getChildAt(i);
+        console.log(i, obj);
+      }
+    }
+*/
 
 		if(DEBUG == false) return;
 

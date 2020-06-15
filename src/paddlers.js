@@ -2,6 +2,8 @@
 
 	function Paddler(params) {
 
+		params.img = params.img || 'astropaddler';
+
 		this.Container_constructor();
 		this.init(params);
 	}
@@ -21,12 +23,13 @@
 
 		this.paddling_force = 0;
 		this.paddling_progress = 0;
-		this.height = 300;
-		this.heightInMeter = 2;
+		this.config.pixel_height = 150*rY; //average pixel height of character
+		this.config.meter_height = 1;
 		this.lifttotal = 0;
 		this.isPlayer = true;
 		this.isPaddling = false;
 		this.isDucking = false;
+		this.currentWave = null;
 
 		this.skill = {
 			speed: 1, //0 to 1
@@ -35,28 +38,22 @@
 			paddling: 1,
 		}
 
-		this.cont = new createjs.Container();
-		this.addChild(this.cont);
 
 		this.silhouette_cont = new createjs.Container();
-		this.cont.addChild(this.silhouette_cont);
+		this.addChild(this.silhouette_cont);
 		this.initPaddler();
 
 		this.debug_cont = new createjs.Container();
-		this.cont.addChild(this.debug_cont);
+		this.addChild(this.debug_cont);
 
 		this.hitbox = new createjs.Shape();
 		this.hitbox.graphics.beginFill('orange').drawCircle(0,0,1);
 		this.hitbox.alpha = 0;
 		this.hitbox_radius = 1;
-		this.cont.addChild(this.hitbox);
+		this.addChild(this.hitbox);
 
-		this.resize();
-
-		this.addEventListener("tick", proxy(this.tick, this));
 
 		this.initListeners();
-
 	}
 
 	prototype.getX = function() {
@@ -64,19 +61,20 @@
 	}
 
 	prototype.getY = function() {
-		return this.y + this.cont.y;
+		return this.y;
 	}
 
 	prototype.tick = function() {
 		if(PAUSED) return;
 		this.checkDucking();
+		this.ajustVisibility();
 		this.drawDebug();
 	}
 
 	prototype.initListeners = function() {
 
+		this.ticker = this.on("tick", this.tick, this);
 		this.click_listener = window.Stage.on('click',proxy(this.movePaddler,this),this);
-
 	}
 
 	prototype.remove = function() {
@@ -88,6 +86,7 @@
 
 	prototype.removeAllListeners = function() {
 
+		this.off('tick', this.ticker);
 		window.Stage.off('click',this.click_listener);
 	}
 
@@ -112,52 +111,34 @@
 		return (this.y - this.spot.planet.lines.horizon) / (this.spot.planet.lines.peak - this.spot.planet.lines.horizon);
 	}
 
-	prototype.getScaleByWaveSize = function() {
+	/*prototype.getScaleByWaveSize = function() {
 
-		return (this.spot.config.waves.height / this.height) * (this.spot.config.waves.real_height / this.heightInMeter)
-	}
+		return (this.spot.config.waves.height / this.config.pixel_height) * (this.spot.config.waves.real_height / this.config.meter_height)
+	}*/
 
 	prototype.resize = function() {
 
 		if(this.config.noresize) return;
 
-		this.scale = this.getScaleByPosition() * this.getScaleByWaveSize();
+		let wave = this.spot.getWaveBehindPaddler(this);
+		let scale = wave.scaleToFit(this.config.pixel_height, this.config.meter_height);
+		scale *= this.getScaleByPosition();
 
-		this.silhouette.scaleX = this.scale;
-		this.silhouette.scaleY = this.scale;
-		this.silhouette.x = (- this.silhouette.spriteSheet._frameWidth/2) * this.scale;
-		this.silhouette.y = (- this.silhouette.spriteSheet._frameHeight/2) * this.scale;
-
-		this.hitbox.scale = this.hitbox_radius = this.scale * 50;
+		this.silhouette.scaleX = scale;
+		this.silhouette.scaleY = scale;
+		this.hitbox.scale = this.hitbox_radius = scale * 50;
 
 	}
 
-	prototype.liftup = function(y) {
-
-		if(this.config.nolift) return;
-
-		this.cont.y = this.cont.y - y;
-		this.lifttotal += y;
-		this.liftamount = y;
-	}
-
-	prototype.liftdown = function() {
-
-		if(this.config.nolift) return;
-
-		this.cont.y = this.cont.y + this.lifttotal;
-		this.lifttotal = 0;
-		this.liftamount = 0;
-	}
 
 	prototype.movePaddler = function(evt) {
 
-		var x = evt.stageX;
-		var y = evt.stageY;
-		var t = 1000;
+		let x = evt.stageX;
+		let y = evt.stageY;
+		let t = 1000;
 
 		//calcul angle
-		var angle = calculAngle(this.x,this.y,x,y);
+		let angle = calculAngle(this.x,this.y,x,y);
 		//get direction
 		let direction = this.getPaddlingDirection(angle);
 		//do nothing on move up
@@ -171,7 +152,7 @@
 		if(direction == 'right') angle = 360; // right
 
 		//power of paddling
-		var power = this.skill.paddling * 100;
+		let power = this.skill.paddling * 100;
 		//perspective ajustment
 		if(direction == 'up') power = power/2;
 		if(direction == 'down') power = power/3;
@@ -182,8 +163,9 @@
 		createjs.Tween.get(this, {override:true}).to({paddling_progress: 100}, t, createjs.Tween.quartOut).addEventListener('change', proxy(this.updatePaddlingProgress,this, [direction]));
 
 		//throw event
-		var e = new createjs.Event("paddler_paddling");
+		let e = new createjs.Event("paddler_paddling");
 		e.paddler = this;
+		e.wave = evt.wave || this.currentWave;
 		e.direction = direction;
 		e.force = this.paddling_force;
 		this.spot.dispatchEvent(e);
@@ -191,7 +173,7 @@
 		// move paddler only horizontaly
 		if(direction == 'left' || direction == 'right') {
 			//calcul the arrival point
-			var point = findPointFromAngle(this.x, this.y, angle, power);
+			let point = findPointFromAngle(this.x, this.y, angle, power);
 			//move the paddler
 			createjs.Tween.get(this).to({ y:point.y, x:point.x}, t, createjs.Tween.quartOut);
 		}
@@ -216,38 +198,91 @@
 		}
 	}
 
+	prototype.liftup = function(y) {
+		if(this.config.nolift) return;
+
+		this.y = this.y - y;
+		this.lifttotal += y;
+		this.liftamount = y;
+	}
+
+	prototype.liftdown = function(wave) {
+		if(this.config.nolift) return;
+
+		this.y = this.y + this.lifttotal;
+		this.lifttotal = 0;
+		this.liftamount = 0;
+	}
+
+	prototype.ajustVisibility = function() {
+
+		let wave = this.spot.getWaveBeforePaddler(this);
+		if(wave) {
+			if(wave.alpha <= 0) {
+				return this.alpha = 1;
+			}
+			else if(this.y < wave.y - wave.params.height + this.hitbox_radius) {
+				return this.alpha = 1;
+			}
+			else {
+				return this.alpha = 0.2;
+			}
+		}
+		else {
+			return this.alpha = 1;
+		}
+	}
+
+	prototype.setCurrentWave = function(wave) {
+		//console.log(this.id, wave.name)
+		this.currentWave = wave;
+	}
+
 	prototype.checkDucking = function() {
+
 		//find wave to catch
-		let wave = SPOT.firstWaveBehindPaddler(this);
+		let wave = this.spot.getWaveBehindPaddler(this);
 		//return early if no wave
 		if(!wave) return;
-		//lift paddler when on the wave
-		if(this.getY() < wave.y && this.getY() > wave.y - wave.params.height) {
+		// when paddler is on the wave
+		if(this.y < wave.y && this.y > wave.y - wave.params.height) {
+				//lift paddler when on the wave
         this.liftup(1);
+				// set current wave
+				if(wave !== this.currentWave) this.setCurrentWave(wave);
     }
+		//simulate ducking when over the wave
+		if(this.y < wave.y - wave.params.height + this.hitbox_radius*2) {
+			return this.duckWave(wave);
+		}
     //duck paddler when close to the top
 		for(let i=0,ln=wave.allpoints.length-1; i< ln; ++i){
 			let point = wave.allpoints[i];
-			let minDistance = this.hitbox_radius;
-			let xDist = (wave.getX() + point.x) - (this.x + this.cont.x + this.hitbox.x);
-			let yDist = (wave.getY() - wave.params.height + point.y) - (this.y + this.cont.y + this.hitbox.y);
-			let distance = Math.sqrt(xDist*xDist + yDist*yDist);
-			if(distance < minDistance && this.isDucking === false) {
-				this.isDucking = true;
-				//init ducking
-				createjs.Tween.get(this).to({alpha:0},200)
-					.wait(50)
-					.call(proxy(this.duckWave, this, [wave]))
-				return;
+			let coor = wave.localToGlobal(point.x,point.y - wave.params.height);
+			let loc = this.localToGlobal(0,0);
+			let xDist = (loc.x) - (coor.x);
+			let yDist = (loc.y) - (coor.y);
+			let distance = Math.sqrt(xDist*xDist + yDist*yDist) - this.hitbox_radius*2;
+			if(distance <= 60) {
+				return this.duckWave(wave);
 			}
 		}
 	}
 
 	prototype.duckWave = function(wave) {
-		SPOT.sea_cont.swapChildren(this,wave);
-		this.alpha = 1;
-		this.isDucking = false;
-		this.liftdown();
+		//console.log(this.id, 'duckWave', wave.id)
+		if(this.isDucking === true) return;
+		this.isDucking = true;
+		this.silhouette.stop();
+		this.silhouette.gotoAndPlay("duck");
+		this.silhouette.on('animationend', (ev) => {
+			if(ev.name == 'duck') {
+				this.spot.sea_cont.swapChildren(this,wave);
+				this.liftdown(wave);
+				this.isDucking = false;
+				ev.remove();
+			}
+		})
 	}
 
 	prototype.getPaddlingDirection = function(angle) {
@@ -285,8 +320,8 @@
 	prototype.initPaddler = function() {
 
 		var paddler_sheet = new createjs.SpriteSheet({
-		    images: [queue.getResult('paddler')],
-		    frames: {width:parseInt(300*rX), height:parseInt(300*rY), count:11},
+		    images: [queue.getResult(this.config.img)],
+		    frames: {width:parseInt(300*rX), height:parseInt(150*rY), regX: parseInt(150*rX), regY: parseInt(75*rY)},
 		    animations: {
 		    	wait: 0,
 		    	waitright: 1,
@@ -310,17 +345,21 @@
 	        	frames: [4,5,4,5,4,5],
 	        	next: "wait",
 	        	speed: 0.3
+	        },
+	        duck: {
+	        	frames: [11,12,13,14],
+	        	next: 'wait',
+	        	speed: 0.6
 	        }
 		    }
 		});
-
 		this.silhouette = new createjs.Sprite(paddler_sheet, "waitright");
 		this.silhouette_cont.addChild(this.silhouette);
+
 	}
 
 	prototype.clearPaddler = function() {
 
-		clearTimeout(this.lifted);
 		this.removeAllListeners();
 	}
 
@@ -336,8 +375,11 @@
 
 	function PaddlerBot(config) {
 
+		config.img = config.img || 'paddler';
+
 		this.Paddler_constructor(config);
 		this.initBot(config);
+		console.log(this.id)
 	}
 
 	var prototype = createjs.extend(PaddlerBot, Paddler);
@@ -349,58 +391,81 @@
 		this.isPlayer = false;
 		this.paddling_interval = null;
 		this.paddling_attempt = 0;
+		this.tryTakeoff = false;
+		this.isTakingOff = false;
 
 		this.addEventListener('tick',proxy(this.tick,this));
 	}
 
+	prototype.initListeners = function() {
+		this.ticker = this.on("tick", this.tick, this);
+	}
+
+	prototype.removeAllListeners = function() {
+		this.off('tick', this.ticker);
+	}
+
 	prototype.tick = function(e) {
-
-		this.paddlingOnWave();
+		if(PAUSED) return;
+		this.checkDucking();
+		this.ajustVisibility();
+		this.launchTakeOff();
+		this.drawDebug();
+		//this.paddlingOnWave();
 	}
 
-	prototype.paddlingOnWave = function() {
+	prototype.setCurrentWave = function(wave) {
+		//console.log(this.id, wave.name)
+		this.currentWave = wave;
+		this.changedWave();
+		this.decideTakeOff(wave);
+	}
 
-		var waves = this.spot.waves;
+	prototype.changedWave = function() {
 
-		for(var i=0,len=waves.length; i<len; i++) {
+		this.tryTakeoff = false;
+		window.clearInterval(this.paddling_interval);
+		this.paddling_interval = null;
+		this.paddling_attempt = 0;
+	}
 
-			var wave = waves[i];
-			//if bot is placed on the wave
-			if(this.getY() < wave.y - wave.params.height/2 && this.getY() > wave.y - wave.params.height) {
+	prototype.decideTakeOff = function(wave) {
 
-				this.isOnWave = true;
-
-				this.initTakeoffPaddling();
-
-				return;
-			}
+		let n = Math.random()*100;
+		if(n < 0) {
+			this.tryTakeoff = true;
 		}
-
-		this.isOnWave = false;
 	}
 
-	prototype.initTakeoffPaddling = function() {
+	prototype.launchTakeOff = function() {
 
+		let wave = this.spot.getWaveBehindPaddler(this);
+		if(!wave) return;
+
+		if(this.tryTakeoff === true && this.isTakingOff === false && this.isDucking === false && this.y < wave.y - wave.params.height*1/3) {
+			this.isTakingOff = true;
+			this.initTakeoffPaddling(wave);
+		}
+	}
+
+	prototype.initTakeoffPaddling = function(wave) {
 		if(this.paddling_interval) return;
-
 		this.takeOffPaddling();
-
-		this.paddling_interval = window.setInterval(proxy(this.takeOffPaddling,this),500);
+		this.paddling_interval = window.setInterval(proxy(this.takeOffPaddling,this,[wave]),400);
 	}
 
-	prototype.takeOffPaddling = function(e) {
-
-		this.movePaddler({stageX: this.x, stageY: STAGEHEIGHT});
-
-		this.paddling_attempt++;
-
-		if(this.isOnWave == false) {
-
-			window.clearInterval(this.paddling_interval);
-			this.paddling_interval = null;
-			this.paddling_attempt = 0;
+	prototype.takeOffPaddling = function(wave) {
+		if(this.isDucking) {
+			clearInterval(this.paddling_interval);
+			return;
 		}
+		this.movePaddler({stageX: this.x, stageY: STAGEHEIGHT, wave: wave});
+		this.paddling_attempt++;
+	}
 
+	prototype.clearPaddler = function() {
+		this.removeAllListeners();
+		clearInterval(this.paddling_interval);
 	}
 
 	window.PaddlerBot = createjs.promote(PaddlerBot, 'Paddler');

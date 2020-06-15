@@ -45,7 +45,7 @@
       this.isOpen = false;
       this.isActive = false;
 
-      this.addEventListener('tick',proxy(this.tick,this));
+      this.ticker = this.on('tick', this.tick, this);
 
     }
 
@@ -83,6 +83,11 @@
       // show debug
       if(window.DEBUG) this.debug(true);
       else this.debug(false);
+    }
+
+    Shield.prototype.selfRemove = function() {
+      this.removeAllChildren();
+      this.off('tick', this.ticker);
     }
 
     //assign  to window's scope & promote

@@ -140,7 +140,7 @@
 			.to({y: Math.random()* this.wave.params.height/4 }, time, createjs.Ease.sineInOut)
 			.to({y: Math.random()* -this.wave.params.height/3 }, time, createjs.Ease.sineInOut)
 			.to({y: 0 }, time/2, createjs.Ease.sineInOut)
-			.call(proxy(this.initMouseMoveY,this))
+			.call(() => this.initMouseMoveY())
 			;
 		this.addTween(this.tweenMoveY);
 	}
@@ -154,7 +154,7 @@
 			.to({x: dx + this.minMouseX}, time/2)
 			.to({x: 50 + Math.random()*this.minMouseX }, time/2)
 			.wait(Math.random()*500)
-			.call(proxy(this.initMouseMoveX,this))
+			.call(() => this.initMouseMoveX())
 			;
 		this.addTween(this.tweenMoveX);
 
@@ -186,17 +186,20 @@
 	}
 
 	prototype.selfRemove = function() {
+		this.selfRemoveListeners();
+	}
+
+	prototype.selfRemoveListeners = function() {
 		//remove bot element
 		this.removeJumping();
 		this.removeVirtualMouse();
 		//remove surfer elements
 		this.removeAllTweens();
 		this.removeAllEventListeners();
-		//remove bot from within the wave
-		this.wave.removeBot(this);
 	}
 
 	prototype.removeVirtualMouse = function() {
+		console.log('removeVirtualMouse')
 		createjs.Tween.removeTweens(this.vMouse);
 		this.removeChild(this.vMouse);
 	}

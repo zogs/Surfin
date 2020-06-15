@@ -42,7 +42,7 @@
           y_ease: 'quartIn',
           splash_h_percent: 100,
           splash_h_ease: 0.4,
-          left: {
+          unroll: {
             width: 20,
             width_max: 25,
             width_interval: 2000,
@@ -52,16 +52,6 @@
             block_width: 50,
             block_width_max: 500,
           },
-          right: {
-            width: 25,
-            width_max: 302,
-            width_interval: 2000,
-            width_pause: 1000,
-            block_interval: 2000,
-            block_interval_max: 600,
-            block_width: 100,
-            block_width_max: 200,
-          }
         },
         lip: {
           thickness: 10,
@@ -79,10 +69,12 @@
         suction: {x: 5, y: 4},
         obstacles: {
           'float': {
-            'interval': 500,
+            'interval': 1000,
             'interval_max': 3000,
             'objects' : {
-              'beachtrooper': {percentage: 100},
+              'seafish': {percentage:90},
+              'beachtrooper': {percentage: 5},
+              'paddletrooper': {percentage: 5},
             },
           },
           'fly': {
@@ -93,20 +85,11 @@
           }
         },
         shoulder : {
-          left : {
-            width: 1000,
-            inner: 300,
-            outer: 300,
-            marge: 50,
-            slope: 0
-          },
-          right : {
-            width: 1000,
-            inner: 300,
-            outer: 300,
-            marge: 50,
-            slope: 0
-          }
+          width: 1000,
+          inner: 300,
+          outer: 300,
+          marge: 50,
+          slope: 0
         }
       },
     }

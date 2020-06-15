@@ -70,7 +70,7 @@
 
 
     //Ticker
-    this.addEventListener('tick',proxy(this.tick,this));
+    this.ticker = this.on('tick', this.tick, this);
 
     this.init();
 
@@ -605,7 +605,7 @@
     this.goalsTimers.map(t => t.clear());
     this.timers = [];
     this.goalsTimers = [];
-    this.removeEventListener("tick", this.tick);
+    this.off("tick", this.ticker);
     this.removeAllEventListeners();
     this.removeAllChildren();
   }

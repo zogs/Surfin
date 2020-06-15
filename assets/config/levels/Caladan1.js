@@ -44,7 +44,7 @@
           "y_ease": "quartIn",
           "splash_h_percent": 100,
           "splash_h_ease": 0.4,
-          "left": {
+          "unroll": {
             "width": 25,
             "width_max": 30,
             "width_interval": 0,
@@ -54,16 +54,6 @@
             "block_width": 100,
             "block_width_max": 200
           },
-          "right": {
-            "width": 20,
-            "width_max": 30,
-            "width_interval": 0,
-            "width_pause": 1000,
-            "block_interval": 2000,
-            "block_interval_max": 3000,
-            "block_width": 20,
-            "block_width_max": 50
-          }
         },
         "lip": {
           "thickness": 10,
@@ -106,20 +96,11 @@
           }
         },
         "shoulder": {
-          "left": {
-            "width": 1000,
-            "inner": 300,
-            "outer": 300,
-            "marge": 50,
-            "slope": 0
-          },
-          "right": {
-            "width": 1000,
-            "inner": 300,
-            "outer": 300,
-            "marge": 50,
-            "slope": 0
-          }
+          "width": 1000,
+          "inner": 300,
+          "outer": 300,
+          "marge": 50,
+          "slope": 0
         }
       }
     }

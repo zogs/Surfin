@@ -5,8 +5,8 @@
 
       config.name = 'spice';
       config.img = 'spice';
-      config.high_min = 60;
-      config.high_max = 60;
+      config.ymin = 60;
+      config.ymax = 60;
       config.speed = 20;
       config.reverse = false;
 

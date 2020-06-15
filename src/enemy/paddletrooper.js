@@ -1,20 +1,23 @@
 (function() {
 
-    function PaddleTrooper(config = {}) {
+    function Paddletrooper(config = {}) {
 
       config.name = 'paddletrooper';
       config.img = 'sprite_paddle';
       config.meter_height = 1.5;
       config.pixel_height = 100*rY;
+      config.y = config.wave.params.height * 1/2 + Math.random() * (config.wave.params.height * 1/2)
 
       this.Obstacle_constructor(config);
 
-    }
-    PaddleTrooper.prototype = Object.create(Obstacle.prototype);
-    PaddleTrooper.prototype.constructor = PaddleTrooper;
-    window.PaddleTrooper = createjs.promote(PaddleTrooper, "Obstacle");
+      this.shotable = this.bonuses;
 
-    PaddleTrooper.prototype.drawImage = function() {
+    }
+    Paddletrooper.prototype = Object.create(Obstacle.prototype);
+    Paddletrooper.prototype.constructor = Paddletrooper;
+    window.Paddletrooper = createjs.promote(Paddletrooper, "Obstacle");
+
+    Paddletrooper.prototype.drawImage = function() {
 
       var sheet = new createjs.SpriteSheet({
           images: [queue.getResult('sprite_paddle')],
@@ -38,7 +41,7 @@
 
     }
 
-    PaddleTrooper.prototype.drawBonus = function() {
+    Paddletrooper.prototype.drawBonus = function() {
 
       var bonus = new createjs.Shape();
         bonus.graphics.beginFill('green').drawCircle(0,0,40*rX*this.actualScale);
@@ -57,12 +60,12 @@
         this.trigger = trigger;
     }
 
-    PaddleTrooper.prototype.drawMalus = function() {
+    Paddletrooper.prototype.drawMalus = function() {
 
       /* */
     }
 
-    PaddleTrooper.prototype.drawAttackMalus = function() {
+    Paddletrooper.prototype.drawAttackMalus = function() {
 
       var maluses = new createjs.Shape();
         maluses.graphics.beginFill('red').drawCircle(0,0,60*rX*this.actualScale);
@@ -73,23 +76,23 @@
         this.maluses.push(maluses);
     }
 
-    PaddleTrooper.prototype.removeAttackMalus= function() {
+    Paddletrooper.prototype.removeAttackMalus= function() {
 
       this.debug_cont.removeChildAt(this.debug_cont.numChildren-1);
       this.maluses = [];
     }
 
-    PaddleTrooper.prototype.bonusHitted = function() {
+    Paddletrooper.prototype.bonusHitted = function() {
 
       this.die();
     }
 
 
-    PaddleTrooper.prototype.malusHitted = function() {
+    Paddletrooper.prototype.malusHitted = function() {
 
     }
 
-    PaddleTrooper.prototype.onEnterFrame = function() {
+    Paddletrooper.prototype.onEnterFrame = function() {
 
       let surfer = this.wave.surfer;
       let x = this.trigger.x + this.x;
@@ -103,7 +106,7 @@
       }
     }
 
-    PaddleTrooper.prototype.attack = function() {
+    Paddletrooper.prototype.attack = function() {
 
       this.sprite.gotoAndPlay('attack');
       this.status = 'attack';
@@ -112,13 +115,13 @@
 
     }
 
-    PaddleTrooper.prototype.attackEnded = function() {
+    Paddletrooper.prototype.attackEnded = function() {
 
       this.removeAttackMalus();
       this.status = 'iddle';
     }
 
-    PaddleTrooper.prototype.die = function() {
+    Paddletrooper.prototype.die = function() {
       this.active = false;
       this.status = 'dead';
       this.sprite.gotoAndPlay('fall');

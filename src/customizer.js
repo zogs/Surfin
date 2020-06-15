@@ -70,7 +70,6 @@
 		this.Etalement = SPOT.config.series.spread;
 		this.IntervalBetweenSerie = SPOT.config.series.interval;
 
-		this.surfersSize = SPOT.config.surfers.proportion;
 		this.surfersVX = SPOT.config.surfers.velocities.x;
 		this.surfersVY = SPOT.config.surfers.velocities.y;
 
@@ -246,7 +245,6 @@
 		colors.addColor(custom, 'SeaBottom').onChange(function(value) { CONFIG.colors.bottom = value; SPOT.drawBackground(); applyConfig(); });
 
 		var surfers = gui.addFolder('Surfers');
-		surfers.add(custom, 'surfersSize', 0, 3).onChange(function(value) { CONFIG.surfers.proportion = value;applyConfig();  })
 		surfers.add(custom, 'surfersVX', 0, 1).step(0.01).onChange(function(value) { CONFIG.surfers.velocities.x = value;applyConfig();  })
 		surfers.add(custom, 'surfersVY', 0, 1).step(0.01).onChange(function(value) { CONFIG.surfers.velocities.x = value;applyConfig();  })
 

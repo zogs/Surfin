@@ -7,10 +7,10 @@
       name: 'Flhoston-intro',
       planet: 'flhoston',
       story: [
-          { lines: ["Vous arrivez sur la planète Flhoston Paradize,","destination paradiziaque des habitants fortunés de la galaxie."] },
-          { lines: ["Les spots sont nombreux et vous garez l'astrovan près de l'un deux,","à l'écart du flot de touriste.", "Il est temps de se mettre à l'eau !"],
-            buttons: [{name: "Allez à l'eau", action: "continueStory" }],
-          },
+          //{ lines: ["Vous arrivez sur la planète Flhoston Paradize,","destination paradiziaque des habitants fortunés de la galaxie."] },
+          //{ lines: ["Les spots sont nombreux et vous garez l'astrovan près de l'un deux,","à l'écart du flot de touriste.", "Il est temps de se mettre à l'eau !"],
+          //  buttons: [{name: "Allez à l'eau", action: "continueStory" }],
+          //},
       ],
       init: {
         type: 'waiting',
@@ -25,11 +25,11 @@
       },
       timelimit: null,
       goals: false,
+      player: false,
       surfers: {
-        max: 0,
-        proportion: 1.5,
-        "x": 750,
-        "y": 470,
+        max: 5,
+        x: 750,
+        y: 470,
         velocities: {
           x: 1,
           y: 1
@@ -46,7 +46,7 @@
           y_ease: 'quartIn',
           splash_h_percent: 100,
           splash_h_ease: 0.4,
-          left: {
+          unroll: {
             width: 28,
             width_max: 30,
             width_interval: 0,
@@ -56,16 +56,6 @@
             block_width: 100,
             block_width_max: 200,
           },
-          right: {
-            width: 28,
-            width_max: 30,
-            width_interval: 0,
-            width_pause: 1000,
-            block_interval: 2000,
-            block_interval_max: 600,
-            block_width: 100,
-            block_width_max: 200,
-          }
         },
         lip: {
           thickness: 10,
@@ -99,20 +89,11 @@
           }
         },
         shoulder : {
-          left : {
-            width: 1000,
-            inner: 300,
-            outer: 300,
-            marge: 50,
-            slope: 0
-          },
-          right : {
-            width: 1000,
-            inner: 300,
-            outer: 300,
-            marge: 50,
-            slope: 0
-          }
+          width: 1000,
+          inner: 300,
+          outer: 300,
+          marge: 50,
+          slope: 0
         }
       },
     }

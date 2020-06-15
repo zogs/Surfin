@@ -7,9 +7,10 @@
         speed: 30,
         direction: -1,
         range: 200,
-        faderate: 0.05,
+        faderate: 0,
         scale: 1,
-        fire_container: this,
+        surfer: null,
+        ball_container: this,
       }
       this.conf = Object.assign({}, defaults, conf);
       this.Container_constructor();
@@ -38,40 +39,61 @@
 
       this.scale = this.conf.scale;
 
-      this.addEventListener('tick',proxy(this.tick,this));
+      this.ticker = this.on('tick', this.tick, this);
 
     }
 
     Hadoken.prototype.tick = function() {
 
       this.fireballs.map(f => {
-        // add speed to fireball
-        let speed = this.conf.speed * f.conf.direction;
-        f.x += speed;
-        f.dx += speed;
 
-        // test range
-        if(Math.sqrt(Math.pow(f.dx,2)) > this.conf.range) {
-          f.alpha += - this.conf.faderate;
-        }
-        if(f.alpha <= 0) {
-          this.removeFireball(f);
+        if(f.impacted === false) {
+          f.x += f.dX;
+          f.y += f.dY;
+          f.dtravelled += f.dX;
         }
 
-        // show debug
-        if(window.DEBUG) f.debug(true);
-        else f.debug(false);
 
-        // remove when offscreen
-        let c = f.localToGlobal(0,0);
-        if(c.x < - window.STAGEWIDTH/2 || c.x > window.STAGEWIDTH*1.5) {
-          this.removeFireball(f);
-        }
+        this.fadeAway(f)
+        this.removeFaded(f)
+        this.removeOffscreen(f)
+
+        this.debugging(f);
       });
+    }
+
+    Hadoken.prototype.selfRemove = function() {
+      this.removeAllChildren();
+      this.off('tick', this.ticker);
+    }
+
+    Hadoken.prototype.debugging = function(f) {
+      if(window.DEBUG) f.debug(true)
+      else f.debug(false)
+    }
+
+    Hadoken.prototype.fadeAway = function(f) {
+      if(Math.sqrt(Math.pow(f.dtravelled,2)) > this.conf.range) {
+        f.alpha += - this.conf.faderate;
+      }
+    }
+
+    Hadoken.prototype.removeFaded = function(f) {
+      if(f.alpha <= 0) {
+        this.removeFireball(f);
+      }
+    }
+
+    Hadoken.prototype.removeOffscreen = function(f) {
+      let c = f.localToGlobal(0,0);
+      if(c.x < 0 || c.x > window.STAGEWIDTH || c.y > window.STAGEHEIGHT || c.y < 0) {
+        this.removeFireball(f);
+      }
     }
 
     Hadoken.prototype.removeFireball = function(f) {
       this.fireballs.splice(this.fireballs.indexOf(f),1);
+      this.conf.ball_container.removeChild(f);
     }
 
     Hadoken.prototype.fire = function(direction) {
@@ -81,11 +103,16 @@
       this.shockwave.gotoAndPlay('run');
       let fireball = new Fireball({
         direction: direction*-1,
+        emitter: this,
       });
-      let container = this.conf.fire_container;
+      let container = this.conf.ball_container;
       let coord = this.localToLocal(0, 0, container);
       fireball.x = coord.x;
       fireball.y = coord.y;
+      fireball.dX = this.conf.speed*Math.cos(this.conf.surfer.angle_rad);
+      fireball.dY = this.conf.speed*Math.sin(this.conf.surfer.angle_rad);
+      fireball.rotation = this.conf.surfer.getAngle() + 180;
+
       container.addChild(fireball);
       this.fireballs.push(fireball);
 
@@ -101,6 +128,7 @@
 
       let defaults = {
         name: 'fireball',
+        emitter: null,
         direction: -1,
         alpha: 0.6,
         scale:1,
@@ -111,7 +139,10 @@
       this.init();
       this.alpha = this.conf.alpha;
       this.scaleX = this.conf.direction;
-      this.dx = 0;
+      this.dX = 0;
+      this.dY = 0;
+      this.dtravelled = 0;
+      this.impacted = false;
 
     }
 
@@ -124,7 +155,7 @@
           frames: {width:parseInt(64*rX), height:parseInt(64*rY), regX: parseInt(32*rX), regY: parseInt(32*rY)},
           framerate: 20,
           animations: {
-            run: [0, 3, false, 3],
+            run: [0, 3, 'run', 3],
           }
       });
       this.ball = new createjs.Sprite(sheet);
@@ -136,12 +167,14 @@
           frames: {width:parseInt(64*rX), height:parseInt(64*rY), regX: parseInt(32*rX), regY: parseInt(32*rY)},
           framerate: 20,
           animations: {
-            run: [0, 3, 'run'],
+            explode: [0, 3, false],
           }
       });
       this.sprinkle = new createjs.Sprite(sheet);
-      this.sprinkle.regX = 30;
-      this.sprinkle.gotoAndPlay('run');
+      this.sprinkle.scaleX = -1;
+      this.sprinkle.scale = 1.7;
+      this.sprinkle.x = -50;
+      this.sprinkle.alpha = 0;
       this.addChild(this.sprinkle);
 
       this.hitzone = new createjs.Shape();
@@ -149,6 +182,26 @@
       this.hitzone.alpha = 0;
       this.addChild(this.hitzone);
 
+    }
+
+    Fireball.prototype.impact = function() {
+      this.impacted = true;
+      this.ball.stop();
+      this.ball.alpha = 0;
+      this.sprinkle.alpha = 1;
+      this.sprinkle.stop();
+      this.sprinkle.gotoAndPlay('explode');
+      this.sprinkle.on('animationend', (e) => {
+        this.selfRemove();
+      })
+    }
+
+    Fireball.prototype.destroy = function() {
+      this.selfRemove();
+    }
+
+    Fireball.prototype.selfRemove = function() {
+      this.conf.emitter.removeFireball(this);
     }
 
     Fireball.prototype.debug = function(val) {

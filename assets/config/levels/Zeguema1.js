@@ -17,7 +17,7 @@
         spread : 0,
         xshift: 0,
       },
-      timelimit: 30,
+      timelimit: null,
       goals: [
         { type: 'score', current:0, aim: 2000, name: 'Faire un score de 2000 points' },
         { type: 'tube', current:0, aim: 5, name: 'Faire un tube de 5s ou + ({n})' },
@@ -43,26 +43,16 @@
           y_ease: 'quartIn',
           splash_h_percent: 100,
           splash_h_ease: 0.4,
-          left: {
+          unroll: {
             width: 20,
             width_max: 30,
             width_interval: 0,
             width_pause: 0,
-            block_interval: 500,
-            block_interval_max: 1500,
+            block_interval: 1500,
+            block_interval_max: 3500,
             block_width: 80,
             block_width_max: 350,
           },
-          right: {
-            width: 20,
-            width_max: 0,
-            width_interval: 0,
-            width_pause: 1000,
-            block_interval: 2000,
-            block_interval_max: 600,
-            block_width: 100,
-            block_width_max: 200,
-          }
         },
         lip: {
           thickness: 10,
@@ -80,13 +70,11 @@
         suction: {x: 5, y: 4},
         obstacles: {
           'float': {
-            'interval': 1000,
-            'interval_max': 2000,
+            'interval': 2000,
+            'interval_max': 4000,
             'objects' : {
-              'paddler' : {percentage: 30},
-              'photographer' : {percentage: 30},
-              'bomb': {percentage: 40},
-              'trooper': {percentage: 0},
+              'arachnid' : {percentage: 50},
+              'arachfly' : {percentage: 50},
             },
           },
           'fly': {
@@ -100,20 +88,11 @@
           }
         },
         shoulder : {
-          left : {
-            width: 1000,
-            inner: 300,
-            outer: 300,
-            marge: 50,
-            slope: 0
-          },
-          right : {
-            width: 1000,
-            inner: 300,
-            outer: 300,
-            marge: 50,
-            slope: 0
-          }
+          width: 1000,
+          inner: 300,
+          outer: 300,
+          marge: 50,
+          slope: 0
         }
       },
     }
