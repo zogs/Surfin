@@ -19,16 +19,16 @@
         { type: 'score', current:0, aim: 2000, name: 'Faire un score de 2000 points' },
         { type: 'tube', current:0, aim: 5, name: 'Faire un tube de 5s ou + ({n})' },
       ],
-      surfers: {
-        max: 1,
-        proportion: 1.5,
-        "x": 750,
-        "y": 470,
-        velocities: {
-          x: 1,
-          y: 1
-        },
-        weapons: []
+      player: {
+
+      },
+      paddlers: {
+        nb: 0,
+        xmin: 200,
+        xmax: 1300,
+        ymin: 400,
+        ymax: 520,
+        skills: {}
       },
       waves: {
         height : 250,

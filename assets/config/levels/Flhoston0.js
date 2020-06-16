@@ -26,15 +26,16 @@
       timelimit: null,
       goals: false,
       player: false,
-      surfers: {
-        max: 5,
-        x: 750,
-        y: 470,
-        velocities: {
-          x: 1,
-          y: 1
-        },
-        weapons: []
+      player: {
+
+      },
+      paddlers: {
+        nb: 0,
+        xmin: 200,
+        xmax: 1300,
+        ymin: 400,
+        ymax: 520,
+        skills: {}
       },
       waves: {
         height : 260,

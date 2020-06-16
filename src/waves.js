@@ -46,6 +46,8 @@ prototype.init = function(spot, config) {
 	this.shaking_force = 1.2;
 	this.direction = CENTER;
 	this.movingX = 0;
+	this.comingPercent = 0;
+	this.resizePercent = 0;
 	this.time_scale = (TIME_SCALE) ? TIME_SCALE : 1;
 	this.boundaries = {};
 	this.mouseChildren = false;
@@ -576,6 +578,10 @@ prototype.coming = function() {
 
 }
 
+prototype.getBreakCoef = function() {
+	return (this.y  - this.spot.planet.lines.horizon) / ( this.spot.planet.lines.break - this.spot.planet.lines.horizon);
+}
+
 prototype.getResizeCoef = function() {
 	return (this.y  - this.spot.planet.lines.horizon) / ( this.spot.planet.lines.peak - this.spot.planet.lines.horizon);
 }
@@ -618,12 +624,16 @@ prototype.resize = function() {
 	//draw background
 	this.drawBackground();
 	//progressive alpha background
-	this.background.alpha = coef - 0.2;
-	this.background_shadow.alpha = 1 - coef - 0.2;
+	this.background.alpha = coef + 0.2;
+	this.background_shadow.alpha = 1 - (coef+0.2);
 	//resize background
 	this.resizeBackground(h);
 	//draw shpa
 	this.drawMask();
+
+	this.resizePercent = coef * 100;
+	this.breakPercent = this.getBreakCoef() * 100;
+
 }
 
 prototype.initWave = function(center) {

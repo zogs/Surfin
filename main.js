@@ -102,6 +102,7 @@ window.load = function() {
 		{id:'boom',src:imgdir+'enemy/astro_boom.png'},
 		{id:'surfer_splash',src:imgdir+'ui/splash.png'},
     {id:'astrosurfer',src:imgdir+'surfer/astrosurfer.png'},
+    {id:'shadowsurfer',src:imgdir+'surfer/shadowsurfer.png'},
 		{id:'stormsurfer',src:imgdir+'surfer/stormsurfer.png'},
 		{id:'astropaddler',src:imgdir+'surfer/astropaddler.png'},
     {id:'paddler',src:imgdir+'surfer/shadowpaddler.png'},
@@ -256,7 +257,7 @@ window.initialize = function() {
 
 	//SCENE
   SCENE = new Scene();
-	SCENE.loadLevel('Pandora1');
+	SCENE.loadLevel('Home');
 
 	//init onEnterFrame
 	createjs.Ticker.timingMode = createjs.Ticker.TIMEOUT;

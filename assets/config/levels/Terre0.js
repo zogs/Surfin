@@ -19,16 +19,13 @@
       timelimit: null,
       goals: false,
       player: false,
-      surfers: {
-        max: 20,
-        proportion: 1.5,
-        "x": 750,
-        "y": 470,
-        velocities: {
-          x: 1,
-          y: 1
-        },
-        weapons: []
+      paddlers: {
+        nb: 50,
+        xmin: 200,
+        xmax: 1300,
+        ymin: 400,
+        ymax: 560,
+        skills: {}
       },
       waves: {
         height : 160,
@@ -102,7 +99,7 @@
 
     let cargo = new createjs.Bitmap(queue.getResult('terre_cargo'));
     cargo.x = 1050;
-    cargo.y = 210;
+    cargo.y = 240;
     this.addChild(cargo);
     createjs.Tween.get(cargo).to({x: -100}, 500000);
 
@@ -111,6 +108,32 @@
     astrovan.y = 460;
     this.addChild(astrovan);
 
+    let h = 50;
+    let w = 45;
+    let y = 4;
+    let btn = new createjs.Shape();
+    btn.graphics
+      .setStrokeStyle(10,"round").beginStroke("rgba(0,0,0,0.4)")
+      .moveTo(0,y).lineTo(w, y)
+      .moveTo(0,h*1/3+y).lineTo(w, h*1/3+y)
+      .moveTo(0,h*2/3+y).lineTo(w, h*2/3+y)
+      .setStrokeStyle(10,"round").beginStroke("#FFF")
+      .moveTo(0,0).lineTo(w, 0)
+      .moveTo(0,h*1/3).lineTo(w, h*1/3)
+      .moveTo(0,h*2/3).lineTo(w, h*2/3)
+      .setStrokeStyle(0).beginStroke(0).beginFill('rgba(255,255,255,0.2)').drawCircle(w/2,h/3,w*0.9)
+      ;
+    btn.x = STAGEWIDTH - w*1.8;
+    btn.y = h;
+    btn.cursor = 'pointer';
+    btn.on('click', this.clickMenuButton, this);
+    this.addChild(btn);
+
+  }
+
+   prototype.clickMenuButton = function(e) {
+    e.stopImmediatePropagation();
+    MENU.open();
   }
 
   SPOTS.Terre0 = Terre0;

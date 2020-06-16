@@ -23,7 +23,6 @@ var planet = {
       break: 500,
       peak: 550,
       beach: 550,
-      obstacle: 800,
     },
     levels: [
       'Terre0',

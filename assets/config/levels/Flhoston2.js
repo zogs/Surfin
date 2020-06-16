@@ -18,16 +18,16 @@
       goals: [
         { type: 'catch', current:0, aim: 'paddletrooper', count: 2, name: 'Renverser 2 PaddleTrooper ({n})' },
       ],
-      surfers: {
-        max: 1,
-        proportion: 1.5,
-        "x": 750,
-        "y": 470,
-        velocities: {
-          x: 1,
-          y: 1
-        },
-        weapons: []
+      player: {
+
+      },
+      paddlers: {
+        nb: 0,
+        xmin: 200,
+        xmax: 1300,
+        ymin: 400,
+        ymax: 520,
+        skills: {}
       },
       waves: {
         height : 280,

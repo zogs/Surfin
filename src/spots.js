@@ -390,7 +390,7 @@
 
 		//start tween
 		var tween = createjs.Tween.get(wave);
-		tween.to({y: this.planet.lines.beach + this.config.waves.height}, this.config.series.speed)
+		tween.to({y: this.planet.lines.beach + this.config.waves.height, comingPercent: 100}, this.config.series.speed)
 		tween.call(proxy(this.removeWave,this,[wave]))
 		tween.on('change',wave.coming,wave);
 		wave.coming_tween = tween;
@@ -462,7 +462,7 @@
 
 		// set tween
 		let tween  = createjs.Tween.get(wave);
-			tween.to({y: this.planet.lines.beach + this.config.waves.height}, this.config.series.speed)
+			tween.to({y: this.planet.lines.beach + this.config.waves.height, comingPercent: 100}, this.config.series.speed)
 			tween.call(proxy(this.removeWave,this,[wave]))
 			tween.addEventListener('change',proxy(wave.coming,wave));
 			wave.coming_tween = tween;
@@ -492,7 +492,7 @@
 		this.setWave(wave);
 
     if(this.config.player !== false) {
-		  this.addPaddler(this.config.surfers.x, this.config.surfers.y);
+		  this.addPaddler(this.config.player.x, this.config.player.y);
     }
 
 	}
@@ -507,25 +507,27 @@
 		//this.addSerie();
     //
 		if(this.config.player !== false) {
-      this.addPaddler(this.config.surfers.x, this.config.surfers.y);
+      this.addPaddler(this.config.player.x, this.config.player.y);
     }
 
-    /*if(this.config.surfers.max > 0) {
-      for(let i=0; i < this.config.surfers.max; i++) {
-        let bot = this.addPaddlerBot();
+    if(this.config.paddlers.nb > 0) {
+      for(let i=0; i < this.config.paddlers.nb; i++) {
+        let x = this.config.paddlers.xmin + (this.config.paddlers.xmax - this.config.paddlers.xmin) * Math.random();
+        let y = this.config.paddlers.ymin + (this.config.paddlers.ymax - this.config.paddlers.ymin) * Math.random();
+        let bot = this.addPaddlerBot(x, y);
       }
-    }*/
+    }
 
     //this.addPaddler(500, 440);
-    this.addPaddlerBot(400, 420)
-    this.addPaddlerBot(430, 500)
+    //this.addPaddlerBot(400, 420)
+    //this.addPaddlerBot(460, 500)
+    //this.addPaddlerBot(430, 460)
     //this.addPaddlerBot(550, 410)
     //this.addPaddlerBot(600, 430)
     //this.addPaddlerBot(610, 430)
     //this.addPaddlerBot(650, 380)
     //this.addPaddlerBot(750, 450)
     //this.addPaddlerBot(780, 460)
-    this.addPaddlerBot(800, 400)
 	}
 
 	prototype.initWhenReady = function() {
@@ -725,8 +727,8 @@
 
 		var paddler = new Paddler({
 			spot: this,
-			x: x,
-			y: y
+			x: x || 750 * rX,
+			y: y || 470 * rY
 		});
 
 		this.sea_cont.addChild(paddler);
@@ -740,7 +742,7 @@
 	prototype.addPaddlerBot = function(x,y) {
 
 		var x = x || STAGEWIDTH/4 + Math.random()*(STAGEWIDTH/2);
-		var y = y || Math.random()*(this.planet.lines.peak - this.planet.lines.horizon - 50) + this.planet.lines.horizon;
+		var y = y || (Math.random()*(this.planet.lines.peak - this.planet.lines.horizon - 50) + this.planet.lines.horizon)*rY;
 
 		var bot = new PaddlerBot({
 			spot: this,
@@ -1112,11 +1114,11 @@
     //series
     this.config.series.spread *= rX;
     this.config.series.xshift *= rX;
-    //surfers
-    this.config.surfers.x *= rX;
-    this.config.surfers.y *= rY;
-    this.config.surfers.velocities.x *= rX;
-    this.config.surfers.velocities.y *= rY;
+    //paddlers
+    this.config.paddlers.xmax *= rX;
+    this.config.paddlers.xmin *= rX;
+    this.config.paddlers.ymin *= rY;
+    this.config.paddlers.ymax *= rY;
     //waves
     this.config.waves.height *= rY;
     this.config.waves.width *= rX;

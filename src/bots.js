@@ -7,7 +7,7 @@
 	function SurferBot(params) {
 
 		params.type = 'bot';
-		params.img = 'stormsurfer';
+		params.img = 'shadowsurfer';
 		this.Surfer_constructor(params);
 		this.initBot(params);
 
@@ -134,30 +134,33 @@
 
 	prototype.initMouseMoveY = function() {
 
-		var time = 500 + Math.random()*1000;
-		this.removeTween(this.tweenMoveY);
-		this.tweenMoveY = createjs.Tween.get(this.vMouse)
-			.to({y: Math.random()* this.wave.params.height/4 }, time, createjs.Ease.sineInOut)
-			.to({y: Math.random()* -this.wave.params.height/3 }, time, createjs.Ease.sineInOut)
-			.to({y: 0 }, time/2, createjs.Ease.sineInOut)
-			.call(() => this.initMouseMoveY())
-			;
-		this.addTween(this.tweenMoveY);
+		if(this.wave && this.wave.params) {
+			var time = 500 + Math.random()*1000;
+			this.removeTween(this.tweenMoveY);
+			this.tweenMoveY = createjs.Tween.get(this.vMouse)
+				.to({y: Math.random()* this.wave.params.height/2 }, time, createjs.Ease.sineInOut)
+				.to({y: Math.random()* -this.wave.params.height/2 }, time, createjs.Ease.sineInOut)
+				.to({y: 0 }, time/2, createjs.Ease.sineInOut)
+				.call(() => this.initMouseMoveY())
+				;
+			this.addTween(this.tweenMoveY);
+		}
 	}
 
 	prototype.initMouseMoveX = function() {
 
-		let dx = Math.random()*STAGEWIDTH/4 * -this.direction;
-		const time = 1000 + Math.random()*5000;
-		this.removeTween(this.tweenMoveX);
-		this.tweenMoveX = createjs.Tween.get(this.vMouse)
-			.to({x: dx + this.minMouseX}, time/2)
-			.to({x: 50 + Math.random()*this.minMouseX }, time/2)
-			.wait(Math.random()*500)
-			.call(() => this.initMouseMoveX())
-			;
-		this.addTween(this.tweenMoveX);
-
+		if(this.wave && this.wave.params) {
+			let dx = Math.random()*STAGEWIDTH/4 * -this.direction;
+			const time = 1000 + Math.random()*5000;
+			this.removeTween(this.tweenMoveX);
+			this.tweenMoveX = createjs.Tween.get(this.vMouse)
+				.to({x: dx + this.minMouseX}, time/2)
+				.to({x: 50 + Math.random()*this.minMouseX }, time/2)
+				.wait(Math.random()*500)
+				.call(() => this.initMouseMoveX())
+				;
+			this.addTween(this.tweenMoveX);
+		}
 	}
 
 	prototype.initMouseJump = function(jump) {
@@ -199,7 +202,6 @@
 	}
 
 	prototype.removeVirtualMouse = function() {
-		console.log('removeVirtualMouse')
 		createjs.Tween.removeTweens(this.vMouse);
 		this.removeChild(this.vMouse);
 	}

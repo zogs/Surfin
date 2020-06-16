@@ -23,7 +23,7 @@
 
 		this.paddling_force = 0;
 		this.paddling_progress = 0;
-		this.config.pixel_height = 150*rY; //average pixel height of character
+		this.config.pixel_height = 60*rY; //average pixel height of character
 		this.config.meter_height = 1;
 		this.lifttotal = 0;
 		this.isPlayer = true;
@@ -56,53 +56,90 @@
 		this.initListeners();
 	}
 
-	prototype.getX = function() {
-		return this.x;
-	}
-
-	prototype.getY = function() {
-		return this.y;
-	}
-
-	prototype.tick = function() {
-		if(PAUSED) return;
-		this.checkDucking();
-		this.ajustVisibility();
-		this.drawDebug();
-	}
-
 	prototype.initListeners = function() {
 
 		this.ticker = this.on("tick", this.tick, this);
 		this.click_listener = window.Stage.on('click',proxy(this.movePaddler,this),this);
 	}
 
-	prototype.remove = function() {
-
-		this.removeAllChildren();
-		this.removeAllListeners();
-		this.removeAllEventListeners();
+	prototype.tick = function() {
+		if(PAUSED) return;
+		this.checkCurrentWave();
+		this.applyWaveLift();
+		this.ajustVisibility();
+		this.drawDebug();
 	}
 
-	prototype.removeAllListeners = function() {
+	prototype.initPaddler = function() {
 
-		this.off('tick', this.ticker);
-		window.Stage.off('click',this.click_listener);
+		var paddler_sheet = new createjs.SpriteSheet({
+		    images: [queue.getResult(this.config.img)],
+		    frames: {width:parseInt(300*rX), height:parseInt(150*rY), regX: parseInt(150*rX), regY: parseInt(75*rY)},
+		    animations: {
+		    	wait: 0,
+		    	waitright: 1,
+		    	waitleft: 6,
+	        left: {
+	            frames: [7,8,7,8,7,8],
+	            next: "waitleft",
+	            speed: 0.3
+	        },
+	        right: {
+	        	frames: [2,3,2,3,2,3],
+	        	next: "waitright",
+	        	speed: 0.3
+	        },
+	        up: {
+	        	frames: [9,10,9,10,9,10],
+	        	next: "wait",
+	        	speed: 0.3
+	        },
+	        down: {
+	        	frames: [4,5,4,5,4,5],
+	        	next: "wait",
+	        	speed: 0.3
+	        },
+	        duck: {
+	        	frames: [11,12,13,14],
+	        	next: 'wait',
+	        	speed: 0.6
+	        }
+		    }
+		});
+		this.silhouette = new createjs.Sprite(paddler_sheet, "waitright");
+		this.silhouette_cont.addChild(this.silhouette);
+
 	}
 
-	prototype.drawDebug = function() {
+	prototype.setPaddlerSilhouette = function(direction) {
 
-		if(DEBUG === 0) {
-			this.hitbox.alpha = 0;
-			return;
+		if(direction == 'down') {
+			this.silhouette.gotoAndPlay("down");
 		}
+		if(direction == 'left') {
+			this.silhouette.gotoAndPlay("left");
+		}
+		if(direction == 'up') {
+			this.silhouette.gotoAndPlay("up");
+		}
+		if(direction == 'right') {
+			this.silhouette.gotoAndPlay("right");
+		}
+	}
 
-		this.hitbox.alpha = 0.5;
-
-		var center = new createjs.Shape();
-		center.graphics.beginFill('red').drawCircle(0,0,3);
-		this.debug_cont.addChild(center);
-
+	prototype.getPaddlingDirection = function(angle) {
+		if(angle >= 45 && angle < 135) {
+			return 'down';
+		}
+		if(angle >= 135 && angle < 225) {
+			return 'left';
+		}
+		if(angle >= 225 && angle < 315) {
+			return 'up';
+		}
+		if(angle >=315 || angle < 45) {
+			return 'right';
+		}
 	}
 
 	prototype.getScaleByPosition = function() {
@@ -129,7 +166,6 @@
 		this.hitbox.scale = this.hitbox_radius = scale * 50;
 
 	}
-
 
 	prototype.movePaddler = function(evt) {
 
@@ -214,59 +250,40 @@
 		this.liftamount = 0;
 	}
 
+	prototype.applyWaveLift = function() {
+		let wave = this.spot.getWaveBehindPaddler(this);
+		if(!wave) return;
+		if(this.y < wave.y && this.y > wave.y - wave.params.height) {
+			//lift paddler when on the wave
+  		this.liftup(1);
+    }
+	}
+
 	prototype.ajustVisibility = function() {
 
 		let wave = this.spot.getWaveBeforePaddler(this);
-		if(wave) {
-			if(wave.alpha <= 0) {
-				return this.alpha = 1;
-			}
-			else if(this.y < wave.y - wave.params.height + this.hitbox_radius) {
-				return this.alpha = 1;
-			}
-			else {
-				return this.alpha = 0.2;
-			}
+		if(!wave) return this.alpha = 1;
+		if(wave.alpha <= 0) {
+			return this.alpha = 1;
+		}
+		else if(this.y < wave.y - wave.params.height + this.hitbox_radius*1/3) {
+			return this.alpha = 1;
 		}
 		else {
-			return this.alpha = 1;
+			return this.alpha = 0;
 		}
 	}
 
 	prototype.setCurrentWave = function(wave) {
-		//console.log(this.id, wave.name)
 		this.currentWave = wave;
 	}
 
-	prototype.checkDucking = function() {
-
-		//find wave to catch
+	prototype.checkCurrentWave = function() {
 		let wave = this.spot.getWaveBehindPaddler(this);
-		//return early if no wave
 		if(!wave) return;
-		// when paddler is on the wave
 		if(this.y < wave.y && this.y > wave.y - wave.params.height) {
-				//lift paddler when on the wave
-        this.liftup(1);
-				// set current wave
 				if(wave !== this.currentWave) this.setCurrentWave(wave);
     }
-		//simulate ducking when over the wave
-		if(this.y < wave.y - wave.params.height + this.hitbox_radius*2) {
-			return this.duckWave(wave);
-		}
-    //duck paddler when close to the top
-		for(let i=0,ln=wave.allpoints.length-1; i< ln; ++i){
-			let point = wave.allpoints[i];
-			let coor = wave.localToGlobal(point.x,point.y - wave.params.height);
-			let loc = this.localToGlobal(0,0);
-			let xDist = (loc.x) - (coor.x);
-			let yDist = (loc.y) - (coor.y);
-			let distance = Math.sqrt(xDist*xDist + yDist*yDist) - this.hitbox_radius*2;
-			if(distance <= 60) {
-				return this.duckWave(wave);
-			}
-		}
 	}
 
 	prototype.duckWave = function(wave) {
@@ -277,7 +294,7 @@
 		this.silhouette.gotoAndPlay("duck");
 		this.silhouette.on('animationend', (ev) => {
 			if(ev.name == 'duck') {
-				this.spot.sea_cont.swapChildren(this,wave);
+				this.swapWithWave(wave);
 				this.liftdown(wave);
 				this.isDucking = false;
 				ev.remove();
@@ -285,82 +302,64 @@
 		})
 	}
 
-	prototype.getPaddlingDirection = function(angle) {
-		if(angle >= 45 && angle < 135) {
-			return 'down';
-		}
-		if(angle >= 135 && angle < 225) {
-			return 'left';
-		}
-		if(angle >= 225 && angle < 315) {
-			return 'up';
-		}
-		if(angle >=315 || angle < 45) {
-			return 'right';
-		}
-	}
+	prototype.swapWithWave = function(wave) {
 
-	prototype.setPaddlerSilhouette = function(direction) {
-
-		if(direction == 'down') {
-			this.silhouette.gotoAndPlay("down");
+		let cont = this.spot.sea_cont;
+		// get paddlers in the display stack between this and the wave
+		let paddlers = [];
+		for(let i=cont.getChildIndex(wave),ln=cont.getChildIndex(this); i<ln; i++) {
+			let obj = cont.getChildAt(i);
+			if(obj instanceof Paddler || obj instanceof PaddlerBot) {
+				paddlers.push(obj);
+			}
 		}
-		if(direction == 'left') {
-			this.silhouette.gotoAndPlay("left");
-		}
-		if(direction == 'up') {
-			this.silhouette.gotoAndPlay("up");
-		}
-		if(direction == 'right') {
-			this.silhouette.gotoAndPlay("right");
-		}
+		// swap me and the wave
+		cont.swapChildren(this, wave);
+		// swap the other paddlers (in fact only the closest to the wave)
+		if(paddlers.length > 0) cont.swapChildren(wave, paddlers[0])
 
 	}
 
-	prototype.initPaddler = function() {
+	prototype.getX = function() {
+		return this.x;
+	}
 
-		var paddler_sheet = new createjs.SpriteSheet({
-		    images: [queue.getResult(this.config.img)],
-		    frames: {width:parseInt(300*rX), height:parseInt(150*rY), regX: parseInt(150*rX), regY: parseInt(75*rY)},
-		    animations: {
-		    	wait: 0,
-		    	waitright: 1,
-		    	waitleft: 6,
-	        left: {
-	            frames: [7,8,7,8,7,8],
-	            next: "waitleft",
-	            speed: 0.3
-	        },
-	        right: {
-	        	frames: [2,3,2,3,2,3],
-	        	next: "waitright",
-	        	speed: 0.3
-	        },
-	        up: {
-	        	frames: [9,10,9,10,9,10],
-	        	next: "wait",
-	        	speed: 0.3
-	        },
-	        down: {
-	        	frames: [4,5,4,5,4,5],
-	        	next: "wait",
-	        	speed: 0.3
-	        },
-	        duck: {
-	        	frames: [11,12,13,14],
-	        	next: 'wait',
-	        	speed: 0.6
-	        }
-		    }
-		});
-		this.silhouette = new createjs.Sprite(paddler_sheet, "waitright");
-		this.silhouette_cont.addChild(this.silhouette);
+	prototype.getY = function() {
+		return this.y;
+	}
 
+	prototype.remove = function() {
+
+		this.removeAllChildren();
+		this.removeAllListeners();
+		this.removeAllEventListeners();
 	}
 
 	prototype.clearPaddler = function() {
 
 		this.removeAllListeners();
+		this.removeAllChildren();
+	}
+
+	prototype.removeAllListeners = function() {
+
+		this.off('tick', this.ticker);
+		window.Stage.off('click',this.click_listener);
+	}
+
+	prototype.drawDebug = function() {
+
+		if(DEBUG === 0) {
+			this.hitbox.alpha = 0;
+			return;
+		}
+
+		this.hitbox.alpha = 0.5;
+
+		var center = new createjs.Shape();
+		center.graphics.beginFill('red').drawCircle(0,0,3);
+		this.debug_cont.addChild(center);
+
 	}
 
 	//assign Surfer to window's scope & promote
@@ -379,7 +378,7 @@
 
 		this.Paddler_constructor(config);
 		this.initBot(config);
-		console.log(this.id)
+
 	}
 
 	var prototype = createjs.extend(PaddlerBot, Paddler);
@@ -393,8 +392,9 @@
 		this.paddling_attempt = 0;
 		this.tryTakeoff = false;
 		this.isTakingOff = false;
+		this.scale = 0.75;
+		this.scaleX *= Math.random()<=0.75 ? 1 : -1;
 
-		this.addEventListener('tick',proxy(this.tick,this));
 	}
 
 	prototype.initListeners = function() {
@@ -407,22 +407,20 @@
 
 	prototype.tick = function(e) {
 		if(PAUSED) return;
-		this.checkDucking();
+		this.checkCurrentWave();
+		this.applyWaveLift();
 		this.ajustVisibility();
-		this.launchTakeOff();
+		this.actionOnWave();
 		this.drawDebug();
-		//this.paddlingOnWave();
 	}
 
 	prototype.setCurrentWave = function(wave) {
-		//console.log(this.id, wave.name)
 		this.currentWave = wave;
 		this.changedWave();
 		this.decideTakeOff(wave);
 	}
 
 	prototype.changedWave = function() {
-
 		this.tryTakeoff = false;
 		window.clearInterval(this.paddling_interval);
 		this.paddling_interval = null;
@@ -431,20 +429,43 @@
 
 	prototype.decideTakeOff = function(wave) {
 
-		let n = Math.random()*100;
-		if(n < 0) {
-			this.tryTakeoff = true;
-		}
+		this.tryTakeoff = (Math.random()*100 < 30)? true : false;
 	}
 
-	prototype.launchTakeOff = function() {
+	prototype.actionOnWave = function() {
 
 		let wave = this.spot.getWaveBehindPaddler(this);
 		if(!wave) return;
 
-		if(this.tryTakeoff === true && this.isTakingOff === false && this.isDucking === false && this.y < wave.y - wave.params.height*1/3) {
-			this.isTakingOff = true;
-			this.initTakeoffPaddling(wave);
+		if(this.isDucking) return;
+		if(this.isTakingOff) return;
+
+		//simulate ducking when over the wave
+		if(this.y < wave.y - wave.params.height + this.hitbox_radius*1/2) {
+			return this.duckWave(wave);
+		}
+
+		//duck paddler when hit by the lip
+		for(let i=0,ln=wave.allpoints.length-1; i< ln; ++i){
+			let point = wave.allpoints[i];
+			let coor = wave.localToGlobal(point.x,point.y - wave.params.height);
+			let loc = this.localToGlobal(0,0);
+			let xDist = (loc.x) - (coor.x);
+			let yDist = (loc.y) - (coor.y);
+			let distance = Math.sqrt(xDist*xDist + yDist*yDist);
+			if(distance <= this.hitbox_radius) {
+				return this.duckWave(wave);
+			}
+		}
+
+		// decide duck or takeoff when at mid-height
+		if(this.y < wave.y - wave.params.height*1/2) {
+			if(wave.breakPercent < 90) return this.duckWave(wave);
+			if(this.tryTakeoff && this.isTakingOff === false) {
+				this.isTakingOff = true;
+				return this.initTakeoffPaddling(wave);
+			}
+			return this.duckWave(wave);
 		}
 	}
 

@@ -90,7 +90,7 @@
 		this.imagePersistanceTimer = null;
 		this.mouseChildren = false;
 
-		this.skills = USER.skills;
+		this.skills = params.skills || USER.skills;
 		this.disturbance = 0;
 		this.disturbance_max = 20;
 
@@ -428,7 +428,7 @@
 		if(this.x < this.wave.shoulder_left.x) {
 			const x1 = this.wave.shoulder_left.x;
 			const y1 = this.wave.shoulder_left.y;
-			const x2 = this.wave.shoulder_left.x - this.wave.params.shoulder.left.marge - this.wave.params.shoulder.left.width;
+			const x2 = this.wave.shoulder_left.x - this.wave.params.shoulder.marge - this.wave.params.shoulder.width;
 			const y2 = this.wave.params.height;
 			const r = intersection(x1,y1,x2,y2,this.x,this.y,this.x,-500); //get the intersection between the shoulder line and a vertical top line above the surfer
 			if(r === null) {
@@ -441,7 +441,7 @@
 		if(this.x > this.wave.shoulder_right.x) {
 			const x1 = this.wave.shoulder_right.x;
 			const y1 = this.wave.shoulder_right.y;
-			const x2 = this.wave.shoulder_right.x + this.wave.params.shoulder.right.marge + this.wave.params.shoulder.right.width;
+			const x2 = this.wave.shoulder_right.x + this.wave.params.shoulder.marge + this.wave.params.shoulder.width;
 			const y2 = this.wave.params.height;
 			const r = intersection(x1,y1,x2,y2,this.x,this.y,this.x,-500); //get the intersection between the shoulder line and a vertical top line above the surfer
 			if(r === null) {

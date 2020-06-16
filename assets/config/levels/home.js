@@ -16,14 +16,14 @@
       },
       goals: null,
       scores: null,
-      surfers: {
-        max: 0,
-        proportion: 1.5,
-        velocities: {
-          x: 1,
-          y: 1
-        },
-        weapons: []
+      player: false,
+      paddlers: {
+        nb: 0,
+        xmin: 200,
+        xmax: 1300,
+        ymin: 400,
+        ymax: 520,
+        skills: {}
       },
       waves: {
         height : 150,
@@ -178,7 +178,8 @@
     sprite.y = STAGEHEIGHT - 100*rY;
     this.extra_cont.addChild(sprite);
     sprite.addEventListener('click', function(e) {
-      MENU.open();
+      e.stopImmediatePropagation();
+      SCENE.loadLevel('Terre0');
     });
   }
 
