@@ -5,7 +5,7 @@
       config.name = 'reacum';
       config.img = 'sprite_reacum';
       config.meter_height = 2;
-      config.pixel_height = 160*rY;
+      config.pixel_height = 120*rY;
 
       this.FlyObstacle_constructor(config);
 
@@ -17,7 +17,7 @@
     Reacum.prototype.drawImage = function() {
 
       var sheet = new createjs.SpriteSheet({
-          images: [queue.getResult(this.config.img)],
+          images: [QUEUE.getResult(this.config.img)],
           frames: {width:parseInt(160*rX), height:parseInt(160*rY), regX: parseInt(80*rX), regY: parseInt(80*rY)},
           framerate: 6,
           animations: {
@@ -89,8 +89,11 @@
       this.status = 'attack';
 
       this.drawAttackMalus();
-      this.speedX = 20;
-      this.speedY = 10;
+
+      let angle = calculAngle(this.x, this.y, this.wave.surfer.x, this.wave.surfer.y);
+      let speed = 30;
+      this.speedX = speed * Math.cos(Math.radians(angle));
+      this.speedY = speed * Math.sin(Math.radians(angle));
     }
 
     Reacum.prototype.die = function() {

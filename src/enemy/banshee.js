@@ -27,7 +27,7 @@
 
     Banshee.prototype.drawImage = function() {
       var sheet = new createjs.SpriteSheet({
-          images: [queue.getResult(this.img)],
+          images: [QUEUE.getResult(this.img)],
           frames: {width:parseInt(400*rX), height:parseInt(350*rY), regX:parseInt(200*rX), regY:parseInt(175*rY)},
           framerate: 20,
           animations: {

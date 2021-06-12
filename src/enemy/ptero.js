@@ -18,7 +18,7 @@
 
     Ptero.prototype.drawImage = function() {
       var sheet = new createjs.SpriteSheet({
-          images: [queue.getResult(this.img)],
+          images: [QUEUE.getResult(this.img)],
           frames: {width:parseInt(128*rX), height:parseInt(128*rY), regX:parseInt(64*rX), regY:parseInt(64*rY)},
           framerate: 10,
           animations: {

@@ -73,7 +73,7 @@
 	prototype.initPaddler = function() {
 
 		var paddler_sheet = new createjs.SpriteSheet({
-		    images: [queue.getResult(this.config.img)],
+		    images: [QUEUE.getResult(this.config.img)],
 		    frames: {width:parseInt(300*rX), height:parseInt(150*rY), regX: parseInt(150*rX), regY: parseInt(75*rY)},
 		    animations: {
 		    	wait: 0,

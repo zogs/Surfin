@@ -68,7 +68,7 @@
     let that = this;
 
     //background
-    this.tablet = new createjs.Bitmap(queue.getResult('spacetablet'));
+    this.tablet = new createjs.Bitmap(QUEUE.getResult('spacetablet'));
     this.regX = this.tablet.image.width;
     this.regY = this.tablet.image.height;
     this.x = this.tablet.image.width;
@@ -85,7 +85,7 @@
     for(let i=0,ln=this.planets.length; i<ln; i++) {
       let config = this.planets[i];
       if(config.active == false) continue;
-      let planet = new createjs.Bitmap(queue.getResult(config.id));
+      let planet = new createjs.Bitmap(QUEUE.getResult(config.id));
       planet.name = config.name;
       planet.regX = planet.image.width/2;
       planet.regY = planet.image.height/2;
@@ -109,7 +109,7 @@
         circle.y = planet.y;
         circle.alpha = 0.5;
         this.nav_cont.addChild(circle);
-        let lock = new createjs.Bitmap(queue.getResult('lock'));
+        let lock = new createjs.Bitmap(QUEUE.getResult('lock'));
         lock.regX = lock.image.width/2;
         lock.regY = lock.image.height/2;
         lock.x = planet.x;
@@ -157,7 +157,7 @@
     this.acti_cont.alpha = 0;
 
     //planet
-    let bplanet = new createjs.Bitmap(queue.getResult(planet.id));
+    let bplanet = new createjs.Bitmap(QUEUE.getResult(planet.id));
     bplanet.regX = bplanet.image.width/2;
     bplanet.regY = bplanet.image.height/2;
     bplanet.x = 750*rX;
@@ -188,7 +188,7 @@
 
       let btn = new createjs.Sprite(
         new createjs.SpriteSheet({
-            images: [queue.getResult('btn_level')],
+            images: [QUEUE.getResult('btn_level')],
             frames: {width:parseInt(160*rX), height:parseInt(45*rY)},
             framerate: 1,
             animations: { out: [0], over: [1], down: [2], lock: [3] }

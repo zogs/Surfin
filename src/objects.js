@@ -231,7 +231,7 @@
   Obstacle.prototype.drawImage = function() {
 
     var sheet = new createjs.SpriteSheet({
-        images: [queue.getResult('paddler')],
+        images: [QUEUE.getResult('paddler')],
         frames: {width:parseInt(300*rX), height:parseInt(300*rY), count:11},
         animations: {
           up: {

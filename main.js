@@ -19,33 +19,6 @@ let rY;
 
 let PROGRESSBAR;
 
-window.loadingProgress = function(e) {
-  PROGRESSBAR.scaleX = e.progress;
-  window.Stage.update();
-}
-
-window.beforeLoadingAssets = function() {
-  let cont = new createjs.Container();
-  let title = new createjs.Text("Chargement en cours...", '18px Helvetica, sans-serif', 'white');
-  title.x = CURRENTX/2 - title.getMeasuredWidth()/2;
-  let border = new createjs.Shape();
-  border.graphics.beginStroke('#ddd').setStrokeStyle(2).drawRect(0,0, 500, 25);
-  border.x = CURRENTX/2 - 250;
-  border.y = 25;
-  let bar = new createjs.Shape();
-  bar.graphics.beginFill('rgba(255,255,255,0.5)').drawRect(0,0, 500, 25);
-  bar.x = CURRENTX/2 - 250;
-  bar.y = 25;
-  bar.scaleX = 0.5;
-  cont.addChild(title);
-  cont.addChild(border);
-  cont.addChild(bar);
-  cont.y = 250;
-  window.Stage.addChild(cont);
-  window.Stage.update();
-  PROGRESSBAR = bar;
-}
-
 window.load = function() {
 
 	CURRENTX = 1280
@@ -58,13 +31,104 @@ window.load = function() {
 
 	window.resizeCanvas();
 
-  window.beforeLoadingAssets();
+  window.initLoadingScreen();
 
+}
+
+window.initLoadingScreen = function() {
+
+  QUEUE = new createjs.LoadQueue();
+  QUEUE.addEventListener('complete', showLoadingScreen);
+  let imgdir = 'dist/img/'+CURRENTX+'x'+CURRENTY+'/';
+  QUEUE.loadManifest([
+    {id:'astrovan', src:imgdir+'ui/astrovan.png'},
+  ]);
+}
+
+window.showLoadingScreen = function() {
+
+
+  let cont = new createjs.Container();
+  let title = new createjs.Text("Chargement en cours...", '18px Helvetica, sans-serif', 'white');
+  title.x = CURRENTX/2 - title.getMeasuredWidth()/2;
+  title.y = 120;
+  let border = new createjs.Shape();
+  border.graphics.beginStroke('#ddd').setStrokeStyle(2).drawRect(0,0, 500, 25);
+  border.x = CURRENTX/2 - 250;
+  border.y = 25;
+  border.alpha = 0;
+  let bar = new createjs.Shape();
+  bar.graphics.beginFill('#fd4e01').drawRect(0,0, 500, 36);
+  bar.x = CURRENTX/2 - 250;
+  bar.y = 25;
+  bar.scaleX = 0.5;
+  let van = new createjs.Sprite(
+      new createjs.SpriteSheet({
+          images: [QUEUE.getResult('astrovan')],
+          frames: {width:parseInt(140*rX), height:parseInt(100*rY), regX: parseInt(70*rX), regY: parseInt(50*rY)},
+          framerate: 12,
+          animations: {
+            fly: [0,1, 'fly'],
+          }
+      })
+  );
+  van.x = bar.x;
+  van.y = bar.y + 20;
+  van.regX = -55;
+  van.scale = 1.5;
+  van.gotoAndPlay('fly');
+  let lights = new createjs.Container();
+  lights.width = 500;
+  lights.height = 100;
+  lights.x = CURRENTX/2 - 250;
+  for(let i=0,ln=12; i <= ln; i++) {
+    let light = new createjs.Shape();
+    light.lineWidth = 100;
+    light.lineSpeed = Math.random();
+    light.graphics.setStrokeStyle(1).beginStroke('#fff').moveTo(0,0).lineTo(light.lineWidth, 0);
+    light.x = Math.random()* lights.width;
+    light.y = Math.random()* lights.height;
+    light.alpha = 0.5 + Math.random()*0.5;
+    lights.addChild(light);
+  }
+  let mask = new createjs.Shape();
+  mask.graphics.beginFill('red').drawRect(0,0, lights.width, lights.height);
+  mask.x = lights.x;
+  mask.y = lights.y;
+  lights.mask = mask;
+  cont.addChild(lights);
+  cont.addChild(title);
+  cont.addChild(border);
+  cont.addChild(bar);
+  cont.addChild(van);
+  cont.y = 250;
+  window.Stage.addChild(cont);
+  window.Stage.update();
+  PROGRESSBAR = bar;
+  PROGRESSVAN = van;
+  PROGRESSBOR = border;
+  PROGRESSLGT = lights;
+  window.loadAssets();
+}
+
+window.loadingProgress = function(e) {
+  PROGRESSBAR.scaleX = e.progress;
+  PROGRESSVAN.x = e.progress * 500 + PROGRESSBOR.x;
+  for(let i=0,ln=PROGRESSLGT.numChildren; i<ln; i++) {
+    let light = PROGRESSLGT.getChildAt(i);
+    light.x -= 10 + light.lineSpeed * 5;
+    if(light.x < -light.lineWidth) light.x = PROGRESSLGT.width + light.lineWidth;
+  }
+  window.Stage.update();
+}
+
+window.loadAssets = function() {
+
+	QUEUE = new createjs.LoadQueue();
+	QUEUE.addEventListener('complete',initialize);
+  QUEUE.addEventListener('progress',loadingProgress);
 	let imgdir = 'dist/img/'+CURRENTX+'x'+CURRENTY+'/';
-	queue = new createjs.LoadQueue();
-	queue.addEventListener('complete',initialize);
-  queue.addEventListener('progress',loadingProgress);
-	queue.loadManifest([
+	QUEUE.loadManifest([
 		{id:'bg_paradize',src:imgdir+'spots/default/full.jpg'},
 		{id:'wave',src:imgdir+'waves/wave1.jpg'},
 		{id:'wave_ripple',src:imgdir+'waves/wave-ripple.png'},
@@ -193,6 +257,8 @@ window.initialize = function() {
 	PERF = 3;
 	TIME_SCALE = 1;
 	SLOW_MOTION = false;
+  SHAKING = null;
+  SHAKING_FORCE = 2;
 	SPOT = null;
 	TEST = true;
 
@@ -257,7 +323,8 @@ window.initialize = function() {
 
 	//SCENE
   SCENE = new Scene();
-	SCENE.loadLevel('Home');
+	//SCENE.loadLevel('Home');
+	SCENE.loadLevel('Flhoston1');
 
 	//init onEnterFrame
 	createjs.Ticker.timingMode = createjs.Ticker.TIMEOUT;
@@ -345,7 +412,7 @@ window.defaultKeyDownHandler = function(e)
     case ',':  SPOT.getWave().addBlockBreaking(200); break;
     case ',':  SPOT.getWave().addBreakingPeak(50,500); break;
     case 'm':  MENU.toggle(); break;
-    case 's':  window.loadSpot(null,'default'); break;
+    case 's':  SCENE.switchShaking(3); break;
     case 'a':  SPOT.breakAllWaves(); break;
     case 'p':  SPOT.getWave().getSurfer().initImagePersistance(60); break;
     case ' ':  window.pause(); break;

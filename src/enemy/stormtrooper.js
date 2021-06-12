@@ -20,7 +20,7 @@
 
     Stormtrooper.prototype.drawImage = function() {
       let sheet = new createjs.SpriteSheet({
-        images: [queue.getResult(this.img)],
+        images: [QUEUE.getResult(this.img)],
         frames: {width: parseInt(256*rX), height: parseInt(256*rY), regX: parseInt(128*rX), regY: parseInt(128*rX)},
         animations: {
           S:0,SE:1,SEE:2,SEEE:3,SEEEE:4,E:5,EN:6,ENN:7,ENNN:8,ENNNN:9,N:10,NW:11,NWW:12,NWWW:13,NWWWW:14,W:15,WS:16,WSS:17,WSSS:18,WSSSS:19,

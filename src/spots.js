@@ -223,7 +223,7 @@
 		defaultbkg.graphics.beginFill('#000').drawRect(0,0,STAGEWIDTH,STAGEHEIGHT);
 		this.background.addChild(defaultbkg);
 
-		const skyimage = new createjs.Bitmap(queue.getResult(this.planet.images.background));
+		const skyimage = new createjs.Bitmap(QUEUE.getResult(this.planet.images.background));
 		skyimage.y = this.planet.lines.horizon - skyimage.image.height;
 		this.background.addChild(skyimage);
 
@@ -234,13 +234,13 @@
 					;
 		this.background.addChild(seagradient);
 
-		const image1 = new createjs.Bitmap(queue.getResult('spot_searipple'));
+		const image1 = new createjs.Bitmap(QUEUE.getResult('spot_searipple'));
 		image1.alpha = 0.2;
 		image1.y = this.planet.lines.horizon;
 		this.riddles1 = image1;
 		this.background.addChild(image1);
 
-		const image2 = new createjs.Bitmap(queue.getResult('spot_searipple'));
+		const image2 = new createjs.Bitmap(QUEUE.getResult('spot_searipple'));
 		image2.alpha = 0.2;
 		image2.y = this.planet.lines.horizon;
 		image2.skewX = 1;
@@ -255,7 +255,7 @@
     if(this.planet.images.extra) {
       for(let i=0,ln=this.planet.images.extra.length; i<ln; i++) {
         let extra = this.planet.images.extra[i];
-        let image = new createjs.Bitmap(queue.getResult(extra.asset));
+        let image = new createjs.Bitmap(QUEUE.getResult(extra.asset));
         image.x = extra.x;
         image.y = extra.y;
         image.alpha = (extra.alpha)? extra.alpha : 1;
@@ -282,7 +282,7 @@
 					;
 		var filter = new createjs.ColorMatrixFilter(matrix);
 
-		const front1 = new createjs.Bitmap(queue.getResult(this.planet.images.frontground));
+		const front1 = new createjs.Bitmap(QUEUE.getResult(this.planet.images.frontground));
 		front1.regX = front1.image.width/2;
 		front1.regY = front1.image.height/2;
 		front1.y = STAGEHEIGHT - front1.image.height/2;
@@ -291,7 +291,7 @@
   	front1.cache(0, 0, front1.getBounds().width, front1.getBounds().height);
 		this.frontground.addChild(front1);
 
-		const front2 = new createjs.Bitmap(queue.getResult(this.planet.images.frontground));
+		const front2 = new createjs.Bitmap(QUEUE.getResult(this.planet.images.frontground));
 		front2.regX = front2.image.width/2;
 		front2.regY = front2.image.height/2;
 		front2.scaleX = -1;

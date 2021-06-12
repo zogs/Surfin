@@ -43,14 +43,14 @@
           splash_h_percent: 100,
           splash_h_ease: 0.4,
           unroll: {
-            width: 30,
-            width_max: 32,
+            width: 26,
+            width_max: 30,
             width_interval: 0,
             width_pause: 0,
-            block_interval: 500,
-            block_interval_max: 1000,
-            block_width: 50,
-            block_width_max: 100,
+            block_interval: 2000,
+            block_interval_max: 6000,
+            block_width: 200,
+            block_width_max: 400,
           },
         },
         lip: {
@@ -69,8 +69,8 @@
         suction: {x: 5, y: 4},
         obstacles: {
           'float': {
-            'interval': 3000,
-            'interval_max': 6000,
+            'interval': 2000,
+            'interval_max': 3000,
             'objects' : {
               'guldo': {percentage: 33},
               'reacum': {percentage: 33},

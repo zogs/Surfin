@@ -27,7 +27,7 @@
       this.glow = new createjs.Shape();
       this.glow.graphics.beginRadialGradientFill(["rgba(0,0,0,0)",this.conf.color,"rgba(0,0,0,0)"], [0.25, 0.30, 0.9], 0, 0, radius, 0, 0, radius*1.2).drawCircle(0,0,radius*1.2);
       this.addChild(this.glow);
-      this.riddle = new createjs.Bitmap(queue.getResult('spot_searipple'));
+      this.riddle = new createjs.Bitmap(QUEUE.getResult('spot_searipple'));
       this.riddle.rotation = 90;
       this.riddle.x = 500;
       this.riddle.y = -500;

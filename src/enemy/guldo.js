@@ -5,8 +5,9 @@
       config.name = 'guldo';
       config.img = 'sprite_guldo';
       config.meter_height = 1;
-      config.pixel_height = 160*rY;
-      config.distance_trigger = Math.random()*STAGEWIDTH + 100;
+      config.pixel_height = 120*rY;
+      config.distance_trigger = STAGEWIDTH/3;
+      config.speedX = 20;
 
       this.Obstacle_constructor(config);
 
@@ -18,7 +19,7 @@
     Guldo.prototype.drawImage = function() {
 
       var sheet = new createjs.SpriteSheet({
-          images: [queue.getResult(this.config.img)],
+          images: [QUEUE.getResult(this.config.img)],
           frames: {width:parseInt(160*rX), height:parseInt(160*rY), regX: parseInt(80*rX), regY: parseInt(80*rY)},
           framerate: 6,
           animations: {
@@ -44,7 +45,7 @@
     Guldo.prototype.drawBonus = function() {
 
       var bonus = new createjs.Shape();
-        bonus.graphics.beginFill('green').drawCircle(0,0,60*rX*this.actualScale);
+        bonus.graphics.beginFill('green').drawCircle(0,0,50*rX*this.actualScale);
         bonus.hitzone = 'body';
         bonus.alpha = 0.5;
         this.debug_cont.addChild(bonus);
@@ -65,7 +66,7 @@
     Guldo.prototype.drawAttackMalus = function() {
 
       var malus = new createjs.Shape();
-        malus.graphics.beginFill('red').drawCircle(0,0,60*rX*this.actualScale);
+        malus.graphics.beginFill('red').drawCircle(0,0,50*rX*this.actualScale);
         malus.hitzone = 'body';
         malus.alpha = 0.5;
         this.debug_cont.addChild(malus);

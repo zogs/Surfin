@@ -9,6 +9,8 @@
 
       this.Obstacle_constructor(config);
 
+      this.shotable = this.bonuses;
+
     }
     Bomb.prototype = Object.create(Obstacle.prototype);
     Bomb.prototype.constructor = Bomb;
@@ -16,7 +18,7 @@
 
     Bomb.prototype.drawImage = function() {
       var sheet = new createjs.SpriteSheet({
-          images: [queue.getResult('bomb')],
+          images: [QUEUE.getResult('bomb')],
           frames: {width:parseInt(200*rX), height:parseInt(200*rY), regX: parseInt(100*rX), regY: parseInt(100*rY)},
           framerate: 1,
           animations: {
@@ -33,7 +35,7 @@
       this.image_cont.addChild(this.bomb);
 
       var sheet = new createjs.SpriteSheet({
-          images: [queue.getResult('boom')],
+          images: [QUEUE.getResult('boom')],
           frames: {width:parseInt(312*rX), height:parseInt(285*rY), regX: parseInt(155*rX), regY: parseInt(142*rY)},
           framerate: 10,
           animations: {
@@ -52,6 +54,14 @@
 
     Bomb.prototype.drawBonus = function() {
 
+        var bonus = new createjs.Shape();
+        bonus.graphics.beginFill('green').drawCircle(0,0,30*rX*this.actualScale);
+        bonus.y = 0;
+        bonus.x = 5 * rX;
+        bonus.alpha = 0.5;
+        bonus.shotable = true;
+        this.debug_cont.addChild(bonus);
+        this.bonuses.push(bonus);
     }
 
     Bomb.prototype.drawMalus = function() {
@@ -61,7 +71,6 @@
         malus.y = 0;
         malus.x = 5 * rX;
         malus.alpha = 0.5;
-        malus.shotable = true;
         this.debug_cont.addChild(malus);
         this.maluses.push(malus);
     }
@@ -72,30 +81,22 @@
       this.maluses.splice(this.maluses.indexOf(malus),1);
     }
 
-    Bomb.prototype.bonusHitted = function() {
-
-    }
-
     Bomb.prototype.die = function() {
+
+      this.boom.alpha = 1;
       this.boom.gotoAndPlay('explode');
-      createjs.Tween.get(this.bomb).to({alpha: 0}, 500).call(() => this.selfRemove())
+      this.bomb.alpha = 0;
+      this.boom.on('animationend', (ev) => {
+        createjs.Tween.get(this.boom).to({alpha: 0}, 500).call(() => this.selfRemove())
+      });
       this.active = false;
+      this.hitted = true;
     }
 
     Bomb.prototype.malusHitted = function() {
 
-      this.bomb.alpha = 0;
-      this.boom.alpha = 1;
-      this.boom.gotoAndPlay('explode');
-      this.hitted = true;
+      this.die();
     }
 
-    Bomb.prototype.shooted = function() {
-
-      this.bomb.alpha = 0;
-      this.boom.alpha = 1;
-      this.boom.gotoAndPlay('explode');
-      this.hitted = true;
-    }
 
 }());

@@ -82,7 +82,7 @@
       createjs.Tween.get(drop).wait(200).to({alpha:0.3,scaleX:1,scaleY:1},300);
     }
 
-    var title = new createjs.Bitmap(queue.getResult('washed_text'));
+    var title = new createjs.Bitmap(QUEUE.getResult('washed_text'));
     title.alpha = 0;
     title.x = STAGEWIDTH/2;
     title.y = STAGEHEIGHT*1/3 - title.image.height/2;

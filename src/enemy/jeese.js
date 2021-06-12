@@ -5,7 +5,9 @@
       config.name = 'jeese';
       config.img = 'sprite_jeese';
       config.meter_height = 1.8;
-      config.pixel_height = 80*rY;
+      config.pixel_height = 60*rY;
+      config.ymin = 150;
+      config.ymax = config.wave.params.height*1.5;
 
       this.balls = [];
 
@@ -19,7 +21,7 @@
     Jeese.prototype.drawImage = function() {
 
       var sheet = new createjs.SpriteSheet({
-          images: [queue.getResult(this.config.img)],
+          images: [QUEUE.getResult(this.config.img)],
           frames: {width:parseInt(82*rX), height:parseInt(82*rY), regX: parseInt(41*rX), regY: parseInt(41*rY)},
           framerate: 12,
           animations: {
@@ -31,7 +33,7 @@
 
       this.sprite = new createjs.Sprite(sheet);
       this.sprite.scale = this.actualScale;
-      this.sprite.scaleX *= this.actualDirection;
+      this.sprite.scaleX *= -this.actualDirection;
       this.image_cont.addChild(this.sprite);
 
       this.status = 'wait',
@@ -72,12 +74,17 @@
         if(ev.name == 'fire') {
           let ball = new createjs.Shape();
           ball.graphics.beginFill('yellow').drawCircle(0,0,20);
-          ball.scaleX = 0.5;
+          ball.scaleY = 0.5;
+          ball.alpha = 0.5;
           ball.hitzone = 'body';
           ball.hitradius = 10;
+          ball.dirAngle = calculAngle(this.x, this.y, this.wave.surfer.x + this.wave.surfer.config.pixel_height * -this.wave.direction , this.wave.surfer.y);
+          ball.rotation = ball.dirAngle;
+          ball.dirSpeed = 20;
           this.addChild(ball);
           this.balls.push(ball);
           this.maluses.push(ball);
+
 
         }
       });
@@ -93,7 +100,7 @@
     Jeese.prototype.triggerEvents = function() {
 
       var distance = get2dDistance(this.x,this.y,this.wave.surfer.x,this.wave.surfer.y);
-      if(distance < STAGEWIDTH*rX/2) {
+      if(distance < STAGEWIDTH*rX) {
         if(this.status == 'wait') {
           this.sprite.gotoAndPlay('ready');
           this.status = 'ready';
@@ -106,8 +113,15 @@
     Jeese.prototype.moveFireballs = function() {
 
       this.balls.map(b => {
-        b.x += 1;
-        b.y += 10;
+
+        let x = Math.cos(Math.radians(b.dirAngle));
+        let y = Math.sin(Math.radians(b.dirAngle));
+
+        x *= b.dirSpeed;
+        y *= b.dirSpeed;
+
+        b.x += x;
+        b.y += y;
 
         if(b.y > STAGEHEIGHT) {
           this.removeChild(b);

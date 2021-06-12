@@ -77,10 +77,10 @@
             "interval": 1000,
             "interval_max": 3000,
             "objects": {
-              "paddler": {
+              "paddletrooper": {
                 "percentage": 30
               },
-              "photographer": {
+              "beachtrooper": {
                 "percentage": 30
               },
             }

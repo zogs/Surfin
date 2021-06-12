@@ -27,7 +27,7 @@
 
     Stingbat.prototype.drawImage = function() {
       var sheet = new createjs.SpriteSheet({
-          images: [queue.getResult(this.img)],
+          images: [QUEUE.getResult(this.img)],
           frames: {width:parseInt(250*rX), height:parseInt(300*rY), regX:parseInt(125*rX), regY:parseInt(155*rY)},
           framerate: 20,
           animations: {

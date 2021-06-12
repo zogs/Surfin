@@ -20,7 +20,7 @@
     Beachtrooper.prototype.drawImage = function() {
 
       var sheet = new createjs.SpriteSheet({
-          images: [queue.getResult('sprite_beachtrooper')],
+          images: [QUEUE.getResult('sprite_beachtrooper')],
           frames: {width:parseInt(380*rX), height:parseInt(280*rY), regX: parseInt(190*rX), regY: parseInt(140*rY)},
           framerate: 10,
           animations: {

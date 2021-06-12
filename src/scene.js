@@ -1,7 +1,8 @@
 class Scene {
   constructor() {
 
-
+    this.shaking = false;
+    this.shaking_force = 1;
 
   }
 
@@ -69,5 +70,47 @@ class Scene {
     let nextlevel = this.getNextLevel();
     USER.unlockPlanet(nextlevel.planet_id);
     USER.unlockLevel(nextlevel.id);
+  }
+
+  switchShaking = function(force) {
+    if(this.shaking === true) this.stopShaking();
+    else this.startShaking(force);
+  }
+
+  startShaking = function(force) {
+    this.shaking = true;
+    this.shake(force);
+  }
+
+  stopShaking = function() {
+    this.shaking = false;
+  }
+
+  shake = function(force) {
+
+    if(this.shaking===false) return;
+
+    if(force) this.shaking_force = force;
+    this.shaking_force *= 5/6;
+
+    let amplitude = (STAGEWIDTH*1/100)*this.shaking_force;
+    if(amplitude < 1) {
+      amplitude = 0;
+      return null;
+    }
+
+    const x = Math.floor(Math.random()*amplitude*2 - amplitude);
+    const y = Math.floor(Math.random()*amplitude*2 - amplitude);
+
+    createjs.Tween.get(window.spot_cont)
+      .to({x:x,y:y},75)
+      .call(proxy(this.unshake,this));
+  }
+
+  unshake = function() {
+
+    createjs.Tween.get(window.spot_cont)
+      .to({x:0,y:0},75)
+      .call(proxy(this.shake,this, [null]));
   }
 }

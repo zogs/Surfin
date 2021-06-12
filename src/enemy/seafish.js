@@ -23,7 +23,7 @@
 
     Seafish.prototype.drawImage = function() {
       var sheet = new createjs.SpriteSheet({
-          images: [queue.getResult(this.img)],
+          images: [QUEUE.getResult(this.img)],
           frames: {width:parseInt(400*rX), height:parseInt(200*rY), regX:parseInt(200*rX), regY:parseInt(100*rY)},
           framerate: 200,
           animations: {

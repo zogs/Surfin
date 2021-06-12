@@ -22,7 +22,7 @@
     Cigogne.prototype.drawImage = function() {
 
       var sheet = new createjs.SpriteSheet({
-          images: [queue.getResult(this.img)],
+          images: [QUEUE.getResult(this.img)],
           frames: {width:parseInt(256*rX), height:parseInt(256*rY), regX:parseInt(128*rX), regY:parseInt(128*rY)},
           framerate: 30,
           animations: {
@@ -32,7 +32,7 @@
 
       this.sprite = new createjs.Sprite(sheet);
       this.sprite.scale = this.actualScale;
-      this.sprite.scaleX *= this.actualDirection;
+      this.sprite.scaleX *= -this.actualDirection;
       this.sprite.gotoAndPlay('fly');
       this.image_cont.addChild(this.sprite);
 

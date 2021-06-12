@@ -23,7 +23,7 @@
     Drone.prototype.drawImage = function() {
 
       var sheet = new createjs.SpriteSheet({
-          images: [queue.getResult('drone')],
+          images: [QUEUE.getResult('drone')],
           frames: {width:parseInt(256*rX), height:parseInt(256*rY), regX:parseInt(128*rX), regY:parseInt(128*rY)},
           framerate: 1,
           animations: {

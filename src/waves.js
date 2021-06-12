@@ -43,7 +43,7 @@ prototype.init = function(spot, config) {
 	this.allpoints = [];
 	this.particles = [];
 	this.peak_count = 0;
-	this.shaking_force = 1.2;
+	this.quaking_force = 1.2;
 	this.direction = CENTER;
 	this.movingX = 0;
 	this.comingPercent = 0;
@@ -527,8 +527,8 @@ prototype.splashPointReached = function(point) {
 	if(this.isPlayed()) {
 		// set direction (LEFT or RIGHT) from surfer position relative to the break center
 		this.setDirection();
-		// init screen shaking pertubation
-		this.startShaking();
+		// init screen quaking pertubation
+		this.startQuaking();
 		// display control for mobile
 		this.spot.controls.set();
 		// init obstacles timers
@@ -731,37 +731,37 @@ prototype.playerTakeOff = function(surfer) {
 
 }
 
-prototype.startShaking = function() {
-	this.shaking = true;
-	this.shake();
+prototype.startQuaking = function() {
+	this.quaking = true;
+	this.quake();
 }
 
-prototype.stopShaking = function() {
-	this.shaking = false;
+prototype.stopQuaking = function() {
+	this.quaking = false;
 }
 
-prototype.shake = function() {
+prototype.quake = function() {
 
-	if(this.shaking==false) return;
-	if(this.surfer==null) return;
+	if(this.quaking===false) return;
+	if(this.surfer===null) return;
 
 	var dist = get2dDistance(this.surfer.x,this.surfer.y,this.getVanishPoint().x,this.getVanishPoint().y);
-	var amplitude = (STAGEWIDTH*1/3)/dist*this.shaking_force;
+	var amplitude = (STAGEWIDTH*1/3)/dist*this.quaking_force;
 	if(amplitude < 1) amplitude = 0;
 
-	this.shake_x = Math.floor(Math.random()*amplitude*2 - amplitude);
-	this.shake_y = Math.floor(Math.random()*amplitude*2 - amplitude);
+	this.quake_x = Math.floor(Math.random()*amplitude*2 - amplitude);
+	this.quake_y = Math.floor(Math.random()*amplitude*2 - amplitude);
 
 	createjs.Tween.get(window.spot_cont)
-		.to({x:this.shake_x,y:this.shake_y},50)
-		.call(proxy(this.unshake,this));
+		.to({x:this.quake_x,y:this.quake_y},50)
+		.call(proxy(this.unquake,this));
 }
 
-prototype.unshake = function() {
+prototype.unquake = function() {
 
 	createjs.Tween.get(window.spot_cont)
-		.to({x:this.shake_x,y:this.shake_y},50)
-		.call(proxy(this.shake,this));
+		.to({x:this.quake_x,y:this.quake_y},50)
+		.call(proxy(this.quake,this));
 }
 
 prototype.resizeBackground = function() {
@@ -1185,7 +1185,7 @@ prototype.selfRemove = function() {
 	this.surfers.map(s => this.removeSurfer(s));
 	this.cont.removeAllChildren();
 	this.removeAllChildren();
-	this.stopShaking();
+	this.stopQuaking();
 	this.obstacles = [];
 	this.allpoints = [];
 	this.particles = [];
@@ -1797,7 +1797,7 @@ prototype.initRipples = function() {
 
 prototype.initFrontgroundRipples = function() {
 
-	const ripple1 = new createjs.Bitmap(queue.getResult('lip_ripple'));
+	const ripple1 = new createjs.Bitmap(QUEUE.getResult('lip_ripple'));
 	const width = ripple1.image.width;
 	const height = ripple1.image.height;
 	ripple1.regX = width/2;
@@ -1823,7 +1823,7 @@ prototype.initBackgroundRipples = function() {
 
 	this.background_ripples.alpha = 0.1;
 
-	this.background_ripple1 = new createjs.Bitmap(queue.getResult('wave_ripple'));
+	this.background_ripple1 = new createjs.Bitmap(QUEUE.getResult('wave_ripple'));
 
 	var height = this.background_ripple1.image.height;
 	this.background_scale = this.params.height / height;

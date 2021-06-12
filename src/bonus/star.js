@@ -20,7 +20,7 @@
     RotatingStar.prototype.drawImage = function() {
 
       var sheet = new createjs.SpriteSheet({
-          images: [queue.getResult(this.img)],
+          images: [QUEUE.getResult(this.img)],
           frames: {width:parseInt(120*rX), height:parseInt(120*rY), regX:parseInt(60*rX), regY:parseInt(60*rY)},
           framerate: 20,
           animations: {

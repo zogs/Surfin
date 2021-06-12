@@ -52,6 +52,7 @@
 		this.velocities = [];
 		this.pumped = [];
 		this.time = 0;
+    this.jumpY = 0;
 		this.speed = 0;
 		this.angle = 90;
 		this.angle_rad = Math.PI/2;
@@ -232,6 +233,10 @@
 			}
 		},this);
 
+    this.on('fall',function(event) {
+			if(this.isPlayer()) SCENE.startShaking(4);
+		},this,true);
+
 		this.on('fallen',function(event) {
 			if(this.isPlayer()) this.spot.dispatchEvent('player_fallen');
 		},this,true);
@@ -298,7 +303,7 @@
 
 		// align trail with the board contact with the water
 		this.trail_water_shape.y = 0;
-		createjs.Tween.get(this.trail_water_shape).to({y : 50 * this.config.actualScale}, 2000, createjs.Ease.quartIn);
+		createjs.Tween.get(this.trail_water_shape).to({y : 40 * this.config.actualScale}, 1000);
 
 		// dispatch takeoff event
 		const event = new createjs.Event("takeoff");
@@ -477,7 +482,7 @@
 		this.getAngle();
 
 		if(this.isFallen()) {
-			//do nothing
+			if(this.isOnAir()) this.moveOnAir(); // avoid fallen boy to hang in the air like an idiot !
 		}
 		else if(this.isFalling()) {
 
@@ -618,8 +623,11 @@
 			return this.spot.debug_cont.localToLocal(this.virtualMouse.x, this.virtualMouse.y, this.wave.foreground_cont);
 		}
 
-		var mouse = window.getMousePoint(n);
-		return this.wave.foreground_cont.globalToLocal(mouse.x,mouse.y);
+		const mouse = window.getMousePoint(n);
+    const x = mouse.x;
+    const y = mouse.y + this.jumpY;
+
+		return this.wave.foreground_cont.globalToLocal(x,y);
 	}
 
 	prototype.detectAboveLipPoint = function() {
@@ -675,7 +683,8 @@
 		}
 
 		// get horizontal velocity from lip position
-		let vX = breaking_width * ( 0.5 + breaking_percent/100 ) * distance_idx;
+		//let vX = breaking_width * ( 0.5 + breaking_percent/100 ) * distance_idx;
+		let vX = breaking_width; // simplify for now
 
 		// add a bit of speed
 		vX *= 2;
@@ -815,8 +824,10 @@
 
 	prototype.moveOnAir = function() {
 
-		// add initial velocity
-		this.location.add(this.velocity);
+    // slow down horizontal velocity (limit to current breaking width)
+    let velocity = this.velocity.clone().limit(this.point_under.breaking_width, 0.9);
+		// add velocity
+		this.location.add(velocity);
 		// get gravity
 		const gravity = this.gravity.clone();
 		// calcul skill aerial
@@ -996,6 +1007,14 @@
 
 		this.lastTrick = ev.trick;
 	}
+
+  prototype.startJump = function() {
+    createjs.Tween.get(this, {override: true}).to({jumpY: -STAGEHEIGHT*2}, 500, createjs.Ease.EaseIn);
+  }
+
+  prototype.endJump = function() {
+    createjs.Tween.get(this, {override: true}).to({jumpY: 0}, 0);
+  }
 
 	prototype.initBackflip = function() {
 
@@ -1776,7 +1795,7 @@
 
 		//draw top shape of the trail
 		this.trail_water_shape.graphics.clear();
-		this.trail_water_shape.graphics.beginRadialGradientFill(["rgba(255,255,255,1)","rgba(0,0,0,0.2)"], [0,1], this.x, this.y, 0, this.x, this.y, 180 );
+		this.trail_water_shape.graphics.beginRadialGradientFill(["rgba(255,255,255,1)","rgba(255,255,255,0.2)"], [0,1], this.x, this.y, 0, this.x, this.y, 180 );
 		for(let i=0; i<nb; ++i) {
 			let point = points[i];
 			var size = i*points[i].size + this.trailcoef*points[i].size;
@@ -1807,10 +1826,14 @@
 		this.trail_water_shape.alpha = this.alpha;
 
 		// align trail with the board contact with the water
-		let dx = 0;
-		if(this.wave.direction === LEFT) dx = 25;
-		if(this.wave.direction === RIGHT) dx = -25;
-		this.trail_water_shape.x = dx;
+		if(this.wave.direction === LEFT) {
+		  this.trail_water_shape.x = 25;
+		  this.trail_water_shape.y = 40;
+    }
+		if(this.wave.direction === RIGHT) {
+		  this.trail_water_shape.x = -25;
+		  this.trail_water_shape.y = 37;
+    }
 
 	}
 
@@ -2022,7 +2045,7 @@
 	prototype.initSilhouette = function() {
 
 		let sprite = new createjs.SpriteSheet({
-			images: [queue.getResult(this.config.img)],
+			images: [QUEUE.getResult(this.config.img)],
 			frames: {width: parseInt(256*rX), height: parseInt(256*rY)},
 			framerate: 5,
 			animations: {
@@ -2060,7 +2083,7 @@
 	prototype.initSplash = function() {
 
 		let sprite = new createjs.SpriteSheet({
-			images: [queue.getResult('surfer_splash')],
+			images: [QUEUE.getResult('surfer_splash')],
 			frames: {width:parseInt(200*rX), height:parseInt(150*rY), regX: parseInt(100*rX), regY: parseInt(75*rY)},
 			framerate: 20,
 			animations: {

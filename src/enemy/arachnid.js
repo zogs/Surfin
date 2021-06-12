@@ -8,7 +8,7 @@
       config.meter_height = 1;
       config.pixel_height = 150*rY;
       config.hp = 0;
-      config.attackRange = 200;
+      config.attackRange = 500;
 
       this.Obstacle_constructor(config);
 
@@ -23,7 +23,7 @@
 
     Arachnid.prototype.drawImage = function() {
       var sheet = new createjs.SpriteSheet({
-          images: [queue.getResult(this.img)],
+          images: [QUEUE.getResult(this.img)],
           frames: {width:parseInt(500*rX), height:parseInt(400*rY), regX:parseInt(250*rX), regY:parseInt(200*rY)},
           framerate: 15,
           animations: {
@@ -64,7 +64,7 @@
     Arachnid.prototype.drawMalus = function() {
 
       var malus = new createjs.Shape();
-        malus.graphics.beginFill('red').drawCircle(0,0,100*rX*this.actualScale);
+        malus.graphics.beginFill('red').drawCircle(0,0,80*rX*this.actualScale);
         malus.x = 0;
         malus.y = 0;
         malus.alpha = 0.5;
@@ -99,7 +99,7 @@
         if(ev.name !== 'attack') return;
         if(this.attacked === false) {
           let malus = new createjs.Shape();
-          malus.graphics.beginFill('red').drawCircle(0,0,120*rX*this.actualScale);
+          malus.graphics.beginFill('red').drawCircle(0,0,60*rX*this.actualScale);
           malus.x = 70;
           malus.y = 0;
           malus.alpha = 0.2;
@@ -108,6 +108,7 @@
         }
         this.attacking = true;
         this.attacked = true;
+        this.sprite.gotoAndPlay('attack');
       })
     }
 

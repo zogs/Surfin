@@ -25,7 +25,7 @@
 
     Arachfly.prototype.drawImage = function() {
       var sheet = new createjs.SpriteSheet({
-          images: [queue.getResult(this.img)],
+          images: [QUEUE.getResult(this.img)],
           frames: {width:parseInt(512*rX), height:parseInt(512*rY), regX:parseInt(256*rX), regY:parseInt(256*rY)},
           framerate: 60,
           animations: {

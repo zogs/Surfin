@@ -27,7 +27,7 @@
 
     Toruk.prototype.drawImage = function() {
       var sheet = new createjs.SpriteSheet({
-          images: [queue.getResult(this.img)],
+          images: [QUEUE.getResult(this.img)],
           frames: {width:parseInt(400*rX), height:parseInt(400*rY), regX:parseInt(200*rX), regY:parseInt(200*rY)},
           framerate: 30,
           animations: {

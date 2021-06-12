@@ -441,7 +441,7 @@
     let x = SPOT.wave.getX() + SPOT.wave.surfer.x;
     let y = (SPOT.wave.surfer.y <= 0)? SPOT.wave.surfer.y  - SPOT.wave.params.height - 70*rY : - SPOT.wave.params.height - 70*rY;
     SPOT.wave.score_text_cont.addChild(score);
-    createjs.Tween.get(score).set({alpha:0, rotation:5, x:x, y:100}).to({y:y, alpha:1, rotation: -5}, 400, createjs.Ease.bounceOut);
+    createjs.Tween.get(score).set({alpha:0, rotation:5, x:x, y:2000}).to({y:y, alpha:1, rotation: -5}, 500, createjs.Ease.backOut);
 
     return score;
   }
@@ -457,7 +457,7 @@
 
     let score = new Pop('Backloop').add(1000);
     SPOT.wave.score_text_cont.addChild(score);
-    createjs.Tween.get(score).set({alpha:0, rotation:10, y:100, x: STAGEWIDTH/2}).to({y:-400, alpha:1, rotation: -10}, 500, createjs.Ease.backOut)
+    createjs.Tween.get(score).set({alpha:0, rotation:10, y:100, x: STAGEWIDTH/2}).to({y:-400, alpha:1, rotation: -10}, 800, createjs.Ease.backOut)
         .wait(500)
         //.call(proxy(score.grade,score,['Super']))
         //.wait(500)
@@ -645,7 +645,7 @@
       this.border = border ? border : 'rgba(0,0,0,0.6)';
       this.sliding = false;
       this.timers = [];
-      this.font = 'sans-serif';
+      this.font = 'Blinker';
       //this.font = 'SurfingCapital, sans-serif';
       this.useCache = false;
 
@@ -717,11 +717,11 @@
 
     prototype.drawScore = function() {
 
-      this.subscore = new createjs.Text('0','italic '+Math.floor(36*rY)+"px 'Blinker', sans-serif",'yellow');  //BubblegumSansRegular BoogalooRegular albaregular
+      this.subscore = new createjs.Text('0','italic '+Math.floor(32*rY)+"px 'Blinker', sans-serif",'yellow');  //BubblegumSansRegular BoogalooRegular albaregular
       this.subscore.regX = this.subscore.getMeasuredWidth()/2;
       this.subscore.regY = this.subscore.getMeasuredHeight()/2;
       this.subscore.x = 0;
-      this.subscore.y = this.text_cont.height/2 + 5;
+      this.subscore.y = this.size/2 + 10;
       this.subscore.alpha = 0;
       this.addChild(this.subscore);
     }
@@ -755,7 +755,7 @@
     prototype.add = function(score) {
 
       this.subscore.text = parseInt(this.subscore.text) + score;
-      this.subscore.regX = this.subscore.getMeasuredWidth()/2;
+      this.subscore.regX = -this.subscore.getMeasuredWidth()*1/3;
       this.subscore.regY = this.subscore.getMeasuredHeight()/2;
       this.subscore.alpha = 1;
 
@@ -801,9 +801,9 @@
         this.stopGrowth();
       }
 
-      createjs.Tween.get(this.subscore).to({scale: 1.5}, 500, createjs.Ease.bounceOut).wait(500).to({alpha: 0}, 500);
+      createjs.Tween.get(this.subscore).to({scale: 1.2}, 500, createjs.Ease.bounceOut).wait(500).to({alpha: 0}, 500);
 
-      createjs.Tween.get(this).wait(400).set({sliding: true});
+      createjs.Tween.get(this).to({y: this.y + 30, rotation: -15},400, createjs.Ease.backOut).set({sliding: true}).to({scale:0.8},400).to({alpha:0}, 700);
 
       return this;
 
@@ -835,17 +835,17 @@
       this.emitter = new ParticleEmitter({
         x: 0,
         y: 0,
-        density: 2 + Math.random()*5,
-        duration: 300,
-        frequency: 100,
+        density: 2 + Math.random()*4,
+        duration: 240,
+        frequency: 120,
         callback : proxy(this.removeParticles,this),
-        magnitude: 20,
-        magnitudemax : 25,
+        magnitude: 23,
+        magnitudemax : 33,
         angle: - Math.PI/2,
-        spread: Math.PI/2,
+        spread: Math.PI/4,
         size: 8,
         scaler: 0.1,
-        fader: 0.02,
+        fader: 0.05,
         rotate: 0.1,
         rotatemax: 10,
         friction: 0.5,

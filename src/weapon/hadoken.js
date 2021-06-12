@@ -25,7 +25,7 @@
     Hadoken.prototype.init = function(conf) {
 
       var sheet = new createjs.SpriteSheet({
-          images: [queue.getResult('shockwave')],
+          images: [QUEUE.getResult('shockwave')],
           frames: {width:parseInt(128*rX), height:parseInt(128*rY), regX: parseInt(64*rX), regY: parseInt(64*rY)},
           framerate: 20,
           animations: {
@@ -151,7 +151,7 @@
     Fireball.prototype.init = function(conf) {
 
       var sheet = new createjs.SpriteSheet({
-          images: [queue.getResult('waterball')],
+          images: [QUEUE.getResult('waterball')],
           frames: {width:parseInt(64*rX), height:parseInt(64*rY), regX: parseInt(32*rX), regY: parseInt(32*rY)},
           framerate: 20,
           animations: {
@@ -163,7 +163,7 @@
       this.addChild(this.ball);
 
       var sheet = new createjs.SpriteSheet({
-          images: [queue.getResult('waterballsprinkle')],
+          images: [QUEUE.getResult('waterballsprinkle')],
           frames: {width:parseInt(64*rX), height:parseInt(64*rY), regX: parseInt(32*rX), regY: parseInt(32*rY)},
           framerate: 20,
           animations: {

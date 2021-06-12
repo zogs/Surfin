@@ -20,7 +20,7 @@
     Paddletrooper.prototype.drawImage = function() {
 
       var sheet = new createjs.SpriteSheet({
-          images: [queue.getResult('sprite_paddle')],
+          images: [QUEUE.getResult('sprite_paddle')],
           frames: {width:parseInt(256*rX), height:parseInt(256*rY), regX: parseInt(128*rX), regY: parseInt(128*rY)},
           framerate: 8,
           animations: {

@@ -19,7 +19,7 @@
 	prototype.initSilhouette = function() {
 
 		let sprite = new createjs.SpriteSheet({
-			images: [queue.getResult(this.config.img)],
+			images: [QUEUE.getResult(this.config.img)],
 			frames: {width: parseInt(256*rX), height: parseInt(256*rY)},
 			framerate: 5,
 			animations: {
