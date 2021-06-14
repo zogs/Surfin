@@ -18,6 +18,7 @@ let rX;
 let rY;
 
 let PROGRESSBAR;
+let LOADING_INTERVAL
 
 window.load = function() {
 
@@ -114,9 +115,13 @@ window.showLoadingScreen = function() {
 window.loadingProgress = function(e) {
   PROGRESSBAR.scaleX = e.progress;
   PROGRESSVAN.x = e.progress * 500 + PROGRESSBOR.x;
-  for(let i=0,ln=PROGRESSLGT.numChildren; i<ln; i++) {
+}
+
+window.loadingAnimation = function() {
+//loadingAtLightSpeed
+for(let i=0,ln=PROGRESSLGT.numChildren; i<ln; i++) {
     let light = PROGRESSLGT.getChildAt(i);
-    light.x -= 10 + light.lineSpeed * 5;
+    light.x -= 20 + light.lineSpeed * 10;
     if(light.x < -light.lineWidth) light.x = PROGRESSLGT.width + light.lineWidth;
   }
   window.Stage.update();
@@ -127,6 +132,7 @@ window.loadAssets = function() {
 	QUEUE = new createjs.LoadQueue();
 	QUEUE.addEventListener('complete',initialize);
   QUEUE.addEventListener('progress',loadingProgress);
+  LOADING_INTERVAL = window.setInterval(window.loadingAnimation, 50);
 	let imgdir = 'dist/img/'+CURRENTX+'x'+CURRENTY+'/';
 	QUEUE.loadManifest([
 		{id:'bg_paradize',src:imgdir+'spots/default/full.jpg'},
@@ -264,6 +270,7 @@ window.initialize = function() {
 
   // clear Stage
   window.Stage.removeAllChildren();
+  window.clearInterval(LOADING_INTERVAL);
 
 	// Containers
 	window.spot_cont = new createjs.Container();
