@@ -71,11 +71,12 @@
         suction: {x: 5, y: 4},
         obstacles: {
           'float': {
-            'interval': 2500,
-            'interval_max': 5000,
+            'interval': 1000,
+            'interval_max': 3000,
             'objects' : {
               'beachtrooper': { percentage: 50 },
-              'bomb': { percentage: 50 },
+              'paddletrooper': { percentage: 10 },
+              'bomb': { percentage: 40 },
             },
           },
           'fly': {

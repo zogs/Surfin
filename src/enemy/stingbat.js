@@ -49,7 +49,7 @@
       this.sprite.scaleX *= this.direction;
       this.image_cont.addChild(this.sprite);
 
-      this.flapping = setInterval(proxy(this.flapWings, this), 1000);
+      this.flapping = setInterval(proxy(this.flapWings, this), 500);
     }
 
     Stingbat.prototype.flapWings = function() {

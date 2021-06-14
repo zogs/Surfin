@@ -124,7 +124,7 @@
     // add doggo
     const dog = new createjs.Sprite(
       new createjs.SpriteSheet({
-          images: [queue.getResult('dog')],
+          images: [QUEUE.getResult('dog')],
           frames: {width:parseInt(64*rX), height:parseInt(64*rY), regX: parseInt(16*rX), regY: parseInt(16*rY)},
           framerate: 10,
           animations: {
@@ -142,7 +142,7 @@
 
     const ptero = new createjs.Sprite(
       new createjs.SpriteSheet({
-          images: [queue.getResult('ptero')],
+          images: [QUEUE.getResult('ptero')],
           frames: {width:parseInt(128*rX), height:parseInt(128*rY), regX: parseInt(64*rX), regY: parseInt(64*rY)},
           framerate: 4,
           animations: {
@@ -163,7 +163,7 @@
     // add button
     const sprite = new createjs.Sprite(
       new createjs.SpriteSheet({
-          images: [queue.getResult('btn_startgame')],
+          images: [QUEUE.getResult('btn_startgame')],
           frames: {width:parseInt(700*rX), height:parseInt(280*rY), regX: parseInt(350*rX), regY: parseInt(140*rY)},
           framerate: 1,
           animations: {

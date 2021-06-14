@@ -97,13 +97,13 @@
 
     this.initWaving();
 
-    let cargo = new createjs.Bitmap(queue.getResult('terre_cargo'));
+    let cargo = new createjs.Bitmap(QUEUE.getResult('terre_cargo'));
     cargo.x = 1050;
     cargo.y = 240;
     this.addChild(cargo);
     createjs.Tween.get(cargo).to({x: -100}, 500000);
 
-    let astrovan = new createjs.Bitmap(queue.getResult('terre_astrovan'));
+    let astrovan = new createjs.Bitmap(QUEUE.getResult('terre_astrovan'));
     astrovan.x = 520;
     astrovan.y = 460;
     this.addChild(astrovan);

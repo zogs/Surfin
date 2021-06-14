@@ -324,7 +324,7 @@ window.initialize = function() {
 	//SCENE
   SCENE = new Scene();
 	//SCENE.loadLevel('Home');
-	SCENE.loadLevel('Flhoston1');
+	SCENE.loadLevel('Home');
 
 	//init onEnterFrame
 	createjs.Ticker.timingMode = createjs.Ticker.TIMEOUT;

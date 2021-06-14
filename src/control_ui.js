@@ -197,7 +197,7 @@
       this.addChild(this.boost);
       this.addChild(this.jump);
       this.addChild(this.hadoken);
-      this.addChild(this.shield);
+      //this.addChild(this.shield);
 
     } else {
 

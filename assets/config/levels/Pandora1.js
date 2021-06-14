@@ -73,7 +73,9 @@
             'interval': 2000,
             'interval_max': 3000,
             'objects' : {
-              'Toruk' : {percentage: 90},
+              'Stingbat' : {percentage:50},
+              'Banshee' : {percentage:30},
+              'Toruk' : {percentage:10},
               'TorukAttack' : {percentage: 10},
             },
           },

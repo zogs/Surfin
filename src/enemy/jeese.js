@@ -80,7 +80,7 @@
           ball.hitradius = 10;
           ball.dirAngle = calculAngle(this.x, this.y, this.wave.surfer.x + this.wave.surfer.config.pixel_height * -this.wave.direction , this.wave.surfer.y);
           ball.rotation = ball.dirAngle;
-          ball.dirSpeed = 20;
+          ball.dirSpeed = 15;
           this.addChild(ball);
           this.balls.push(ball);
           this.maluses.push(ball);

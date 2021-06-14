@@ -91,7 +91,7 @@
       this.drawAttackMalus();
 
       let angle = calculAngle(this.x, this.y, this.wave.surfer.x, this.wave.surfer.y);
-      let speed = 30;
+      let speed = 25;
       this.speedX = speed * Math.cos(Math.radians(angle));
       this.speedY = speed * Math.sin(Math.radians(angle));
     }

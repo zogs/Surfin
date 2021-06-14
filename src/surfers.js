@@ -79,7 +79,7 @@
 		this.color_spatter_num = 0;
 		this.fall_reason = null;
 		this.point_under = null;
-		this.aerial_takeoff_limit = 10;
+		this.aerial_takeoff_limit = 50;
 		this.aerial_quality_takeoff = 0;
 		this.aerial_quality_landing = 0;
 		this.aerial_start_point = null;
