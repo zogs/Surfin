@@ -1015,16 +1015,15 @@ prototype.continueBreakingPeakLeftInterval = function() {
 
 prototype.addBreakingPeak = function(width,distance) {
 
-	//this.addBreakingPeakWarning();
+	this.addBreakingPeakWarning();
+	window.setTimeout(proxy(this.addBreakingPeakToLip,this,[width,distance]),2000);
 
-	//window.setTimeout(proxy(this.addBreakingPeakToLip,this,[width,distance]),2000);
-
-	this.addBreakingPeakToLip(width,distance);
+	//this.addBreakingPeakToLip(width,distance);
 }
 
 prototype.addBreakingPeakWarning = function() {
 
-	var text = new createjs.Text('Watch out !','bold '.Math.floor(40*rY)+'px BubblegumSansRegular','#FFF'); //BubblegumSansRegular BoogalooRegular albaregular
+	var text = new createjs.Text('Watch out !','bold '+Math.floor(40*rY)+'px BubblegumSansRegular','#FFF'); //BubblegumSansRegular BoogalooRegular albaregular
 		text.alpha = 0.8;
 		var b = text.getBounds();
 		if(this.direction === CENTER) return;
@@ -1293,26 +1292,20 @@ prototype.deleteOffscreenPoints = function(points) {
 
 
 prototype.initFloatObstaclesInterval = function() {
-
 	var t = this.config.obstacles.float.interval + Math.random()*(this.config.obstacles.float.interval_max - this.config.obstacles.float.interval);
 	this.obstacle_timer = new Timer(proxy(this.continueFloatObstaclesInterval,this),t);
-	setTimeout(proxy(this.addRandomFloatObstacle, this), 1000);
 }
 prototype.continueFloatObstaclesInterval = function() {
-
 	var t = this.config.obstacles.float.interval + Math.random()*(this.config.obstacles.float.interval_max - this.config.obstacles.float.interval);
 	this.addRandomFloatObstacle();
 	this.obstacle_timer = new Timer(proxy(this.continueFloatObstaclesInterval,this),t);
 }
 
 prototype.initFlyObstaclesInterval = function() {
-
 	var time = this.config.obstacles.fly.interval + Math.random()*(this.config.obstacles.fly.interval_max - this.config.obstacles.fly.interval);
 	this.obstaclefly_timer = new Timer(proxy(this.continueFlyObstaclesInterval,this),time);
-	setTimeout(proxy(this.addRandomFlyObstacle, this), 1000);
 }
 prototype.continueFlyObstaclesInterval = function() {
-
 	var time = this.config.obstacles.fly.interval + Math.random()*(this.config.obstacles.fly.interval_max - this.config.obstacles.fly.interval);
 	this.addRandomFlyObstacle();
 	this.obstaclefly_timer = new Timer(proxy(this.continueFlyObstaclesInterval,this),time);
@@ -1326,19 +1319,20 @@ prototype.addRandomFloatObstacle = function() {
 	for(let name in this.config.obstacles.float.objects) {
 		var perc = perc + this.config.obstacles.float.objects[name].percentage;
 		if(rand <= perc) {
-			if(name === 'stars') this.addRandomStarline();
-			/* add others if needed */
-			else {
-				let id = name.charAt(0).toUpperCase() + name.slice(1);
-				if(typeof window[id] !== 'undefined') {
-					return this.addObstacle(id);
-				} else {
-					console.error("Obstacle named '"+id+"' does not exist.");
-				}
-			}
-			return;
-		}
+      let id = name.charAt(0).toUpperCase() + name.slice(1);
+      if(name == 'break') {
+        let obj = this.config.obstacles.float.objects[name];
+        this.addBreakingPeak(obj.width, obj.distance);
+      }
+      else if(typeof window[id] !== 'undefined') {
+        let config = this.config.obstacles.float.objects[name];
+        return this.addObstacle(id, config);
+      } else {
+        console.error("Obstacle named '"+id+"' does not exist.");
+      }
+    }
 	}
+  return;
 }
 prototype.addRandomFlyObstacle = function() {
 	if(this.breaked === false) return;
@@ -1357,17 +1351,19 @@ prototype.addRandomFlyObstacle = function() {
 					console.error("Obstacle named '"+id+"' does not exist.");
 				}
 			}
-			return;
 		}
 	}
+  return;
 }
 
 
-prototype.addObstacle = function(id) {
-	if(typeof id === undefined) var obs = new Obstacle({wave: this, spot: this.spot, direction: this.direction});
-	else var obs = new window[id]({wave: this, spot: this.spot, direction: this.direction});
-	this.obstacles.push(obs);
-	this.obstacle_cont.addChild(obs);
+prototype.addObstacle = function(id, config) {
+
+  let conf = Object.assign({}, config, {wave: this, spot: this.spot, direction: this.direction});
+  var obst = new window[id](conf);
+	this.obstacles.push(obst);
+  console.log('add obstacle '+id, this.obstacles);
+	this.obstacle_cont.addChild(obst);
 }
 
 prototype.addFlyingPrize = function() {
@@ -1375,54 +1371,12 @@ prototype.addFlyingPrize = function() {
 	this.addObstacle(obs);
 }
 
-prototype.addRotatingStar = function() {
-	var obs = new RotatingStar({wave: this, spot: this.spot, direction: this.direction});
-	this.addObstacle(obs);
-	return obs;
-}
-
-prototype.addStarline = function(length = 5, spaceX = 80, amplitude = 100, scale = 0.5) {
-
-	let first = this.addRotatingStar();
-	let fx = first.x;
-	let fy = this.params.height - Math.random()*this.params.height*2;
-	first.setXY(fx, fy);
-	let othersX = [];
-	let othersY = [];
-	let theta = 0;
-	for(let i=1; i<=length-1; i++) {
-		theta += scale;
-		let dx = (this.direction === LEFT)? -i * spaceX : i*spaceX;
-		let x = first.x + dx;
-		let y = first.y + Math.sin(theta) * amplitude;
-		othersX.push(x);
-		othersY.push(y);
-	}
-
-	let dy = 0;
-	let maxY = Math.max(...othersY);
-	if(maxY > this.params.height ) dy = maxY - this.params.height;
-
-	first.setXY(first.x, first.y - dy);
-	for(let i=0; i<=othersX.length-1; i++) {
-		let star = this.addRotatingStar();
-		star.setXY(othersX[i], othersY[i] - dy);
-	}
-}
-
-prototype.addRandomStarline = function() {
-
-	let length = Math.ceil(Math.random()*12) + 4;
-	let spaceX = 100 + Math.random()*100;
-	let amplitude = 50 + Math.random()*(this.params.height/2);
-	let scale = Math.random();
-	//this.addStarline(length, spreadX, spreadY, scale);
-	this.addStarline(length, 80, amplitude, scale);
-}
-
 prototype.removeObstacle = function(obs) {
-	this.obstacles.splice(this.obstacles.indexOf(obs),1);
-	this.obstacle_cont.removeChild(obs);
+  const index = this.obstacles.indexOf(obs);
+  if(index > -1) {
+    this.obstacles.splice(this.obstacles.indexOf(obs),1);
+    this.obstacle_cont.removeChild(obs);
+  }
 }
 
 prototype.drawLip = function() {
@@ -1886,8 +1840,6 @@ prototype.animateFrontgroundRipples = function() {
 }
 
 prototype.animateBackgroundRipples = function() {
-
-	if(PERF <= 1) return;
 
 	if(SPOT.runing === false && this.isPlayed() === false) return;
 

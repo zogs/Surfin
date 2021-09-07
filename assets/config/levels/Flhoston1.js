@@ -21,7 +21,7 @@
       },
       timelimit: null,
       goals: [
-        { type: 'score', current:0, aim: 20000, name: 'Faire un score de 20000 points ({n})' },
+        { type: 'catch', current:0, count:10, aim: 'star', name: 'Collecter 10 étoiles ({n})' },
       ],
       player: {
 
@@ -45,14 +45,14 @@
           splash_h_percent: 100,
           splash_h_ease: 0.4,
           unroll: {
-            width: 25,
-            width_max: 25,
+            width: 20,
+            width_max: 22,
             width_interval: 2000,
             width_pause: 1000,
-            block_interval: 1000,
-            block_interval_max: 6000,
-            block_width: 40,
-            block_width_max: 500,
+            block_interval: 0,
+            block_interval_max: 0,
+            block_width: 0,
+            block_width_max: 0,
           },
         },
         lip: {
@@ -71,12 +71,13 @@
         suction: {x: 5, y: 4},
         obstacles: {
           'float': {
-            'interval': 1000,
-            'interval_max': 3000,
+            'interval': 800,
+            'interval_max': 800,
             'objects' : {
-              'beachtrooper': { percentage: 50 },
-              'paddletrooper': { percentage: 10 },
-              'bomb': { percentage: 40 },
+              'star' : { percentage: 100}
+              //'beachtrooper': { percentage: 50 },
+              //'paddletrooper': { percentage: 10 },
+              //'bomb': { percentage: 40 },
             },
           },
           'fly': {

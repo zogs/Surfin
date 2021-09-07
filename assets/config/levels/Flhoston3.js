@@ -1,10 +1,10 @@
 (function() {
 
-  function Flhoston2(params) {
+  function Flhoston3(params) {
 
     let defaults = {
-      id: 'Flhoston2',
-      name: 'Flhoston 2',
+      id: 'Flhoston3',
+      name: 'Flhoston 3',
       planet: 'flhoston',
       series: {
         length :  3,
@@ -16,7 +16,7 @@
       },
       timelimit: null,
       goals: [
-        { type: 'catch', current:0, aim: 'star', count: 12, name: 'Collecter 12 étoiles ({n})' },
+        { type: 'catch', current:0, aim: 'star', count: 20, name: 'Collecter 20 étoiles ({n})' },
       ],
       player: {
 
@@ -44,10 +44,10 @@
             width_max: 25,
             width_interval: 1000,
             width_pause: 1000,
-            block_interval: 0,
-            block_interval_max: 0,
-            block_width: 0,
-            block_width_max: 0,
+            block_interval: 2000,
+            block_interval_max: 4000,
+            block_width: 40,
+            block_width_max: 80,
           },
         },
         lip: {
@@ -66,12 +66,10 @@
         suction: {x: 5, y: 4},
         obstacles: {
           'float': {
-            'interval': 500,
+            'interval': 2000,
             'interval_max': 2500,
             'objects' : {
-              'star': { percentage: 30 },
-              'flyingStar': { percentage: 40 },
-              'bomb': { percentage: 30 },
+              'starline': { percentage: 100 },
             },
           },
           'fly': {
@@ -96,9 +94,9 @@
     this.init(config);
   }
 
-  var prototype = createjs.extend(Flhoston2, window.Spot);
+  var prototype = createjs.extend(Flhoston3, window.Spot);
 
-  SPOTS.Flhoston2 = Flhoston2;
-  LEVELS.push(Flhoston2);
+  SPOTS.Flhoston3 = Flhoston3;
+  LEVELS.push(Flhoston3);
 
 }());

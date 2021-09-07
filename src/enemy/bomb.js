@@ -9,7 +9,7 @@
 
       this.Obstacle_constructor(config);
 
-      this.shotable = this.bonuses;
+      this.shotables = this.maluses;
 
     }
     Bomb.prototype = Object.create(Obstacle.prototype);
@@ -54,14 +54,6 @@
 
     Bomb.prototype.drawBonus = function() {
 
-        var bonus = new createjs.Shape();
-        bonus.graphics.beginFill('green').drawCircle(0,0,30*rX*this.actualScale);
-        bonus.y = 0;
-        bonus.x = 5 * rX;
-        bonus.alpha = 0.5;
-        bonus.shotable = true;
-        this.debug_cont.addChild(bonus);
-        this.bonuses.push(bonus);
     }
 
     Bomb.prototype.drawMalus = function() {
@@ -71,20 +63,16 @@
         malus.y = 0;
         malus.x = 5 * rX;
         malus.alpha = 0.5;
+        malus.hitzone = 'body';
         this.debug_cont.addChild(malus);
         this.maluses.push(malus);
-    }
-
-    Bomb.prototype.cancelMalus = function(malus) {
-
-      createjs.Tween.get(this).to({alpha: 0}, 500);
-      this.maluses.splice(this.maluses.indexOf(malus),1);
     }
 
     Bomb.prototype.die = function() {
 
       this.boom.alpha = 1;
       this.boom.gotoAndPlay('explode');
+      let sound = createjs.Sound.play("bombBoom");
       this.bomb.alpha = 0;
       this.boom.on('animationend', (ev) => {
         createjs.Tween.get(this.boom).to({alpha: 0}, 500).call(() => this.selfRemove())
@@ -98,5 +86,119 @@
       this.die();
     }
 
+
+}());
+
+(function() {
+
+    function BombTriplet(config = {}) {
+
+      this.defaultConfig = config;
+
+      config.img = 'bombTriplet';
+      config.name = 'bombTriplet';
+      config.meter_height = 0.9;
+      config.pixel_height = 140*rY;
+
+      this.config = config;
+
+      const types = ['top', 'middle', 'bottom', 'top2', 'bottom2', 'topbottom', 'triple'];
+      console.log(this.defaultConfig);
+      this.type = config.type ? config.type : types[Math.floor(Math.random()*(types.length+1))];
+
+      this.Obstacle_constructor(config);
+
+      this.shotables = this.bombs;
+
+    }
+    BombTriplet.prototype = Object.create(Obstacle.prototype);
+    BombTriplet.prototype.constructor = BombTriplet;
+    window.BombTriplet = createjs.promote(BombTriplet, "Obstacle");
+
+    BombTriplet.prototype.drawImage = function() {
+
+      this.bombs = [];
+
+      if(this.type === 'top' || this.type === 'top2' || this.type === 'triple') {
+        this.topBomb = new Bomb(Object.assign({},this.defaultConfig));
+        this.topBomb.autoRemove = false;
+        this.topBomb.setXY(0, this.config.wave.params.height - this.config.wave.params.height*2/3 - this.config.pixel_height/1/4);
+        this.addChild(this.topBomb);
+        this.bombs.push(this.topBomb);
+      }
+
+      if(this.type === 'middle' || this.type === 'top2' || this.type === 'bottom2' || this.type === 'triple') {
+        this.middleBomb = new Bomb(Object.assign({},this.defaultConfig));
+        this.middleBomb.autoRemove = false;
+        this.middleBomb.setXY(0, this.config.wave.params.height - this.config.wave.params.height*1/3 - this.config.pixel_height/1/4);
+        this.addChild(this.middleBomb);
+        this.bombs.push(this.middleBomb);
+      }
+
+      if(this.type === 'bottom' || this.type === 'bottom2' || this.type === 'triple') {
+        this.bottomBomb = new Bomb(Object.assign({},this.defaultConfig));
+        this.bottomBomb.autoRemove = false;
+        this.bottomBomb.setXY(0, this.config.wave.params.height - this.config.pixel_height/1/4);
+        this.addChild(this.bottomBomb);
+        this.bombs.push(this.bottomBomb);
+      }
+
+    }
+
+    BombTriplet.prototype.drawBonus = function() {
+    }
+
+    BombTriplet.prototype.drawMalus = function() {
+    }
+
+    BombTriplet.prototype.bonusHitted = function() {
+    }
+
+    BombTriplet.prototype.hitBonus = function(surfer) {
+      if(this.topBomb) this.topBomb.hitBonus(surfer);
+      if(this.middleBomb) this.middleBomb.hitBonus(surfer);
+      if(this.bottomBomb) this.bottomBomb.hitBonus(surfer);
+    }
+
+    BombTriplet.prototype.hitMalus = function(surfer) {
+      if(this.topBomb) this.topBomb.hitMalus(surfer);
+      if(this.middleBomb) this.middleBomb.hitMalus(surfer);
+      if(this.bottomBomb) this.bottomBomb.hitMalus(surfer);
+    }
+
+    BombTriplet.prototype.bonusHitted = function() {
+    }
+    BombTriplet.prototype.malusHitted = function() {
+    }
+
+    BombTriplet.prototype.beforeRemoval = function() {
+      if(this.topBomb) {
+        this.topBomb.selfRemove();
+        this.removeChild(this.topBomb);
+      }
+      if(this.middleBomb) {
+        this.middleBomb.selfRemove();
+        this.removeChild(this.middleBomb);
+      }
+      if(this.bottomBomb) {
+         this.bottomBomb.selfRemove();
+         this.removeChild(this.bottomBomb);
+      }
+    }
+
+    BombTriplet.prototype.initialPosition = function() {
+
+    let x = this.wave.params.breaking_center + (200 - Math.random() * 400)*rX;
+    let y = 0;
+
+    if(this.wave.direction === RIGHT) {
+      x = this.wave.obstacle_cont.globalToLocal(STAGEWIDTH,0) + 120;
+    }
+    if(this.wave.direction === LEFT) {
+      x = this.wave.obstacle_cont.globalToLocal(0,0).x - 120;
+    }
+
+    this.setXY(x,y);
+  }
 
 }());

@@ -61,7 +61,7 @@ window.showLoadingScreen = function() {
   let bar = new createjs.Shape();
   bar.graphics.beginFill('#fd4e01').drawRect(0,0, 500, 36);
   bar.x = CURRENTX/2 - 250;
-  bar.y = 25;
+  bar.y = 50;
   bar.scaleX = 0.5;
   let van = new createjs.Sprite(
       new createjs.SpriteSheet({
@@ -80,16 +80,16 @@ window.showLoadingScreen = function() {
   van.gotoAndPlay('fly');
   let lights = new createjs.Container();
   lights.width = 500;
-  lights.height = 100;
+  lights.height = 250;
   lights.x = CURRENTX/2 - 250;
   for(let i=0,ln=12; i <= ln; i++) {
     let light = new createjs.Shape();
     light.lineWidth = 100;
     light.lineSpeed = Math.random();
-    light.graphics.setStrokeStyle(1).beginStroke('#fff').moveTo(0,0).lineTo(light.lineWidth, 0);
+    light.graphics.setStrokeStyle(4).beginStroke('#fff').moveTo(0,0).lineTo(light.lineWidth, 0);
     light.x = Math.random()* lights.width;
     light.y = Math.random()* lights.height;
-    light.alpha = 0.5 + Math.random()*0.5;
+    light.alpha = 0.2 + Math.random()*0.8;
     lights.addChild(light);
   }
   let mask = new createjs.Shape();
@@ -114,7 +114,7 @@ window.showLoadingScreen = function() {
 
 window.loadingProgress = function(e) {
   PROGRESSBAR.scaleX = e.progress;
-  PROGRESSVAN.x = e.progress * 500 + PROGRESSBOR.x;
+  PROGRESSVAN.x = e.progress * 500 + PROGRESSBOR.x - (140*e.progress);
 }
 
 window.loadingAnimation = function() {
@@ -238,6 +238,7 @@ window.loadAssets = function() {
 	createjs.Sound.alternateExtensions = ["mp3"];
  	createjs.Sound.registerSound("dist/sounds/yeah.mp3", "bravo");
  	createjs.Sound.registerSound("dist/sounds/pickup.wav", "pickup");
+ 	createjs.Sound.registerSound("dist/sounds/bombBoom.mp3", "bombBoom");
  	createjs.Sound.registerSound("dist/sounds/cut.wav", "cut");
  	createjs.Sound.registerSound("dist/sounds/sharkroar.wav", "sharkroar");
  	createjs.Sound.registerSound("dist/sounds/plouf.mp3", "plouf");
@@ -331,7 +332,7 @@ window.initialize = function() {
 	//SCENE
   SCENE = new Scene();
 	//SCENE.loadLevel('Home');
-	SCENE.loadLevel('Home');
+	SCENE.loadLevel('Flhoston5');
 
 	//init onEnterFrame
 	createjs.Ticker.timingMode = createjs.Ticker.TIMEOUT;
@@ -439,11 +440,11 @@ window.defaultKeyDownHandler = function(e)
     case 'é':  SPOT.getWave().addFlyingPrize(); break;
     case '"':  SPOT.getWave().addCigogne(); break;
     case '\'':  SPOT.getWave().addDrone(); break;
-    case 'k':  SPOT.getWave().getSurfer().updateLifebar(0.2); break;
     case 't':  switchTestMode(); break;
     case 'd':  switchDebugMode(); break;
     case 'w':  switchSlowMo(0.1,500); break;
     case 'g':  SPOT.removeAllPaddlers().getWave().breakAndFollow(); break;
+    case 'k':  SPOT.getWave().addBreakingPeak(50, 500); break;
     case '+':  SPOT.score.add(1000); break;
     case '/':  SPOT.controls.startShield(); break;
     case '*':  SPOT.controls.startHadoken(); break;

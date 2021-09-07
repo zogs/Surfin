@@ -170,7 +170,7 @@
 
     return new Dialog(texts
       , [
-        new Button("Commencer", proxy(this.closeStory, this)),
+        new Button("C'est parti !", proxy(this.closeStory, this)),
       ], {
         x: STAGEWIDTH/2,
         y: STAGEHEIGHT/2,
@@ -718,9 +718,9 @@
 
   prototype.levelSucceeded = function() {
 
-    this.wave.addBlockBreaking(STAGEWIDTH);
-    this.wave.removeObstaclesInterval();
-    setTimeout(() => { this.wave.obstacles.map(o => o.die())}, 1200);
+    //this.wave.addBlockBreaking(STAGEWIDTH);
+    //this.wave.removeObstaclesInterval();
+    //setTimeout(() => { this.wave.obstacles.map(o => o.die())}, 1200);
   }
 
 	prototype.addPaddler = function(x,y) {

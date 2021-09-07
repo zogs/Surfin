@@ -1,10 +1,10 @@
 (function() {
 
-  function Flhoston2(params) {
+  function Flhoston4(params) {
 
     let defaults = {
-      id: 'Flhoston2',
-      name: 'Flhoston 2',
+      id: 'Flhoston4',
+      name: 'Flhoston 4',
       planet: 'flhoston',
       series: {
         length :  3,
@@ -16,7 +16,8 @@
       },
       timelimit: null,
       goals: [
-        { type: 'catch', current:0, aim: 'star', count: 12, name: 'Collecter 12 étoiles ({n})' },
+        { type: 'catch', current:0, aim: 'star', count: 20, name: "Collecter 30 étoiles ({n})" },
+        { type: 'catch', current:0, aim: 'beachtrooper', count: 6, name: "S'occuper de 6 touristes ({n})" },
       ],
       player: {
 
@@ -34,7 +35,7 @@
         width : 0,
         real_height: 3,
         breaking: {
-          width: 180,
+          width: 200,
           y_speed: 1000,
           y_ease: 'quartIn',
           splash_h_percent: 100,
@@ -44,10 +45,10 @@
             width_max: 25,
             width_interval: 1000,
             width_pause: 1000,
-            block_interval: 0,
-            block_interval_max: 0,
-            block_width: 0,
-            block_width_max: 0,
+            block_interval: 2000,
+            block_interval_max: 4000,
+            block_width: 60,
+            block_width_max: 100,
           },
         },
         lip: {
@@ -65,13 +66,14 @@
         tube_difficulty_max : 10,
         suction: {x: 5, y: 4},
         obstacles: {
-          'float': {
-            'interval': 500,
+          float: {
+            'interval': 1500,
             'interval_max': 2500,
             'objects' : {
-              'star': { percentage: 30 },
-              'flyingStar': { percentage: 40 },
-              'bomb': { percentage: 30 },
+              'starline': { percentage: 30 },
+              'star': { percentage: 20 },
+              'bomb': { percentage: 40 },
+              'beachtrooper': { percentage: 10, y: 240 }
             },
           },
           'fly': {
@@ -96,9 +98,9 @@
     this.init(config);
   }
 
-  var prototype = createjs.extend(Flhoston2, window.Spot);
+  var prototype = createjs.extend(Flhoston4, window.Spot);
 
-  SPOTS.Flhoston2 = Flhoston2;
-  LEVELS.push(Flhoston2);
+  SPOTS.Flhoston4 = Flhoston4;
+  LEVELS.push(Flhoston4);
 
 }());

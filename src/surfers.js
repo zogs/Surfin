@@ -683,8 +683,8 @@
 		}
 
 		// get horizontal velocity from lip position
-		//let vX = breaking_width * ( 0.5 + breaking_percent/100 ) * distance_idx;
-		let vX = breaking_width; // simplify for now
+		let vX = breaking_width * ( 0.5 + breaking_percent/100 ) * distance_idx;
+		//let vX = breaking_width; // simplify for now
 
 		// add a bit of speed
 		vX *= 2;
@@ -976,6 +976,9 @@
 		var ev = new createjs.Event("aerial_start");
 
 		var impulse = this.velocity.magnitude();
+
+    // TEMP
+    impulse = 0; // force simple aerial
 
 		if(impulse > 70) {
 
@@ -1677,25 +1680,13 @@
 		//no hit when surfer is ollying [no actual use for now]
 		if(this.isOllieing() === true) return;
 
-
 		//test all obstacles
 		for(var i=0,l=this.wave.obstacles.length;i<l;++i) {
 			var obstacle = this.wave.obstacles[i];
-
-			if(obstacle.hitBonus(this)) {
-				//launch event
-				var ev = new createjs.Event('bonus_hitted'); // we need to recreate event as we re-dispatch it
-				ev.object = obstacle;
-				this.dispatchEvent(ev);
-			}
-
-			if(obstacle.hitMalus(this)) {
-				//launch event
-				var ev = new createjs.Event('malus_hitted'); // we need to recreate event as we re-dispatch it
-				ev.object = obstacle;
-				this.dispatchEvent(ev);
-			}
+      obstacle.hitMalus(this);
+			obstacle.hitBonus(this);
 		}
+
 	}
 
 	prototype.checkWeaponHits = function() {
@@ -1704,14 +1695,36 @@
 		for(let i=0,len = this.wave.obstacles.length; i<len; i++) {
 			const obstacle = this.wave.obstacles[i];
 
-			if(obstacle.active && obstacle.shotable !== null) {
-				const zones = (Array.isArray(obstacle.shotable))? obstacle.shotable : [obstacle.shotable];
+			if(obstacle.active && obstacle.shotables !== null) {
+
+				const zones = (Array.isArray(obstacle.shotables))? obstacle.shotables : [obstacle.shotables];
+
 				for(let j=0,ln=zones.length; j<ln; ++j) {
-					const zone = zones[j]
-					const hitted = this.hit('weapon', obstacle.x, obstacle.y, zone.graphics.command.radius);
-					if(hitted) {
-						obstacle.shooted(hitted)
-					}
+					const zone = zones[j];
+          // if its a classic bonus|malus zone
+          if(zone instanceof createjs.Shape) {
+            // check if the zone is hitted
+  					const hitted = this.hit('weapon', obstacle.x, obstacle.y, zone.graphics.command.radius);
+            if(hitted) {
+              obstacle.shooted(hitted)
+            }
+          }
+          // else its (surely) an inner child Obstacle (nested obstacles)
+          else {
+            const nestedObstacle = zone;
+            // so we have to do the check for the child bonus|malus zones
+            if(nestedObstacle.active && nestedObstacle.shotables !== null) {
+              for(let k=0,len=nestedObstacle.shotables.length; k<len; k++) {
+                const shotable = nestedObstacle.shotables[k];
+                const pos = nestedObstacle.localToLocal(shotable.x, shotable.y, this.config.wave.obstacle_cont);
+                const hitted = this.hit('weapon', pos.x, pos.y, shotable.graphics.command.radius);
+                if(hitted) {
+                  nestedObstacle.shooted(hitted);
+                }
+              }
+            }
+          }
+
 				}
 			}
 		}

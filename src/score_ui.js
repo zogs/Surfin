@@ -183,28 +183,25 @@
     }
 
     //goals
-    for(let i=0,ln=this.goals.length-1;i<=ln;i++) {
-      let goal = this.goals[i];
-      if(goal.type === 'timed') {
-        this.goalsTimers.push(new Interval(proxy(this.updateGoalTime,this), 100));
-      }
-      if(goal.type === 'score') {
-        this.goalsTimers.push(new Interval(proxy(this.updateGoalScore,this), 100));
-      }
-      if(goal.type === 'trick') {
-        this.spot.on('surfer_aerial_end', this.updateGoalTricks );
-      }
-      if(goal.type === 'catch') {
-        this.spot.on('bonus_hitted', this.updateGoalCatch );
-      }
-      if(goal.type === 'kill') {
-        this.spot.on('kill', this.updateGoalKill );
-      }
-      if(goal.type === 'tube') {
-        this.spot.on('surfer_tube_in', proxy(this.updateTubeIn, this));
-        this.spot.on('surfer_tube_out', proxy(this.updateTubeOut, this));
-      }
-    }
+    // goal.type === 'timed') {
+    this.goalsTimers.push(new Interval(proxy(this.updateGoalTime,this), 100));
+
+    // goal.type === 'score') {
+    this.goalsTimers.push(new Interval(proxy(this.updateGoalScore,this), 100));
+
+    // goal.type === 'trick') {
+    this.spot.on('surfer_aerial_end', this.updateGoalTricks );
+
+    // goal.type === 'catch') {
+    this.spot.on('bonus_hitted', this.updateGoalCatch );
+
+    // goal.type === 'kill') {
+    this.spot.on('kill', this.updateGoalKill );
+
+    // goal.type === 'tube') {
+    this.spot.on('surfer_tube_in', proxy(this.updateTubeIn, this));
+    this.spot.on('surfer_tube_out', proxy(this.updateTubeOut, this));
+
   }
 
   prototype.updateTubeIn = function() {
@@ -215,6 +212,7 @@
 
   prototype.updateTubeTime = function() {
     let goal = this.goals.find(g => g.type === 'tube');
+    if(goal === undefined) return;
     if(goal.filled) return;
     this.tubeTime += 100;
     let seconds = Math.ceil(this.tubeTime/1000);
@@ -228,6 +226,7 @@
 
   prototype.updateTubeOut = function() {
     let goal = this.goals.find(g => g.type === 'tube');
+    if(goal === undefined) return;
     if(goal.filled) return;
     goal.text.text = this.goalsNameFormatter(goal, 0);
     goal.current = 0;
@@ -256,6 +255,7 @@
 
   prototype.updateGoalTime = function() {
     let goal = this.goals.find(g => g.type === 'timed');
+    if(goal === undefined) return;
     if(goal.filled) return;
     let seconds = this.time_on_wave;
     goal.text.text = this.goalsNameFormatter(goal, seconds);
@@ -268,6 +268,7 @@
 
   prototype.updateGoalScore = function() {
     let goal = this.goals.find(g => g.type === 'score');
+    if(goal === undefined) return;
     if(goal.filled) return;
     let score = this.current_score;
     goal.text.text = this.goalsNameFormatter(goal, score);
@@ -280,9 +281,9 @@
   }
 
   prototype.updateGoalTricks = function(e) {
-
     let trick = e.trick;
     let goal = that.goals.find(g => g.type === 'trick' && g.aim == trick.name);
+    if(goal === undefined) return;
     if(typeof goal === 'undefined') return;
     if(goal.filled) return;
     goal.current += 1;
@@ -296,7 +297,7 @@
   prototype.updateGoalCatch = function(e) {
     let name = e.object.config.name;
     let goal = that.goals.find(g => g.type === 'catch' && g.aim == name);
-    if(typeof goal === 'undefined') return;
+    if(goal === undefined) return;
     if(goal.filled) return;
     goal.current += 1;
     goal.text.text = that.goalsNameFormatter(goal, goal.current);

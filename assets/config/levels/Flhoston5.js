@@ -1,10 +1,10 @@
 (function() {
 
-  function Flhoston2(params) {
+  function Flhoston5(params) {
 
     let defaults = {
-      id: 'Flhoston2',
-      name: 'Flhoston 2',
+      id: 'Flhoston5',
+      name: 'Flhoston 5',
       planet: 'flhoston',
       series: {
         length :  3,
@@ -16,7 +16,7 @@
       },
       timelimit: null,
       goals: [
-        { type: 'catch', current:0, aim: 'star', count: 12, name: 'Collecter 12 étoiles ({n})' },
+        { type: 'timed', current:0, aim: 40, name: 'Survivre 40 secondes ({n}s)' },
       ],
       player: {
 
@@ -34,7 +34,7 @@
         width : 0,
         real_height: 3,
         breaking: {
-          width: 180,
+          width: 200,
           y_speed: 1000,
           y_ease: 'quartIn',
           splash_h_percent: 100,
@@ -44,10 +44,10 @@
             width_max: 25,
             width_interval: 1000,
             width_pause: 1000,
-            block_interval: 0,
-            block_interval_max: 0,
-            block_width: 0,
-            block_width_max: 0,
+            block_interval: 500,
+            block_interval_max: 2000,
+            block_width: 30,
+            block_width_max: 200,
           },
         },
         lip: {
@@ -65,13 +65,13 @@
         tube_difficulty_max : 10,
         suction: {x: 5, y: 4},
         obstacles: {
-          'float': {
-            'interval': 500,
-            'interval_max': 2500,
+          float: {
+            'interval': 1000,
+            'interval_max': 2000,
             'objects' : {
-              'star': { percentage: 30 },
-              'flyingStar': { percentage: 40 },
-              'bomb': { percentage: 30 },
+              //'bomb': { percentage: 100 },
+              'bombTriplet': { percentage: 100, type: 'top2' },
+              'break': { width:50, distance:400, percentage: 2}
             },
           },
           'fly': {
@@ -96,9 +96,9 @@
     this.init(config);
   }
 
-  var prototype = createjs.extend(Flhoston2, window.Spot);
+  var prototype = createjs.extend(Flhoston5, window.Spot);
 
-  SPOTS.Flhoston2 = Flhoston2;
-  LEVELS.push(Flhoston2);
+  SPOTS.Flhoston5 = Flhoston5;
+  LEVELS.push(Flhoston5);
 
 }());

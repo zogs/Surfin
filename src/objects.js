@@ -42,10 +42,11 @@
     this.ticker = null;
     this.ducking = false;
     this.hitted = false;
-    this.shotable = null;
+    this.shotables = null;
+    this.autoRemove = true;
     this.bonuses = [];
     this.maluses = [];
-    this.speedX = this.config.speedX || 10;
+    this.speedX = this.config.speedX || 0;
     this.speedY = this.config.speedY || 0;
     this.velocity = null;
 
@@ -71,6 +72,7 @@
     this.onInit();
 
     this.initSelfListeners();
+
   }
 
   Obstacle.prototype.initSelfListeners = function() {
@@ -99,8 +101,8 @@
       }
     }
 
-    if(this.config.x !== undefined) x = this.config.x;
-    if(this.config.y !== undefined) y = this.config.y;
+    if(this.config.x != null) x = this.config.x;
+    if(this.config.y != null) y = this.config.y;
 
     this.setXY(x,y)
   }
@@ -119,25 +121,17 @@
   Obstacle.prototype.move = function() {
 
       let x = 0;
-
-      //compense la vitesse de la vague
-      if(this.wave) x = -this.wave.movingX;
-
-      //vitesse reelle
+      //vitesse horizontal additionelle
       let speedX = this.speedX;
-
-      //ajout direction de la vague
+      //direction de la vague
       speedX *= (this.direction === LEFT)? 1 : -1;
-
-      //reverse direction if needed
+      //reverse la direction si besoin
       if(this.reverse) speedX *= -1;
-
-      //vitesse horizontale
+      //ajout vitesse horizontale
       x += speedX;
 
       // vitesse vertical
       let y = 0;
-
       y += this.speedY;
 
       // sinusoide verticale
@@ -167,7 +161,7 @@
   }
 
   Obstacle.prototype.checkRemove = function() {
-
+    if(this.autoRemove === false) return;
     let coord = this.localToGlobal(0,0);
     if(coord.x < -STAGEWIDTH/2) this.selfRemove();
     if(coord.x > STAGEWIDTH*1.5) this.selfRemove();
@@ -181,8 +175,9 @@
       const bonus = this.bonuses[j];
       const radius = bonus.hitradius == undefined ? bonus.graphics.command.radius : malus.hitradius;
       const zone = typeof bonus.hitzone == 'undefined' ? 'body' : bonus.hitzone;
-      const x = this.x + bonus.x;
-      const y = this.y + bonus.y;
+      const pos = this.localToLocal(bonus.x, bonus.y, this.wave.obstacle_cont);
+      const x = pos.x;
+      const y = pos.y;
 
       if(bonus.hitted === true) continue;
       if(bonus.disabled === true) continue;
@@ -190,6 +185,9 @@
       if(surfer.hit(zone,x,y,radius)) {
         bonus.hitted = true;
         this.bonusHitted(surfer, bonus);
+        var ev = new createjs.Event('bonus_hitted');
+				ev.object = this;
+				surfer.dispatchEvent(ev);
         return true;
       }
     }
@@ -203,9 +201,10 @@
     while(i--) {
       const malus = this.maluses[i];
       const radius = malus.hitradius == undefined ? malus.graphics.command.radius : malus.hitradius;
-      const zone = malus.hitzone == undefined ? 'body' : malus.hitzone;
-      const x = this.x + malus.x;
-      const y = this.y + malus.y;
+      const zone = typeof malus.hitzone == 'undefined' ? 'body' : malus.hitzone;
+      const pos = this.localToLocal(malus.x, malus.y, this.wave.obstacle_cont);
+      const x = pos.x;
+      const y = pos.y;
 
       if(malus.hitted === true) continue;
       if(malus.disabled === true) continue;
@@ -213,6 +212,9 @@
       if(surfer.hit(zone,x,y,radius)) {
         malus.hitted = true;
         this.malusHitted(surfer, malus);
+        var ev = new createjs.Event('malus_hitted');
+				ev.object = this;
+				surfer.dispatchEvent(ev);
         return true;
       }
     }
@@ -220,10 +222,22 @@
   }
 
   Obstacle.prototype.selfRemove = function() {
+    this.beforeRemoval();
     this.removeSelfListeners();
     if(this.wave) this.wave.removeObstacle(this);
     else this.container.removeChild(this);
+    this.afterRemoval();
   }
+
+  /*
+    This method should be override by final class
+  */
+  Obstacle.prototype.beforeRemoval = function() {}
+
+    /*
+    This method should be override by final class
+  */
+  Obstacle.prototype.afterRemoval = function() {}
 
   /*
     This method should be override by final class
@@ -377,13 +391,6 @@
       if(this.config.y !== undefined) y = this.config.y;
 
       this.setXY(x,y);
-    }
-
-    FlyObstacle.prototype.checkRemove = function() {
-
-      let coord = this.localToGlobal(0,0);
-      if(coord.x < -STAGEWIDTH/2) this.selfRemove();
-      if(coord.x > STAGEWIDTH*1.5) this.selfRemove();
     }
 
 

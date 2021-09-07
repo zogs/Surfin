@@ -16,7 +16,7 @@
 
       this.FlyObstacle_constructor(config);
 
-      this.shotable = this.maluses;
+      this.shotables = this.maluses;
       this.flapping = null;
 
     }
@@ -128,7 +128,7 @@
 
       this.FlyObstacle_constructor(config);
 
-      this.shotable = this.maluses;
+      this.shotables = this.maluses;
 
       this.sprite.gotoAndPlay('bite');
 

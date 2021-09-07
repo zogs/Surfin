@@ -12,7 +12,7 @@
 
       this.Obstacle_constructor(config);
 
-      this.shotable = this.bonuses;
+      this.shotables = this.bonuses;
       this.attacking = false;
       this.attacked = false;
     }

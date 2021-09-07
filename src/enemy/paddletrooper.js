@@ -10,7 +10,7 @@
 
       this.Obstacle_constructor(config);
 
-      this.shotable = this.bonuses;
+      this.shotables = this.bonuses;
 
     }
     Paddletrooper.prototype = Object.create(Obstacle.prototype);

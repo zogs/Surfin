@@ -6,11 +6,10 @@
       config.name = 'beachtrooper';
       config.meter_height = 1;
       config.pixel_height = 200*rY;
-      config.y = config.wave.params.height * 1/3 + Math.random() * (config.wave.params.height * 2/3)
 
       this.Obstacle_constructor(config);
 
-      this.shotable = this.bonuses;
+      this.shotables = this.bonuses;
 
     }
     Beachtrooper.prototype = Object.create(Obstacle.prototype);

@@ -270,15 +270,15 @@
 
   prototype.drawButtonSuccess = function() {
 
-    let next_level = new Button('MENU', proxy(MENU.open, MENU));
-    next_level.x = 220*rX;
-    next_level.y = 180*rY;
-    this.cont_board.addChild(next_level);
+    let menu = new Button('NEXT LEVEL', proxy(SCENE.gotoNextLevel, SCENE));
+    menu.x = 250*rX;
+    menu.y = 180*rY;
+    this.cont_board.addChild(menu);
 
-    let retry = new ButtonSecondary('RETRY', proxy(SCENE.reloadLevel, SCENE));
-    retry.x = 0*rX;
-    retry.y = 180*rY;
-    this.cont_board.addChild(retry);
+    let next = new ButtonSecondary('MENU', proxy(MENU.open, MENU));
+    next.x = 0*rX;
+    next.y = 180*rY;
+    this.cont_board.addChild(next);
   }
 
   prototype.drawButtonRetry = function() {

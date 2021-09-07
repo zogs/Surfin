@@ -16,7 +16,7 @@
 
       this.FlyObstacle_constructor(config);
 
-      this.shotable = this.bonuses;
+      this.shotables = this.bonuses;
       this.flapping = null;
 
     }
