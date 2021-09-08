@@ -243,6 +243,7 @@ window.loadAssets = function() {
  	createjs.Sound.registerSound("dist/sounds/sharkroar.wav", "sharkroar");
  	createjs.Sound.registerSound("dist/sounds/plouf.mp3", "plouf");
  	createjs.Sound.registerSound("dist/sounds/gasp.wav", "gasp");
+ 	createjs.Sound.registerSound("dist/sounds/wavenoise.mp3", "waveNoise");
 	createjs.Sound.volume = 0.1;
 
 	//Justice.init();
@@ -332,7 +333,7 @@ window.initialize = function() {
 	//SCENE
   SCENE = new Scene();
 	//SCENE.loadLevel('Home');
-	SCENE.loadLevel('Flhoston5');
+	SCENE.loadLevel('Flhoston1');
 
 	//init onEnterFrame
 	createjs.Ticker.timingMode = createjs.Ticker.TIMEOUT;

@@ -103,33 +103,30 @@
     this.timer.text = this.formatCountdown(this.countdown);
   }
 
-  prototype.startCountdown = function() {
+  prototype.updateCountdown = function(ev) {
 
-    this.countdown_interval = new Interval(proxy(this.updateCountdown,this), 1000);
-    this.timers.push(this.timer);
-    this.spot.on('player_fall', proxy(this.stopCountdown, this), null, true);
-  }
+    // only update on full round seconds
+    if(ev.timing%1000 !== 0) return;
 
-  prototype.stopCountdown = function() {
-
-    if(this.countdown_interval == null) return;
-    this.timers.splice(this.timers.indexOf(this.countdown_interval),1);
-    this.countdown_interval.clear();
-    this.countdown_interval = null;
-  }
-
-  prototype.updateCountdown = function() {
-
+    // update countdown
     this.countdown--;
-    if(this.countdown == 0) {
-      this.spot.dispatchEvent('wave_timeout');
-      this.stopCountdown();
-    }
+    this.timer.text = this.formatCountdown(this.countdown);
+
+    // put the text in red under 10s
     if(this.countdown < 10) {
       this.timer.color = 'red';
       this.timer.alpha = 0.5 + 0.5 * (1/this.countdown);
     }
-    this.timer.text = this.formatCountdown(this.countdown);
+
+    if(this.countdown < 0) {
+      this.timer.text = '0';
+    }
+
+    // on  countdown ended
+    if(this.countdown === 0) {
+      this.spot.dispatchEvent('wave_timeout');
+    }
+
   }
 
   prototype.formatCountdown = function(total) {
@@ -176,15 +173,13 @@
   prototype.initGoalsListeners = function() {
     //countdown
     if(this.countdown) {
-      //takeoff
-      this.startCountdown();
-      //timeout
+      this.spot.on('wave_timing_advance', proxy(this.updateCountdown, this));
       this.spot.on('wave_timeout', proxy(this.timeout, this), null, true);
     }
 
     //goals
     // goal.type === 'timed') {
-    this.goalsTimers.push(new Interval(proxy(this.updateGoalTime,this), 100));
+    this.spot.on('wave_timing_advance', proxy(this.updateGoalTime,this) );
 
     // goal.type === 'score') {
     this.goalsTimers.push(new Interval(proxy(this.updateGoalScore,this), 100));
@@ -253,11 +248,11 @@
     SPOT.dispatchEvent(ev);
   }
 
-  prototype.updateGoalTime = function() {
+  prototype.updateGoalTime = function(ev) {
     let goal = this.goals.find(g => g.type === 'timed');
     if(goal === undefined) return;
     if(goal.filled) return;
-    let seconds = this.time_on_wave;
+    let seconds = Math.floor(ev.timing/1000);
     goal.text.text = this.goalsNameFormatter(goal, seconds);
     goal.current = seconds;
 

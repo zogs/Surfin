@@ -70,22 +70,7 @@
         tube_difficulty_max : 10,
         suction: {x: 5, y: 4},
         obstacles: {
-          'float': {
-            'interval': 800,
-            'interval_max': 800,
-            'objects' : {
-              'star' : { percentage: 100}
-              //'beachtrooper': { percentage: 50 },
-              //'paddletrooper': { percentage: 10 },
-              //'bomb': { percentage: 40 },
-            },
-          },
-          'fly': {
-            'interval': 0,
-            'interval_max': 1000,
-            'objects' : {
-            },
-          }
+            'star' : { tmin:0, tmax:0, interval:500, intervalMax:1500 },
         },
         shoulder : {
           width: 1000,

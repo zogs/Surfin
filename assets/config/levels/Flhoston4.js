@@ -17,7 +17,7 @@
       timelimit: null,
       goals: [
         { type: 'catch', current:0, aim: 'star', count: 20, name: "Collecter 30 étoiles ({n})" },
-        { type: 'catch', current:0, aim: 'beachtrooper', count: 6, name: "S'occuper de 6 touristes ({n})" },
+        { type: 'catch', current:0, aim: 'beachtrooper', count: 6, name: "Faire tomber 6 touristes ({n})" },
       ],
       player: {
 
@@ -66,22 +66,10 @@
         tube_difficulty_max : 10,
         suction: {x: 5, y: 4},
         obstacles: {
-          float: {
-            'interval': 1500,
-            'interval_max': 2500,
-            'objects' : {
-              'starline': { percentage: 30 },
-              'star': { percentage: 20 },
-              'bomb': { percentage: 40 },
-              'beachtrooper': { percentage: 10, y: 240 }
-            },
-          },
-          'fly': {
-            'interval': 0,
-            'interval_max': 1000,
-            'objects' : {
-            },
-          }
+          'starline': { tmin:5000, tmax:0, interval:5000, intervalMax:10000 },
+          'star': { tmin:0, tmax:0, interval:3000, intervalMax:3500 },
+          'bomb': { tmin:0, tmax:0, interval:2000, intervalMax:4000 },
+          'beachtrooper': { tmin:10000, tmax:0, interval:2000, intervalMax:4000, y:220},
         },
         shoulder : {
           width: 1000,

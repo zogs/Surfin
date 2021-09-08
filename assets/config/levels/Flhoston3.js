@@ -65,19 +65,7 @@
         tube_difficulty_max : 10,
         suction: {x: 5, y: 4},
         obstacles: {
-          'float': {
-            'interval': 2000,
-            'interval_max': 2500,
-            'objects' : {
-              'starline': { percentage: 100 },
-            },
-          },
-          'fly': {
-            'interval': 0,
-            'interval_max': 1000,
-            'objects' : {
-            },
-          }
+              'starline' : { tmin:0, tmax:0, interval:1000, intervalMax:2500 },
         },
         shoulder : {
           width: 1000,

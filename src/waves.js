@@ -46,11 +46,14 @@ prototype.init = function(spot, config) {
 	this.quaking_force = 1.2;
 	this.direction = CENTER;
 	this.movingX = 0;
+  this.timing = 0;
+  this.timingStep = 500;
 	this.comingPercent = 0;
 	this.resizePercent = 0;
 	this.time_scale = (TIME_SCALE) ? TIME_SCALE : 1;
 	this.boundaries = {};
 	this.mouseChildren = false;
+  this.noiseSound = null;
 
 	//initiale suction force with no x value, later suction will be defined when direction is setted
 	this.suction = this.getSuction();
@@ -68,8 +71,8 @@ prototype.init = function(spot, config) {
 	//timers
 	this.breaking_timer = false;
 	this.cleaning_timer = false;
-	this.obstacle_timer = false;
-	this.obstaclefly_timer = false;
+  this.timing_timer = false;
+	this.obstacles_timers = [];
 	this.breaking_peak_left_timer = false;
 	this.breaking_peak_right_timer = false;
 	this.breaking_block_left_timer = false;
@@ -532,7 +535,11 @@ prototype.splashPointReached = function(point) {
 		// display control for mobile
 		this.spot.controls.set();
 		// init obstacles timers
-		this.initObstaclesInterval();
+		this.initObstaclesIntervals();
+    // play sound
+    this.noiseSound = createjs.Sound.play("waveNoise", {interrupt: createjs.Sound.INTERRUPT_ANY, loop:-1});
+    this.noiseSound.volume = 1;
+    this.spot.on('player_fallen', () => this.noiseSound.stop(), null, true);
 	}
 
 }
@@ -658,6 +665,7 @@ prototype.initBreak = function(center) {
 	this.initBreakedIntervals();
 	//fix to ajust witdh to the entire screen
 	createjs.Tween.get(this.params.shoulder).to({marge: 600}, 1000);
+
 }
 
 prototype.initBreakedIntervals = function() {
@@ -666,6 +674,9 @@ prototype.initBreakedIntervals = function() {
 }
 
 prototype.initBreakingIntervals = function() {
+
+  this.timing_timer = new Interval(proxy(this.updateTiming,this), this.timingStep);
+
 	//Breaking block interval
 	if(this.config.breaking.unroll.block_interval !== 0) {
 		this.initBreakingBlockLeftInterval();
@@ -675,20 +686,28 @@ prototype.initBreakingIntervals = function() {
 	}
 }
 
-prototype.initObstaclesInterval = function() {
-	//float obstacles
-	if(this.config.obstacles.float.interval !== 0) {
-		this.initFloatObstaclesInterval();
-	}
-	//fly obstacles
-	if(this.config.obstacles.fly.interval !== 0) {
-		this.initFlyObstaclesInterval();
-	}
+prototype.initObstaclesIntervals = function() {
+  // avoid on non-played or non-breaked wave
+	if(this.breaked === false) return;
+	if(this.isPlayed() === false) return;
+
+  for (const [name, conf] of Object.entries(this.config.obstacles)) {
+    this.initObstacleInterval(name, conf);
+  }
 }
 
-prototype.removeObstaclesInterval = function() {
-	if(this.obstacle_timer instanceof Timer) this.obstacle_timer.clear();
-	if(this.obstaclefly_timer instanceof Timer) this.obstaclefly_timer.clear();
+prototype.removeObstaclesIntervals = function() {
+  this.obstacles_timers.map(t => {
+    t.clear();
+  });
+  this.obstacles_timers = [];
+}
+
+prototype.updateTiming = function() {
+  this.timing += this.timingStep;
+  const ev = new createjs.Event('wave_timing_advance');
+  ev.timing = this.timing;
+  this.spot.dispatchEvent(ev);
 }
 
 prototype.initVariablePameters = function() {
@@ -853,20 +872,21 @@ prototype.remove = function() {
 
 	this.removeAllChildren();
 	this.removeAllEventListeners();
+  this.removeObstaclesIntervals();
 }
 
 prototype.getTimers = function() {
 
 	const timers = [];
+	if(this.timing_timer instanceof Interval) timers.push(this.timing_timer);
 	if(this.breaking_timer instanceof Timer) timers.push(this.breaking_timer);
 	if(this.cleaning_timer instanceof Timer) timers.push(this.cleaning_timer);
-	if(this.obstacle_timer instanceof Timer) timers.push(this.obstacle_timer);
-	if(this.obstaclefly_timer instanceof Timer) timers.push(this.obstaclefly_timer);
 	if(this.breaking_peak_left_timer instanceof Timer) timers.push(this.breaking_peak_left_timer);
 	if(this.breaking_peak_right_timer instanceof Timer) timers.push(this.breaking_peak_right_timer);
 	if(this.breaking_block_left_timer instanceof Timer) timers.push(this.breaking_block_left_timer);
 	if(this.breaking_block_right_timer instanceof Timer) timers.push(this.breaking_block_right_timer);
 	if(this.cleaning_timer instanceof Interval) timers.push(this.cleaning_timer);
+	if(this.obstacles_timers) timers.push(...this.obstacles_timers);
 
 	return timers;
 }
@@ -1291,78 +1311,39 @@ prototype.deleteOffscreenPoints = function(points) {
 }
 
 
-prototype.initFloatObstaclesInterval = function() {
-	var t = this.config.obstacles.float.interval + Math.random()*(this.config.obstacles.float.interval_max - this.config.obstacles.float.interval);
-	this.obstacle_timer = new Timer(proxy(this.continueFloatObstaclesInterval,this),t);
-}
-prototype.continueFloatObstaclesInterval = function() {
-	var t = this.config.obstacles.float.interval + Math.random()*(this.config.obstacles.float.interval_max - this.config.obstacles.float.interval);
-	this.addRandomFloatObstacle();
-	this.obstacle_timer = new Timer(proxy(this.continueFloatObstaclesInterval,this),t);
+prototype.initObstacleInterval = function(obstacle, config) {
+
+	let t = config.interval;
+  if(config.intervalMax) t += Math.random()*(config.intervalMax - config.interval);
+
+  this.addObstacle(obstacle, config);
+
+	const timer = new Timer(proxy(this.initObstacleInterval,this, [obstacle, config]),t, proxy(this.removeObstacleInterval, this));
+  this.obstacles_timers.push(timer);
 }
 
-prototype.initFlyObstaclesInterval = function() {
-	var time = this.config.obstacles.fly.interval + Math.random()*(this.config.obstacles.fly.interval_max - this.config.obstacles.fly.interval);
-	this.obstaclefly_timer = new Timer(proxy(this.continueFlyObstaclesInterval,this),time);
-}
-prototype.continueFlyObstaclesInterval = function() {
-	var time = this.config.obstacles.fly.interval + Math.random()*(this.config.obstacles.fly.interval_max - this.config.obstacles.fly.interval);
-	this.addRandomFlyObstacle();
-	this.obstaclefly_timer = new Timer(proxy(this.continueFlyObstaclesInterval,this),time);
+prototype.removeObstacleInterval = function(timer) {
+  this.obstacles_timers.splice(this.obstacles_timers.indexOf(timer), 1);
 }
 
-prototype.addRandomFloatObstacle = function() {
-	if(this.breaked === false) return;
-	if(this.isPlayed() === false) return;
-	var rand = Math.ceil(Math.random()*100);
-	var perc = 0;
-	for(let name in this.config.obstacles.float.objects) {
-		var perc = perc + this.config.obstacles.float.objects[name].percentage;
-		if(rand <= perc) {
-      let id = name.charAt(0).toUpperCase() + name.slice(1);
-      if(name == 'break') {
-        let obj = this.config.obstacles.float.objects[name];
-        this.addBreakingPeak(obj.width, obj.distance);
-      }
-      else if(typeof window[id] !== 'undefined') {
-        let config = this.config.obstacles.float.objects[name];
-        return this.addObstacle(id, config);
-      } else {
-        console.error("Obstacle named '"+id+"' does not exist.");
-      }
-    }
-	}
-  return;
-}
-prototype.addRandomFlyObstacle = function() {
-	if(this.breaked === false) return;
-	if(this.isPlayed() === false) return;
-	var rand = Math.ceil(Math.random()*100);
-	var perc = 0;
-	for(let name in this.config.obstacles.fly.objects) {
-		var perc = perc + this.config.obstacles.fly.objects[name].percentage;
-		if(rand <= perc) {
-			if(name === 'prize') this.addFlyingPrize();
-			else {
-				let id = name.charAt(0).toUpperCase() + name.slice(1);
-				if(typeof window[id] !== 'undefined') {
-					return this.addObstacle(id);
-				} else {
-					console.error("Obstacle named '"+id+"' does not exist.");
-				}
-			}
-		}
-	}
-  return;
-}
+prototype.addObstacle = function(name, config) {
 
+  // special cases when its not an Obstacle to add
+  if(name == 'break') {
+    return this.addBreakingPeak(config.width, config.distance);
+  }
 
-prototype.addObstacle = function(id, config) {
-
+  // get Obstacle id constructor, and configuration params
+  let id = name.charAt(0).toUpperCase() + name.slice(1);
   let conf = Object.assign({}, config, {wave: this, spot: this.spot, direction: this.direction});
+
+  if(conf.tmin && conf.tmin > this.timing) return;
+  if(conf.tmax && conf.tmax < this.timing) return;
+
+  // create Obstacle and add it
+  console.log('add obstacle '+id, this.obstacles);
   var obst = new window[id](conf);
 	this.obstacles.push(obst);
-  console.log('add obstacle '+id, this.obstacles);
 	this.obstacle_cont.addChild(obst);
 }
 

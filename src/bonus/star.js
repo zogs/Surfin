@@ -66,13 +66,12 @@
     Star.prototype.initialPosition = function() {
 
     let x = this.wave.params.breaking_center + (200 - Math.random() * 400)*rX;
-    let y = this.wave.y - this.wave.params.height - Math.random()*this.wave.params.height;
+    let y = Math.random()*(this.wave.params.height);
 
     if(this.wave.direction === RIGHT) {
       x = this.wave.obstacle_cont.globalToLocal(STAGEWIDTH,0) + this.sprite.spriteSheet.getFrameBounds(0).width;
     }
     if(this.wave.direction === LEFT) {
-      //x = this.wave.shoulder_left.x - Math.random() * (this.wave.params.shoulder.width*2);
       x = this.wave.obstacle_cont.globalToLocal(0,0).x - this.sprite.spriteSheet.getFrameBounds(0).width;
     }
 
@@ -147,7 +146,6 @@
       x = this.wave.obstacle_cont.globalToLocal(STAGEWIDTH,0) + this.sprite.spriteSheet.getFrameBounds(0).width;
     }
     if(this.wave.direction === LEFT) {
-      //x = this.wave.shoulder_left.x - Math.random() * (this.wave.params.shoulder.width*2);
       x = this.wave.obstacle_cont.globalToLocal(0,0).x - this.sprite.spriteSheet.getFrameBounds(0).width;
     }
 
