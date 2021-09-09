@@ -68,21 +68,9 @@
         tube_difficulty_max : 10,
         suction: {x: 5, y: 4},
         obstacles: {
-          'float': {
-            'interval': 2000,
-            'interval_max': 3000,
-            'objects' : {
               'guldo': {percentage: 33},
               'reacum': {percentage: 33},
               'jeese': {percentage: 33},
-            },
-          },
-          'fly': {
-            'interval': 0,
-            'interval_max': 1000,
-            'objects' : {
-            },
-          }
         },
         shoulder : {
           width: 1000,

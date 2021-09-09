@@ -5,9 +5,9 @@
 
       config.name = 'star';
       config.img = 'star';
-      config.ymin = 60;
-      config.ymax = 60;
-      config.reverse = false;
+      config.size_x = 120;
+      config.size_y = 120;
+      this.config = config;
 
       this.Obstacle_constructor(config);
     }
@@ -18,9 +18,9 @@
 
     Star.prototype.drawImage = function() {
 
-      var sheet = new createjs.SpriteSheet({
+      const sheet = new createjs.SpriteSheet({
           images: [QUEUE.getResult(this.img)],
-          frames: {width:parseInt(120*rX), height:parseInt(120*rY), regX:parseInt(60*rX), regY:parseInt(60*rY)},
+          frames: {width:parseInt(this.config.size_x*rX), height:parseInt(this.config.size_x*rY), regX:parseInt(this.config.size_x/2*rX), regY:parseInt(this.config.size_x/2*rY)},
           framerate: 20,
           animations: {
               rotate: [0,5,'rotate'],
@@ -87,9 +87,9 @@
 
       config.name = 'star';
       config.img = 'star';
-      config.ymin = 60;
-      config.ymax = 60;
-      config.reverse = false;
+      config.size_x = 120;
+      config.size_y = 120;
+      this.config = config;
 
       this.FlyObstacle_constructor(config);
     }
@@ -100,9 +100,9 @@
 
     FlyingStar.prototype.drawImage = function() {
 
-      var sheet = new createjs.SpriteSheet({
+      const sheet = new createjs.SpriteSheet({
           images: [QUEUE.getResult(this.img)],
-          frames: {width:parseInt(120*rX), height:parseInt(120*rY), regX:parseInt(60*rX), regY:parseInt(60*rY)},
+         frames: {width:parseInt(this.config.size_x*rX), height:parseInt(this.config.size_x*rY), regX:parseInt(this.config.size_x/2*rX), regY:parseInt(this.config.size_x/2*rY)},
           framerate: 20,
           animations: {
               rotate: [0,5,'rotate'],
@@ -118,7 +118,7 @@
     }
 
     FlyingStar.prototype.drawBonus = function() {
-      var bonus = new createjs.Shape();
+      const bonus = new createjs.Shape();
       bonus.graphics.beginFill('green').drawCircle(0,0,30);
       bonus.alpha = 0.5;
       bonus.hitzone = 'body';
@@ -162,10 +162,8 @@
 
       config.name = 'starline';
       config.img = 'star';
-      config.ymin = 60;
-      config.ymax = 60;
-      config.reverse = false;
-
+      config.size_x = 600;
+      config.size_y = 300;
       this.config = config;
 
       this.FlyObstacle_constructor(config);
@@ -246,10 +244,10 @@
     let y = 0;
 
     if(this.wave.direction === RIGHT) {
-      x = this.wave.obstacle_cont.globalToLocal(STAGEWIDTH,0) + 120;
+      x = this.wave.obstacle_cont.globalToLocal(STAGEWIDTH,0) + this.config.size_x;
     }
     if(this.wave.direction === LEFT) {
-      x = this.wave.obstacle_cont.globalToLocal(0,0).x - 120;
+      x = this.wave.obstacle_cont.globalToLocal(0,0).x - this.config.size_x;
     }
 
     this.setXY(x,y);

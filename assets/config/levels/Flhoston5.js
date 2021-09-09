@@ -65,7 +65,6 @@
         tube_difficulty_max : 10,
         suction: {x: 5, y: 4},
         obstacles: {
-              //'bomb': { percentage: 100 },
               'bombTriplet': { tmin:3000, tmax:0, interval:1000, intervalMax:3000 },
               'break': { tmin:15000, tmax:0, interval:5000, intervalMax:10000, width:50, distance: 400 },
         },

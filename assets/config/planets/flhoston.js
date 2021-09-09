@@ -38,6 +38,8 @@ var planet = {
       'Flhoston2_0',
       'Flhoston2',
       'Flhoston3',
+      'Flhoston4',
+      'Flhoston5',
     ],
     lines: {
       horizon: 300,

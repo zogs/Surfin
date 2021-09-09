@@ -70,7 +70,7 @@
         tube_difficulty_max : 10,
         suction: {x: 5, y: 4},
         obstacles: {
-            'star' : { tmin:0, tmax:0, interval:500, intervalMax:1500 },
+            'star' : { tmin:0, tmax:0, interval:2000, intervalMax:3500 },
         },
         shoulder : {
           width: 1000,

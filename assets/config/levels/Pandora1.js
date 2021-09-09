@@ -69,25 +69,10 @@
         tube_difficulty_max : 10,
         suction: {x: 5, y: 4},
         obstacles: {
-          'float': {
-            'interval': 2000,
-            'interval_max': 3000,
-            'objects' : {
               'Stingbat' : {percentage:50},
               'Banshee' : {percentage:30},
               'Toruk' : {percentage:10},
               'TorukAttack' : {percentage: 10},
-            },
-          },
-          'fly': {
-            'interval': 0,
-            'interval_max': 1000,
-            'objects' : {
-              'prize' : {percentage: 30},
-              'cigogne' : {percentage: 30},
-              'drone': {percentage: 40},
-            },
-          }
         },
         shoulder : {
           width: 1000,

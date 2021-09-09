@@ -552,6 +552,7 @@ window.pause = function() {
 		createjs.Ticker.paused = false;
 		window.pause_cont.removeAllChildren();
 		SPOT.resume();
+    createjs.Sound.volume = 0.1;
 	}
 	//enable pause
 	else {
@@ -563,6 +564,7 @@ window.pause = function() {
 
 		PAUSED = 1;
 		createjs.Ticker.paused = true;
+    createjs.Sound.volume = 0;
 		SPOT.pause();
 
 

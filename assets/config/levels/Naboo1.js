@@ -68,21 +68,9 @@
         tube_difficulty_max : 10,
         suction: {x: 5, y: 4},
         obstacles: {
-          'float': {
-            'interval': 1000,
-            'interval_max': 3000,
-            'objects' : {
               'seafish': {percentage:90},
               'beachtrooper': {percentage: 5},
               'paddletrooper': {percentage: 5},
-            },
-          },
-          'fly': {
-            'interval': 0,
-            'interval_max': 1000,
-            'objects' : {
-            },
-          }
         },
         shoulder : {
           width: 1000,

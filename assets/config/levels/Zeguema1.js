@@ -69,23 +69,8 @@
         tube_difficulty_max : 10,
         suction: {x: 5, y: 4},
         obstacles: {
-          'float': {
-            'interval': 2000,
-            'interval_max': 4000,
-            'objects' : {
-              'arachnid' : {percentage: 50},
-              'arachfly' : {percentage: 50},
-            },
-          },
-          'fly': {
-            'interval': 0,
-            'interval_max': 1000,
-            'objects' : {
-              'prize' : {percentage: 30},
-              'cigogne' : {percentage: 30},
-              'drone': {percentage: 40},
-            },
-          }
+          'arachnid' : {percentage: 50},
+          'arachfly' : {percentage: 50},
         },
         shoulder : {
           width: 1000,

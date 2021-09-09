@@ -16,7 +16,7 @@
       },
       timelimit: null,
       goals: [
-        { type: 'catch', current:0, aim: 'star', count: 18, name: 'Collecter 18 étoiles ({n})' },
+        { type: 'catch', current:0, aim: 'star', count: 18, name: 'Collecter 12 étoiles ({n})' },
       ],
       player: {
 
@@ -66,7 +66,8 @@
         suction: {x: 5, y: 4},
         obstacles: {
           'star' : { tmin:0, tmax:10000, interval:1000, intervalMax:2500 },
-          'flyingStar' : { tmin:8000, tmax:0, interval:1000, intervalMax:2500 },
+          'star' : { tmin:10000, tmax:0, interval:2000, intervalMax:5000, y:220 },
+          'flyingStar' : { tmin:8000, tmax:0, interval:1000, intervalMax:4500 },
           'bomb': { tmin:6000, tmax:0, interval:2000, intervalMax:5000 },
         },
         shoulder : {

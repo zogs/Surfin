@@ -539,7 +539,7 @@ prototype.splashPointReached = function(point) {
     // play sound
     this.noiseSound = createjs.Sound.play("waveNoise", {interrupt: createjs.Sound.INTERRUPT_ANY, loop:-1});
     this.noiseSound.volume = 1;
-    this.spot.on('player_fallen', () => this.noiseSound.stop(), null, true);
+    this.spot.on('scoreboard_show', () => this.noiseSound.stop(), null, true);
 	}
 
 }
@@ -1313,12 +1313,26 @@ prototype.deleteOffscreenPoints = function(points) {
 
 prototype.initObstacleInterval = function(obstacle, config) {
 
-	let t = config.interval;
-  if(config.intervalMax) t += Math.random()*(config.intervalMax - config.interval);
+  // temporary fix for old-style obstacles (remove me later)
+  if(config.percentage) {
+    config.percentage = null;
+    config = Object.assign(config, {tmin:0, tmax:0, interval:6000, intervalMax:10000, delay: Math.random()*10000 });
+  }
 
+  // implements a delay
+  if(config.delay) {
+    const delay = config.delay;
+    config.delay = null;
+    return new Timer(proxy(this.initObstacleInterval, this, [obstacle, config]), delay);
+  }
+
+  // add obstacle
   this.addObstacle(obstacle, config);
 
-	const timer = new Timer(proxy(this.initObstacleInterval,this, [obstacle, config]),t, proxy(this.removeObstacleInterval, this));
+  // time in ms
+  const time = (config.intervalMax)? Math.random()*(config.intervalMax - config.interval) : config.interval;
+  // add timer (with autoremove)
+	const timer = new Timer(proxy(this.initObstacleInterval,this, [obstacle, config]), time, proxy(this.removeObstacleInterval, this));
   this.obstacles_timers.push(timer);
 }
 
@@ -1341,7 +1355,7 @@ prototype.addObstacle = function(name, config) {
   if(conf.tmax && conf.tmax < this.timing) return;
 
   // create Obstacle and add it
-  console.log('add obstacle '+id, this.obstacles);
+  //console.log('add obstacle '+id, this.obstacles);
   var obst = new window[id](conf);
 	this.obstacles.push(obst);
 	this.obstacle_cont.addChild(obst);

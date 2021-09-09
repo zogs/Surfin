@@ -17,6 +17,7 @@
       timelimit: null,
       goals: [
         { type: 'catch', current:0, aim: 'star', count: 20, name: 'Collecter 20 étoiles ({n})' },
+        { type: 'tube', current:0, aim: 5, name: 'Faire un tube de 5s ou + ({n}s)' },
       ],
       player: {
 
@@ -65,7 +66,7 @@
         tube_difficulty_max : 10,
         suction: {x: 5, y: 4},
         obstacles: {
-              'starline' : { tmin:0, tmax:0, interval:1000, intervalMax:2500 },
+              'starline' : { tmin:0, tmax:0, interval:1000, intervalMax:3500 },
         },
         shoulder : {
           width: 1000,

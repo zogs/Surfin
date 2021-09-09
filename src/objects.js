@@ -35,7 +35,8 @@
     this.config.scale = config.scale || 1;
     this.config.meter_height = config.meter_height || 0.80;
     this.config.pixel_height = config.pixel_height || 190;
-    this.config.objectWidth = config.objectWidth || 200;
+    this.config.size_x = config.size_x || 200;
+    this.config.size_y = config.size_y || 200;
 
     this.location = new Victor();
     this.active = true;
@@ -92,11 +93,11 @@
       x = this.wave.params.breaking_center + (200 - Math.random() * 400);
       y = Math.random()*this.wave.params.height;
       if(this.direction === RIGHT) {
-        x = this.wave.obstacle_cont.globalToLocal(STAGEWIDTH,0).x + this.config.objectWidth;
+        x = this.wave.obstacle_cont.globalToLocal(STAGEWIDTH,0).x + this.config.size_x;
         if(this.reverse) x = this.wave.obstacle_cont.globalToLocal(0,0).x;
       }
       if(this.direction === LEFT) {
-        x = this.wave.obstacle_cont.globalToLocal(0,0).x - this.config.objectWidth;
+        x = this.wave.obstacle_cont.globalToLocal(0,0).x - this.config.size_x;
         if(this.reverse) x = this.wave.obstacle_cont.globalToLocal(STAGEWIDTH,0).x;
       }
     }
@@ -155,9 +156,27 @@
   }
 
   Obstacle.prototype.setXY = function(x,y) {
-    this.x = x;
-    this.y = y;
-    this.location = new Victor(x,y);
+    let pos = this.avoidOverlapingXY(x,y);
+    this.x = pos.x;
+    this.y = pos.y;
+    this.location = new Victor(pos.x, pos.y);
+  }
+
+  /* shift the given coordinates on the x axis until there is no overlaping with others */
+  Obstacle.prototype.avoidOverlapingXY = function(x,y) {
+    for(let i=0,ln=this.wave.obstacles.length; i<ln; ++i) {
+      const obs = this.wave.obstacles[i];
+      const xDist = x - obs.x;
+      const yDist = y - obs.y;
+      const distance = Math.sqrt(xDist*xDist + yDist*yDist);
+      const distanceMax = (this.config.size_x/2 + obs.config.size_x/2);
+      if(distance < distanceMax) {
+        const xShift = this.config.size_x * this.config.wave.direction*-1;
+        x += xShift;
+        return this.avoidOverlapingXY(x, y);
+      };
+    }
+    return {x, y};
   }
 
   Obstacle.prototype.checkRemove = function() {
@@ -378,11 +397,11 @@
         x = this.wave.params.breaking_center + (200 - Math.random() * 400) ;
         y = this.spot.planet.lines.break - this.wave.params.height - this.wave.params.height - this.ystart;
         if(this.wave.direction === RIGHT) {
-          x = this.wave.obstacle_cont.globalToLocal(STAGEWIDTH,0).x + this.config.objectWidth;;
+          x = this.wave.obstacle_cont.globalToLocal(STAGEWIDTH,0).x + this.config.size_x;;
           if(this.reverse) x = this.wave.obstacle_cont.globalToLocal(0,0).x;
         }
         if(this.wave.direction === LEFT) {
-          x = this.wave.obstacle_cont.globalToLocal(0,0).x - this.config.objectWidth;;
+          x = this.wave.obstacle_cont.globalToLocal(0,0).x - this.config.size_x;;
           if(this.reverse) x = this.wave.obstacle_cont.globalToLocal(STAGEWIDTH,0).x;
         }
       }

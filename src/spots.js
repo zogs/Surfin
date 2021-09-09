@@ -961,6 +961,7 @@
 			this.scoreboard = new Scoreboard(this.score);
 			this.overlay_cont.addChild(this.scoreboard);
 			this.scoreboard.show();
+      this.dispatchEvent(new createjs.Event('scoreboard_show'));
 		},this),200);
 	}
 

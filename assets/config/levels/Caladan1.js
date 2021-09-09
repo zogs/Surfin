@@ -73,27 +73,9 @@
           "y": 4
         },
         "obstacles": {
-          "float": {
-            "interval": 1000,
-            "interval_max": 3000,
-            "objects": {
-              "paddletrooper": {
-                "percentage": 30
-              },
-              "beachtrooper": {
-                "percentage": 30
-              },
-            }
-          },
-          "fly": {
-            "interval": 10000,
-            "interval_max": 15000,
-            "objects": {
-              "cigogne": {
-                "percentage": 100
-              },
-            }
-          }
+              "paddletrooper": { "percentage": 30 },
+              "beachtrooper": { "percentage": 30 },
+              "cigogne": { "percentage": 100 },
         },
         "shoulder": {
           "width": 1000,

@@ -63,18 +63,6 @@
         tube_difficulty_max : 10,
         suction: {x: 5, y: 4},
         obstacles: {
-          'float': {
-            'interval': 5000,
-            'interval_max': 10000,
-            'objects' : {
-            },
-          },
-          'fly': {
-            'interval': 0,
-            'interval_max': 1000,
-            'objects' : {
-            },
-          }
         },
         shoulder : {
           width: 1000,
