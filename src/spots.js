@@ -718,9 +718,17 @@
 
   prototype.levelSucceeded = function() {
 
-    //this.wave.addBlockBreaking(STAGEWIDTH);
-    //this.wave.removeObstaclesInterval();
-    //setTimeout(() => { this.wave.obstacles.map(o => o.die())}, 1200);
+    let next = new Button('NEXT LEVEL', proxy(SCENE.gotoNextLevel, SCENE));
+    next.x = STAGEWIDTH/2;
+    next.y = STAGEHEIGHT + 500;
+    this.addChild(next);
+    createjs.Tween.get(next)
+      .to({y: STAGEHEIGHT - 100}, 500, createjs.Ease.quartOut)
+      .to({y: STAGEHEIGHT - 80}, 800, createjs.Ease.quartOut);
+
+    this.on('scoreboard_show', () => {
+      this.removeChild(next);
+    });
   }
 
 	prototype.addPaddler = function(x,y) {

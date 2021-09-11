@@ -1043,26 +1043,25 @@ prototype.addBreakingPeak = function(width,distance) {
 
 prototype.addBreakingPeakWarning = function() {
 
-	var text = new createjs.Text('Watch out !','bold '+Math.floor(40*rY)+'px BubblegumSansRegular','#FFF'); //BubblegumSansRegular BoogalooRegular albaregular
-		text.alpha = 0.8;
-		var b = text.getBounds();
-		if(this.direction === CENTER) return;
-		if(this.direction === LEFT) text.x = 0 + b.width/2;
-		if(this.direction === RIGHT) text.x = STAGEWIDTH - b.width;
-		text.y = -this.spot.wave.params.height/2;
-		var y = - this.spot.wave.params.height - b.height;
-		text.regX = b.width/2;
-		text.regY = b.height/2;
+	let text = new Pop('Watch out !');
+  text.alpha = 0.8;
+  let b = text.getBounds();
+  if(this.direction === CENTER) return;
+  if(this.direction === LEFT) text.x = 0 + b.width + 10;
+  if(this.direction === RIGHT) text.x = STAGEWIDTH - b.width - 10;
+  text.y = -this.spot.wave.params.height;
+  text.regX = b.width/2;
 
-		this.score_text_cont.addChild(text);
+  this.score_text_cont.addChild(text);
 
-		this.startBlinking(text);
+  this.startBlinking(text);
 
-		createjs.Tween.get(text)
-		.to({y: y}, 800, createjs.Ease.elasticOut)
-		.wait(1000)
-		.set({sliding:true,alpha:1})
-		.call(proxy(this.stopBlinking,this,[text]));
+  let y = - this.spot.wave.params.height - b.height/2;
+  createjs.Tween.get(text)
+    .to({y: y}, 800, createjs.Ease.elasticOut)
+    .wait(1000)
+    .set({sliding:true,alpha:1})
+    .call(proxy(this.stopBlinking,this,[text]));
 }
 
 
@@ -1205,6 +1204,7 @@ prototype.selfRemove = function() {
 	this.cont.removeAllChildren();
 	this.removeAllChildren();
 	this.stopQuaking();
+  if(this.noiseSound) this.noiseSound.stop()
 	this.obstacles = [];
 	this.allpoints = [];
 	this.particles = [];
@@ -1327,10 +1327,10 @@ prototype.initObstacleInterval = function(obstacle, config) {
   }
 
   // add obstacle
-  this.addObstacle(obstacle, config);
+  if(config.tmin < this.timing) this.addObstacle(obstacle, config);
 
   // time in ms
-  const time = (config.intervalMax)? Math.random()*(config.intervalMax - config.interval) : config.interval;
+  const time = (config.intervalMax)? config.interval + Math.random()*(config.intervalMax - config.interval) : config.interval;
   // add timer (with autoremove)
 	const timer = new Timer(proxy(this.initObstacleInterval,this, [obstacle, config]), time, proxy(this.removeObstacleInterval, this));
   this.obstacles_timers.push(timer);

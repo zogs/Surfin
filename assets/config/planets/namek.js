@@ -3,7 +3,7 @@ var planet = {
     name: 'Namek',
     location: 'Dragon ball universe',
     information: "",
-    order: 4,
+    order: 5,
     levels: [],
     active: true,
     unlock: true,

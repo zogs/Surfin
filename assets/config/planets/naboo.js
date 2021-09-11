@@ -3,7 +3,7 @@ var planet = {
     name: 'Naboo',
     location: 'Bordure Médiane',
     information: "",
-    order: 5,
+    order: 3,
     levels: [],
     active: true,
     unlock: true,

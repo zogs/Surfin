@@ -3,7 +3,7 @@ var planet = {
     name: 'Terre',
     location: 'Système Solaire',
     information: "> Planet is under the blocus of the Imperial fleet. \n> Rumors about war preparation \n> Tourist are authorized to leave \n> Enter at your own risk !!! \n> Beach are desert :)",
-    order: 0,
+    order: 7,
     active: false,
     unlock: true,
     colors: {

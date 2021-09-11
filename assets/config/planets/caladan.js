@@ -3,7 +3,7 @@ var planet = {
     name: 'Caladan',
     location: 'Delta Pavonis',
     information: "> Planet is under the blocus of the Imperial fleet. \n> Rumors about war preparation \n> Tourist are authorized to leave \n> Enter at your own risk !!! \n> Beach are desert :)",
-    order: 1,
+    order: 6,
     levels: [],
     active: true,
     unlock: true,

@@ -3,7 +3,7 @@ var planet = {
     name: 'Pandora',
     location: 'Alpha Centauri A',
     information: "",
-    order: 3,
+    order: 4,
     levels: [],
     active: true,
     unlock: true,

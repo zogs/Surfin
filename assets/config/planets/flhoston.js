@@ -3,7 +3,7 @@ var planet = {
     name: 'Flhoston',
     location: 'Angel Constellation',
     information: "",
-    order: 4,
+    order: 1,
     levels: [],
     active: true,
     unlock: true,
