@@ -1,1 +1,1 @@
-const PLANETS = [];
+let PLANETS = [];

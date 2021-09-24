@@ -67,7 +67,7 @@
         suction: {x: 5, y: 4},
         obstacles: {
           'starline': { tmin:5000, tmax:0, interval:5000, intervalMax:10000 },
-          'star': { tmin:0, tmax:0, interval:3000, intervalMax:3500 },
+          'star': { tmin:0, tmax:0, interval:2000, intervalMax:2500 },
           'bomb': { tmin:0, tmax:0, interval:2000, intervalMax:4000 },
           'beachtrooper': { tmin:10000, tmax:0, interval:4000, intervalMax:6000, y:220},
         },

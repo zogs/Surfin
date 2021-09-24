@@ -6,6 +6,8 @@
       config.name = 'beachtrooper';
       config.meter_height = 1;
       config.pixel_height = 200*rY;
+      config.size_x = 380;
+      config.size_y = 190;
 
       this.Obstacle_constructor(config);
 
@@ -37,6 +39,25 @@
       this.sprite.gotoAndPlay('chill');
       this.image_cont.addChild(this.sprite);
 
+      let rant = new createjs.SpriteSheet({
+        images: [QUEUE.getResult('rant')],
+        frames: {width:parseInt(64), height:parseInt(64), regX: parseInt(32), regY: parseInt(32)},
+        framerate: 3,
+        animations: {
+          hide: [0],
+          rant: [1, 5, false],
+          die: {frames: [5,4], next: false, speed:1}
+
+        }
+      });
+      this.rant = new createjs.Sprite(rant);
+      this.rant.scale = 1;
+      this.rant.y = -50 * rY;
+      this.rant.x = -20;
+      this.rant.gotoAndPlay('hide');
+      this.image_cont.addChild(this.rant);
+
+
     }
 
     Beachtrooper.prototype.drawBonus = function() {
@@ -63,9 +84,13 @@
 
       this.sprite.gotoAndPlay('fall');
       this.sprite.on('animationend', (ev) => {
-        createjs.Tween.get(this.sprite).to({alpha: 0}, 300)
+        createjs.Tween.get(this.sprite).to({alpha: 0}, 500)
           .call(() => this.selfRemove())
       })
+
+      this.rant.gotoAndPlay('die');
+      this.rant.alpha = 0;
+      createjs.Tween.get(this.rant).to({y: this.rant.y - 30, alpha: 0.8}, 500, createjs.Ease.quartOut).to({alpha: 0, y: -100}, 300);
       this.active = false;
     }
 

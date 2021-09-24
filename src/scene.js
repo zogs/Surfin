@@ -61,6 +61,7 @@ class Scene {
     } else {
       let nextplanet = PLANETS[PLANETS.indexOf(planet) + 1];
       let firstlevel = nextplanet.levels[0];
+      console.log(planet, PLANETS)
       return { planet_id: nextplanet.id, id: firstlevel}
     }
   }

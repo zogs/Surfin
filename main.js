@@ -181,10 +181,12 @@ window.loadAssets = function() {
 		{id:'drone',src:imgdir+'bonus/drone.png'},
 		{id:'star', src:imgdir+'bonus/star.png'},
 		{id:'wash',src:imgdir+'ui/wash.png'},
+		{id:'touchicon',src:imgdir+'ui/touch-icon.png'},
 		{id:'sprite_beachtrooper',src:imgdir+'enemy/beachtrooper.png'},
 		{id:'washed_text',src:imgdir+'washed.png'},
 		{id:'shark', src:imgdir+'enemy/shark.png'},
 		{id:'ptero', src:imgdir+'enemy/ptero.png'},
+		{id:'rant', src:imgdir+'enemy/rant.png'},
     {id:'banshee', src:imgdir+'enemy/banshee.png'},
     {id:'stingbat', src:imgdir+'enemy/stingbat.png'},
     {id:'toruk', src:imgdir+'enemy/toruk.png'},
@@ -309,7 +311,7 @@ window.initialize = function() {
 	SCREENS = new ScreenManager();
 
 	//BUILD LEVELS
-	let planets = PLANETS
+	PLANETS = PLANETS
     // keep only active planets
     .filter(p => p.active == true)
     // order them
@@ -319,7 +321,7 @@ window.initialize = function() {
 
 
 	//unlock first level
-	let planet = planets.find(p => p.order == 1);
+	let planet = PLANETS.find(p => p.order == 1);
 	let level = planet.levels[0];
 	USER.unlockPlanet(planet.id);
 	USER.unlockLevel(level);
@@ -327,7 +329,7 @@ window.initialize = function() {
 	USER.currentLevel = level;
 
 	//MENU
-	MENU = new Menu(planets);
+	MENU = new Menu(PLANETS);
 	this.menu_cont.addChild(MENU);
 
 	//SCENE
@@ -446,6 +448,7 @@ window.defaultKeyDownHandler = function(e)
     case 'w':  switchSlowMo(0.1,500); break;
     case 'g':  SPOT.removeAllPaddlers().getWave().breakAndFollow(); break;
     case 'k':  SPOT.getWave().addBreakingPeak(50, 500); break;
+    case 'n':  SCENE.gotoNextLevel(); break;
     case '+':  SPOT.score.add(1000); break;
     case '/':  SPOT.controls.startShield(); break;
     case '*':  SPOT.controls.startHadoken(); break;

@@ -6,7 +6,9 @@
       config.img = 'sprite_paddle';
       config.meter_height = 1.5;
       config.pixel_height = 100*rY;
-      config.y = config.wave.params.height * 1/2 + Math.random() * (config.wave.params.height * 1/2)
+      config.size_x = 256;
+      config.size_y = 256;
+      this.config = config;
 
       this.Obstacle_constructor(config);
 
@@ -21,12 +23,12 @@
 
       var sheet = new createjs.SpriteSheet({
           images: [QUEUE.getResult('sprite_paddle')],
-          frames: {width:parseInt(256*rX), height:parseInt(256*rY), regX: parseInt(128*rX), regY: parseInt(128*rY)},
+          frames: {width:parseInt(this.config.size_x), height:parseInt(this.config.size_y), regX: parseInt(this.config.size_x/2), regY: parseInt(this.config.size_y/2)},
           framerate: 8,
           animations: {
             run: [0,4, 'run'],
-            fall: [5,6, false],
-            attack: [7,10, 'run']
+            fall: { frames: [5,6], next: false, speed:0.5},
+            attack: [7,11, 'run']
           }
       });
 

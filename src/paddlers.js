@@ -38,6 +38,8 @@
 			paddling: 1,
 		}
 
+    this.overlay_cont = new createjs.Container();
+		this.addChild(this.overlay_cont);
 
 		this.silhouette_cont = new createjs.Container();
 		this.addChild(this.silhouette_cont);
@@ -319,6 +321,57 @@
 		if(paddlers.length > 0) cont.swapChildren(wave, paddlers[0])
 
 	}
+
+  prototype.showTapAnim = function() {
+
+    let x = 0;
+    let y = 80;
+
+    var touchcircle = new createjs.Shape();
+    touchcircle.graphics.beginFill('rgba(255,255,255,0.5)').drawCircle(0,0,1);
+    touchcircle.x = x;
+    touchcircle.y = y;
+    touchcircle.alpha = 0;
+    touchcircle.ox = touchcircle.x;
+    touchcircle.oy = touchcircle.y;
+    this.overlay_cont.addChild(touchcircle);
+
+    var touchicon = new createjs.Bitmap(QUEUE.getResult('touchicon'));
+    touchicon.regX = 35;
+    touchicon.regY = 16;
+    touchicon.scale = 0.7;
+    touchicon.x = touchcircle.x;
+    touchicon.y = touchcircle.y;
+    touchicon.alpha = 0;
+    touchicon.ox = touchicon.x;
+    touchicon.oy = touchicon.y;
+    touchicon.os = touchicon.scale;
+    this.overlay_cont.addChild(touchicon);
+
+    createjs.Tween.get(touchicon, {onComplete: proxy(this.touchAnimTapTwice, this)}).to({alpha:1}, 1000);
+    createjs.Tween.get(touchcircle, {onComplete: proxy(this.touchAnimTapTwice, this)}).to({alpha:1}, 1000);
+  }
+
+  prototype.touchAnimTapTwice = function(ev) {
+    let target = ev.target.target;
+    if(target instanceof createjs.Bitmap) {
+      createjs.Tween.get(target, {onComplete: proxy(this.touchAnimDrag, this)}).to({scale: target.os - 0.1, y: target.y -5},200).to({scale: target.os, y: target.y + 5},200).to({scale: target.os - 0.1, y: target.y -5},200).to({scale: target.os, y: target.y + 5},200).to({scale: target.os - 0.1, y: target.y + 5},200);
+    }
+    if(target instanceof createjs.Shape) {
+      createjs.Tween.get(target, {onComplete: proxy(this.touchAnimDrag, this)}).wait(200).to({scale: 80, alpha:0},200).to({scale: 1, alpha:1}, 0).wait(200).to({scale: 80, alpha:0},200).to({scale: 1, alpha:0},0).to({scale: 40, alpha:0.5}, 200);
+    }
+  }
+
+  prototype.touchAnimDrag = function(ev) {
+    let target = ev.target.target;
+    createjs.Tween.get(target, {onComplete: proxy(this.relaunchTouchAnim, this)}).to({x: target.x - 400}, 1000, createjs.Ease.quartInOut);
+    createjs.Tween.get(target).to({y: target.y + 20}, 1000, createjs.Ease.sineInOut);
+  }
+
+  prototype.relaunchTouchAnim = function(ev) {
+    let target = ev.target.target;
+    createjs.Tween.get(target, {onComplete: proxy(this.touchAnimTapTwice, this)}).to(500).set({x: target.ox, y:target.oy, scale:1});
+  }
 
 	prototype.getX = function() {
 		return this.x;

@@ -71,6 +71,8 @@
         suction: {x: 5, y: 4},
         obstacles: {
               'spice': { percentage: 100 },
+              'beachtrooper': { tmin:0, tmax:0, interval:1000, intervalMax:2000 },
+              'paddletrooper': { tmin:0, tmax:0, interval:1000, intervalMax:2000 },
         },
         shoulder : {
           width: 1000,

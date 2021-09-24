@@ -670,24 +670,26 @@
 	 */
 	prototype.moveFromVelocities = function() {
 
+
+		let breaking_width = this.config.wave.config.breaking.unroll.width;
+    let vX = breaking_width;
+
+    /* adapt breaking width in function of distance to actual breakpoint */
 		// get which lip point surfer is under
-		const point_under = this.point_under;
-
-		let breaking_width = 5;
-		let breaking_percent = 0;
-		let distance_idx = 0;
-		if(point_under) {
-			breaking_width = point_under.breaking_width;
-			breaking_percent = point_under.breaking_percent;
-			distance_idx = 1 - (get2dDistance(this.x, 0, point_under.x, 0) / 500);
-		}
-
+		//const point_under = this.point_under;
+		//let breaking_percent = 0;
+		//let distance_idx = 0;
+		//if(point_under) {
+		//	breaking_width = point_under.breaking_width;
+		//	breaking_percent = point_under.breaking_percent;
+		//	distance_idx = 1 - (get2dDistance(this.x, 0, point_under.x, 0) / 500);
+		//}
 		// get horizontal velocity from lip position
-		let vX = breaking_width * ( 0.5 + breaking_percent/100 ) * distance_idx;
+		//let vX = breaking_width * ( 0.5 + breaking_percent/100 ) * distance_idx;
 		//let vX = breaking_width; // simplify for now
 
 		// add a bit of speed
-		vX *= 2;
+		//vX *= 2;
 
 		// get mouse position
 		const mouse = this.getMousePoint(0);
@@ -739,7 +741,6 @@
 		// set global velocity
 		this.velocity = velocity.clone();
 
-//console.log(velocity.x, point_under);
 		// apply velocity to position
 		this.location.add(velocity);
 

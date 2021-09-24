@@ -32,6 +32,7 @@
     this.played = false;
     this.dialog = null;
     this.scoreboard = null;
+    this.playerPaddler = null;
     this.countSerie = 0;
 		this.time_scale = (TIME_SCALE) ? TIME_SCALE : 1;
     this.retrying = config.retrying ? true : false;
@@ -148,6 +149,7 @@
 
     this.closeDialog(this.dialog);
     this.dialog = null;
+    this.dispatchEvent('close_story');
   }
 
   prototype.dialogGoals = function() {
@@ -551,33 +553,27 @@
       //fixedsize: 0.6,
       nolift: true,
     });
+    this.playerPaddler = paddler;
     this.sea_cont.addChild(paddler);
     this.paddlers.push(paddler);
     paddler.resize();
 
     // show text
     var cont = new createjs.Container();
-    var ready = new Pop('Ready ?').getTextContent();
+    var ready = new Pop('Are you ready ?').getTextContent();
     ready.x = paddler.localToGlobal(0,0).x;
     ready.y = paddler.localToGlobal(0,0).y - 200;
     cont.addChild(ready);
 
-    var taphere = new createjs.Text('Tap to paddle', 'bold '+Math.floor(16*rY)+'px Helvetica', 'rgba(0,0,0,0.5)');
-    taphere.x = paddler.localToGlobal(0,0).x - 25 ;
-    taphere.y = ready.y + 50;
-    taphere.regX = taphere.getMeasuredWidth()/2;
-    taphere.regY = taphere.getMeasuredHeight()/2;
-    cont.addChild(taphere);
-    var helper = new createjs.Text('Tap here and glide right or left', Math.floor(15*rY)+'px Helvetica', 'rgba(255,255,255,0.6');
-    helper.x = paddler.localToGlobal(0,0).x;
-    helper.y = wave.y + 10;
-    helper.regX = helper.getMeasuredWidth()/2;
-    helper.regY = helper.getMeasuredHeight()/2;
-    cont.addChild(helper);
     this.overlay_cont.addChild(cont);
 
     // animate wave ripples
     var animatingWave = this.on('tick', wave.animateRipples, wave);
+
+    // on ready , show tap animation
+    this.on('close_story', function(e) {
+      paddler.showTapAnim();
+    })
 
     // on take off, remove text and animation
     this.on('player_takeoff', function(e) {
@@ -586,6 +582,7 @@
       this.removeEventListener('tick', animatingWave);
 
     })
+
 	}
 
 	prototype.initRunMode = function() {

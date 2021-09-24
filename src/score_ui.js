@@ -348,7 +348,7 @@
 
     this.spot.on('surfer_aerial_start',function(event) {
       console.log(event.trick.name);
-      this.aerial = this.popInfo(event.trick.name).add(event.trick.score).growth(20);
+      this.aerial = this.popInfo(event.trick.name).add(0).timer(0.1, 100);
     },this);
 
     this.spot.on('surfer_aerial_end',function(event) {
@@ -359,7 +359,7 @@
     },this);
 
     this.spot.on('surfer_tube_in',function(event) {
-      this.tube = this.popInfo('T u b e !!!').add(100).growth(50);
+      this.tube = this.popInfo('T u b e !!!').add(0).timer(0.1, 100);
     },this);
 
     this.spot.on('surfer_tube_out',function(event) {
@@ -791,10 +791,39 @@
 
     }
 
+    prototype.timer = function(amount, frequency = 50) {
+
+      this.timer_interval = new Interval(proxy(this.addToTimer,this,[amount]),frequency);
+      this.timers.push(this.timer_interval);
+
+      return this;
+    }
+
+    prototype.stopTimer = function() {
+
+      this.timers.splice(this.timers.indexOf(this.timer_interval,1));
+      this.timer_interval.clear();
+      this.timer_interval = null;
+
+    }
+
+    prototype.addToSubscore = function(amount) {
+      this.subscore.text = parseInt(this.subscore.text) + amount;
+    }
+
+    prototype.addToTimer = function(amount) {
+      let s = parseFloat(this.subscore.text) + amount;
+      this.subscore.text = s.toFixed(2) + 's';
+    }
+
     prototype.end = function() {
 
-      if(this.growth_interval instanceof Interval) {
-        this.stopGrowth();
+      if(this.timer_interval instanceof Interval) {
+        this.stopTimer();
+      }
+
+      if(this.timer_interval instanceof Interval) {
+        this.stopTimer();
       }
 
       createjs.Tween.get(this.subscore).to({scale: 1.2}, 500, createjs.Ease.bounceOut).wait(500).to({alpha: 0}, 500);
@@ -814,6 +843,10 @@
 
       if(this.growth_interval instanceof Interval) {
         this.stopGrowth();
+      }
+
+      if(this.timer_interval instanceof Interval) {
+        this.stopTimer();
       }
 
       if(this.subscore.alpha !== 0) {

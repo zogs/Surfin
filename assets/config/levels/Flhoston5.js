@@ -66,7 +66,7 @@
         suction: {x: 5, y: 4},
         obstacles: {
               'bombTriplet': { tmin:2000, tmax:0, interval:1000, intervalMax:3000 },
-              'break': { tmin:1000, tmax:0, interval:5000, intervalMax:10000, width:50, distance: 400 },
+              //'break': { tmin:4000, tmax:0, interval:10000, intervalMax:15000, width:40, distance: 300 },
         },
         shoulder : {
           width: 1000,
