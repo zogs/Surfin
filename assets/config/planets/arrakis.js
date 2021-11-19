@@ -9,7 +9,7 @@ var planet = {
     colors: {
       sea: {top: "#fc9b70",bottom: "#318a4c"},
       wave: [["#358e54",0,0],["#46ae68",0,50],["#358e54",0,100]],
-      lip: {top: "#328a51", bottom: "rgba(255,255,255,0.4)"},
+      lip: {top: "#328a51", bottom: "rgba(255,255,255,0.1)"},
       splash: {top: "#FFF", bottom: "#FFF"},
       sand: {"hue": -18, "sat":38, "lum":16, "con": 0, "alpha":1},
     },

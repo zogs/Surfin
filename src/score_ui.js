@@ -64,7 +64,7 @@
     this.addChild(this.score_cont);
 
     //display
-    this.goals_pt = new createjs.Point(20, 20);
+    this.goals_pt = new createjs.Point(STAGEWIDTH/2, 20);
     this.total = new createjs.Text('0','bold '+Math.floor(30*rY)+"px 'Blinker', sans-serif",'#FFFFFF');
     //this.score_cont.addChild(this.total);
 
@@ -159,7 +159,7 @@
       let bkg = new createjs.Shape();
       bkg.graphics.beginLinearGradientFill(['#FFFFFFCC','#FFFFFF55'],[0.65,1],0,0,text.getMeasuredWidth(),0)
                   .drawRect(-pad,-pad,text.getMeasuredWidth()+2*pad*4, text.getMeasuredHeight()+2*pad);
-      bkg.x = text.x = pt.x;
+      bkg.x = text.x = pt.x - text.getMeasuredWidth()/2;
       bkg.y = text.y = pt.y;
 
       this.score_cont.addChild(bkg, text);

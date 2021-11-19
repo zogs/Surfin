@@ -44,7 +44,7 @@
     icon.alpha = this.config.iconAlpha;
     let btn = new createjs.Shape();
     btn.graphics.beginFill('#FFF').drawCircle(0,0,this.config.buttonSize);
-    btn.alpha = 0.8;
+    btn.alpha = 0.6;
     let shadow = new createjs.Shape();
     shadow.graphics.beginFill('#000').drawCircle(0,4,this.config.buttonSize);
     shadow.alpha = 0.3;
@@ -69,7 +69,7 @@
     icon.rotation = -45;
     let btn = new createjs.Shape();
     btn.graphics.beginFill('#FFF').drawCircle(0,0,this.config.buttonSize);
-    btn.alpha = 0.8;
+    btn.alpha = 0.6;
     let shadow = new createjs.Shape();
     shadow.graphics.beginFill('#000').drawCircle(0,4,this.config.buttonSize);
     shadow.alpha = 0.3;
@@ -93,7 +93,7 @@
     icon.alpha = this.config.iconAlpha;
     let btn = new createjs.Shape();
     btn.graphics.beginFill('#FFF').drawCircle(0,0,this.config.buttonSize);
-    btn.alpha = 0.8;
+    btn.alpha = 0.6;
     let shadow = new createjs.Shape();
     shadow.graphics.beginFill('#000').drawCircle(0,4,this.config.buttonSize);
     shadow.alpha = 0.3;
@@ -117,7 +117,7 @@
     icon.alpha = this.config.iconAlpha;
     let btn = new createjs.Shape();
     btn.graphics.beginFill('#FFF').drawCircle(0,0,this.config.buttonSize);
-    btn.alpha = 0.8;
+    btn.alpha = 0.6;
     let shadow = new createjs.Shape();
     shadow.graphics.beginFill('#000').drawCircle(0,4,this.config.buttonSize);
     shadow.alpha = 0.3;
@@ -157,20 +157,20 @@
 
       let base, position;
       if(this.spot.getWave().direction === LEFT) {
-        base = {x: STAGEWIDTH - 150, y: STAGEHEIGHT/2 };
+        base = {x: STAGEWIDTH - 100, y: STAGEHEIGHT/3 };
         position = {
           one : {x: base.x, y: base.y },
-          two: {x: base.x + 50, y: base.y - 140 },
-          three: {x: base.x + 50, y: base.y + 140 },
+          two: {x: base.x, y: base.y - 140 },
+          three: {x: base.x - 120, y: base.y - 70 },
           _scaleX: -1,
         }
       }
       if(this.spot.getWave().direction === RIGHT) {
-        base = {x: 150, y: STAGEHEIGHT/2 };
+        base = {x: 100, y: STAGEHEIGHT/3 };
         position = {
           one : {x: base.x, y: base.y },
-          two: {x: base.x + 50, y: base.y - 140 },
-          three: {x: base.x + 50, y: base.y + 140 },
+          two: {x: base.x, y: base.y - 140 },
+          three: {x: base.x + 120, y: base.y - 70 },
           _scaleX: 1
         }
       }

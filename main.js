@@ -193,6 +193,8 @@ window.loadAssets = function() {
     {id:'arachnid', src:imgdir+'enemy/arachnid.png'},
     {id:'arachfly', src:imgdir+'enemy/arachfly.png'},
     {id:'seafish', src:imgdir+'enemy/seafish.png'},
+    {id:'shaidhulud', src:imgdir+'enemy/shaidhulud.png'},
+    {id:'shaidhulud_trail', src:imgdir+'enemy/shaidhulud_trail.png'},
 		{id:'spacetablet', src:imgdir+'bkg/tablet.png'},
 		{id:'scoretable', src:imgdir+'bkg/scoretable.png'},
 		{id:'scoreboard', src:imgdir+'bkg/scoreboard.png'},
@@ -335,7 +337,7 @@ window.initialize = function() {
 	//SCENE
   SCENE = new Scene();
 	//SCENE.loadLevel('Home');
-	SCENE.loadLevel('Flhoston1');
+	SCENE.loadLevel('Arrakis1');
 
 	//init onEnterFrame
 	createjs.Ticker.timingMode = createjs.Ticker.TIMEOUT;
@@ -354,10 +356,9 @@ window.initialize = function() {
 	//initCustomizer();
 	//
 
-	/*
-	SPOUF SPRITE
+/*
 	var sheet = new createjs.SpriteSheet({
-          images: [queue.getResult('redspouf')],
+          images: [QUEUE.getResult('redspouf')],
           frames: {width:parseInt(64*rX), height:parseInt(64*rY), regX: parseInt(32*rX), regY: parseInt(32*rY)},
           framerate: 40,
           animations: {
@@ -371,8 +372,6 @@ window.initialize = function() {
   spouf.x = 200;
   spouf.y = 200;
  	this.Stage.addChild(spouf);
-	 */
-
 
 	// DASH SPRITE
 	/*

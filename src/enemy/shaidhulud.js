@@ -1,0 +1,277 @@
+
+(function() {
+
+    function Shaidhulud(config = {}) {
+
+      config.name = 'shaidhulud';
+      config.meter_height = 1;
+      config.pixel_height = 150*rY;
+      config.speedX = 15;
+      config.amplitude = Math.random()*8;
+      config.ymin = -config.wave.params.height;
+      config.ymax = 1;
+      config.hp = 0;
+      config.y = -config.wave.params.height / 2;
+      config.imgWidth = 800;
+      config.imgHeight = 256;
+      this.config = config;
+
+      this.xpos = 0;
+      this.ypos = 0;
+      this.ypos2 = 0;
+      this.xshift = 0;
+      this.xinit = 0;
+      this.yinit = 0;
+      this.xarrival = 0;
+
+      this.FlyObstacle_constructor(config);
+
+      this.direction = -this.wave.direction;
+      this.shotables = this.bonuses;
+    }
+
+    Shaidhulud.prototype = Object.create(FlyObstacle.prototype);
+    Shaidhulud.prototype.constructor = Shaidhulud;
+    window.Shaidhulud = createjs.promote(Shaidhulud, "FlyObstacle");
+
+    Shaidhulud.prototype.drawImage = function() {
+
+
+
+
+     var sheet = new createjs.SpriteSheet({
+          images: [QUEUE.getResult('shaidhulud')],
+          frames: {width: this.config.imgWidth, height: this.config.imgHeight, regX: this.config.imgWidth/2, regY: this.config.imgHeight/2},
+          animations: {
+            idle: [2],
+            ready: [1],
+            attack: [0],
+            bite: [1,2, false]
+          }
+      });
+
+      this.sprite = new createjs.Sprite(sheet);
+      this.sprite.scale = 1;
+      this.sprite.scaleX = this.config.wave.direction === LEFT ? -1 : 1;
+      this.sprite.y = 0;
+      this.sprite.gotoAndStop('idle');
+      this.image_cont.addChild(this.sprite);
+
+      var sheet = new createjs.SpriteSheet({
+          images: [QUEUE.getResult('shaidhulud_trail')],
+          frames: {width: this.config.imgWidth, height: this.config.imgHeight, regX: this.config.imgWidth/2, regY: this.config.imgHeight/2},
+          framerate: 6,
+          animations: {
+            run: {
+                frames: [0,1,2],
+                next: 'run',
+            },
+          }
+      });
+      this.trail = new createjs.Sprite(sheet);
+      this.trail.scale = 1;
+      this.trail.scaleX = this.config.wave.direction === LEFT ? -1 : 1;
+      this.trail.y = -60;
+      this.trail.gotoAndPlay('run');
+      this.image_cont.addChild(this.trail);
+    }
+
+    Shaidhulud.prototype.drawBonus = function() {
+
+    }
+
+    Shaidhulud.prototype.drawMalus = function() {
+
+      var malus = new createjs.Shape();
+        malus.graphics.beginFill('red').drawCircle(0,0,200*rX*this.actualScale);
+        malus.x = (this.config.imgWidth/2-150) * -this.direction;
+        malus.alpha = 0.5;
+        this.debug_cont.addChild(malus);
+        this.maluses.push(malus);
+
+      var malus = new createjs.Shape();
+        malus.graphics.beginFill('red').drawCircle(0,0,180*rX*this.actualScale);
+        malus.x = (this.config.imgWidth/2-150-90) * -this.direction;
+        malus.alpha = 0.5;
+        this.debug_cont.addChild(malus);
+        this.maluses.push(malus);
+
+      var malus = new createjs.Shape();
+        malus.graphics.beginFill('red').drawCircle(0,0,180*rX*this.actualScale);
+        malus.x = (this.config.imgWidth/2-150-180) * -this.direction;
+        malus.alpha = 0.5;
+        this.debug_cont.addChild(malus);
+        this.maluses.push(malus);
+
+      var malus = new createjs.Shape();
+        malus.graphics.beginFill('red').drawCircle(0,0,180*rX*this.actualScale);
+        malus.x = (this.config.imgWidth/2-150-260) * -this.direction;
+        malus.alpha = 0.5;
+        this.debug_cont.addChild(malus);
+        this.maluses.push(malus);
+
+    }
+
+    Shaidhulud.prototype.malusHitted = function() {
+
+    }
+
+    Shaidhulud.prototype.initialPosition = function() {
+
+    let x, y;
+    if(this.wave) {
+      x = 0;
+      y = this.wave.params.height;
+      if(this.direction === RIGHT) {
+        x = 0 - this.config.imgWidth/2;
+      }
+      if(this.direction === LEFT) {
+        x = STAGEWIDTH + this.config.imgWidth/2;
+      }
+    }
+    this.xinit = x;
+    this.yinit = y;
+    this.image_cont.scaleX = -this.direction;
+    this.setXY(x,y)
+    this.initArrival();
+    this.initVerticalMovement();
+  }
+
+  Shaidhulud.prototype.initArrival = function() {
+
+    let tween = createjs.Tween.get(this)
+      .call(() => this.sprite.gotoAndStop('idle'))
+      .to({xarrival: STAGEWIDTH/4 * -this.direction}, 4000)
+      .call(proxy(this.initAttack, this))
+        ;
+  }
+
+  Shaidhulud.prototype.initVerticalMovement = function() {
+
+    createjs.Tween.get(this)
+      .set({ypos: 0})
+      .to({ypos: 3}, 500)
+      .to({ypos: -3}, 500)
+      .call(proxy(this.initVerticalMovement, this))
+      ;
+  }
+
+  Shaidhulud.prototype.initAttack = function() {
+
+    let range = STAGEWIDTH/3 * -this.direction;
+
+    let tween = createjs.Tween.get(this)
+      .wait(5000*Math.random())
+      .call(() => this.sprite.gotoAndStop('ready'))
+      .wait(800)
+      .call(() => this.sprite.gotoAndStop('attack'))
+      .to({xshift: range, ypos2:-40}, 2000)
+      .call(() => this.sprite.gotoAndStop('ready'))
+      .to({xshift: 0, ypos2: 0}, 2000)
+      .call(() => this.sprite.gotoAndStop('idle'))
+      .call(proxy(this.initAttack, this))
+      ;
+  }
+
+  Shaidhulud.prototype.move = function() {
+
+      this.xpos -= this.config.wave.movingX;
+      this.x = this.xpos + this.xshift + this.xinit + this.xarrival;
+      this.y = this.yinit + this.ypos + this.ypos2;
+
+  }
+
+}());
+
+
+(function() {
+
+    function Shaidhulud2(config = {}) {
+
+      config.name = 'shaidhulud2';
+      this.xspeed = 10;
+      this.Shaidhulud_constructor(config);
+      this.direction = -this.wave.direction;
+    }
+
+    Shaidhulud2.prototype = Object.create(Shaidhulud.prototype);
+    Shaidhulud2.prototype.constructor = Shaidhulud2;
+    window.Shaidhulud2 = createjs.promote(Shaidhulud2, "Shaidhulud");
+
+    Shaidhulud2.prototype.initialPosition = function() {
+
+      let x, y;
+      if(this.wave) {
+        x = this.wave.params.breaking_center + (200 - Math.random() * 400);
+        y = this.wave.params.height;
+        if(this.direction === RIGHT) {
+          x = this.wave.obstacle_cont.globalToLocal(STAGEWIDTH,0).x + this.config.imgWidth;
+        }
+        if(this.direction === LEFT) {
+          x = this.wave.obstacle_cont.globalToLocal(0,0).x - this.config.imgWidth;
+        }
+      }
+      this.setXY(x,y);
+      this.xinit = x;
+      this.yinit = y;
+      this.initVerticalMovement();
+    }
+
+    Shaidhulud2.prototype.move = function() {
+
+        //this.xpos -= this.config.wave.movingX;
+        //this.x = this.xpos + this.xshift + this.xinit + this.xspeed;
+        this.y = this.yinit + this.ypos + this.ypos2;
+    }
+
+    Shaidhulud2.prototype.drawMalus = function() {
+
+      var malus = new createjs.Shape();
+        malus.graphics.beginFill('red').drawCircle(0,0,200*rX*this.actualScale);
+        malus.x = (this.config.imgWidth/2-150) * this.direction;
+        malus.alpha = 0.5;
+        this.debug_cont.addChild(malus);
+        this.maluses.push(malus);
+
+      var malus = new createjs.Shape();
+        malus.graphics.beginFill('red').drawCircle(0,0,180*rX*this.actualScale);
+        malus.x = (this.config.imgWidth/2-150-90) * this.direction;
+        malus.alpha = 0.5;
+        this.debug_cont.addChild(malus);
+        this.maluses.push(malus);
+
+      var malus = new createjs.Shape();
+        malus.graphics.beginFill('red').drawCircle(0,0,180*rX*this.actualScale);
+        malus.x = (this.config.imgWidth/2-150-180) * this.direction;
+        malus.alpha = 0.5;
+        this.debug_cont.addChild(malus);
+        this.maluses.push(malus);
+
+      var malus = new createjs.Shape();
+        malus.graphics.beginFill('red').drawCircle(0,0,180*rX*this.actualScale);
+        malus.x = (this.config.imgWidth/2-150-260) * this.direction;
+        malus.alpha = 0.5;
+        this.debug_cont.addChild(malus);
+        this.maluses.push(malus);
+
+    }
+
+    Shaidhulud2.prototype.onEnterFrame = function() {
+
+      var distance = get2dDistance(this.x,this.y,this.wave.surfer.x,this.wave.surfer.y);
+      if(distance < STAGEWIDTH/3) {
+        return this.sprite.gotoAndStop('attack');
+      }
+      if(distance < STAGEWIDTH/2) {
+        return this.sprite.gotoAndStop('ready');
+      }
+    }
+
+    Shaidhulud2.prototype.checkRemove = function() {
+      if(this.autoRemove === false) return;
+      let coord = this.localToGlobal(0,0);
+      if(this.direction === RIGHT && coord.x < -STAGEWIDTH/2) this.selfRemove();
+      if(this.direction === LEFT && coord.x > STAGEWIDTH*1.5) this.selfRemove();
+    }
+
+}());

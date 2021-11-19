@@ -38,6 +38,7 @@ prototype.init = function(spot, config) {
 	this.surfer = null;
 	this.surfers = [];
 	this.obstacles = [];
+  this.obsclaclesCount = {};
 	this.peaks = [];
 	this.splashs = [];
 	this.allpoints = [];
@@ -143,9 +144,12 @@ prototype.init = function(spot, config) {
 		//splash particles cont
 		this.splash_cont = new createjs.Container();
 		this.foreground_cont.addChild(this.splash_cont);
+    //hover cont
+		this.hover_cont = new createjs.Container();
+		this.foreground_cont.addChild(this.splash_cont);
 		//debug
 		this.debug_cont = new createjs.Container();
-		this.foreground_cont.addChild(this.debug_cont);
+		this.foreground_cont.addChild(this.hover_cont);
 
 			//points of the wave
 			this.debug_points_cont = new createjs.Container();
@@ -1032,50 +1036,7 @@ prototype.continueBreakingPeakLeftInterval = function() {
 	this.breaking_peak_left_timer = new Timer(proxy(this.continueBreakingPeakLeftInterval,this),t);
 }
 
-
 prototype.addBreakingPeak = function(width,distance) {
-
-	this.addBreakingPeakWarning();
-	window.setTimeout(proxy(this.addBreakingPeakToLip,this,[width,distance]),2000);
-
-	//this.addBreakingPeakToLip(width,distance);
-}
-
-prototype.addBreakingPeakWarning = function() {
-
-	let text = new Pop('Watch out !');
-  text.alpha = 0.8;
-  let b = text.getBounds();
-  if(this.direction === CENTER) return;
-  if(this.direction === LEFT) text.x = 0 + b.width + 10;
-  if(this.direction === RIGHT) text.x = STAGEWIDTH - b.width - 10;
-  text.y = -this.spot.wave.params.height;
-  text.regX = b.width/2;
-
-  this.score_text_cont.addChild(text);
-
-  this.startBlinking(text);
-
-  let y = - this.spot.wave.params.height - b.height/2;
-  createjs.Tween.get(text)
-    .to({y: y}, 800, createjs.Ease.elasticOut)
-    .wait(1000)
-    .set({sliding:true,alpha:1})
-    .call(proxy(this.stopBlinking,this,[text]));
-}
-
-
-prototype.startBlinking = function(object) {
-
-	createjs.Tween.get(object,{loop:true}).to({alpha:1}).wait(50).to({alpha:0}).wait(50);
-}
-
-prototype.stopBlinking = function(object) {
-
-	createjs.Tween.get(object,{override:true}).to({alpha:1});
-}
-
-prototype.addBreakingPeakToLip = function(width,distance) {
 
 	if(this.direction === LEFT) {
 		var peak = this.findTheLeftPeak();
@@ -1351,14 +1312,22 @@ prototype.addObstacle = function(name, config) {
   let id = name.charAt(0).toUpperCase() + name.slice(1);
   let conf = Object.assign({}, config, {wave: this, spot: this.spot, direction: this.direction});
 
+  // init counter
+  if(this.obsclaclesCount[id] === undefined) this.obsclaclesCount[id] = 0;
+
+  // check conditions
   if(conf.tmin && conf.tmin > this.timing) return;
   if(conf.tmax && conf.tmax < this.timing) return;
+  if(conf.nmax && this.obsclaclesCount[id] !== undefined && this.obsclaclesCount[id] >= conf.nmax) return;
 
   // create Obstacle and add it
   //console.log('add obstacle '+id, this.obstacles);
-  var obst = new window[id](conf);
+  const obst = new window[id](conf);
 	this.obstacles.push(obst);
-	this.obstacle_cont.addChild(obst);
+  this.obsclaclesCount[id]++;
+
+  const cont = conf.cont ? this[conf.cont] : this.obstacle_cont;
+	cont.addChild(obst);
 }
 
 prototype.addFlyingPrize = function() {
@@ -1704,13 +1673,13 @@ prototype.drawDebug = function() {
 	const vanishleft = new createjs.Shape();
 	vanishleft.x = this.vanish_left.x;
 	vanishleft.y = this.vanish_left.y;
-	vanishleft.graphics.beginFill('black').drawCircle(0,0,7);
+	vanishleft.graphics.beginFill('orange').drawCircle(0,0,10);
 	this.debug_points_cont.addChild(vanishleft);
 
 	const vanishright = new createjs.Shape();
 	vanishright.x = this.vanish_right.x;
 	vanishright.y = this.vanish_right.y;
-	vanishright.graphics.beginFill('black').drawCircle(0,0,7);
+	vanishright.graphics.beginFill('orange').drawCircle(0,0,10);
 	this.debug_points_cont.addChild(vanishright);
 }
 

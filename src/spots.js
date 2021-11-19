@@ -205,8 +205,8 @@
       .moveTo(0,h*2/3).lineTo(w, h*2/3)
       .setStrokeStyle(0).beginStroke(0).beginFill('rgba(255,255,255,0.2)').drawCircle(w/2,h/3,w*0.9)
       ;
-		btn.x = STAGEWIDTH - w*1.8;
-		btn.y = h;
+		btn.x = w/2;
+		btn.y = h/2;
 		btn.cursor = 'pointer';
 		btn.on('click', this.clickMenuButton);
 		this.overlay_cont.addChild(btn);

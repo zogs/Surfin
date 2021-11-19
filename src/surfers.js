@@ -12,6 +12,10 @@
 		let defaults = {
 			type: 'player',
 			img: 'astrosurfer',
+      velocities: {
+        x: 1,
+        y: 1
+      }
 		}
 
 		params = Object.assign({}, defaults, params);
@@ -670,40 +674,22 @@
 	 */
 	prototype.moveFromVelocities = function() {
 
-
-		let breaking_width = this.config.wave.config.breaking.unroll.width;
-    let vX = breaking_width;
-
-    /* adapt breaking width in function of distance to actual breakpoint */
-		// get which lip point surfer is under
-		//const point_under = this.point_under;
-		//let breaking_percent = 0;
-		//let distance_idx = 0;
-		//if(point_under) {
-		//	breaking_width = point_under.breaking_width;
-		//	breaking_percent = point_under.breaking_percent;
-		//	distance_idx = 1 - (get2dDistance(this.x, 0, point_under.x, 0) / 500);
-		//}
-		// get horizontal velocity from lip position
-		//let vX = breaking_width * ( 0.5 + breaking_percent/100 ) * distance_idx;
-		//let vX = breaking_width; // simplify for now
-
-		// add a bit of speed
-		//vX *= 2;
-
 		// get mouse position
 		const mouse = this.getMousePoint(0);
 
-		// get vertical velocity from mouse position
+    // get wave speed
+    let vX = this.config.wave.config.breaking.unroll.width;
+    // first, double initial speed to compensate ulterior constraint ( specifically WAVE CONSTRAINT)
+    vX *= 2;
+		// then adapt horizontal velocity to mouse direction
+		vX *= ( this.x - mouse.x < 0)? 1 : -1;
+		// and finally vertical velocity from mouse position
 		let vY = ( mouse.y - this.y ) / 10;
-
-		// adapt horizontal velocity to mouse direction
-		const direction = ( this.x - mouse.x < 0)? 1 : -1;
-		vX = vX * direction;
 
 		// set initial velocity
 		let velocity = new Victor(vX,vY);
 
+    // MOUSE CONSTRAINT
 		// calcul distance between surfer and mouse
 		let distance = this.location.absDistanceX(mouse);
 		const distanceMax = this.distanceMaxToMouse;
@@ -711,41 +697,50 @@
 		const distanceMoy = this.distanceMoyToMouse;
 		if(distance >= distanceMax) distance = distanceMax;
 		const distanceIdx = (distance / distanceMoy) * (distance / distanceMin);
-
 		// scale with mouse distance
 		velocity.scale(distanceIdx);
 
+    // WAVE CONSTRAINT
+    // progressly restrain x velocity closer to wave shoulder
+    const shoulder = (this.wave.direction === LEFT) ? this.wave.shoulder_left : this.wave.shoulder_right;
+    const vanisher = (this.wave.direction === LEFT) ? this.wave.vanish_left : this.wave.vanish_right;
+    let idx = (this.location.x - shoulder.x) / (vanisher.x - shoulder.x);
+    if(idx < 0) idx = 0;
+    velocity.scaleX(idx);
+
+    // SKILL CONSTRAINT
 		// scale with user skill ( from x1 to x2)
 		const skill_idx = 1 + (this.getSkill('speed'));
 		velocity.scale(skill_idx);
 
-		// surfer have more speed where on top of the segment ( from x1 to x2 )
-		//const y_coef = 1 + 1 - ( this.y / this.wave.config.height );
-		//velocity.scale(y_coef);
-
-		// surfer get more speed when angled to the bottom ( from x1 to x1.5)
-		//let angle_coef = (this.angle_rad > 0)? 1 + (this.angle_rad / Math.PI/2)/2 : 1;
-		//velocity.scale(angle_coef);
-
+    // WAVE CONFIG COSNTRAINT
 		// scale with wave config surfer's velocity coef (from x0 to ...)
-		//velocity.scaleX(this.config.velocities.x);
-		//velocity.scaleY(this.config.velocities.y);
+		velocity.scaleX(this.config.velocities.x);
+		velocity.scaleY(this.config.velocities.y);
 
+    // DYNAMIC CONSTRAINT ( set programmaticaly...)
 		// scale with controls coef (from x0 to x1)
 		velocity.scaleX(this.control_velocities.x);
 		velocity.scaleY(this.control_velocities.y);
 
+    /*
+    // MOVEMENTS CONSTRAINT
+		// surfer have more speed where on top of the segment ( from x1 to x2 )
+		const y_coef = 1 + 1 - ( this.y / this.wave.config.height );
+		velocity.scale(y_coef);
+
+		// surfer get more speed when angled to the bottom ( from x1 to x1.5)
+		let angle_coef = (this.angle_rad > 0)? 1 + (this.angle_rad / Math.PI/2)/2 : 1;
+		velocity.scale(angle_coef);
+
 		// add pump-pump to velocity
 		//velocity = this.addPumpedInertia(velocity);
-
-		// set global velocity
-		this.velocity = velocity.clone();
+    */
 
 		// apply velocity to position
 		this.location.add(velocity);
-
-		//sightly up and down random movement
-		//this.addMoveZigZag();
+		// save global velocity
+		this.velocity = velocity.clone();
 
 		//surfer can't go bellow the wave
 		if( this.location.y > this.wave.params.height - this.height/4) {
@@ -806,20 +801,10 @@
 		var vanish = this.getVanishPoint();
 		this.location.mix(vanish,0.05);
 
-		//sightly up and down random movement
-		this.addMoveZigZag();
-
 		//sufer cant go bellow the wave
 		if( this.location.y > this.wave.params.height) {
 			this.location.y = this.wave.params.height;
 		}
-
-	}
-
-	prototype.addMoveZigZag = function() {
-
-		if(!this.zigzag) this.zigzag = new Variation({min:4, max:8, time: 200});
-		this.location.y = this.location.y + ( 4 - this.zigzag);
 
 	}
 
@@ -1561,6 +1546,7 @@
 		if(obj.config.name == 'toruk') return this.fall('hit by toruk');
 		if(obj.config.name == 'arachnid') return this.fall('hit by arachnid');
 		if(obj.config.name == 'seafish') return this.fall('hit by seafish');
+		if(obj.config.name == 'shaidhulud') return this.fall('hit by shaidhulud');
 		if(obj.config.name == 'stormsurfer') return ;//this.fall('hit by stormsurfer');
 		console.log('Malus hitted with no handling : ', obj);
 	}

@@ -70,9 +70,11 @@
         tube_difficulty_max : 10,
         suction: {x: 5, y: 4},
         obstacles: {
-              'spice': { percentage: 100 },
-              'beachtrooper': { tmin:0, tmax:0, interval:1000, intervalMax:2000 },
-              'paddletrooper': { tmin:0, tmax:0, interval:1000, intervalMax:2000 },
+              //'spice': { percentage: 100 },
+              //'shaidhulud' : { tmin:0, tmax:0, nmax: 1, interval:1000, intervalMax:2000, cont:'hover_cont' },
+              'shaidhulud2' : { tmin:0, tmax:0, interval:4000, intervalMax:5000, cont:'hover_cont' },
+              //'beachtrooper': { tmin:0, tmax:0, interval:1000, intervalMax:2000 },
+              //'paddletrooper': { tmin:0, tmax:0, interval:1000, intervalMax:2000 },
         },
         shoulder : {
           width: 1000,
@@ -90,7 +92,6 @@
   }
 
   var prototype = createjs.extend(Arrakis1, window.Spot);
-
 
   SPOTS.Arrakis1 = Arrakis1;
   LEVELS.push(Arrakis1);
