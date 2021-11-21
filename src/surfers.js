@@ -39,7 +39,6 @@
 		this.config = Object.assign({}, this.spot.config.surfers, params);
 		this.x = params.x;
 		this.y = params.y;
-
 		this.location;
 		this.locations = [];
 		this.pathpoints = [];

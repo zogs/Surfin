@@ -92,7 +92,8 @@
 	prototype.initSpot = function(type) {
 
     /* default init strategy */
-		this.initWhenReady();
+		//this.initWhenReady();
+    this.initImmediatly();
 
 	}
 
@@ -584,6 +585,35 @@
     })
 
 	}
+
+  prototype.initImmediatly = function() {
+
+    this.removeAllWaves();
+    this.initEventsListeners();
+
+    SPOT = this;
+
+    var wave = this.addWave();
+    this.setWave(wave);
+
+    var surfer = new Surfer({
+      spot: this,
+      wave: wave,
+      x: STAGEWIDTH/2,
+      y: wave.params.height*1/3
+    });
+
+    // animate wave ripples
+    this.runing = true;
+    var animatingWave = this.on('tick', wave.animateRipples, wave);
+
+    this.on('close_story', function(e) {
+      this.runing = false;
+      wave.playerTakeOff(surfer);
+      this.removeEventListener('tick', animatingWave);
+    })
+
+  }
 
 	prototype.initRunMode = function() {
 

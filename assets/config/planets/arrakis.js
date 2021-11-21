@@ -35,6 +35,7 @@ var planet = {
     levels: [
       'Arrakis0',
       'Arrakis1',
+      'Arrakis2',
     ]
 }
 PLANETS.push(planet);

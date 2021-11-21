@@ -158,7 +158,7 @@
 
   Shaidhulud.prototype.initAttack = function() {
 
-    let range = STAGEWIDTH/3 * -this.direction;
+    let range = STAGEWIDTH/3 * this.direction;
 
     let tween = createjs.Tween.get(this)
       .wait(5000*Math.random())

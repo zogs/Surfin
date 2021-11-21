@@ -1,10 +1,10 @@
 (function() {
 
-  function Arrakis1(params) {
+  function Arrakis2(params) {
 
     let defaults = {
-      id: 'Arrakis1',
-      name: 'Arrakis 1',
+      id: 'Arrakis2',
+      name: 'Arrakis 2',
       planet: 'arrakis',
       story: [
       ],
@@ -21,8 +21,7 @@
       },
       timelimit: null,
       goals: [
-        { type: 'catch', current:0, aim: 'spice', count: 3, name: "Attraper l'épice ({n})" },
-        { type: 'tube', current:0, aim: 2, name: 'Faire un tube de 2s ou + ({n}s)' },
+        { type: 'timed', current:0, aim: 60, name: 'Survivre 60 secondes ({n}s)' },
       ],
       player: {
 
@@ -71,9 +70,9 @@
         tube_difficulty_max : 10,
         suction: {x: 5, y: 4},
         obstacles: {
-              'spice': { tmin:5000, tmax:0, interval:5000, intervalMax:7000 },
-              'shaidhulud' : { tmin:0, tmax:0, nmax: 1, interval:1000, intervalMax:2000, cont:'hover_cont' },
-              //'shaidhulud2' : { tmin:0, tmax:0, interval:4000, intervalMax:5000, cont:'hover_cont' },
+              //'spice': { percentage: 100 },
+              //'shaidhulud' : { tmin:0, tmax:0, nmax: 1, interval:1000, intervalMax:2000, cont:'hover_cont' },
+              'shaidhulud2' : { tmin:0, tmax:0, interval:4000, intervalMax:5000, cont:'hover_cont' },
               //'beachtrooper': { tmin:0, tmax:0, interval:1000, intervalMax:2000 },
               //'paddletrooper': { tmin:0, tmax:0, interval:1000, intervalMax:2000 },
         },
@@ -92,9 +91,9 @@
     this.init(config);
   }
 
-  var prototype = createjs.extend(Arrakis1, window.Spot);
+  var prototype = createjs.extend(Arrakis2, window.Spot);
 
-  SPOTS.Arrakis1 = Arrakis1;
-  LEVELS.push(Arrakis1);
+  SPOTS.Arrakis2 = Arrakis2;
+  LEVELS.push(Arrakis2);
 
 }());
