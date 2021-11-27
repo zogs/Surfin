@@ -46,7 +46,7 @@
           splash_h_percent: 100,
           splash_h_ease: 0.4,
           unroll: {
-            width: 22,
+            width: 20,
             width_max: 25,
             width_interval: 0,
             width_pause: 0,
@@ -71,7 +71,7 @@
         tube_difficulty_max : 10,
         suction: {x: 5, y: 4},
         obstacles: {
-              'spice': { tmin:5000, tmax:0, interval:5000, intervalMax:7000 },
+              'spice': { tmin:3000, tmax:0, interval:3000, intervalMax:7000 },
               'shaidhulud' : { tmin:0, tmax:0, nmax: 1, interval:1000, intervalMax:2000, cont:'hover_cont' },
               //'shaidhulud2' : { tmin:0, tmax:0, interval:4000, intervalMax:5000, cont:'hover_cont' },
               //'beachtrooper': { tmin:0, tmax:0, interval:1000, intervalMax:2000 },

@@ -5,8 +5,6 @@
 
       config.name = 'spice';
       config.img = 'spice';
-      config.ymin = 60;
-      config.ymax = 60;
       config.speed = 20;
       config.reverse = false;
 
@@ -44,7 +42,7 @@
 
     Spice.prototype.drawBonus = function() {
       var bonus = new createjs.Shape();
-      bonus.graphics.beginFill('green').drawCircle(0,0,30);
+      bonus.graphics.beginFill('green').drawCircle(0,0,50);
       bonus.alpha = 0.5;
       bonus.hitzone = 'body';
       this.debug_cont.addChild(bonus);
@@ -56,8 +54,8 @@
     }
 
     Spice.prototype.bonusHitted = function() {
-      createjs.Tween.get(this.sprite).to({alpha:0, scale:1.5}, 500, createjs.Ease.quartIn);
-      createjs.Tween.get(this.circle).to({alpha:0, scale:1}, 500, createjs.Ease.quartIn);
+      let sound = createjs.Sound.play("pickup");
+      createjs.Tween.get(this.image_cont).to({scale:2, alpha:0}, 500, createjs.Ease.quartIn);
     }
 
 }());

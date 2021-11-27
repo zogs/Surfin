@@ -89,8 +89,7 @@
 	}
 
 
-	prototype.initSpot = function(type) {
-
+	prototype.initSpot = function() {
     /* default init strategy */
 		//this.initWhenReady();
     this.initImmediatly();
@@ -587,7 +586,6 @@
 	}
 
   prototype.initImmediatly = function() {
-
     this.removeAllWaves();
     this.initEventsListeners();
 
@@ -607,12 +605,17 @@
     this.runing = true;
     var animatingWave = this.on('tick', wave.animateRipples, wave);
 
-    this.on('close_story', function(e) {
-      this.runing = false;
-      wave.playerTakeOff(surfer);
-      this.removeEventListener('tick', animatingWave);
-    })
-
+    if(this.retrying) {
+        this.runing = false;
+        wave.playerTakeOff(surfer);
+        this.removeEventListener('tick', animatingWave);
+    } else {
+      this.on('close_story', function(e) {
+        this.runing = false;
+        wave.playerTakeOff(surfer);
+        this.removeEventListener('tick', animatingWave);
+      })
+    }
   }
 
 	prototype.initRunMode = function() {
@@ -987,7 +990,7 @@
 
 		this.overlay_cont.removeAllChildren();
 
-		this.initSpot();
+	//	this.initSpot();
 	}
 
 	prototype.showScoreboard = function(e) {
@@ -1035,7 +1038,6 @@
     this.hideOverlayVeil();
 
     this.controls.hide();
-
 		//reset this spot
 		this.initSpot();
 

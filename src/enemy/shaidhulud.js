@@ -158,14 +158,14 @@
 
   Shaidhulud.prototype.initAttack = function() {
 
-    let range = STAGEWIDTH/3 * this.direction;
+    let range = STAGEWIDTH/8 * this.direction;
 
     let tween = createjs.Tween.get(this)
       .wait(5000*Math.random())
       .call(() => this.sprite.gotoAndStop('ready'))
       .wait(800)
       .call(() => this.sprite.gotoAndStop('attack'))
-      .to({xshift: range, ypos2:-40}, 2000)
+      .to({xshift: range, ypos2:-20}, 2000)
       .call(() => this.sprite.gotoAndStop('ready'))
       .to({xshift: 0, ypos2: 0}, 2000)
       .call(() => this.sprite.gotoAndStop('idle'))

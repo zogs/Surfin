@@ -16,7 +16,7 @@
       },
       timelimit: null,
       goals: [
-        { type: 'catch', current:0, aim: 'star', count: 20, name: "Collecter 20 étoiles ({n})" },
+        { type: 'catch', current:0, aim: 'star', count: 10, name: "Collecter 10 étoiles ({n})" },
         { type: 'catch', current:0, aim: 'beachtrooper', count: 3, name: "Faire tomber 3 touristes ({n})", y: 220 },
       ],
       player: {

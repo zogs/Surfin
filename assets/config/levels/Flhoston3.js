@@ -16,7 +16,7 @@
       },
       timelimit: null,
       goals: [
-        { type: 'catch', current:0, aim: 'star', count: 20, name: 'Collecter 20 étoiles ({n})' },
+        { type: 'catch', current:0, aim: 'star', count: 10, name: 'Collecter 10 étoiles ({n})' },
         { type: 'tube', current:0, aim: 5, name: 'Faire un tube de 5s ou + ({n}s)' },
       ],
       player: {
