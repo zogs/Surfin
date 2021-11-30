@@ -26,6 +26,12 @@
       player: {
 
       },
+      surfers: {
+        velocities: {
+          x: 2,
+          y: 1,
+        }
+      },
       paddlers: {
         nb: 0,
         xmin: 200,
@@ -45,7 +51,7 @@
           splash_h_percent: 100,
           splash_h_ease: 0.4,
           unroll: {
-            width: 22,
+            width: 20,
             width_max: 25,
             width_interval: 0,
             width_pause: 0,

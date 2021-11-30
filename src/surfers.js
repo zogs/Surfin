@@ -36,7 +36,7 @@
 
 		this.wave = params.wave;
 		this.spot = params.spot;
-		this.config = Object.assign({}, this.spot.config.surfers, params);
+		this.config = Object.assign({}, params, this.spot.config.surfers);
 		this.x = params.x;
 		this.y = params.y;
 		this.location;

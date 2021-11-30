@@ -23,5 +23,7 @@ services:
 
     node:
         image: node:10.15-stretch
+        tty: true
+        working_dir: /var/www/surf/
         volumes:
             - ${PATH_SOURCE}:/var/www/surf/

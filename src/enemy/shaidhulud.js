@@ -12,8 +12,9 @@
       config.ymax = 1;
       config.hp = 0;
       config.y = -config.wave.params.height / 2;
-      config.imgWidth = 800;
-      config.imgHeight = 256;
+      config.imgWidth = Math.floor(937*rX);
+      config.imgHeight = Math.floor(300*rY);
+
       this.config = config;
 
       this.xpos = 0;
@@ -35,9 +36,6 @@
     window.Shaidhulud = createjs.promote(Shaidhulud, "FlyObstacle");
 
     Shaidhulud.prototype.drawImage = function() {
-
-
-
 
      var sheet = new createjs.SpriteSheet({
           images: [QUEUE.getResult('shaidhulud')],
@@ -71,7 +69,7 @@
       this.trail = new createjs.Sprite(sheet);
       this.trail.scale = 1;
       this.trail.scaleX = this.config.wave.direction === LEFT ? -1 : 1;
-      this.trail.y = -60;
+      this.trail.y = 0;
       this.trail.gotoAndPlay('run');
       this.image_cont.addChild(this.trail);
     }

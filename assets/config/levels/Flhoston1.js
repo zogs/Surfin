@@ -26,6 +26,12 @@
       player: {
 
       },
+      surfers: {
+        velocities: {
+          x: 2,
+          y: 1,
+        }
+      },
       paddlers: {
         nb: 0,
         xmin: 200,
