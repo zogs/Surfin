@@ -21,7 +21,8 @@
       },
       timelimit: null,
       goals: [
-        { type: 'timed', current:0, aim: 60, name: 'Survivre 60 secondes ({n}s)' },
+        { type: 'catch', current:0, aim: 'spice', count: 10, name: "Attraper 10 fioles de mélange ! ({n})" },
+        { type: 'tube', current:0, aim: 3, name: 'Faire un tube de 3s ou + ({n}s)' },
       ],
       player: {
 
@@ -76,9 +77,10 @@
         tube_difficulty_max : 10,
         suction: {x: 5, y: 4},
         obstacles: {
-              //'spice': { percentage: 100 },
-              //'shaidhulud' : { tmin:0, tmax:0, nmax: 1, interval:1000, intervalMax:2000, cont:'hover_cont' },
-              'shaidhulud2' : { tmin:0, tmax:0, interval:4000, intervalMax:5000, cont:'hover_cont' },
+              'spice': { tmin:3000, tmax:0, interval:3000, intervalMax:7000, y:-100 },
+              'bomb': { tmin:1000, tmax:0, interval:4000, intervalMax:6000 },
+              'shaidhulud' : { tmin:0, tmax:0, nmax: 1, interval:1000, intervalMax:2000, cont:'hover_cont', xrange: 150, yrange:20 },
+              //'shaidhulud2' : { tmin:0, tmax:0, interval:4000, intervalMax:5000, cont:'hover_cont' },
               //'beachtrooper': { tmin:0, tmax:0, interval:1000, intervalMax:2000 },
               //'paddletrooper': { tmin:0, tmax:0, interval:1000, intervalMax:2000 },
         },

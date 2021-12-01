@@ -21,8 +21,8 @@
       },
       timelimit: null,
       goals: [
-        { type: 'catch', current:0, aim: 'spice', count: 3, name: "Attraper l'épice ({n})" },
-        { type: 'tube', current:0, aim: 2, name: 'Faire un tube de 2s ou + ({n}s)' },
+        { type: 'catch', current:0, aim: 'spice', count: 1, name: "Attraper une fiole étrange !" },
+        { type: 'tube', current:0, aim: 5, name: 'Faire un tube de 5s !({n}s)' },
       ],
       player: {
 
@@ -77,8 +77,10 @@
         tube_difficulty_max : 10,
         suction: {x: 5, y: 4},
         obstacles: {
-              'spice': { tmin:3000, tmax:0, interval:3000, intervalMax:7000 },
-              'shaidhulud' : { tmin:0, tmax:0, nmax: 1, interval:1000, intervalMax:2000, cont:'hover_cont' },
+              'spice': { tmin:5000, tmax:0, interval:5000, intervalMax:10000, y: -100 },
+              'bomb': { tmin:0, tmax:0, interval:2000, intervalMax:4000 },
+              'break': { tmin:4000, tmax:0, interval:6000, intervalMax:12000, width:100, widthMax: 180, dist: 200, distMax:300 },
+              //'shaidhulud' : { tmin:0, tmax:0, nmax: 1, interval:1000, intervalMax:2000, cont:'hover_cont', xrange: 200, yrange:20 },
               //'shaidhulud2' : { tmin:0, tmax:0, interval:4000, intervalMax:5000, cont:'hover_cont' },
               //'beachtrooper': { tmin:0, tmax:0, interval:1000, intervalMax:2000 },
               //'paddletrooper': { tmin:0, tmax:0, interval:1000, intervalMax:2000 },

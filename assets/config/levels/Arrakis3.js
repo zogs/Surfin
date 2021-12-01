@@ -1,23 +1,28 @@
 (function() {
 
-  function Flhoston3(params) {
+  function Arrakis3(params) {
 
     let defaults = {
-      id: 'Flhoston3',
-      name: 'Flhoston 3',
-      planet: 'flhoston',
+      id: 'Arrakis3',
+      name: 'Arrakis 3',
+      planet: 'arrakis',
+      story: [
+      ],
+      init: {
+        type: 'waiting',
+      },
       series: {
         length :  3,
         speed : 20000,
         frequency : 5000,
-        interval : 28000,
+        interval : 10000,
         spread : 0,
         xshift: 0,
       },
       timelimit: null,
       goals: [
-        { type: 'catch', current:0, aim: 'star', count: 18, name: 'Collecter 18 étoiles ({n})' },
-        { type: 'tube', current:0, aim: 4, name: 'Faire un tube de 4s ou + ({n}s)' },
+        { type: 'catch', current:0, aim: 'star', count: 12, name: "Collecter 12 étoiles ({n})" },
+        { type: 'timed', current:0, aim: 60, name: 'Survivre 60 secondes ({n}s)' },
       ],
       player: {
 
@@ -37,24 +42,24 @@
         skills: {}
       },
       waves: {
-        height : 280,
+        height : 275,
         width : 0,
         real_height: 3,
         breaking: {
           width: 180,
-          y_speed: 1000,
+          y_speed: 1200,
           y_ease: 'quartIn',
           splash_h_percent: 100,
           splash_h_ease: 0.4,
           unroll: {
             width: 20,
             width_max: 25,
-            width_interval: 1000,
-            width_pause: 1000,
-            block_interval: 2000,
-            block_interval_max: 4000,
+            width_interval: 0,
+            width_pause: 0,
+            block_interval: 600,
+            block_interval_max: 1000,
             block_width: 40,
-            block_width_max: 80,
+            block_width_max: 60,
           },
         },
         lip: {
@@ -72,8 +77,12 @@
         tube_difficulty_max : 10,
         suction: {x: 5, y: 4},
         obstacles: {
-              'starline' : { tmin:0, tmax:0, interval:1000, intervalMax:3500 },
-              'bomb': { tmin:3000, tmax:0, interval:3000, intervalMax:4000 },
+              //'spice': { percentage: 100 },
+              //'shaidhulud' : { tmin:0, tmax:0, nmax: 1, interval:1000, intervalMax:2000, cont:'hover_cont' },
+              'star': { tmin:0, tmax:0, interval:1000, intervalMax:2000 },
+              'shaidhulud2' : { tmin:0, tmax:0, interval:4000, intervalMax:5000, cont:'hover_cont' },
+              //'beachtrooper': { tmin:0, tmax:0, interval:1000, intervalMax:2000 },
+              //'paddletrooper': { tmin:0, tmax:0, interval:1000, intervalMax:2000 },
         },
         shoulder : {
           width: 1000,
@@ -83,16 +92,16 @@
           slope: 0
         }
       },
-    };
+    }
     let config = extend(defaults, params);
 
     this.Container_constructor();
     this.init(config);
   }
 
-  var prototype = createjs.extend(Flhoston3, window.Spot);
+  var prototype = createjs.extend(Arrakis3, window.Spot);
 
-  SPOTS.Flhoston3 = Flhoston3;
-  LEVELS.push(Flhoston3);
+  SPOTS.Arrakis3 = Arrakis3;
+  LEVELS.push(Arrakis3);
 
 }());

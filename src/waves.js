@@ -1305,7 +1305,9 @@ prototype.addObstacle = function(name, config) {
 
   // special cases when its not an Obstacle to add
   if(name == 'break') {
-    return this.addBreakingPeak(config.width, config.distance);
+    let width = (config.widthMax) ? config.width + Math.random()*(config.widthMax - config.width) : config.width;
+    let distance = (config.distMax) ? config.dist + Math.random()*(config.distMax - config.dist) : config.dist;
+    return this.addBreakingPeak(width, distance);
   }
 
   // get Obstacle id constructor, and configuration params

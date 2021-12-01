@@ -16,7 +16,7 @@
       },
       timelimit: null,
       goals: [
-        { type: 'timed', current:0, aim: 40, name: 'Survivre 40 secondes ({n}s)' },
+        { type: 'timed', current:0, aim: 40, name: 'Survivre !!! ({n}s)' },
       ],
       player: {
 
@@ -50,10 +50,10 @@
             width_max: 25,
             width_interval: 1000,
             width_pause: 1000,
-            block_interval: 500,
+            block_interval: 1000,
             block_interval_max: 2000,
             block_width: 30,
-            block_width_max: 200,
+            block_width_max: 60,
           },
         },
         lip: {
@@ -71,8 +71,9 @@
         tube_difficulty_max : 10,
         suction: {x: 5, y: 4},
         obstacles: {
+              'bomb': { tmin:0, tmax:0, interval:2000, intervalMax:4000 },
               'bombTriplet': { tmin:2000, tmax:0, interval:1000, intervalMax:3000 },
-              //'break': { tmin:4000, tmax:0, interval:10000, intervalMax:15000, width:40, distance: 300 },
+              'break': { tmin:4000, tmax:0, interval:6000, intervalMax:12000, width:100, widthMax: 180, dist: 200, distMax:300 },
         },
         shoulder : {
           width: 1000,

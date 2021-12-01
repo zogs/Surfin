@@ -60,8 +60,8 @@
 
       var malus = new createjs.Shape();
         malus.graphics.beginFill('red').drawCircle(0,0,50*rX*this.actualScale);
-        malus.y = 0;
-        malus.x = 5 * rX;
+        malus.y = 5;
+        malus.x = 0;
         malus.alpha = 0.5;
         malus.hitzone = 'body';
         this.debug_cont.addChild(malus);

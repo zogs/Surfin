@@ -42,7 +42,7 @@
 
     Spice.prototype.drawBonus = function() {
       var bonus = new createjs.Shape();
-      bonus.graphics.beginFill('green').drawCircle(0,0,50);
+      bonus.graphics.beginFill('green').drawCircle(0,0,30);
       bonus.alpha = 0.5;
       bonus.hitzone = 'body';
       this.debug_cont.addChild(bonus);

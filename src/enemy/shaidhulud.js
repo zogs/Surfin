@@ -14,14 +14,16 @@
       config.y = -config.wave.params.height / 2;
       config.imgWidth = Math.floor(937*rX);
       config.imgHeight = Math.floor(300*rY);
+      config.xrange = config.xrange || STAGEWIDTH/8;
+      config.yrange = config.yrange || 20;
 
       this.config = config;
 
       this.xpos = 0;
-      this.ypos = 0;
-      this.ypos2 = 0;
       this.xshift = 0;
       this.xinit = 0;
+      this.ypos = 0;
+      this.yvar = 0;
       this.yinit = 0;
       this.xarrival = 0;
 
@@ -139,7 +141,7 @@
 
     let tween = createjs.Tween.get(this)
       .call(() => this.sprite.gotoAndStop('idle'))
-      .to({xarrival: STAGEWIDTH/4 * -this.direction}, 4000)
+      .to({xarrival: STAGEWIDTH/5 * -this.direction}, 4000)
       .call(proxy(this.initAttack, this))
         ;
   }
@@ -147,25 +149,26 @@
   Shaidhulud.prototype.initVerticalMovement = function() {
 
     createjs.Tween.get(this)
-      .set({ypos: 0})
-      .to({ypos: 3}, 500)
-      .to({ypos: -3}, 500)
+      .set({yvar: 0})
+      .to({yvar: 3}, 500)
+      .to({yvar: -3}, 500)
       .call(proxy(this.initVerticalMovement, this))
       ;
   }
 
   Shaidhulud.prototype.initAttack = function() {
 
-    let range = STAGEWIDTH/8 * this.direction;
+    let xrange = this.config.xrange * this.direction;
+    let yrange = -this.config.yrange;
 
     let tween = createjs.Tween.get(this)
       .wait(5000*Math.random())
       .call(() => this.sprite.gotoAndStop('ready'))
       .wait(800)
       .call(() => this.sprite.gotoAndStop('attack'))
-      .to({xshift: range, ypos2:-20}, 2000)
+      .to({xshift: xrange, ypos: yrange}, 2000)
       .call(() => this.sprite.gotoAndStop('ready'))
-      .to({xshift: 0, ypos2: 0}, 2000)
+      .to({xshift: 0, ypos: 0}, 2000)
       .call(() => this.sprite.gotoAndStop('idle'))
       .call(proxy(this.initAttack, this))
       ;
@@ -175,7 +178,7 @@
 
       this.xpos -= this.config.wave.movingX;
       this.x = this.xpos + this.xshift + this.xinit + this.xarrival;
-      this.y = this.yinit + this.ypos + this.ypos2;
+      this.y = this.yinit + this.yvar + this.ypos;
 
   }
 
@@ -219,7 +222,7 @@
 
         //this.xpos -= this.config.wave.movingX;
         //this.x = this.xpos + this.xshift + this.xinit + this.xspeed;
-        this.y = this.yinit + this.ypos + this.ypos2;
+        this.y = this.yinit + this.ypos + this.ypos;
     }
 
     Shaidhulud2.prototype.drawMalus = function() {

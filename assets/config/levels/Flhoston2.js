@@ -47,7 +47,7 @@
           splash_h_ease: 0.4,
           unroll: {
             width: 20,
-            width_max: 25,
+            width_max: 22,
             width_interval: 1000,
             width_pause: 1000,
             block_interval: 0,
@@ -71,7 +71,7 @@
         tube_difficulty_max : 10,
         suction: {x: 5, y: 4},
         obstacles: {
-          'star' : { tmin:0, tmax:0, interval:1500, intervalMax:2000 },
+          'star' : { tmin:0, tmax:0, interval:800, intervalMax:2400 },
           'bomb': { tmin:0, tmax:0, interval:2000, intervalMax:4000 },
         },
         shoulder : {
