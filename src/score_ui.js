@@ -29,8 +29,8 @@
     }
 
     if(this.goals === null) this.goals = [
-      { type: 'timed', current:0, aim: 20, name: 'Survivre 20 secondes ({n}s)' },
-      { type: 'score', current:0, aim: 2000, name: 'Faire un score de 2000 points' },
+      { type: 'timed', current:0, aim: 'timed', count:20, name: 'Survivre 20 secondes ({n}s)' },
+      { type: 'score', current:0, aim: 'score', count:2000, name: 'Faire un score de 2000 points' },
       { type: 'trick', current:0, aim: 'Backflip', count: 2, name: 'Faire 2 backflip ({n})' },
       { type: 'catch', current:0, aim: 'prize', count: 3, name: 'Attraper 3 prix ({n})' },
       { type: 'catch', current:0, aim: 'star', count: 50, name: 'Attraper 50 étoiles ({n})' },
@@ -153,7 +153,7 @@
     for(let i=0,ln=this.goals.length-1;i<=ln;i++) {
 
       let goal = this.goals[i];
-      let name = this.goalsNameFormatter(goal, 0);
+      let name = this.goalsNameFormatter(goal, goal.count, 0);
       let text = new createjs.Text(name, 'bold '+Math.floor(18*rY)+"px 'Blinker', sans-serif", '#545454');
 
       let bkg = new createjs.Shape();
@@ -210,11 +210,11 @@
     if(goal === undefined) return;
     if(goal.filled) return;
     this.tubeTime += 100;
-    let seconds = Math.ceil(this.tubeTime/1000);
-    goal.text.text = this.goalsNameFormatter(goal, seconds);
+    let seconds =this.tubeTime/1000;
+    goal.text.text = this.goalsNameFormatter(goal, goal.count, seconds);
     goal.current = seconds;
 
-    if(seconds == goal.aim) {
+    if(seconds >= goal.count) {
       this.setGoalFilled(goal);
     }
   }
@@ -223,7 +223,7 @@
     let goal = this.goals.find(g => g.type === 'tube');
     if(goal === undefined) return;
     if(goal.filled) return;
-    goal.text.text = this.goalsNameFormatter(goal, 0);
+    goal.text.text = this.goalsNameFormatter(goal, goal.count, 0);
     goal.current = 0;
     this.goalsTimers['tube'].clear();
   }
@@ -252,11 +252,11 @@
     let goal = this.goals.find(g => g.type === 'timed');
     if(goal === undefined) return;
     if(goal.filled) return;
-    let seconds = Math.floor(ev.timing/1000);
-    goal.text.text = this.goalsNameFormatter(goal, seconds);
+    let seconds = ev.timing/1000;
+    goal.text.text = this.goalsNameFormatter(goal, goal.count, seconds);
     goal.current = seconds;
 
-    if(seconds == goal.aim) {
+    if(seconds >= goal.count) {
       this.setGoalFilled(goal);
     }
   }
@@ -266,12 +266,12 @@
     if(goal === undefined) return;
     if(goal.filled) return;
     let score = this.current_score;
-    goal.text.text = this.goalsNameFormatter(goal, score);
+    goal.text.text = this.goalsNameFormatter(goal, goal.count, score );
     goal.current = score;
 
-    if(score >= goal.aim) {
+    if(score >= goal.count) {
       this.setGoalFilled(goal);
-      goal.text.text = this.goalsNameFormatter(goal, goal.aim);
+      goal.text.text = this.goalsNameFormatter(goal, goal.count, goal.aim);
     }
   }
 
@@ -282,9 +282,9 @@
     if(typeof goal === 'undefined') return;
     if(goal.filled) return;
     goal.current += 1;
-    goal.text.text = that.goalsNameFormatter(goal, goal.current);
+    goal.text.text = that.goalsNameFormatter(goal, goal.count, goal.current);
 
-    if(goal.current == goal.count) {
+    if(goal.current >= goal.count) {
       that.setGoalFilled(goal);
     }
   }
@@ -295,9 +295,9 @@
     if(goal === undefined) return;
     if(goal.filled) return;
     goal.current += 1;
-    goal.text.text = that.goalsNameFormatter(goal, goal.current);
+    goal.text.text = that.goalsNameFormatter(goal, goal.count, goal.current);
 
-    if(goal.current == goal.count) {
+    if(goal.current >= goal.count) {
       that.setGoalFilled(goal);
     }
   }
@@ -309,9 +309,9 @@
     if(typeof goal === 'undefined') return;
     if(goal.filled) return;
     goal.current += 1;
-    goal.text.text = that.goalsNameFormatter(goal, goal.current);
+    goal.text.text = that.goalsNameFormatter(goal, goal.count, goal.current);
 
-    if(goal.current == goal.count) {
+    if(goal.current >= goal.count) {
       that.setGoalFilled(goal);
     }
   }
@@ -323,9 +323,9 @@
     this.goalsCheck();
   }
 
-  prototype.goalsNameFormatter = function(goal, n) {
+  prototype.goalsNameFormatter = function(goal, c = '', n = '') {
 
-    return goal.name.replace(/{n}/,n);
+    return goal.name.replace(/{n}/,n).replace(/{c}/,c);
   }
 
   prototype.initPlayerListeners = function() {

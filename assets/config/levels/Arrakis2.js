@@ -21,8 +21,9 @@
       },
       timelimit: null,
       goals: [
-        { type: 'catch', current:0, aim: 'spice', count: 10, name: "Attraper 10 fioles de mélange ! ({n})" },
-        { type: 'tube', current:0, aim: 3, name: 'Faire un tube de 3s ou + ({n}s)' },
+        { type: 'catch', current:0, aim: 'star', count: 18, name: "Collecter {c} étoiles  ({n})" },
+        { type: 'timed', current:0, aim: 'time', count:60, name: 'Terminer en {c} secondes  ({n}s)' },
+        { type: 'catch', current:0, aim: 'beachtrooper', count: 5, name: "Faire tomber {c} touristes  ({n})" },
       ],
       player: {
 
@@ -76,14 +77,13 @@
         tube_difficulty_min : 1,
         tube_difficulty_max : 10,
         suction: {x: 5, y: 4},
-        obstacles: {
-              'spice': { tmin:3000, tmax:0, interval:3000, intervalMax:7000, y:-100 },
-              'bomb': { tmin:1000, tmax:0, interval:4000, intervalMax:6000 },
-              'shaidhulud' : { tmin:0, tmax:0, nmax: 1, interval:1000, intervalMax:2000, cont:'hover_cont', xrange: 150, yrange:20 },
-              //'shaidhulud2' : { tmin:0, tmax:0, interval:4000, intervalMax:5000, cont:'hover_cont' },
-              //'beachtrooper': { tmin:0, tmax:0, interval:1000, intervalMax:2000 },
-              //'paddletrooper': { tmin:0, tmax:0, interval:1000, intervalMax:2000 },
-        },
+        obstacles: [
+              { name: 'star', tmin:1000, tmax:0, interval:2000, intervalMax:4000, y:-100 },
+              { name: 'star', tmin:0, tmax:0, interval:1000, intervalMax:2000, y: 200 },
+              { name: 'bomb', tmin:0, tmax:0, interval:2000, intervalMax:8000 },
+              { name: 'shaidhulud2', tmin:3000, tmax:0, interval:4000, intervalMax:5000, cont:'hover_cont' },
+              { name: 'beachtrooper', tmin:0, tmax:0, interval:1000, intervalMax:5000 },
+        ],
         shoulder : {
           width: 1000,
           inner: 300,

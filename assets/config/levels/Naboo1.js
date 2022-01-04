@@ -18,8 +18,8 @@
         xshift: 0,
       },
       goals: [
-        { type: 'score', current:0, aim: 2000, name: 'Faire un score de 2000 points ({n})' },
-        { type: 'tube', current:0, aim: 10, name: 'Faire un tube de 10s ou + ({n})' },
+        { type: 'score', current:0, aim: null, count: 2000, name: 'Faire un score de {c} points  ({n})' },
+        { type: 'tube', current:0, aim: null, count: 10, name: 'Faire un tube de {c}s ou +  ({n})' },
       ],
       player: {
 
@@ -67,11 +67,11 @@
         tube_difficulty_min : 1,
         tube_difficulty_max : 10,
         suction: {x: 5, y: 4},
-        obstacles: {
-              'seafish': {percentage:90},
-              'beachtrooper': {percentage: 5},
-              'paddletrooper': {percentage: 5},
-        },
+        obstacles: [
+          {name:'seafish', tmin:0, tmax:0, interval:800, intervalMax:2400 },
+          {name:'beachtrooper', tmin:0, tmax:0, interval:800, intervalMax:8000 },
+          {name:'paddletrooper', tmin:0, tmax:0, interval:800, intervalMax:8000 },
+        ],
         shoulder : {
           width: 1000,
           inner: 300,

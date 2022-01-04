@@ -21,8 +21,9 @@
       },
       timelimit: null,
       goals: [
-        { type: 'catch', current:0, aim: 'spice', count: 1, name: "Attraper une fiole étrange !" },
-        { type: 'tube', current:0, aim: 5, name: 'Faire un tube de 5s !({n}s)' },
+        { type: 'catch', current:0, aim: 'spice', count: 7, name: "Attraper {c} fiole étrange  ({n})" },
+        { type: 'tube', current:0, aim: 'tube', count:3, name: 'Faire un tube de {c}s  ({n}s)' },
+        { type: 'catch', current:0, aim: 'beachtrooper', count: 10, name: "Faire tomber {c} touristes  ({n})" },
       ],
       player: {
 
@@ -76,15 +77,15 @@
         tube_difficulty_min : 1,
         tube_difficulty_max : 10,
         suction: {x: 5, y: 4},
-        obstacles: {
-              'spice': { tmin:5000, tmax:0, interval:5000, intervalMax:10000, y: -100 },
-              'bomb': { tmin:0, tmax:0, interval:2000, intervalMax:4000 },
-              'break': { tmin:4000, tmax:0, interval:6000, intervalMax:12000, width:100, widthMax: 180, dist: 200, distMax:300 },
-              //'shaidhulud' : { tmin:0, tmax:0, nmax: 1, interval:1000, intervalMax:2000, cont:'hover_cont', xrange: 200, yrange:20 },
-              //'shaidhulud2' : { tmin:0, tmax:0, interval:4000, intervalMax:5000, cont:'hover_cont' },
-              //'beachtrooper': { tmin:0, tmax:0, interval:1000, intervalMax:2000 },
-              //'paddletrooper': { tmin:0, tmax:0, interval:1000, intervalMax:2000 },
-        },
+        obstacles: [
+              {name: 'spice', tmin:500, tmax:0, interval:2000, intervalMax:6000, y: -100 },
+              {name: 'bomb', tmin:500, tmax:0, interval:2000, intervalMax:4000 },
+              {name: 'break', tmin:1000, tmax:0, interval:6000, intervalMax:12000, width:100, widthMax: 180, dist: 200, distMax:300 },
+              {name: 'beachtrooper', tmin:0, tmax:0, interval:1000, intervalMax:4000 },
+              //{name: 'shaidhulud', tmin:0, tmax:0, nmax: 1, interval:1000, intervalMax:2000, cont:'hover_cont', xrange: 200, yrange:20 },
+              //{name: 'shaidhulud2', tmin:0, tmax:0, interval:4000, intervalMax:5000, cont:'hover_cont' },
+              //{name: 'paddletrooper, tmin:0, tmax:0, interval:1000, intervalMax:2000 },
+        ],
         shoulder : {
           width: 1000,
           inner: 300,

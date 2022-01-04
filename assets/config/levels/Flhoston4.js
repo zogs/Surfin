@@ -16,8 +16,8 @@
       },
       timelimit: null,
       goals: [
-        { type: 'catch', current:0, aim: 'star', count: 24, name: "Collecter 24 étoiles ({n})" },
-        { type: 'catch', current:0, aim: 'beachtrooper', count: 3, name: "Faire tomber 3 touristes ({n})" },
+        { type: 'catch', current:0, aim: 'star', count: 24, name: "Collecter {c} étoiles  ({n})" },
+        { type: 'catch', current:0, aim: 'beachtrooper', count: 3, name: "Faire tomber {c} touristes  ({n})" },
       ],
       player: {
 
@@ -71,12 +71,12 @@
         tube_difficulty_min : 1,
         tube_difficulty_max : 10,
         suction: {x: 5, y: 4},
-        obstacles: {
-          'starline': { tmin:3000, tmax:0, interval:6000, intervalMax:10000 },
-          'star': { tmin:0, tmax:0, interval:2000, intervalMax:2500 },
-          'bomb': { tmin:0, tmax:0, interval:2000, intervalMax:4000 },
-          'beachtrooper': { tmin:5000, tmax:0, interval:2000, intervalMax:4000, y:220},
-        },
+        obstacles: [
+          {name:'starline', tmin:3000, tmax:0, interval:6000, intervalMax:10000 },
+          {name:'star', tmin:0, tmax:0, interval:2000, intervalMax:2500 },
+          {name:'bomb', tmin:0, tmax:0, interval:2000, intervalMax:4000 },
+          {name:'beachtrooper', tmin:5000, tmax:0, interval:2000, intervalMax:4000, y:220},
+        ],
         shoulder : {
           width: 1000,
           inner: 300,

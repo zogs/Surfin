@@ -63,21 +63,6 @@
       createjs.Tween.get(this.shadow).to({alpha:0}, 200);
     }
 
-    Star.prototype.initialPosition = function() {
-
-    let x = this.wave.params.breaking_center + (200 - Math.random() * 400)*rX;
-    let y = Math.random()*(this.wave.params.height);
-
-    if(this.wave.direction === RIGHT) {
-      x = this.wave.obstacle_cont.globalToLocal(STAGEWIDTH,0) + this.sprite.spriteSheet.getFrameBounds(0).width;
-    }
-    if(this.wave.direction === LEFT) {
-      x = this.wave.obstacle_cont.globalToLocal(0,0).x - this.sprite.spriteSheet.getFrameBounds(0).width;
-    }
-
-    this.setXY(x,y);
-  }
-
 }());
 
 

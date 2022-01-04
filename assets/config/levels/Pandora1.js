@@ -19,8 +19,8 @@
       },
       //timelimit: 30,
       goals: [
-        { type: 'score', current:0, aim: 20000, name: 'Faire un score de 20000 points' },
-        { type: 'tube', current:0, aim: 5, name: 'Faire un tube de 5s ou + ({n})' },
+        { type: 'score', current:0, aim:null, count: 20000, name: 'Faire un score de {c} points' },
+        { type: 'tube', current:0, aim:null, count: 5, name: 'Faire un tube de {c}s ou +  ({n})' },
       ],
       player: {
 
@@ -68,12 +68,12 @@
         tube_difficulty_min : 1,
         tube_difficulty_max : 10,
         suction: {x: 5, y: 4},
-        obstacles: {
-              'Stingbat' : {percentage:50},
-              'Banshee' : {percentage:30},
-              'Toruk' : {percentage:10},
-              'TorukAttack' : {percentage: 10},
-        },
+        obstacles: [
+              {name:'Stingbat', tmin:0, tmax:0, interval:800, intervalMax:4000 },
+              {name:'Banshee', tmin:0, tmax:0, interval:800, intervalMax:8000 },
+              {name:'Toruk', tmin:0, tmax:0, interval:800, intervalMax:8000 },
+              {name:'TorukAttack', tmin:0, tmax:0, interval:800, intervalMax:8000 },
+        ],
         shoulder : {
           width: 1000,
           inner: 300,

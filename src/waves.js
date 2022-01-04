@@ -48,7 +48,7 @@ prototype.init = function(spot, config) {
 	this.direction = CENTER;
 	this.movingX = 0;
   this.timing = 0;
-  this.timingStep = 500;
+  this.timingStep = 100;
 	this.comingPercent = 0;
 	this.resizePercent = 0;
 	this.time_scale = (TIME_SCALE) ? TIME_SCALE : 1;
@@ -679,8 +679,6 @@ prototype.initBreakedIntervals = function() {
 
 prototype.initBreakingIntervals = function() {
 
-  this.timing_timer = new Interval(proxy(this.updateTiming,this), this.timingStep);
-
 	//Breaking block interval
 	if(this.config.breaking.unroll.block_interval !== 0) {
 		this.initBreakingBlockLeftInterval();
@@ -695,8 +693,10 @@ prototype.initObstaclesIntervals = function() {
 	if(this.breaked === false) return;
 	if(this.isPlayed() === false) return;
 
-  for (const [name, conf] of Object.entries(this.config.obstacles)) {
-    this.initObstacleInterval(name, conf);
+  this.timing_timer = new Interval(proxy(this.updateTiming,this), this.timingStep);
+
+  for (const [id, conf] of Object.entries(this.config.obstacles)) {
+    this.initObstacleInterval(conf.name, conf);
   }
 }
 
@@ -1082,11 +1082,7 @@ prototype.getSuction = function() {
 
 prototype.moveWave = function() {
 
-	if(this.breaked === false) return;
 	if(this.automove !== false) return this.moveWaveAuto();
-	if(this.direction === CENTER) return;
-	if(this.surfer === undefined) return;
-	if(this.surfer.riding === false) return;
 
 	// get absolute surfer x position on the screen
 	let surfer_pos = this.cont.localToGlobal(this.surfer.x,0);
@@ -1274,12 +1270,6 @@ prototype.deleteOffscreenPoints = function(points) {
 
 prototype.initObstacleInterval = function(obstacle, config) {
 
-  // temporary fix for old-style obstacles (remove me later)
-  if(config.percentage) {
-    config.percentage = null;
-    config = Object.assign(config, {tmin:0, tmax:0, interval:6000, intervalMax:10000, delay: Math.random()*10000 });
-  }
-
   // implements a delay
   if(config.delay) {
     const delay = config.delay;
@@ -1288,7 +1278,9 @@ prototype.initObstacleInterval = function(obstacle, config) {
   }
 
   // add obstacle
-  if(config.tmin < this.timing) this.addObstacle(obstacle, config);
+  if(config.tmin <= this.timing) {
+    this.addObstacle(obstacle, config);
+  }
 
   // time in ms
   const time = (config.intervalMax)? config.interval + Math.random()*(config.intervalMax - config.interval) : config.interval;
@@ -1321,6 +1313,8 @@ prototype.addObstacle = function(name, config) {
   if(conf.tmin && conf.tmin > this.timing) return;
   if(conf.tmax && conf.tmax < this.timing) return;
   if(conf.nmax && this.obsclaclesCount[id] !== undefined && this.obsclaclesCount[id] >= conf.nmax) return;
+
+  console.log('addObstacle', name, config);
 
   // create Obstacle and add it
   //console.log('add obstacle '+id, this.obstacles);

@@ -21,7 +21,7 @@
       },
       timelimit: null,
       goals: [
-        { type: 'catch', current:0, count:10, aim: 'star', name: 'Collecter 10 étoiles ({n})' },
+        { type: 'catch', current:0, count:10, aim: 'star', name: 'Collecter {c} étoiles  ({n})' },
       ],
       player: {
 
@@ -75,9 +75,9 @@
         tube_difficulty_min : 1,
         tube_difficulty_max : 10,
         suction: {x: 5, y: 4},
-        obstacles: {
-            'star' : { tmin:0, tmax:0, interval:1000, intervalMax:1500 },
-        },
+        obstacles: [
+            {name:'star', tmin:0, tmax:0, interval:1000, intervalMax:1500 },
+        ],
         shoulder : {
           width: 1000,
           inner: 300,

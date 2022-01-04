@@ -19,9 +19,9 @@
       },
       timelimit: null,
       goals: [
-        { type: 'score', current:0, aim: 2000, name: 'Faire un score de 2000 points ({n})' },
-        { type: 'tube', current:0, aim: 5, name: 'Faire un tube de 5s ou + ({n})' },
-        { type: 'timed', current:0, aim: 20, name: 'Survivre 20 secondes ({n}s)' },
+        { type: 'score', current:0, count: 2000, name: 'Faire un score de {c} points ({n})' },
+        { type: 'tube', current:0, count: 5, name: 'Faire un tube de {c}s ou + ({n})' },
+        { type: 'timed', current:0, count: 20, name: 'Survivre {c} secondes ({n}s)' },
       ],
       player: {
 
@@ -72,11 +72,11 @@
           "x": 5,
           "y": 4
         },
-        "obstacles": {
-              "paddletrooper": { "percentage": 30 },
-              "beachtrooper": { "percentage": 30 },
-              "cigogne": { "percentage": 100 },
-        },
+        "obstacles": [
+               { name:'paddletrooper', tmin:0, tmax:0, interval:1000, intervalMax:2000, y:0 },
+               { name:'beachtrooper', tmin:0, tmax:0, interval:1000, intervalMax:2000, y:0 },
+               { name:'cigogne', tmin:0, tmax:0, interval:1000, intervalMax:2000, y:0 },
+        ],
         "shoulder": {
           "width": 1000,
           "inner": 300,

@@ -7,6 +7,8 @@
       config.img = 'spice';
       config.speed = 20;
       config.reverse = false;
+      config.size_x = 50;
+      config.size_y = 50;
 
       this.FlyObstacle_constructor(config);
     }
@@ -28,7 +30,7 @@
 
       let radius = 50;
       this.circle = new createjs.Shape();
-      this.circle.graphics.setStrokeStyle(5).beginStroke('rgba(255,200 ,200 ,0.2)').beginRadialGradientFill(["rgba(255,255,255,0)","rgba(255,255,255,0.15)"], [0, 1], 0, 0, 0, 0, 0, radius).drawCircle(0,0,radius);
+      this.circle.graphics.setStrokeStyle(5).beginStroke('rgba(255,200 ,200 ,0.8)').beginRadialGradientFill(["rgba(255,255,255,0)","rgba(255,255,255,0.55)"], [0, 1], 0, 0, 0, 0, 0, radius).drawCircle(0,0,radius);
       this.image_cont.addChild(this.circle);
       createjs.Tween.get(this.circle, {loop: true}).to({alpha:0.5},500, createjs.Ease.quartInOut).to({alpha:1}, 500, createjs.Ease.quartInOut);
 
@@ -42,7 +44,7 @@
 
     Spice.prototype.drawBonus = function() {
       var bonus = new createjs.Shape();
-      bonus.graphics.beginFill('green').drawCircle(0,0,30);
+      bonus.graphics.beginFill('green').drawCircle(0,0,40);
       bonus.alpha = 0.5;
       bonus.hitzone = 'body';
       this.debug_cont.addChild(bonus);

@@ -16,8 +16,8 @@
       },
       timelimit: null,
       goals: [
-        { type: 'catch', current:0, aim: 'star', count: 18, name: 'Collecter 18 étoiles ({n})' },
-        { type: 'tube', current:0, aim: 4, name: 'Faire un tube de 4s ou + ({n}s)' },
+        { type: 'catch', current:0, aim: 'star', count: 18, name: 'Collecter {c} étoiles  ({n})' },
+        { type: 'tube', current:0, aim: 'tube', count:4, name: 'Faire un tube de {c}s ou +  ({n}s)' },
       ],
       player: {
 
@@ -71,11 +71,11 @@
         tube_difficulty_min : 1,
         tube_difficulty_max : 10,
         suction: {x: 5, y: 4},
-        obstacles: {
-              'starline' : { tmin:0, tmax:0, interval:1000, intervalMax:3500 },
-              'bomb': { tmin:3000, tmax:0, interval:3000, intervalMax:4000 },
-        },
-        shoulder : {
+        obstacles: [
+              {name:'starline', tmin:0, tmax:0, interval:1000, intervalMax:3500 },
+              {name:'bomb', tmin:3000, tmax:0, interval:3000, intervalMax:4000 },
+        ],
+        shoulder: {
           width: 1000,
           inner: 300,
           outer: 300,

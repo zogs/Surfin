@@ -22,8 +22,8 @@
       },
       timelimit: 12,
       goals: [
-        { type: 'score', current:0, aim: 2000, name: 'Faire un score de 2000 points' },
-        { type: 'tube', current:0, aim: 5, name: 'Faire un tube de 5s ou + ({n})' },
+        { type: 'score', current:0, aim: null, count:2000, name: 'Faire un score de {c} points' },
+        { type: 'tube', current:0, aim: null, count:5, name: 'Faire un tube de {c}s ou + ({n})' },
       ],
       player: {
 
@@ -71,15 +71,7 @@
         tube_difficulty_min : 1,
         tube_difficulty_max : 10,
         suction: {x: 5, y: 4},
-        obstacles: {
-              'paddler' : {percentage: 30},
-              'photographer' : {percentage: 30},
-              'bomb': {percentage: 40},
-              'trooper': {percentage: 0},
-              'prize' : {percentage: 30},
-              'cigogne' : {percentage: 30},
-              'drone': {percentage: 40},
-        },
+        obstacles: [],
         shoulder : {
           width: 1000,
           inner: 300,

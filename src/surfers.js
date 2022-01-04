@@ -283,6 +283,7 @@
 
 		this.auto_silhouette = false;
 		this.silhouette.gotoAndPlay('takeoff');
+		this.riding = true;
 
 		// set velocities to zero
 		this.control_velocities.x = 0;
@@ -320,7 +321,6 @@
 	prototype.endTakeOff = function() {
 
 		this.auto_silhouette = true;
-		this.riding = true;
 
 		const point = this.point_under;
 		const quality = (point === null)? 0 : point.breaking_percent;

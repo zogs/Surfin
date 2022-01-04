@@ -161,9 +161,10 @@
         new Text("Objectifs", font_title),
         new Text(''),
         ];
+
     let goals = this.config.goals.reduce((arr, g) => {
       let name = '\u2022 '+ g.name.replace(/(\(.*\))/g, '');
-      name = name.toLowerCase();
+      name = name.toLowerCase().replace(/{c}/, g.count);
       arr.push(new Text(name, font_goal, {textAlign: 'left'}))
       return arr;
     }, []);

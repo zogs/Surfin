@@ -19,8 +19,8 @@
       },
       timelimit: null,
       goals: [
-        { type: 'score', current:0, aim: 2000, name: 'Faire un score de 2000 points' },
-        { type: 'tube', current:0, aim: 5, name: 'Faire un tube de 5s ou + ({n})' },
+        { type: 'score', current:0, aim:null, count: 2000, name: 'Faire un score de {c} points' },
+        { type: 'tube', current:0, aim:null, count: 5, name: 'Faire un tube de {c}s ou +  ({n})' },
       ],
       player: {
 
@@ -68,10 +68,10 @@
         tube_difficulty_min : 1,
         tube_difficulty_max : 10,
         suction: {x: 5, y: 4},
-        obstacles: {
-          'arachnid' : {percentage: 50},
-          'arachfly' : {percentage: 50},
-        },
+        obstacles: [
+          {name:'arachnid', tmin:0, tmax:0, interval:800, intervalMax:8000 },
+          {name:'arachfly', tmin:0, tmax:0, interval:800, intervalMax:8000 },
+        ],
         shoulder : {
           width: 1000,
           inner: 300,
