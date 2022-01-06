@@ -7,6 +7,7 @@
       iconScale: 0.4,
       iconAlpha: 0.6,
       buttonSize: 60,
+      holdTime: 300,
     }
     this.config = Object.assign({}, defaults, params);
 
@@ -23,10 +24,10 @@
 
     this.removeAllChildren();
 
-    this.initButtonBoost();
-    this.initButtonShield();
-    this.initButtonHadoken();
-    this.initButtonJump();
+    this.initBoostButton();
+    this.initShieldButton();
+    this.initFireButton();
+    this.initJumpButton();
 
    //keyboard handlers
     window.onkeyup = proxy(this.onKeyup, this);
@@ -35,7 +36,7 @@
     this.set();
   }
 
-  prototype.initButtonBoost = function() {
+  prototype.initBoostButton = function() {
     this.boost = new createjs.Container();
     let icon = new createjs.Bitmap(QUEUE.getResult('icon_boost'));
     icon.regX = icon.image.width/2;
@@ -59,7 +60,7 @@
     this.boost.on('pressup', proxy(this.stopBoost,this));
   }
 
-  prototype.initButtonJump = function() {
+  prototype.initJumpButton = function() {
     this.jump = new createjs.Container();
     let icon = new createjs.Bitmap(QUEUE.getResult('icon_boost'));
     icon.regX = icon.image.width/2;
@@ -84,7 +85,7 @@
     this.jump.on('pressup', proxy(this.stopJump,this));
   }
 
-  prototype.initButtonShield = function() {
+  prototype.initShieldButton = function() {
     this.shield = new createjs.Container();
     let icon = new createjs.Bitmap(QUEUE.getResult('icon_shield'));
     icon.regX = icon.image.width/2;
@@ -108,8 +109,8 @@
     this.shield.on('pressup', proxy(this.stopShield,this));
   }
 
-  prototype.initButtonHadoken = function() {
-    this.hadoken = new createjs.Container();
+  prototype.initFireButton = function() {
+    this.fire = new createjs.Container();
     let icon = new createjs.Bitmap(QUEUE.getResult('icon_hadoken'));
     icon.regX = icon.image.width/2;
     icon.regY = icon.image.height/2;
@@ -121,22 +122,45 @@
     let shadow = new createjs.Shape();
     shadow.graphics.beginFill('#000').drawCircle(0,4,this.config.buttonSize);
     shadow.alpha = 0.3;
-    this.hadoken.addChild(shadow);
-    this.hadoken.addChild(btn);
-    this.hadoken.addChild(icon);
-    this.hadoken.cursor = 'pointer';
-    this.hadoken.pressed = false;
-    this.hadoken.mouseChildren = false;
-    this.hadoken.alpha = 0;
-    this.hadoken.on('mousedown', proxy(this.startHadoken,this));
-    this.hadoken.on('pressup', proxy(this.stopHadoken,this));
+    this.fire.addChild(shadow);
+    this.fire.addChild(btn);
+    this.fire.addChild(icon);
+    this.fire.cursor = 'pointer';
+    this.fire.pressed = false;
+    this.fire.hold = false;
+    this.fire.mouseChildren = false;
+    this.fire.alpha = 0;
+    this.fire.on('mouseup', proxy(this.holdFireButton,this));
+    this.fire.on('pressup', proxy(this.cancelHoldFireButton,this));
+  }
+
+  prototype.holdFireButton = function() {
+    if(this.fire.pressed === false) {
+      this.fire.pressed = true;
+      this.holdButtonTimer = new Timer(proxy(this.holdFireButtonSuccess, this), this.config.holdTime);
+    }
+  }
+
+  prototype.cancelHoldFireButton = function() {
+    if(this.fire.hold === false) {
+      this.startHadoken();
+    }
+    this.fire.pressed = false;
+    this.fire.hold = false;
+    this.holdButtonTimer.clear();
+    this.stopShield();
+  }
+
+  prototype.holdFireButtonSuccess = function() {
+    this.fire.hold = true;
+    this.startShield();
   }
 
   prototype.onKeypress = function(e) {
     switch(e.key)
      {
       case 'a':  this.startBoost(e); break;
-      case 'z':  this.startHadoken(e); break;
+      case 'z':  this.holdFireButton(); break;
       case 'e':  this.startJump(e); break;
       default: window.defaultKeyDownHandler(e);
      }
@@ -146,7 +170,7 @@
     switch(e.key)
      {
       case 'a':  this.stopBoost(e); break;
-      case 'z':  this.stopHadoken(e); break;
+      case 'z':  this.cancelHoldFireButton(); break;
       case 'e':  this.stopJump(e); break;
       default: window.defaultKeyUpHandler(e);
      }
@@ -181,22 +205,22 @@
       this.jump.y = position.two.y;
       this.shield.x = position.three.x;
       this.shield.y = position.three.y;
-      this.hadoken.x = position.three.x;
-      this.hadoken.y = position.three.y;
+      this.fire.x = position.three.x;
+      this.fire.y = position.three.y;
 
       this.boost.alpha = 1;
       this.shield.alpha = 1;
-      this.hadoken.alpha = 1;
+      this.fire.alpha = 1;
       this.jump.alpha = 1;
 
       this.boost.scaleX = position._scaleX;
-      this.hadoken.scaleX = position._scaleX;
+      this.fire.scaleX = position._scaleX;
       this.shield.scaleX = position._scaleX;
       this.jump.scaleX = position._scaleX;
 
       this.addChild(this.boost);
       this.addChild(this.jump);
-      this.addChild(this.hadoken);
+      this.addChild(this.fire);
       //this.addChild(this.shield);
 
     } else {
@@ -204,7 +228,7 @@
       this.boost.y = 1000;
       this.jump.y = 1000;
       this.shield.y = 1000;
-      this.hadoken.y = 1000;
+      this.fire.y = 1000;
     }
   }
 
@@ -265,19 +289,9 @@
   prototype.startHadoken = function(e) {
     if(e) e.stopImmediatePropagation();
     if(e && e.pointerID && e.pointerID <= 0) return;
-    if(this.hadoken == undefined) return;
-    if(this.hadoken.pressed === true) return;
+    if(this.fire == undefined) return;
     this.spot.getWave().getSurfer().hadokenFire();
-    this.hadoken.pressed = true;
-  }
-
-  prototype.stopHadoken = function(e) {
-    if(e) e.stopImmediatePropagation();
-    if(e && e.pointerID && e.pointerID <= 0) return;
-    if(this.hadoken == undefined) return;
-    if(this.hadoken.pressed === false) return;
-    //this.spot.getWave().getSurfer().weapons.hadoken.close();
-    this.hadoken.pressed = false;
+    this.fire.pressed = true;
   }
 
   prototype.cooldown = function(btn, time) {
@@ -301,11 +315,11 @@
     this.jump.off('mousedown', this.startHadoken);
     this.boost.off('mousedown', this.startBoost);
     this.shield.off('mousedown', this.startShield);
-    this.hadoken.off('mousedown', this.startHadoken);
+    this.fire.off('mousedown', this.startHadoken);
     this.jump.off('pressup', this.stopBoost);
     this.boost.off('pressup', this.stopBoost);
     this.shield.off('pressup', this.stopShield);
-    this.hadoken.off('pressup', this.stopHadoken);
+    this.fire.off('pressup', this.stopHadoken);
   }
 
 

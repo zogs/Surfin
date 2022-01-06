@@ -21,9 +21,9 @@
       },
       timelimit: null,
       goals: [
-        { type: 'catch', current:0, aim: 'star', count: 18, name: "Collecter {c} étoiles  ({n})" },
-        { type: 'timed', current:0, aim: 'time', count:60, name: 'Terminer en {c} secondes  ({n}s)' },
-        { type: 'catch', current:0, aim: 'beachtrooper', count: 5, name: "Faire tomber {c} touristes  ({n})" },
+        { type: 'catch', current:0, aim: 'star', count: 20, name: "Collecter {c} étoiles  ({n})" },
+        { type: 'timed', current:0, aim: 'time', count: 60, name: 'Terminer en {c} secondes  ({n}s)' },
+        { type: 'catch', current:0, aim: 'beachtrooper', count: 10, name: "Faire tomber {c} touristes  ({n})" },
       ],
       player: {
 

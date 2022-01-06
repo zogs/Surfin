@@ -59,7 +59,7 @@
     Bomb.prototype.drawMalus = function() {
 
       var malus = new createjs.Shape();
-        malus.graphics.beginFill('red').drawCircle(0,0,50*rX*this.actualScale);
+        malus.graphics.beginFill('red').drawCircle(0,0,30*rX*this.actualScale);
         malus.y = 5;
         malus.x = 0;
         malus.alpha = 0.5;

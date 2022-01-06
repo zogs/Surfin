@@ -105,7 +105,7 @@
       let goal = this.score.goals[i];
       let isFilled = (goal.filled == true)? true : false;
       let color = (isFilled == true)? '#3e8d26' : '#5d5d5d';
-      let name = goal.name.replace(/{n}/, goal.current);
+      let name = goal.name.replace(/{n}/, goal.current).replace(/{c}/, goal.count);
       let text = new createjs.Text(name, 'bold '+Math.floor(14*rY)+'px Arial', color);
       text.mouseEnabled = false;
       text.x = x;

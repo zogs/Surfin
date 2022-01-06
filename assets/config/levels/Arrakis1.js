@@ -21,8 +21,8 @@
       },
       timelimit: null,
       goals: [
-        { type: 'catch', current:0, aim: 'spice', count: 7, name: "Attraper {c} fiole étrange  ({n})" },
-        { type: 'tube', current:0, aim: 'tube', count:3, name: 'Faire un tube de {c}s  ({n}s)' },
+        { type: 'catch', current:0, aim: 'spice', count: 5, name: "Attraper {c} fiole étrange  ({n})" },
+        { type: 'tube', current:0, aim: 'tube', count:1, name: 'Faire un tube de {c}s  ({n}s)' },
         { type: 'catch', current:0, aim: 'beachtrooper', count: 10, name: "Faire tomber {c} touristes  ({n})" },
       ],
       player: {

@@ -85,6 +85,9 @@
 		this.aerial_takeoff_limit = 50;
 		this.aerial_quality_takeoff = 0;
 		this.aerial_quality_landing = 0;
+    this.aerial_simultaneous_count = 0;
+    this.aerial_simultaneous_time = 500;
+    this.aerial_simultaneous_limit = 2;
 		this.aerial_start_point = null;
 		this.aerial_end_point = null;
 		this.aerial_end_point_width = null;
@@ -1137,6 +1140,16 @@
 		return this.trailsize = this.trailsize_origin;
 	}
 
+  prototype.incrementAerialCount = function() {
+    this.aerial_simultaneous_count++;
+    console.log(this.aerial_simultaneous_count)
+    new Timer(proxy(this.decrementAerialCount, this), this.aerial_simultaneous_time);
+  }
+
+  prototype.decrementAerialCount = function() {
+    this.aerial_simultaneous_count--;
+    console.log(this.aerial_simultaneous_count)
+  }
 
 	prototype.endAerial = function() {
 
@@ -1160,6 +1173,7 @@
 		this.endAerialParticles();
 
 		//this.stopImagePersistance();
+    this.incrementAerialCount();
 
 		// remove spatter
 		this.clearSpatter();
@@ -1169,16 +1183,6 @@
 
 		// remove slow motion
 		window.switchSlowMo(1,1000);
-
-		// landiing slowly
-		/*const default_time = 2000;
-		const time = default_time * (1 - this.getSkill('aerial'));
-		// tween it slowly to normal config
-		const tween = createjs.Tween.get(this.control_velocities)
-			.to({ x: 0.1, y: 0.1 }, time / 2)
-			.to({ x: 1, y: 1 }, time / 2)
-			;
-		*/
 
 		//handle trail size
 		this.resetTrailSize();
@@ -1386,6 +1390,9 @@
 
 		//does surfer hits other serfrs
 		this.checkHitSurfers();
+
+    //does surfer make too many aerial by seconds
+    this.checkLimitAerial();
 
 		//dispatch normal event
 		this.dispatchEvent('surfing');
@@ -1715,6 +1722,12 @@
 			}
 		}
 	}
+
+  prototype.checkLimitAerial = function() {
+    if(this.aerial_simultaneous_count >= this.aerial_simultaneous_limit) {
+      this.fall('too many aerial');
+    }
+  }
 
 	prototype.startBoost = function() {
 		if(this.boosting === true) return;

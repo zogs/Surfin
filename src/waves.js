@@ -1081,7 +1081,6 @@ prototype.getSuction = function() {
 }
 
 prototype.moveWave = function() {
-
 	if(this.automove !== false) return this.moveWaveAuto();
 
 	// get absolute surfer x position on the screen
@@ -1095,9 +1094,13 @@ prototype.moveWave = function() {
 		this.movingX = delta/this.params.breaking.unroll.width;
 	}
 	if(this.direction === RIGHT) {
-		delta += -STAGEWIDTH / 2.5;
+		delta += -STAGEWIDTH / 2;
 		this.movingX = delta/this.params.breaking.unroll.width;
 	}
+  if(this.direction === CENTER) {
+    delta*=1.5;
+		this.movingX = delta/this.params.breaking.unroll.width;
+  }
 
 	this.movingX *= this.time_scale;
 
@@ -1314,7 +1317,7 @@ prototype.addObstacle = function(name, config) {
   if(conf.tmax && conf.tmax < this.timing) return;
   if(conf.nmax && this.obsclaclesCount[id] !== undefined && this.obsclaclesCount[id] >= conf.nmax) return;
 
-  console.log('addObstacle', name, config);
+  //console.log('addObstacle', name, config);
 
   // create Obstacle and add it
   //console.log('add obstacle '+id, this.obstacles);
@@ -1739,23 +1742,25 @@ prototype.initBackgroundRipples = function() {
 
 	this.background_ripple1 = new createjs.Bitmap(QUEUE.getResult('wave_ripple'));
 
-	var height = this.background_ripple1.image.height;
+	const height = this.background_ripple1.image.height;
 	this.background_scale = this.params.height / height;
+  const xshift = - STAGEWIDTH/2;
 
 	this.background_ripple1.scaleY = this.background_scale;
+	this.background_ripple1.x = xshift;
 
 	this.background_ripple2 = this.background_ripple1.clone();
-	this.background_ripple2.x = 0;
+	this.background_ripple2.x = xshift;
 	this.background_ripple2.scaleY = this.background_scale;
 	this.background_ripple2.y = this.background_ripple1.image.height * this.background_scale;
 
 	this.background_ripple3 = this.background_ripple1.clone();
-	this.background_ripple3.x = this.background_ripple1.image.width;
+	this.background_ripple3.x = this.background_ripple1.image.width + xshift;
 	this.background_ripple3.scaleY = this.background_scale;
 	this.background_ripple3.y = 0;
 
 	this.background_ripple4 = this.background_ripple1.clone();
-	this.background_ripple4.x = this.background_ripple4.image.width;
+	this.background_ripple4.x = this.background_ripple4.image.width + xshift;
 	this.background_ripple4.scaleY = this.background_scale;
 	this.background_ripple4.y = this.background_ripple4.image.height * this.background_scale;
 

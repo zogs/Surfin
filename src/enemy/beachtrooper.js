@@ -41,7 +41,7 @@
 
       let rant = new createjs.SpriteSheet({
         images: [QUEUE.getResult('rant')],
-        frames: {width:parseInt(64), height:parseInt(64), regX: parseInt(32), regY: parseInt(32)},
+        frames: {width:parseInt(64*rX), height:parseInt(64*rY), regX: parseInt(32*rX), regY: parseInt(32*rY)},
         framerate: 3,
         animations: {
           hide: [0],
@@ -52,7 +52,7 @@
       });
       this.rant = new createjs.Sprite(rant);
       this.rant.scale = 1;
-      this.rant.y = -50 * rY;
+      this.rant.y = -80 * rY;
       this.rant.x = -20;
       this.rant.gotoAndPlay('hide');
       this.image_cont.addChild(this.rant);
@@ -88,8 +88,9 @@
           .call(() => this.selfRemove())
       })
 
+      console.log(this.rant);
       this.rant.gotoAndPlay('die');
-      this.rant.alpha = 0;
+      this.rant.alpha = 1;
       createjs.Tween.get(this.rant).to({y: this.rant.y - 30, alpha: 0.8}, 500, createjs.Ease.quartOut).to({alpha: 0, y: -100}, 300);
       this.active = false;
     }
