@@ -23,12 +23,12 @@
 
       var sheet = new createjs.SpriteSheet({
           images: [QUEUE.getResult('sprite_paddle')],
-          frames: {width:parseInt(this.config.size_x), height:parseInt(this.config.size_y), regX: parseInt(this.config.size_x/2), regY: parseInt(this.config.size_y/2)},
+          frames: {width:parseInt(this.config.size_x*rX), height:parseInt(this.config.size_y*rY), regX: parseInt(this.config.size_x/2*rX), regY: parseInt(this.config.size_y/2*rY) },
           framerate: 8,
           animations: {
-            run: [0,4, 'run'],
-            fall: { frames: [5,6], next: false, speed:0.5},
-            attack: [7,11, 'run']
+            run: { frames: [0,1,2,3], next: 'run' },
+            fall: { frames: [4,5,6], next: false },
+            attack: { frames: [7,8,9,10,11], next:'run', speed:0.75}
           }
       });
 
@@ -70,8 +70,9 @@
     Paddletrooper.prototype.drawAttackMalus = function() {
 
       var maluses = new createjs.Shape();
-        maluses.graphics.beginFill('red').drawCircle(0,0,60*rX*this.actualScale);
-        maluses.y = -60 * this.actualScale;
+        maluses.graphics.beginFill('red').drawCircle(0,0,20*rX*this.actualScale);
+        maluses.y = -120 * this.actualScale;
+        maluses.x = 50 * this.actualDirection * this.actualScale;
         maluses.hitzone = 'body';
         maluses.alpha = 0.5;
         this.debug_cont.addChild(maluses);
@@ -112,7 +113,7 @@
 
       this.sprite.gotoAndPlay('attack');
       this.status = 'attack';
-      setTimeout(proxy(this.drawAttackMalus, this), 250);
+      setTimeout(proxy(this.drawAttackMalus, this), 300);
       this.sprite.on('animationend', proxy(this.attackEnded, this));
 
     }

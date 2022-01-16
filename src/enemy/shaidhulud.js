@@ -276,3 +276,121 @@
     }
 
 }());
+
+(function() {
+
+    function Shaidhulud3(config = {}) {
+
+      config.name = 'shaidhulud3';
+      this.xspeed = 10;
+      this.Shaidhulud_constructor(config);
+      this.direction = -this.wave.direction;
+    }
+
+    Shaidhulud3.prototype = Object.create(Shaidhulud.prototype);
+    Shaidhulud3.prototype.constructor = Shaidhulud3;
+    window.Shaidhulud3 = createjs.promote(Shaidhulud3, "Shaidhulud");
+
+    Shaidhulud3.prototype.initialPosition = function() {
+
+      let x, y;
+      if(this.wave) {
+        x = this.wave.params.breaking_center + (200 - Math.random() * 400);
+        y = this.wave.params.height;
+        if(this.direction === RIGHT) {
+          x = this.wave.obstacle_cont.globalToLocal(STAGEWIDTH,0).x + this.config.imgWidth;
+        }
+        if(this.direction === LEFT) {
+          x = this.wave.obstacle_cont.globalToLocal(0,0).x - this.config.imgWidth;
+        }
+      }
+      this.setXY(x,y);
+      this.xinit = x;
+      this.yinit = y;
+      this.initVerticalMovement();
+    }
+
+    Shaidhulud3.prototype.move = function() {
+
+        //this.xpos -= this.config.wave.movingX;
+        //this.x = this.xpos + this.xshift + this.xinit + this.xspeed;
+        this.y = this.yinit + this.ypos + this.ypos;
+    }
+
+    Shaidhulud3.prototype.drawExtra = function() {
+
+     var sheet = new createjs.SpriteSheet({
+          images: [QUEUE.getResult('shaidhulud_rider')],
+          frames: {width: 512, height: 256, regX: 512/2, regY: 256/2},
+          animations: {
+            run: { frames: [0,1], next: 'run', speed:0.5},
+          }
+      });
+
+      let sprite = new createjs.Sprite(sheet);
+      sprite.scale = 0.7;
+      sprite.scaleX *= this.config.wave.direction === LEFT ? -1 : 1;
+      sprite.y = -100;
+      sprite.gotoAndPlay('run');
+      this.image_cont.addChild(sprite);
+    }
+
+    Shaidhulud3.prototype.drawMalus = function() {
+
+      var malus = new createjs.Shape();
+        malus.graphics.beginFill('red').drawCircle(0,0,200*rX*this.actualScale);
+        malus.x = (this.config.imgWidth/2-150) * this.direction;
+        malus.alpha = 0.5;
+        this.debug_cont.addChild(malus);
+        this.maluses.push(malus);
+
+      var malus = new createjs.Shape();
+        malus.graphics.beginFill('red').drawCircle(0,0,180*rX*this.actualScale);
+        malus.x = (this.config.imgWidth/2-150-90) * this.direction;
+        malus.alpha = 0.5;
+        this.debug_cont.addChild(malus);
+        this.maluses.push(malus);
+
+      var malus = new createjs.Shape();
+        malus.graphics.beginFill('red').drawCircle(0,0,180*rX*this.actualScale);
+        malus.x = (this.config.imgWidth/2-150-180) * this.direction;
+        malus.alpha = 0.5;
+        this.debug_cont.addChild(malus);
+        this.maluses.push(malus);
+
+      var malus = new createjs.Shape();
+        malus.graphics.beginFill('red').drawCircle(0,0,180*rX*this.actualScale);
+        malus.x = (this.config.imgWidth/2-150-260) * this.direction;
+        malus.alpha = 0.5;
+        this.debug_cont.addChild(malus);
+        this.maluses.push(malus);
+
+      var malus = new createjs.Shape();
+        malus.graphics.beginFill('red').drawCircle(0,0,90*rX*this.actualScale);
+        malus.x = 0 * this.direction;
+        malus.y = -100;
+        malus.alpha = 0.5;
+        this.debug_cont.addChild(malus);
+        this.maluses.push(malus);
+
+    }
+
+    Shaidhulud3.prototype.onEnterFrame = function() {
+
+      var distance = get2dDistance(this.x,this.y,this.wave.surfer.x,this.wave.surfer.y);
+      if(distance < STAGEWIDTH/3) {
+        return this.sprite.gotoAndStop('attack');
+      }
+      if(distance < STAGEWIDTH/2) {
+        return this.sprite.gotoAndStop('ready');
+      }
+    }
+
+    Shaidhulud3.prototype.checkRemove = function() {
+      if(this.autoRemove === false) return;
+      let coord = this.localToGlobal(0,0);
+      if(this.direction === RIGHT && coord.x < -STAGEWIDTH/2) this.selfRemove();
+      if(this.direction === LEFT && coord.x > STAGEWIDTH*1.5) this.selfRemove();
+    }
+
+}());

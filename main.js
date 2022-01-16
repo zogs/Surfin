@@ -195,6 +195,7 @@ window.loadAssets = function() {
     {id:'seafish', src:imgdir+'enemy/seafish.png'},
     {id:'shaidhulud', src:imgdir+'enemy/shaidhulud.png'},
     {id:'shaidhulud_trail', src:imgdir+'enemy/shaidhulud_trail.png'},
+    {id:'shaidhulud_rider', src:imgdir+'enemy/shaidhulud_rider.png'},
 		{id:'spacetablet', src:imgdir+'bkg/tablet.png'},
 		{id:'scoretable', src:imgdir+'bkg/scoretable.png'},
 		{id:'scoreboard', src:imgdir+'bkg/scoreboard.png'},
@@ -337,7 +338,7 @@ window.initialize = function() {
 	//SCENE
   SCENE = new Scene();
 	//SCENE.loadLevel('Home');
-	SCENE.loadLevel('Arrakis2');
+	SCENE.loadLevel('Arrakis4');
 
 	//init onEnterFrame
 	createjs.Ticker.timingMode = createjs.Ticker.TIMEOUT;

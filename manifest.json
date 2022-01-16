@@ -3,12 +3,12 @@
   "name": "SpaceSurfer",
   "icons": [
     {
-      "src": "dist/img/1500x800/logos/astrologo_192x.png",
+      "src": "dist/img/1280x720/logos/astrologo_192x.png",
       "sizes": "192x192",
       "type": "image/png"
     },
     {
-      "src": "dist/img/1500x800/logos/astrologo_512x.png",
+      "src": "dist/img/1280x720/logos/astrologo_512x.png",
       "sizes": "512x512",
       "type": "image/png"
     }

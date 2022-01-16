@@ -37,6 +37,7 @@ var planet = {
       'Arrakis1',
       'Arrakis2',
       'Arrakis3',
+      'Arrakis4',
     ]
 }
 PLANETS.push(planet);
