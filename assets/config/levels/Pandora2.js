@@ -1,13 +1,11 @@
 (function() {
 
-  function Arrakis4(params) {
+  function Pandora2(params) {
 
     let defaults = {
-      id: 'Arrakis4',
-      name: 'Arrakis 4',
-      planet: 'arrakis',
-      story: [
-      ],
+      id: 'Pandora2',
+      name: 'Pandora 2',
+      planet: 'pandora',
       init: {
         type: 'waiting',
       },
@@ -15,22 +13,18 @@
         length :  3,
         speed : 20000,
         frequency : 5000,
-        interval : 10000,
+        interval : 8000,
         spread : 0,
         xshift: 0,
       },
-      timelimit: null,
+      //timelimit: 30,
       goals: [
-        { type: 'tube', current:0, aim: 'tube', count: 3, name: 'Faire un tube de {c}s ou +  ({n}s)' },
+        { type: 'score', current:0, aim:null, count: 20000, name: 'Faire un score de {c} points' },
+        { type: 'tube', current:0, aim:null, count: 5, name: 'Faire un tube de {c}s ou +  ({n})' },
+        { type: 'catch', current:0, aim: 'star', count: 20, name: 'Collecter {c} étoiles  ({n})' },
       ],
       player: {
 
-      },
-      surfers: {
-        velocities: {
-          x: 2,
-          y: 1,
-        }
       },
       paddlers: {
         nb: 0,
@@ -41,24 +35,24 @@
         skills: {}
       },
       waves: {
-        height : 275,
+        height : 300,
         width : 0,
         real_height: 3,
         breaking: {
           width: 180,
-          y_speed: 1200,
-          y_ease: 'quartIn',
+          y_speed: 1000,
+          y_ease: "quartIn",
           splash_h_percent: 100,
           splash_h_ease: 0.4,
           unroll: {
             width: 20,
-            width_max: 25,
+            width_max: 24,
             width_interval: 0,
             width_pause: 0,
-            block_interval: 600,
-            block_interval_max: 1000,
-            block_width: 40,
-            block_width_max: 60,
+            block_interval: 100,
+            block_interval_max: 2000,
+            block_width: 50,
+            block_width_max: 90,
           },
         },
         lip: {
@@ -76,9 +70,9 @@
         tube_difficulty_max : 10,
         suction: {x: 5, y: 4},
         obstacles: [
-              {name:'shaidhulud3' , tmin:0, tmax:0, interval:4000, intervalMax:12000, cont:'hover_cont' },
-              {name:'bomb', tmin:1000, tmax:0, interval:4000, intervalMax:6000 },
-              {name:'beachtrooper', tmin:0, tmax:0, interval:1000, intervalMax:2000 },
+              {name:'Stingbat', tmin:0, tmax:0, interval:3000, intervalMax:6000 },
+              {name:'Banshee', tmin:5000, tmax:0, interval:6000, intervalMax:12000 },
+              {name:'star', tmin:0, tmax:0, interval:2000, intervalMax:2500 },
         ],
         shoulder : {
           width: 1000,
@@ -95,9 +89,9 @@
     this.init(config);
   }
 
-  var prototype = createjs.extend(Arrakis4, window.Spot);
+  var prototype = createjs.extend(Pandora2, window.Spot);
 
-  SPOTS.Arrakis4 = Arrakis4;
-  LEVELS.push(Arrakis4);
+  SPOTS.Pandora2 = Pandora2;
+  LEVELS.push(Pandora2);
 
 }());

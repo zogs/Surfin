@@ -27,6 +27,10 @@ var planet = {
     },
     levels: [
       'Pandora1',
+      'Pandora2',
+      'Pandora3',
+      'Pandora4',
+      'Pandora5',
     ]
 }
 PLANETS.push(planet);

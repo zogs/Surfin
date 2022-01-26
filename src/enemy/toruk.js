@@ -7,9 +7,11 @@
       config.img = 'toruk';
       config.meter_height = 1;
       config.pixel_height = 150*rY;
-      config.speedX = 20;
-      config.amplitude = 5 + Math.random()*10;
-      config.ymin = 0;
+      config.speedX = -5;
+      config.amplitude = 20;
+      config.frequence = 0.01;
+      config.ymin = -config.wave.params.height;
+      config.ymax = config.wave.params.height;
       config.hp = 10;
       config.y = - config.wave.params.height * Math.random();
 
@@ -69,7 +71,7 @@
 
     Toruk.prototype.drawMalus = function() {
       var malus = new createjs.Shape();
-        malus.graphics.beginFill('red').drawCircle(0,0,50*rX*this.actualScale);
+        malus.graphics.beginFill('red').drawCircle(0,0,40*rX*this.actualScale);
         malus.y = 0;
         malus.x = 30;
         malus.alpha = 0.5;
@@ -77,9 +79,9 @@
         this.maluses.push(malus);
 
       var malus = new createjs.Shape();
-        malus.graphics.beginFill('red').drawCircle(0,0,60*rX*this.actualScale);
+        malus.graphics.beginFill('red').drawCircle(0,0,40*rX*this.actualScale);
         malus.y = 0;
-        malus.x = 110;
+        malus.x = 80;
         malus.alpha = 0.5;
         this.debug_cont.addChild(malus);
         this.maluses.push(malus);
@@ -99,7 +101,7 @@
       this.sprite.gotoAndPlay('die');
       this.sprite.on('animationend', (ev) => {
         if(ev.name === 'die') {
-          createjs.Tween.get(this).to({alpha:0, y:-10}, 200).call(() => {
+          createjs.Tween.get(this).to({alpha:0, y:-10}, 500).call(() => {
             this.selfRemove();
           });
         }

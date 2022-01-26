@@ -21,6 +21,7 @@
       goals: [
         { type: 'score', current:0, aim:null, count: 20000, name: 'Faire un score de {c} points' },
         { type: 'tube', current:0, aim:null, count: 5, name: 'Faire un tube de {c}s ou +  ({n})' },
+        { type: 'catch', current:0, aim: 'star', count: 20, name: 'Collecter {c} étoiles  ({n})' },
       ],
       player: {
 
@@ -38,18 +39,18 @@
         width : 0,
         real_height: 3,
         breaking: {
-          width: 220,
+          width: 180,
           y_speed: 1000,
           y_ease: "quartIn",
           splash_h_percent: 100,
           splash_h_ease: 0.4,
           unroll: {
-            width: 25,
-            width_max: 28,
+            width: 20,
+            width_max: 24,
             width_interval: 0,
             width_pause: 0,
-            block_interval: 500,
-            block_interval_max: 1000,
+            block_interval: 100,
+            block_interval_max: 2000,
             block_width: 50,
             block_width_max: 90,
           },
@@ -69,10 +70,8 @@
         tube_difficulty_max : 10,
         suction: {x: 5, y: 4},
         obstacles: [
-              {name:'Stingbat', tmin:0, tmax:0, interval:800, intervalMax:4000 },
-              {name:'Banshee', tmin:0, tmax:0, interval:800, intervalMax:8000 },
-              {name:'Toruk', tmin:0, tmax:0, interval:800, intervalMax:8000 },
-              {name:'TorukAttack', tmin:0, tmax:0, interval:800, intervalMax:8000 },
+              {name:'Stingbat', tmin:0, tmax:0, interval:1600, intervalMax:6000 },
+              {name:'star', tmin:0, tmax:0, interval:2000, intervalMax:2500 },
         ],
         shoulder : {
           width: 1000,

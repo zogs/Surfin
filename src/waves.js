@@ -47,8 +47,8 @@ prototype.init = function(spot, config) {
 	this.quaking_force = 1.2;
 	this.direction = CENTER;
 	this.movingX = 0;
-  this.timing = 0;
-  this.timingStep = 100;
+  this.clock = 0;
+  this.clockStep = 100;
 	this.comingPercent = 0;
 	this.resizePercent = 0;
 	this.time_scale = (TIME_SCALE) ? TIME_SCALE : 1;
@@ -72,7 +72,7 @@ prototype.init = function(spot, config) {
 	//timers
 	this.breaking_timer = false;
 	this.cleaning_timer = false;
-  this.timing_timer = false;
+  this.clock_timer = false;
 	this.obstacles_timers = [];
 	this.breaking_peak_left_timer = false;
 	this.breaking_peak_right_timer = false;
@@ -693,7 +693,7 @@ prototype.initObstaclesIntervals = function() {
 	if(this.breaked === false) return;
 	if(this.isPlayed() === false) return;
 
-  this.timing_timer = new Interval(proxy(this.updateTiming,this), this.timingStep);
+  this.clock_timer = new Interval(proxy(this.updateClock,this), this.clockStep);
 
   for (const [id, conf] of Object.entries(this.config.obstacles)) {
     this.initObstacleInterval(conf.name, conf);
@@ -707,10 +707,10 @@ prototype.removeObstaclesIntervals = function() {
   this.obstacles_timers = [];
 }
 
-prototype.updateTiming = function() {
-  this.timing += this.timingStep;
-  const ev = new createjs.Event('wave_timing_advance');
-  ev.timing = this.timing;
+prototype.updateClock = function() {
+  this.clock += this.clockStep;
+  const ev = new createjs.Event('wave_clock_advance');
+  ev.clock = this.clock;
   this.spot.dispatchEvent(ev);
 }
 
@@ -882,7 +882,7 @@ prototype.remove = function() {
 prototype.getTimers = function() {
 
 	const timers = [];
-	if(this.timing_timer instanceof Interval) timers.push(this.timing_timer);
+	if(this.clock_timer instanceof Interval) timers.push(this.clock_timer);
 	if(this.breaking_timer instanceof Timer) timers.push(this.breaking_timer);
 	if(this.cleaning_timer instanceof Timer) timers.push(this.cleaning_timer);
 	if(this.breaking_peak_left_timer instanceof Timer) timers.push(this.breaking_peak_left_timer);
@@ -1280,16 +1280,24 @@ prototype.initObstacleInterval = function(obstacle, config) {
     return new Timer(proxy(this.initObstacleInterval, this, [obstacle, config]), delay);
   }
 
-  // add obstacle
-  if(config.tmin <= this.timing) {
-    this.addObstacle(obstacle, config);
-  }
-
+  // set timer
   // time in ms
   const time = (config.intervalMax)? config.interval + Math.random()*(config.intervalMax - config.interval) : config.interval;
   // add timer (with autoremove)
 	const timer = new Timer(proxy(this.initObstacleInterval,this, [obstacle, config]), time, proxy(this.removeObstacleInterval, this));
   this.obstacles_timers.push(timer);
+
+console.log(config.tmin, this.clock, config.tmax);
+
+  if(this.clock < config.tmin || (config.tmin === 0 && this.clock === 0)) {
+    return;
+  }
+  if(this.clock >= config.tmax && config.tmax !== 0) {
+    return;
+  }
+
+  // add obstacle
+  this.addObstacle(obstacle, config);
 }
 
 prototype.removeObstacleInterval = function(timer) {
@@ -1313,11 +1321,11 @@ prototype.addObstacle = function(name, config) {
   if(this.obsclaclesCount[id] === undefined) this.obsclaclesCount[id] = 0;
 
   // check conditions
-  if(conf.tmin && conf.tmin > this.timing) return;
-  if(conf.tmax && conf.tmax < this.timing) return;
+  if(conf.tmin && conf.tmin > this.clock) return;
+  if(conf.tmax && conf.tmax < this.clock) return;
   if(conf.nmax && this.obsclaclesCount[id] !== undefined && this.obsclaclesCount[id] >= conf.nmax) return;
 
-  //console.log('addObstacle', name, config);
+  console.log('addObstacle', name, config);
 
   // create Obstacle and add it
   //console.log('add obstacle '+id, this.obstacles);

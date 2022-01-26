@@ -7,10 +7,12 @@
       config.img = 'banshee';
       config.meter_height = 1;
       config.pixel_height = 150*rY;
-      config.speedX = 15;
-      config.amplitude = 0 //Math.random()*8;
-      config.ymin = -config.wave.params.height;
-      config.ymax = 1;
+      config.speedX = 0;
+      config.amplitude = 15
+      config.frequence = 0.1;
+      config.ymin = -config.wave.params.height*2;
+      config.ymax = config.wave.params.height;
+      config.ystart = -config.wave.params.height;
       config.hp = 0;
       config.y = config.wave.params.height / 2;
 
@@ -77,9 +79,9 @@
     Banshee.prototype.drawMalus = function() {
 
       var malus = new createjs.Shape();
-        malus.graphics.beginFill('red').drawCircle(0,0,40*rX*this.actualScale);
+        malus.graphics.beginFill('red').drawCircle(0,0,30*rX*this.actualScale);
         malus.y = 0;
-        malus.x = 100;
+        malus.x = 50;
         malus.alpha = 0.5;
         this.debug_cont.addChild(malus);
         this.maluses.push(malus);
@@ -96,7 +98,7 @@
       this.sprite.gotoAndPlay('die');
       this.sprite.on('animationend', (ev) => {
         if(ev.name === 'die') {
-          createjs.Tween.get(this.sprite).to({alpha:0, y:-10}, 250).call(() => {
+          createjs.Tween.get(this.sprite).to({alpha:0, y:-10}, 500).call(() => {
             this.selfRemove();
           });
         }

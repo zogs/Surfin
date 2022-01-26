@@ -24,6 +24,7 @@
     this.hp = this.config.hp || 0;
 
     this.amplitude = config.amplitude || 0;
+    this.frequence = config.frequence || 1;
     this.ymin = config.ymin || 50 + 50 * rY;
     this.ymax = config.ymax || Math.random() * STAGEHEIGHT*1/3;
     this.ystart = this.ymin + Math.random() * (this.ymax - this.ymin);
@@ -137,7 +138,7 @@
 
       // sinusoide verticale
       this.time += 1;
-      if(this.amplitude !== 0) y += this.amplitude * Math.sin(this.time/10 + this.phase);
+      if(this.amplitude !== 0) y += this.amplitude * Math.sin(this.time*this.frequence + this.phase);
 
       this.velocity = new Victor(x,y);
       this.location.add(this.velocity);
@@ -340,8 +341,7 @@
     This method should be override by final class
   */
   Obstacle.prototype.bonusHitted = function() {
-
-    this.active = false;
+    /* empty by default */
   }
 
   /*

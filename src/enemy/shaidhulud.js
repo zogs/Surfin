@@ -321,7 +321,7 @@
 
      var sheet = new createjs.SpriteSheet({
           images: [QUEUE.getResult('shaidhulud_rider')],
-          frames: {width: 512, height: 256, regX: 512/2, regY: 256/2},
+          frames: {width: parseInt(600*rX), height: parseInt(286*rY), regX: parseInt(600/2*rX), regY: parseInt(286/2*rY)},
           animations: {
             run: { frames: [0,1], next: 'run', speed:0.5},
           }

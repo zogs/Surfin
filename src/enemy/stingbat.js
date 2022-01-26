@@ -7,9 +7,10 @@
       config.img = 'stingbat';
       config.meter_height = 0.5;
       config.pixel_height = 300*rY;
-      config.speedX = 15;
-      config.amplitude = 0 //Math.random()*8;
-      config.ymin = -config.wave.params.height;
+      config.speedX = 0;
+      config.amplitude = 8;
+      config.frequence = 0.2;
+      config.ymin;
       config.ymax = 1;
       config.hp = 0;
       config.y = config.wave.params.height / 2;
@@ -33,7 +34,8 @@
           animations: {
               fly: {
                 frames: [0,1,2,3,4,3,2,1],
-                next: false,
+                next: 'fly',
+                speed: 2
               },
               die: {
                 frames: [5,6,7],
@@ -47,9 +49,10 @@
       this.sprite.scale = 0.6;
       this.sprite.gotoAndStop(0);
       this.sprite.scaleX *= this.direction;
+      this.sprite.gotoAndPlay('fly');
       this.image_cont.addChild(this.sprite);
 
-      this.flapping = setInterval(proxy(this.flapWings, this), 500);
+      //this.flapping = setInterval(proxy(this.flapWings, this), 500);
     }
 
     Stingbat.prototype.flapWings = function() {
@@ -61,7 +64,7 @@
 
     Stingbat.prototype.drawBonus = function() {
       var bonus = new createjs.Shape();
-        bonus.graphics.beginFill('green').drawCircle(0,0,200*rX*this.actualScale);
+        bonus.graphics.beginFill('green').drawCircle(0,0,100*rX*this.actualScale);
         bonus.alpha = 0.5;
         bonus.x = 20;
         bonus.y = -0;
@@ -72,9 +75,9 @@
     Stingbat.prototype.drawMalus = function() {
 
       var malus = new createjs.Shape();
-        malus.graphics.beginFill('red').drawCircle(0,0,100*rX*this.actualScale);
+        malus.graphics.beginFill('red').drawCircle(0,0,50*rX*this.actualScale);
         malus.y = 0;
-        malus.x = 50;
+        malus.x = 0;
         malus.alpha = 0.5;
         this.debug_cont.addChild(malus);
         this.maluses.push(malus);
@@ -91,7 +94,7 @@
       this.sprite.on('animationend', (ev) => {
         if(ev.name === 'die') {
           console.log('stingbat die')
-          createjs.Tween.get(this.sprite).to({alpha:0, y:-10}, 250).call(() => {
+          createjs.Tween.get(this.sprite).to({alpha:0, y:-10}, 500).call(() => {
             this.selfRemove();
           });
         }
