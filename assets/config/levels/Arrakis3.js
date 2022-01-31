@@ -79,7 +79,7 @@
         obstacles: [
               {name:'spice', tmin:3000, tmax:0, interval:3000, intervalMax:7000, y:-100 },
               {name:'bomb', tmin:1000, tmax:0, interval:4000, intervalMax:6000 },
-              {name:'shaidhulud' , tmin:0, tmax:0, nmax: 1, interval:1000, intervalMax:2000, cont:'hover_cont', xrange: 150, yrange:20 },
+              {name:'shaidhulud' , tmin:0, tmax:0, nbmax: 1, interval:1000, intervalMax:2000, cont:'hover_cont', xrange: 150, yrange:20 },
               {name:'beachtrooper', tmin:0, tmax:0, interval:1000, intervalMax:2000 },
               {name:'paddletrooper', tmin:0, tmax:0, interval:1000, intervalMax:2000, y: 200 },
         ],

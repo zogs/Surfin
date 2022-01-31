@@ -338,7 +338,7 @@ window.initialize = function() {
 	//SCENE
   SCENE = new Scene();
 	//SCENE.loadLevel('Home');
-	SCENE.loadLevel('Arrakis4');
+	SCENE.loadLevel('Pandora2');
 
 	//init onEnterFrame
 	createjs.Ticker.timingMode = createjs.Ticker.TIMEOUT;

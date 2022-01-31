@@ -109,9 +109,9 @@
       let coord = this.localToLocal(0, 0, container);
       fireball.x = coord.x;
       fireball.y = coord.y;
-      fireball.dX = this.conf.speed*Math.cos(this.conf.surfer.angle_rad);
-      fireball.dY = this.conf.speed*Math.sin(this.conf.surfer.angle_rad);
-      fireball.rotation = this.conf.surfer.getAngle() + 180;
+      fireball.dX = this.conf.speed * direction*-1; //*Math.cos(this.conf.surfer.angle_rad);
+      fireball.dY = 0; //this.conf.speed*Math.sin(this.conf.surfer.angle_rad);
+      //fireball.rotation = this.conf.surfer.getAngle() + 180;
 
       container.addChild(fireball);
       this.fireballs.push(fireball);

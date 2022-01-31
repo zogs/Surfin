@@ -82,7 +82,7 @@
               {name: 'bomb', tmin:500, tmax:0, interval:2000, intervalMax:4000 },
               {name: 'break', tmin:1000, tmax:0, interval:6000, intervalMax:12000, width:100, widthMax: 180, dist: 200, distMax:300 },
               {name: 'beachtrooper', tmin:0, tmax:0, interval:1000, intervalMax:4000 },
-              //{name: 'shaidhulud', tmin:0, tmax:0, nmax: 1, interval:1000, intervalMax:2000, cont:'hover_cont', xrange: 200, yrange:20 },
+              //{name: 'shaidhulud', tmin:0, tmax:0, nbmax: 1, interval:1000, intervalMax:2000, cont:'hover_cont', xrange: 200, yrange:20 },
               //{name: 'shaidhulud2', tmin:0, tmax:0, interval:4000, intervalMax:5000, cont:'hover_cont' },
               //{name: 'paddletrooper, tmin:0, tmax:0, interval:1000, intervalMax:2000 },
         ],

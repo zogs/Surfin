@@ -312,14 +312,14 @@
   prototype.selfRemove = function() {
 
     this.removeAllChildren();
-    this.jump.off('mousedown', this.startHadoken);
-    this.boost.off('mousedown', this.startBoost);
+    this.jump.off('mousedown', this.startJump);
+    this.jump.off('pressup', this.stopJump);
     this.shield.off('mousedown', this.startShield);
-    this.fire.off('mousedown', this.startHadoken);
-    this.jump.off('pressup', this.stopBoost);
-    this.boost.off('pressup', this.stopBoost);
     this.shield.off('pressup', this.stopShield);
-    this.fire.off('pressup', this.stopHadoken);
+    this.boost.off('mousedown', this.startBoost);
+    this.boost.off('pressup', this.stopBoost);
+    this.fire.off('mouseup', this.holdFireButton);
+    this.fire.off('pressup', this.cancelHoldFireButton);
   }
 
 

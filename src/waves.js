@@ -1287,8 +1287,6 @@ prototype.initObstacleInterval = function(obstacle, config) {
 	const timer = new Timer(proxy(this.initObstacleInterval,this, [obstacle, config]), time, proxy(this.removeObstacleInterval, this));
   this.obstacles_timers.push(timer);
 
-console.log(config.tmin, this.clock, config.tmax);
-
   if(this.clock < config.tmin || (config.tmin === 0 && this.clock === 0)) {
     return;
   }
@@ -1323,7 +1321,7 @@ prototype.addObstacle = function(name, config) {
   // check conditions
   if(conf.tmin && conf.tmin > this.clock) return;
   if(conf.tmax && conf.tmax < this.clock) return;
-  if(conf.nmax && this.obsclaclesCount[id] !== undefined && this.obsclaclesCount[id] >= conf.nmax) return;
+  if(conf.nbmax && this.obsclaclesCount[id] !== undefined && this.obsclaclesCount[id] >= conf.nbmax) return;
 
   console.log('addObstacle', name, config);
 

@@ -23,13 +23,13 @@
     this.config.name = config.name || 'paddler';
     this.hp = this.config.hp || 0;
 
-    this.amplitude = config.amplitude || 0;
+    this.amplitude = config.amplitude / 2 || 0;
     this.frequence = config.frequence || 1;
     this.ymin = config.ymin || 50 + 50 * rY;
     this.ymax = config.ymax || Math.random() * STAGEHEIGHT*1/3;
     this.ystart = this.ymin + Math.random() * (this.ymax - this.ymin);
 
-    this.time = 0;
+    this.frameCount = 0;
     this.phase = Math.random() * 1000;
     this.reverse = config.reverse || false;
     this.actualScale = 1;
@@ -50,7 +50,8 @@
     this.maluses = [];
     this.speedX = this.config.speedX || 0;
     this.speedY = this.config.speedY || 0;
-    this.velocity = null;
+    this.velocity = new Victor(0,0)
+    this.sinusoide = new Victor(0,0);
 
     this.image_cont = new createjs.Container();
     this.addChild(this.image_cont);
@@ -123,27 +124,30 @@
   Obstacle.prototype.move = function() {
 
       let x = 0;
-      //vitesse horizontal additionelle
+      // vitesse horizontal additionelle
       let speedX = this.speedX;
-      //direction de la vague
+      // direction de la vague
       speedX *= (this.direction === LEFT)? 1 : -1;
-      //reverse la direction si besoin
+      // reverse la direction si besoin
       if(this.reverse) speedX *= -1;
-      //ajout vitesse horizontale
+      // ajout vitesse horizontale
       x += speedX;
 
       // vitesse vertical
       let y = 0;
       y += this.speedY;
+      this.velocity = new Victor(x,y);
 
       // sinusoide verticale
-      this.time += 1;
-      if(this.amplitude !== 0) y += this.amplitude * Math.sin(this.time*this.frequence + this.phase);
+      this.frameCount += 1;
+      let sinusoide = 0;
+      if(this.amplitude !== 0) {
+        sinusoide = this.amplitude * Math.cos(this.frameCount * Math.PI / 15 * this.frequence);
+      }
 
-      this.velocity = new Victor(x,y);
       this.location.add(this.velocity);
       this.x = this.location.x;
-      this.y = this.location.y;
+      this.y = this.location.y + sinusoide;
 
   }
 

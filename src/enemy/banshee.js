@@ -8,11 +8,11 @@
       config.meter_height = 1;
       config.pixel_height = 150*rY;
       config.speedX = 0;
-      config.amplitude = 15
-      config.frequence = 0.1;
+      config.amplitude = 150
+      config.frequence = 0.5;
       config.ymin = -config.wave.params.height*2;
       config.ymax = config.wave.params.height;
-      config.ystart = -config.wave.params.height;
+      config.ystart = -config.wave.params.height*2;
       config.hp = 0;
       config.y = config.wave.params.height / 2;
 

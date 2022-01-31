@@ -8,7 +8,7 @@
       config.meter_height = 1;
       config.pixel_height = 150*rY;
       config.speedX = -5;
-      config.amplitude = 20;
+      config.amplitude = 250;
       config.frequence = 0.01;
       config.ymin = -config.wave.params.height;
       config.ymax = config.wave.params.height;

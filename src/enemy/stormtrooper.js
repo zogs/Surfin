@@ -7,8 +7,6 @@
       config.img = 'stormsurfer';
       config.meter_height = 1.4;
       config.pixel_height = 160*rY;
-
-      config.amplitude = 3;
       config.speedX = 15;
 
       this.Obstacle_constructor(config);

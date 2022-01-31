@@ -8,7 +8,6 @@
       config.meter_height = 1;
       config.pixel_height = 150*rY;
       config.speedX = 15;
-      config.amplitude = Math.random()*8;
       config.ymin = -config.wave.params.height;
       config.ymax = 1;
       config.hp = 0;

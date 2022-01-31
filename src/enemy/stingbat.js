@@ -8,8 +8,8 @@
       config.meter_height = 0.5;
       config.pixel_height = 300*rY;
       config.speedX = 0;
-      config.amplitude = 8;
-      config.frequence = 0.2;
+      config.amplitude = 80;
+      config.frequence = 2;
       config.ymin;
       config.ymax = 1;
       config.hp = 0;
