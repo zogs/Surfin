@@ -26,6 +26,6 @@
     "mkdirp": "^0.5.1",
     "recursive-readdir": "^2.2.2",
     "resolve-path": "^1.4.0",
-    "sharp": "^0.22.1"
+    "sharp": "^0.30.5"
   }
 }
