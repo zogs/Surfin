@@ -23,7 +23,7 @@
   "dependencies": {
     "image-size": "^0.7.4",
     "jimp": "^0.16.1",
-    "mkdirp": "^0.5.1",
+    "mkdirp": "^0.5.6",
     "recursive-readdir": "^2.2.2",
     "resolve-path": "^1.4.0",
     "sharp": "^0.22.1"
