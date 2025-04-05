@@ -188,6 +188,7 @@ window.loadAssets = function() {
 		{id:'ptero', src:imgdir+'enemy/ptero.png'},
 		{id:'rant', src:imgdir+'enemy/rant.png'},
     {id:'banshee', src:imgdir+'enemy/banshee.png'},
+    {id:'banshee_rider', src:imgdir+'enemy/banshee_rider.png'},
     {id:'stingbat', src:imgdir+'enemy/stingbat.png'},
     {id:'toruk', src:imgdir+'enemy/toruk.png'},
     {id:'arachnid', src:imgdir+'enemy/arachnid.png'},
@@ -337,8 +338,9 @@ window.initialize = function() {
 
 	//SCENE
   SCENE = new Scene();
-	//SCENE.loadLevel('Home');
-	SCENE.loadLevel('Pandora2');
+	SCENE.loadLevel('Home');
+
+	//SCENE.loadLevel('Pandora2');
 
 	//init onEnterFrame
 	createjs.Ticker.timingMode = createjs.Ticker.TIMEOUT;

@@ -21,7 +21,7 @@
       },
       timelimit: null,
       goals: [
-        { type: 'tube', current:0, aim: 'tube', count: 3, name: 'Faire un tube de {c}s ou +  ({n}s)' },
+        { type: 'timed', current:0, aim: null, count:40, name: 'Survivre !!!  ({n}s)' },
       ],
       player: {
 
@@ -77,8 +77,9 @@
         suction: {x: 5, y: 4},
         obstacles: [
               {name:'shaidhulud3' , tmin:0, tmax:0, interval:4000, intervalMax:12000, cont:'hover_cont' },
+              {name:'shaidhulud2', tmin:3000, tmax:0, interval:4000, intervalMax:5000, cont:'hover_cont' },
               {name:'bomb', tmin:1000, tmax:0, interval:4000, intervalMax:6000 },
-              {name:'beachtrooper', tmin:0, tmax:0, interval:1000, intervalMax:2000 },
+              {name: 'break', tmin:1000, tmax:0, interval:6000, intervalMax:12000, width:100, widthMax: 180, dist: 200, distMax:300 },
         ],
         shoulder : {
           width: 1000,

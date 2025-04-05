@@ -15,6 +15,7 @@
 
 		this.id = this.config.id;
 		this.name = this.config.name;
+    console.log(PLANETS, config.planet)
 		this.planet = PLANETS.find(p => p.id == config.planet);
 		this.level = this.config.level;
 

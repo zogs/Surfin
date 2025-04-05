@@ -7,7 +7,6 @@
       name: 'Flhoston entracte',
       planet: 'flhoston',
       story: [
-          { lines: ["Hey ceci est un entracte !"] },
           { lines: ["Aller au niveau suivant :"],
             buttons: [{name: "Niveau suivant", action: "gotoNextLevel" }],
           },

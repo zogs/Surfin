@@ -1,4 +1,4 @@
-FROM php:7.3-fpm
+FROM php:8.3-fpm
 
 RUN apt-get update && apt-get install -y \
         libfreetype6-dev \
@@ -18,8 +18,7 @@ RUN apt-get update && apt-get install -y \
     && docker-php-ext-install -j$(nproc) pgsql \
     && docker-php-ext-install -j$(nproc) pdo_pgsql \
     && docker-php-ext-install -j$(nproc) exif \
-    && docker-php-ext-configure zip \
-        --with-libzip
+    && docker-php-ext-configure zip
 
 RUN usermod -u 1000 www-data
 RUN chown -R www-data:www-data /var/www

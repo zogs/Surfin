@@ -16,7 +16,7 @@
       },
       timelimit: null,
       goals: [
-        { type: 'timed', current:0, aim: null, count:40, name: 'Survivre !!!  ({n}s)' },
+        { type: 'timed', current:0, aim: null, count:40, name: 'Survivre !!!  ({c}s)' },
       ],
       player: {
 

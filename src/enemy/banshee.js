@@ -53,7 +53,7 @@
       this.sprite.scale = 0.7;
       this.sprite.y = 20;
       this.sprite.gotoAndStop(0);
-      this.sprite.scaleX *= -this.direction;
+      this.sprite.scaleX *= this.direction;
       this.image_cont.addChild(this.sprite);
 
       this.flapping = setInterval(proxy(this.flapWings, this), 1500);
@@ -109,5 +109,98 @@
       this.off('tick', this.tickering);
       clearInterval(this.flapping);
   }
+
+}());
+
+(function() {
+
+    function BansheeRider(config = {}) {
+
+      config.name = 'bansheeRider';
+      config.img = 'banshee_rider';
+      config.meter_height = 1;
+      config.pixel_height = 512*rY;
+      config.speedX = 4;
+      config.amplitude = 0;
+      config.frequence = 0;
+      config.ymin = -config.wave.params.height*1/3;
+      config.ymax = -config.wave.params.height;
+      config.hp = 0;
+
+      this.FlyObstacle_constructor(config);
+
+      this.shotables = this.bonuses;
+      this.flapping = null;
+
+    }
+
+    BansheeRider.prototype = Object.create(FlyObstacle.prototype);
+    BansheeRider.prototype.constructor = BansheeRider;
+    window.BansheeRider = createjs.promote(BansheeRider, "FlyObstacle");
+
+    BansheeRider.prototype.drawImage = function() {
+      var sheet = new createjs.SpriteSheet({
+          images: [QUEUE.getResult(this.img)],
+          frames: {width:parseInt(512*rX), height:parseInt(512*rY), regX:parseInt(256*rX), regY:parseInt(256*rY)},
+          framerate: 20,
+          animations: {
+              fly: {
+                frames: [0],
+                next: 'fly',
+              },
+              die: {
+                frames: [0],
+                next: false,
+              },
+          }
+      });
+
+      this.sprite = new createjs.Sprite(sheet);
+      this.sprite.scale = 0.8;
+      this.sprite.y = 20;
+      this.sprite.gotoAndStop(0);
+      this.sprite.scaleX *= this.direction;
+      this.image_cont.addChild(this.sprite);
+
+    }
+
+    BansheeRider.prototype.drawBonus = function() {
+      var bonus = new createjs.Shape();
+        bonus.graphics.beginFill('green').drawCircle(0,0,80*rX*this.actualScale);
+        bonus.alpha = 0.5;
+        bonus.x = 50;
+        bonus.y = -30;
+        this.debug_cont.addChild(bonus);
+        this.bonuses.push(bonus);
+    }
+
+    BansheeRider.prototype.drawMalus = function() {
+
+      var malus = new createjs.Shape();
+        malus.graphics.beginFill('red').drawCircle(0,0,30*rX*this.actualScale);
+        malus.y = 0;
+        malus.x = 50;
+        malus.alpha = 0.5;
+        this.debug_cont.addChild(malus);
+        this.maluses.push(malus);
+    }
+
+    BansheeRider.prototype.malusHitted = function() {
+      this.active = false;
+      //this.sprite.gotoAndPlay('bite');
+    }
+
+    BansheeRider.prototype.die = function() {
+      this.active = false;
+      this.sprite.stop();
+      //this.sprite.gotoAndPlay('die');
+      this.sprite.on('animationend', (ev) => {
+        if(ev.name === 'die') {
+          createjs.Tween.get(this.sprite).to({alpha:0, y:-10}, 500).call(() => {
+            this.selfRemove();
+          });
+        }
+      });
+    }
 
 }());

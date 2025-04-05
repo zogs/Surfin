@@ -20,7 +20,7 @@
       //timelimit: 30,
       goals: [
         { type: 'tube', current:0, aim:null, count: 5, name: 'Faire un tube de {c}s ou +  ({n})' },
-        { type: 'catch', current:0, aim: 'star', count: 20, name: 'Collecter {c} étoiles  ({n})' },
+        { type: 'catch', current:0, aim: 'star', count: 10, name: 'Collecter {c} étoiles  ({n})' },
       ],
       player: {
 
@@ -69,9 +69,8 @@
         tube_difficulty_max : 10,
         suction: {x: 5, y: 4},
         obstacles: [
-              {name:'Stingbat', tmin:0, tmax:0, interval:3000, intervalMax:3000 },
-              {name:'Banshee', tmin:1000, tmax:0, interval:3000, intervalMax:6000 },
-              //{name:'star', tmin:0, tmax:0, interval:2000, intervalMax:2500 },
+              {name:'StingbatLine', tmin:0, tmax:0, interval:3000, intervalMax:3000 },
+              {name:'star', tmin:0, tmax:0, interval:2000, intervalMax:2500 },
         ],
         shoulder : {
           width: 1000,

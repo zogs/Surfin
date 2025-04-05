@@ -21,9 +21,9 @@
       },
       timelimit: null,
       goals: [
-        { type: 'catch', current:0, aim: 'spice', count: 5, name: "Attraper {c} fiole étrange  ({n})" },
-        { type: 'tube', current:0, aim: 'tube', count:1, name: 'Faire un tube de {c}s  ({n}s)' },
-        { type: 'catch', current:0, aim: 'beachtrooper', count: 10, name: "Faire tomber {c} touristes  ({n})" },
+        { type: 'catch', current:0, aim: 'spice', count: 1, name: "Attraper {c} fiole étrange  ({n})" },
+        { type: 'tube', current:0, aim: 'tube', count: 2, name: 'Faire un tube de {c}s  ({n}s)' },
+        { type: 'catch', current:0, aim: 'beachtrooper', count: 3, name: "Faire tomber {c} troopers  ({n})" },
       ],
       player: {
 
@@ -79,8 +79,6 @@
         suction: {x: 5, y: 4},
         obstacles: [
               {name: 'spice', tmin:500, tmax:0, interval:2000, intervalMax:6000, y: -100 },
-              {name: 'bomb', tmin:500, tmax:0, interval:2000, intervalMax:4000 },
-              {name: 'break', tmin:1000, tmax:0, interval:6000, intervalMax:12000, width:100, widthMax: 180, dist: 200, distMax:300 },
               {name: 'beachtrooper', tmin:0, tmax:0, interval:1000, intervalMax:4000 },
               //{name: 'shaidhulud', tmin:0, tmax:0, nbmax: 1, interval:1000, intervalMax:2000, cont:'hover_cont', xrange: 200, yrange:20 },
               //{name: 'shaidhulud2', tmin:0, tmax:0, interval:4000, intervalMax:5000, cont:'hover_cont' },

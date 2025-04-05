@@ -25,8 +25,8 @@
 
     this.amplitude = config.amplitude / 2 || 0;
     this.frequence = config.frequence || 1;
-    this.ymin = config.ymin || 50 + 50 * rY;
-    this.ymax = config.ymax || Math.random() * STAGEHEIGHT*1/3;
+    this.ymin = config.ymin || 0;
+    this.ymax = config.ymax || 0;
     this.ystart = this.ymin + Math.random() * (this.ymax - this.ymin);
 
     this.frameCount = 0;
@@ -399,7 +399,7 @@
       let x, y;
       if(this.wave) {
         x = this.wave.params.breaking_center + (200 - Math.random() * 400) ;
-        y = this.spot.planet.lines.break - this.wave.params.height - this.wave.params.height - this.ystart;
+        y = this.ystart;
         if(this.wave.direction === RIGHT) {
           x = this.wave.obstacle_cont.globalToLocal(STAGEWIDTH,0).x + this.config.size_x;;
           if(this.reverse) x = this.wave.obstacle_cont.globalToLocal(0,0).x;

@@ -21,8 +21,9 @@
       },
       timelimit: null,
       goals: [
-        { type: 'catch', current:0, aim: 'spice', count: 10, name: "Attraper {c} fioles de mélange !  ({n})" },
-        { type: 'tube', current:0, aim: 'tube', count: 3, name: 'Faire un tube de {c}s ou +  ({n}s)' },
+        { type: 'catch', current:0, aim: 'spice', count: 1, name: "Attraper {c} fioles de mélange !  ({n})" },
+        { type: 'tube', current:0, aim: 'tube', count: 10, name: 'Faire un tube de {c}s ou +  ({n}s)' },
+        { type: 'timed', current:0, aim: 'time', count: 30, name: 'Terminer en {c} secondes  ({n}s)' },
       ],
       player: {
 
@@ -78,10 +79,9 @@
         suction: {x: 5, y: 4},
         obstacles: [
               {name:'spice', tmin:3000, tmax:0, interval:3000, intervalMax:7000, y:-100 },
-              {name:'bomb', tmin:1000, tmax:0, interval:4000, intervalMax:6000 },
-              {name:'shaidhulud' , tmin:0, tmax:0, nbmax: 1, interval:1000, intervalMax:2000, cont:'hover_cont', xrange: 150, yrange:20 },
               {name:'beachtrooper', tmin:0, tmax:0, interval:1000, intervalMax:2000 },
               {name:'paddletrooper', tmin:0, tmax:0, interval:1000, intervalMax:2000, y: 200 },
+              {name: 'break', tmin:1000, tmax:0, interval:6000, intervalMax:12000, width:100, widthMax: 180, dist: 200, distMax:300 },
         ],
         shoulder : {
           width: 1000,

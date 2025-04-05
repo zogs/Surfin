@@ -178,8 +178,8 @@
     sprite.y = STAGEHEIGHT - 100*rY;
     this.extra_cont.addChild(sprite);
     sprite.addEventListener('click', function(e) {
-      e.stopImmediatePropagation();
-      SCENE.loadLevel('Terre0');
+       e.stopImmediatePropagation();
+       SCENE.loadLevel('Flhoston0');
     });
   }
 

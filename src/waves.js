@@ -1084,7 +1084,7 @@ prototype.moveWave = function() {
 	if(this.automove !== false) return this.moveWaveAuto();
 
 	// get absolute surfer x position on the screen
-	let surfer_pos = this.cont.localToGlobal(this.surfer.x,0);
+	let surfer_pos = this.surfer ? this.cont.localToGlobal(this.surfer.x,0) : { x: STAGEWIDTH/2 };
 
 	// horizontal position the which the wave will be translate to a side of the screen
 	let delta = (STAGEWIDTH/2) - surfer_pos.x;
@@ -1323,7 +1323,7 @@ prototype.addObstacle = function(name, config) {
   if(conf.tmax && conf.tmax < this.clock) return;
   if(conf.nbmax && this.obsclaclesCount[id] !== undefined && this.obsclaclesCount[id] >= conf.nbmax) return;
 
-  console.log('addObstacle', name, config);
+  //console.log('addObstacle', name, config);
 
   // create Obstacle and add it
   //console.log('add obstacle '+id, this.obstacles);

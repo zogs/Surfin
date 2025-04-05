@@ -21,9 +21,9 @@
       },
       timelimit: null,
       goals: [
-        { type: 'catch', current:0, aim: 'star', count: 20, name: "Collecter {c} étoiles  ({n})" },
+        { type: 'catch', current:0, aim: 'star', count: 10, name: "Collecter {c} étoiles  ({n})" },
         { type: 'timed', current:0, aim: 'time', count: 60, name: 'Terminer en {c} secondes  ({n}s)' },
-        { type: 'catch', current:0, aim: 'beachtrooper', count: 10, name: "Faire tomber {c} touristes  ({n})" },
+        { type: 'catch', current:0, aim: 'beachtrooper', count: 3, name: "Faire tomber {c} troopers  ({n})" },
       ],
       player: {
 
@@ -80,8 +80,6 @@
         obstacles: [
               { name: 'star', tmin:1000, tmax:0, interval:2000, intervalMax:4000, y:-100 },
               { name: 'star', tmin:0, tmax:0, interval:1000, intervalMax:2000, y: 200 },
-              { name: 'bomb', tmin:0, tmax:0, interval:2000, intervalMax:8000 },
-              { name: 'shaidhulud2', tmin:3000, tmax:0, interval:4000, intervalMax:5000, cont:'hover_cont' },
               { name: 'beachtrooper', tmin:0, tmax:0, interval:1000, intervalMax:5000 },
         ],
         shoulder : {

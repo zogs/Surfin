@@ -7,10 +7,10 @@
       name: 'Flhoston-intro',
       planet: 'flhoston',
       story: [
-          //{ lines: ["Vous arrivez sur la planète Flhoston Paradize,","destination paradiziaque des habitants fortunés de la galaxie."] },
-          //{ lines: ["Les spots sont nombreux et vous garez l'astrovan près de l'un deux,","à l'écart du flot de touriste.", "Il est temps de se mettre à l'eau !"],
-          //  buttons: [{name: "Allez à l'eau", action: "continueStory" }],
-          //},
+          { lines: ["Vous arrivez sur la planète Flhoston Paradize,","destination paradisiaque des habitants fortunés de la galaxie."] },
+          { lines: ["Les spots sont nombreux et vous garez l'astrovan près de l'un deux,","à l'écart du flot de touriste.", "Il est temps de se mettre à l'eau !"],
+            buttons: [{name: "Allez à l'eau", action: "gotoNextLevel" }],
+          },
       ],
       init: {
         type: 'waiting',
@@ -24,7 +24,7 @@
         xshift: 0,
       },
       timelimit: null,
-      goals: false,
+      goals: [],
       player: false,
       player: {
 

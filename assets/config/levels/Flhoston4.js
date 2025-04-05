@@ -16,8 +16,8 @@
       },
       timelimit: null,
       goals: [
-        { type: 'catch', current:0, aim: 'star', count: 24, name: "Collecter {c} étoiles  ({n})" },
-        { type: 'catch', current:0, aim: 'beachtrooper', count: 3, name: "Faire tomber {c} touristes  ({n})" },
+        { type: 'catch', current:0, aim: 'star', count: 5, name: "Collecter {c} étoiles  ({n})" },
+        { type: 'catch', current:0, aim: 'beachtrooper', count: 3, name: "Faire tomber {c} troopers  ({n})" },
       ],
       player: {
 
@@ -74,7 +74,6 @@
         obstacles: [
           {name:'starline', tmin:3000, tmax:0, interval:6000, intervalMax:10000 },
           {name:'star', tmin:0, tmax:0, interval:2000, intervalMax:2500 },
-          {name:'bomb', tmin:0, tmax:0, interval:2000, intervalMax:4000 },
           {name:'beachtrooper', tmin:5000, tmax:0, interval:2000, intervalMax:4000, y:220},
         ],
         shoulder : {

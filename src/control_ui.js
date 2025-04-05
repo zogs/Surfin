@@ -57,7 +57,6 @@
     this.boost.mouseChildren = false;
     this.boost.alpha = 0;
     this.boost.on('mousedown', proxy(this.startBoost,this));
-    this.boost.on('pressup', proxy(this.stopBoost,this));
   }
 
   prototype.initJumpButton = function() {
@@ -82,7 +81,6 @@
     this.jump.mouseChildren = false;
     this.jump.alpha = 0;
     this.jump.on('mousedown', proxy(this.startJump,this));
-    this.jump.on('pressup', proxy(this.stopJump,this));
   }
 
   prototype.initShieldButton = function() {
@@ -106,7 +104,6 @@
     this.shield.mouseChildren = false;
     this.shield.alpha = 0;
     this.shield.on('mousedown', proxy(this.startShield,this));
-    this.shield.on('pressup', proxy(this.stopShield,this));
   }
 
   prototype.initFireButton = function() {
@@ -130,8 +127,7 @@
     this.fire.hold = false;
     this.fire.mouseChildren = false;
     this.fire.alpha = 0;
-    this.fire.on('mouseup', proxy(this.holdFireButton,this));
-    this.fire.on('pressup', proxy(this.cancelHoldFireButton,this));
+    this.fire.on('mousedown', proxy(this.holdFireButton,this));
   }
 
   prototype.holdFireButton = function() {
@@ -139,6 +135,7 @@
       this.fire.pressed = true;
       this.holdButtonTimer = new Timer(proxy(this.holdFireButtonSuccess, this), this.config.holdTime);
     }
+    window.Stage.on('stagemouseup', proxy(this.cancelHoldFireButton,this), null, true);
   }
 
   prototype.cancelHoldFireButton = function() {
@@ -239,6 +236,7 @@
     if(this.boost.pressed === true) return;
     this.spot.getWave().getSurfer().startBoost();
     this.boost.pressed = true;
+    window.Stage.on('stagemouseup', proxy(this.stopBoost,this), null, true);
   }
 
   prototype.stopBoost = function(e) {
@@ -257,6 +255,7 @@
     if(this.jump.pressed === true) return;
     this.spot.getWave().getSurfer().startJump();
     this.jump.pressed = true;
+    window.Stage.on('stagemouseup', proxy(this.stopJump,this), null, true);
   }
 
   prototype.stopJump = function(e) {
@@ -275,6 +274,7 @@
     if(this.shield.pressed === true) return;
     this.spot.getWave().getSurfer().shieldToggle();
     this.shield.pressed = true;
+    window.Stage.on('stagemouseup', proxy(this.stopShield,this), null, true);
   }
 
   prototype.stopShield = function(e) {

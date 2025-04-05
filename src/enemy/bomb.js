@@ -103,7 +103,6 @@
       this.config = config;
 
       const types = ['top', 'middle', 'bottom', 'top2', 'bottom2', 'topbottom', 'triple'];
-      console.log(this.defaultConfig);
       this.type = config.type ? config.type : types[Math.floor(Math.random()*(types.length+1))];
 
       this.Obstacle_constructor(config);

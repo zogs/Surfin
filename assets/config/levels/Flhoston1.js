@@ -21,7 +21,7 @@
       },
       timelimit: null,
       goals: [
-        { type: 'catch', current:0, count:10, aim: 'star', name: 'Collecter {c} étoiles  ({n})' },
+        { type: 'catch', current:0, count:3, aim: 'star', name: 'Collecter {c} étoiles  ({n})' },
       ],
       player: {
 

@@ -19,8 +19,7 @@
       },
       //timelimit: 30,
       goals: [
-        { type: 'tube', current:0, aim:null, count: 5, name: 'Faire un tube de {c}s ou +  ({n})' },
-        { type: 'catch', current:0, aim: 'star', count: 20, name: 'Collecter {c} étoiles  ({n})' },
+        { type: 'timed', current:0, aim: null, count:40, name: 'Survivre !!!  ({n}s)' },
       ],
       player: {
 

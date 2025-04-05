@@ -18,8 +18,7 @@
         xshift: 0,
       },
       goals: [
-        { type: 'score', current:0, aim:null, count: 2000, name: 'Faire un score de {c} points  ({n})' },
-        { type: 'tube', current:0, aim:null, count: 10, name: 'Faire un tube de {c}s ou +  ({n})' },
+        { type: 'timed', current:0, aim: null, count:40, name: 'Survivre !!!  ({n}s)' },
       ],
       player: {
 
